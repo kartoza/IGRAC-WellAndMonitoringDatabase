@@ -4,7 +4,6 @@ CREATE TABLE groundwater.CI_Telephone (
 	id serial PRIMARY KEY,
 	voice VARCHAR(50),
 	facsimile VARCHAR(50)
-
 );
 
 CREATE TABLE groundwater.CI_Address (
@@ -16,8 +15,6 @@ CREATE TABLE groundwater.CI_Address (
 	country VARCHAR(150),
 	electronicMailAddress VARCHAR(150)
 );
-
-CREATE TYPE groundwater.CI_OnLineFunctionTerm AS ENUM ('download', 'information', 'offlineAccess', 'order', 'search');
 
 CREATE TABLE groundwater.CI_OnlineResource (
 	id serial PRIMARY KEY,
@@ -38,8 +35,6 @@ CREATE TABLE groundwater.CI_Contact (
 	contactInstructions VARCHAR (255)
 );
 
-CREATE TYPE groundwater.CI_RoleTerm AS ENUM ('resourceProvide', 'custodian', 'owner', 'user', 'distributor', 'originator', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'author');
-
 CREATE TABLE groundwater.CI_ResponsibleParty (
 	id serial PRIMARY KEY,
 	individualName VARCHAR (255),
@@ -48,12 +43,6 @@ CREATE TABLE groundwater.CI_ResponsibleParty (
 	contactInfo int4 REFERENCES groundwater.CI_Contact(id) ON DELETE SET NULL,
 	role groundwater.CI_RoleTerm
 );
-
-CREATE TYPE groundwater.BoreholeDrillingMethodTerm AS ENUM ('auger', 'hand auger', 'air core', 'cable tool', 'diamond core', 'direct push', 'hydraulic rotary', 'RAB', 'RC', 'vibratory');
-
-CREATE TYPE groundwater.BoreholeStartPointTypeTerm AS ENUM ('natural ground surface', 'open pit floor or wall', 'underground', 'from pre-existing hole');
-
-CREATE TYPE groundwater.BoreholeInclinationTerm AS ENUM ('vertical', 'horizontal', 'inclined up', 'inclined down');
 
 CREATE TABLE groundwater.GM_Envelope (
 	id serial PRIMARY KEY,
