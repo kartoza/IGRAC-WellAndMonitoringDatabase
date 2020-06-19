@@ -17,7 +17,7 @@ CREATE TABLE groundwater.CI_Address (
 	electronicMailAddress VARCHAR(150)
 );
 
-CREATE TYPE CI_OnLineFunctionTerm AS ENUM ('download', 'information', 'offlineAccess', 'order', 'search');
+CREATE TYPE groundwater.CI_OnLineFunctionTerm AS ENUM ('download', 'information', 'offlineAccess', 'order', 'search');
 
 CREATE TABLE groundwater.CI_OnlineResource (
 	id serial PRIMARY KEY,
@@ -26,7 +26,7 @@ CREATE TABLE groundwater.CI_OnlineResource (
 	applicationProfile VARCHAR(250),
 	name VARCHAR(150),
 	description VARCHAR(255),
-	function CI_OnLineFunctionTerm
+	function groundwater.CI_OnLineFunctionTerm
 );
 
 CREATE TABLE groundwater.CI_Contact (
@@ -38,7 +38,7 @@ CREATE TABLE groundwater.CI_Contact (
 	contactInstructions VARCHAR (255)
 );
 
-CREATE TYPE CI_RoleTerm AS ENUM ('resourceProvide', 'custodian', 'owner', 'user', 'distributor', 'originator', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'author');
+CREATE TYPE groundwater.CI_RoleTerm AS ENUM ('resourceProvide', 'custodian', 'owner', 'user', 'distributor', 'originator', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'author');
 
 CREATE TABLE groundwater.CI_ResponsibleParty (
 	id serial PRIMARY KEY,
@@ -46,14 +46,14 @@ CREATE TABLE groundwater.CI_ResponsibleParty (
 	organisationName VARCHAR (255),
 	positionName VARCHAR (255),
 	contactInfo int4 REFERENCES groundwater.CI_Contact(id) ON DELETE SET NULL,
-	role CI_RoleTerm
+	role groundwater.CI_RoleTerm
 );
 
-CREATE TYPE BoreholeDrillingMethodTerm AS ENUM ('auger', 'hand auger', 'air core', 'cable tool', 'diamond core', 'direct push', 'hydraulic rotary', 'RAB', 'RC', 'vibratory');
+CREATE TYPE groundwater.BoreholeDrillingMethodTerm AS ENUM ('auger', 'hand auger', 'air core', 'cable tool', 'diamond core', 'direct push', 'hydraulic rotary', 'RAB', 'RC', 'vibratory');
 
-CREATE TYPE BoreholeStartPointTypeTerm AS ENUM ('natural ground surface', 'open pit floor or wall', 'underground', 'from pre-existing hole');
+CREATE TYPE groundwater.BoreholeStartPointTypeTerm AS ENUM ('natural ground surface', 'open pit floor or wall', 'underground', 'from pre-existing hole');
 
-CREATE TYPE BoreholeInclinationTerm AS ENUM ('vertical', 'horizontal', 'inclined up', 'inclined down');
+CREATE TYPE groundwater.BoreholeInclinationTerm AS ENUM ('vertical', 'horizontal', 'inclined up', 'inclined down');
 
 CREATE TABLE groundwater.GM_Envelope (
 	id serial PRIMARY KEY,
@@ -64,12 +64,11 @@ CREATE TABLE groundwater.GM_Envelope (
 CREATE TABLE groundwater.borehole (
 	id serial PRIMARY KEY,
 	bholeDateOfDrilling DATE,
-	bholeDrillingMethod BoreholeDrillingMethodTerm,
-	bholeInclinationType BoreholeInclinationTerm,
+	bholeInclinationType groundwater.BoreholeInclinationTerm,
 	bholeMaterialCustodian int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON DELETE SET NULL,
 	bholeNominalDiameter float(8),
 	bholeOperator int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON DELETE SET NULL,
-	bholeStartPoint BoreholeStartPointTypeTerm
+	bholeStartPoint groundwater.BoreholeStartPointTypeTerm
 );
 
 CREATE TABLE groundwater.borehole_bholeCoreInterval (
@@ -80,6 +79,11 @@ CREATE TABLE groundwater.borehole_bholeCoreInterval (
 CREATE TABLE groundwater.borehole_bholeDriller (
 	borehole int4 REFERENCES groundwater.borehole(id) ON UPDATE CASCADE ON DELETE CASCADE,
 	bholeDriller int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE groundwater.borehole_bholeDrillingMethod (
+	borehole int4 REFERENCES groundwater.borehole(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	bholeDrillingMethod groundwater.BoreholeDrillingMethodTerm
 );
 
 CREATE TABLE groundwater.borecollar (
@@ -95,7 +99,6 @@ COMMENT ON SCHEMA groundwater IS 'GWML2 Schema.';
 COMMENT ON COLUMN groundwater.borehole.id IS 'Borehole ID.';
 COMMENT ON COLUMN groundwater.borehole.bholeDateOfDrilling IS 'Date of drilling.';
 
-COMMENT ON COLUMN groundwater.borehole.bholeDrillingMethod IS 'Method of drilling.';
 COMMENT ON COLUMN groundwater.borehole.bholeInclinationType IS 'Type of borehole inclination, e.g. vertical or horizontal.';
 COMMENT ON COLUMN groundwater.borehole.bholeMaterialCustodian IS 'Method of drilling.';
 COMMENT ON COLUMN groundwater.borehole.bholeNominalDiameter IS 'Diameter of the borehole.';
