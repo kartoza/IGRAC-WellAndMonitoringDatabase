@@ -1,32 +1,35 @@
 CREATE SCHEMA groundwater;
 
-CREATE TYPE groundwater.CI_OnLineFunctionTerm AS ENUM ('download', 'information', 'offlineAccess', 'order', 'search');
+CREATE TABLE groundwater.Quantity (
+	id serial PRIMARY KEY,
+	unit VARCHAR (20),
+	value float(8)
+);
 
-CREATE TYPE groundwater.CI_RoleTerm AS ENUM ('resourceProvide', 'custodian', 'owner', 'user', 'distributor', 'originator', 'pointOfContact', 'principalInvestigator', 'processor', 'publisher', 'author');
-
-CREATE TYPE groundwater.BoreholeDrillingMethodTerm AS ENUM ('auger', 'hand auger', 'air core', 'cable tool', 'diamond core', 'direct push', 'hydraulic rotary', 'RAB', 'RC', 'vibratory');
-
-CREATE TYPE groundwater.BoreholeStartPointTypeTerm AS ENUM ('natural ground surface', 'open pit floor or wall', 'underground', 'from pre-existing hole');
-
-CREATE TYPE groundwater.BoreholeInclinationTerm AS ENUM ('vertical', 'horizontal', 'inclined up', 'inclined down');
-
-COMMENT ON TYPE groundwater.BoreholeInclinationTerm IS 'Type of borehole inclination, e.g. vertical or horizontal.';
-COMMENT ON TYPE groundwater.BoreholeDrillingMethodTerm IS 'Method of drilling., e.g. auger: http://en.wikipedia.org/wiki/Drilling_rig#Auger_drilling; air core: http://en.wikipedia.org/wiki/Drilling_rig#Air_core_drilling; cable tool: 	http://en.wikipedia.org/wiki/Drilling_rig#Cable_tool_drilling; diamond core: http://en.wikipedia.org/wiki/Drilling_rig#Diamond_core_drilling; direct push: http://en.wikipedia.org/wiki/Drilling_rig#Direct_Push_Rigs; hydraulic rotary: 	http://en.wikipedia.org/wiki/Drilling_rig#Hydraulic-rotary_drilling; RAB: http://en.wikipedia.org/wiki/Drilling_rig#Percussion_rotary_air_blast_drilling; RC: http://en.wikipedia.org/wiki/Drilling_rig#Reverse_circulation; vibratory: http://en.wikipedia.org/wiki/Drilling_rig#Sonic_%28Vibratory%29_Drilling';
+CREATE TABLE groundwater.CI_RoleTerm (
+	id serial PRIMARY KEY,
+	name VARCHAR (150)
+);
 
 CREATE TABLE groundwater.CI_Telephone (
 	id serial PRIMARY KEY,
-	voice VARCHAR(50),
-	facsimile VARCHAR(50)
+	voice VARCHAR (50),
+	facsimile VARCHAR (50)
 );
 
 CREATE TABLE groundwater.CI_Address (
 	id serial PRIMARY KEY,
-	deliveryPoint VARCHAR(50),
-	city VARCHAR(150),
-	administrativeArea VARCHAR(150),
-	postalCode VARCHAR(50),
-	country VARCHAR(150),
-	electronicMailAddress VARCHAR(150)
+	deliveryPoint VARCHAR (50),
+	city VARCHAR (150),
+	administrativeArea VARCHAR (150),
+	postalCode VARCHAR (50),
+	country VARCHAR (150),
+	electronicMailAddress VARCHAR (150)
+);
+
+CREATE TABLE groundwater.CI_OnLineFunctionTerm (
+	id serial PRIMARY KEY,
+	name VARCHAR (150)
 );
 
 CREATE TABLE groundwater.CI_OnlineResource (
@@ -35,8 +38,12 @@ CREATE TABLE groundwater.CI_OnlineResource (
 	protocol VARCHAR(150),
 	applicationProfile VARCHAR(250),
 	name VARCHAR(150),
-	description VARCHAR(255),
-	function groundwater.CI_OnLineFunctionTerm
+	description VARCHAR(255)
+);
+
+CREATE TABLE groundwater.CI_onlineresource_onlinefunctionterm (
+	ci_onlineresource int4 REFERENCES groundwater.CI_OnlineResource(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	function int4 REFERENCES groundwater.CI_OnLineFunctionTerm(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE groundwater.CI_Contact (
@@ -53,24 +60,50 @@ CREATE TABLE groundwater.CI_ResponsibleParty (
 	individualName VARCHAR (255),
 	organisationName VARCHAR (255),
 	positionName VARCHAR (255),
-	contactInfo int4 REFERENCES groundwater.CI_Contact(id) ON DELETE SET NULL,
-	role groundwater.CI_RoleTerm
+	contactInfo int4 REFERENCES groundwater.CI_Contact(id) ON DELETE SET NULL
+);
+
+CREATE TABLE groundwater.ci_responsibleparty_roleterm (
+	ci_responsibleparty int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	role int4 REFERENCES groundwater.CI_RoleTerm(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE groundwater.GM_Envelope (
 	id serial PRIMARY KEY,
-	upperCorner GEOMETRY,
-	lowerCorner GEOMETRY
+	upperCorner geometry(POINT,4326),
+	lowerCorner geometry(POINT,4326)
+);
+
+CREATE TABLE groundwater.BoreholeStartPointTypeTerm (
+	id serial PRIMARY KEY,
+	name VARCHAR (150)
+);
+
+CREATE TABLE groundwater.BoreholeInclinationTerm (
+	id serial PRIMARY KEY,
+	name VARCHAR (150)
 );
 
 CREATE TABLE groundwater.borehole (
 	id serial PRIMARY KEY,
 	bholeDateOfDrilling DATE,
-	bholeInclinationType groundwater.BoreholeInclinationTerm,
-	bholeMaterialCustodian int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON DELETE SET NULL,
-	bholeNominalDiameter float(8),
-	bholeOperator int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON DELETE SET NULL,
-	bholeStartPoint groundwater.BoreholeStartPointTypeTerm
+	bholeNominalDiameter int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL,
+	bholeOperator int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON DELETE SET NULL
+);
+
+CREATE TABLE groundwater.borehole_bholeMaterialCustodian (
+	borehole int4 REFERENCES groundwater.borehole(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	bholeMaterialCustodian int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE groundwater.borehole_bholeInclinationType (
+	borehole int4 REFERENCES groundwater.borehole(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	bholeInclinationType int4 REFERENCES groundwater.BoreholeInclinationTerm(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE groundwater.borehole_bholeStartPoint (
+	borehole int4 REFERENCES groundwater.borehole(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	bholeStartPoint int4 REFERENCES groundwater.BoreholeStartPointTypeTerm(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE groundwater.borehole_bholeCoreInterval (
@@ -83,9 +116,17 @@ CREATE TABLE groundwater.borehole_bholeDriller (
 	bholeDriller int4 REFERENCES groundwater.CI_ResponsibleParty(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+CREATE TABLE groundwater.BoreholeDrillingMethodTerm (
+	id serial PRIMARY KEY,
+	prefix VARCHAR (50),
+	p_name VARCHAR (50),
+	uri VARCHAR (255),
+	term_e VARCHAR (150)
+);
+
 CREATE TABLE groundwater.borehole_bholeDrillingMethod (
 	borehole int4 REFERENCES groundwater.borehole(id) ON UPDATE CASCADE ON DELETE CASCADE,
-	bholeDrillingMethod groundwater.BoreholeDrillingMethodTerm
+	bholeDrillingMethod int4 REFERENCES groundwater.BoreholeDrillingMethodTerm(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE groundwater.borecollar (
@@ -97,16 +138,66 @@ CREATE TABLE groundwater.borecollar (
   	bholeHeadworks int4 REFERENCES groundwater.borehole(id) ON DELETE CASCADE
 );
 
+CREATE TABLE groundwater.Log_Value (
+	id serial PRIMARY KEY,
+	fromDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL,
+	toDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL
+);
+
+CREATE TABLE groundwater.GW_GeologyLogCoverage (
+	id serial PRIMARY KEY
+);
+
+CREATE TABLE groundwater.gw_geologylogcoverage_logvalue (
+	gw_geologylogcoverage int4 REFERENCES groundwater.GW_GeologyLogCoverage(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	value int4 REFERENCES groundwater.Log_Value(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE groundwater.GW_GeologyLog (
+	id serial PRIMARY KEY,
+	phenomenonTime timestamp,
+	resultTime timestamp,
+	parameter  VARCHAR (150),
+	resultQuality int4 REFERENCES groundwater.GW_GeologyLogCoverage(id) ON DELETE SET NULL,
+	startDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL,
+	endDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL
+);
+
+CREATE TABLE groundwater.gw_geologylog_geologylogcoverage (
+	gw_geologyLog int4 REFERENCES groundwater.GW_GeologyLog(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	result int4 REFERENCES groundwater.GW_GeologyLogCoverage(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE groundwater.GW_HydrogeoUnit (
+	id serial PRIMARY KEY
+);
+
+CREATE TABLE groundwater.GW_Well (
+	id serial PRIMARY KEY,
+	gwWellName VARCHAR(50),
+	gwWellLocation geometry(POINT, 4326),
+	gwWellContributionZone geometry(Polygon, 4326)
+);
+
+CREATE TABLE groundwater.gw_well_geology (
+	gw_well int4 REFERENCES groundwater.GW_Well(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	gwWellGeology int4 REFERENCES groundwater.GW_GeologyLog(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE groundwater.gw_well_hydrogeounit (
+	gw_well int4 REFERENCES groundwater.GW_Well(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	gwWellGeology int4 REFERENCES groundwater.GW_HydrogeoUnit(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
 COMMENT ON SCHEMA groundwater IS 'GWML2 Schema.';
 COMMENT ON COLUMN groundwater.borehole.id IS 'Borehole ID.';
 COMMENT ON COLUMN groundwater.borehole.bholeDateOfDrilling IS 'Date of drilling.';
 
-COMMENT ON COLUMN groundwater.borehole.bholeInclinationType IS 'Type of borehole inclination, e.g. vertical or horizontal.';
-COMMENT ON COLUMN groundwater.borehole.bholeMaterialCustodian IS 'Method of drilling.';
+COMMENT ON TABLE groundwater.borehole_bholeInclinationType IS 'Type of borehole inclination, e.g. vertical or horizontal.';
+COMMENT ON TABLE groundwater.borehole_bholeMaterialCustodian IS 'The custodian of the drill core or samples recovered from the borehole.';
 COMMENT ON COLUMN groundwater.borehole.bholeNominalDiameter IS 'Diameter of the borehole.';
 COMMENT ON COLUMN groundwater.borehole.bholeOperator IS 'Organisation responsible for commissioning the borehole (as opposed to drilling the borehole).';
-COMMENT ON COLUMN groundwater.borehole.bholeStartPoint IS 'Describes the location of the start of the borehole, e.g. ground surface.';
-
+COMMENT ON TABLE groundwater.borehole_bholeStartPoint IS 'Describes the location of the start of the borehole, e.g. ground surface.';
 
 COMMENT ON COLUMN groundwater.borecollar.id IS 'Borecollar ID.';
 COMMENT ON COLUMN groundwater.borecollar.collarElevation IS 'The elevation of the bore collar with CRS and UOM.';
