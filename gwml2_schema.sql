@@ -1,44 +1,46 @@
 CREATE SCHEMA groundwater;
 
+
+begin;
 CREATE TABLE groundwater.Quantity (
 	id serial PRIMARY KEY,
-	unit VARCHAR (20),
+	unit TEXT,
 	value float(8)
 );
 
 CREATE TABLE groundwater.CI_RoleTerm (
 	id serial PRIMARY KEY,
-	name VARCHAR (150)
+	name TEXT
 );
 
 CREATE TABLE groundwater.CI_Telephone (
 	id serial PRIMARY KEY,
-	voice VARCHAR (50),
-	facsimile VARCHAR (50)
+	voice TEXT,
+	facsimile TEXT
 );
 
 CREATE TABLE groundwater.CI_Address (
 	id serial PRIMARY KEY,
-	deliveryPoint VARCHAR (50),
-	city VARCHAR (150),
-	administrativeArea VARCHAR (150),
-	postalCode VARCHAR (50),
-	country VARCHAR (150),
-	electronicMailAddress VARCHAR (150)
+	deliveryPoint TEXT,
+	city TEXT,
+	administrativeArea TEXT,
+	postalCode TEXT,
+	country TEXT,
+	electronicMailAddress TEXT
 );
 
 CREATE TABLE groundwater.CI_OnLineFunctionTerm (
 	id serial PRIMARY KEY,
-	name VARCHAR (150)
+	name TEXT
 );
 
 CREATE TABLE groundwater.CI_OnlineResource (
 	id serial PRIMARY KEY,
-	linkage VARCHAR(150),
-	protocol VARCHAR(150),
-	applicationProfile VARCHAR(250),
-	name VARCHAR(150),
-	description text
+	linkage TEXT,
+	protocol TEXT,
+	applicationProfile TEXT,
+	name TEXT,
+	description TEXT
 );
 
 CREATE TABLE groundwater.CI_onlineresource_onlinefunctionterm (
@@ -51,15 +53,15 @@ CREATE TABLE groundwater.CI_Contact (
 	phone int4 REFERENCES groundwater.CI_Telephone(id) ON DELETE SET NULL,
 	address int4 REFERENCES groundwater.CI_Address(id) ON DELETE SET NULL,
 	onlineResource int4 REFERENCES groundwater.CI_OnlineResource(id) ON DELETE SET NULL,
-	hoursOfService VARCHAR (100),
-	contactInstructions text
+	hoursOfService TEXT,
+	contactInstructions TEXT
 );
 
 CREATE TABLE groundwater.CI_ResponsibleParty (
 	id serial PRIMARY KEY,
-	individualName VARCHAR (255),
-	organisationName VARCHAR (255),
-	positionName VARCHAR (255),
+	individualName TEXT,
+	organisationName TEXT,
+	positionName TEXT,
 	contactInfo int4 REFERENCES groundwater.CI_Contact(id) ON DELETE SET NULL
 );
 
@@ -76,12 +78,12 @@ CREATE TABLE groundwater.GM_Envelope (
 
 CREATE TABLE groundwater.BoreholeStartPointTypeTerm (
 	id serial PRIMARY KEY,
-	name VARCHAR (150)
+	name TEXT
 );
 
 CREATE TABLE groundwater.BoreholeInclinationTerm (
 	id serial PRIMARY KEY,
-	name VARCHAR (150)
+	name TEXT
 );
 
 CREATE TABLE groundwater.borehole (
@@ -118,10 +120,10 @@ CREATE TABLE groundwater.borehole_bholeDriller (
 
 CREATE TABLE groundwater.BoreholeDrillingMethodTerm (
 	id serial PRIMARY KEY,
-	prefix VARCHAR (50),
-	p_name VARCHAR (50),
-	uri VARCHAR (255),
-	term_e VARCHAR (150)
+	prefix TEXT,
+	p_name TEXT,
+	uri TEXT,
+	term_e TEXT
 );
 
 CREATE TABLE groundwater.borehole_bholeDrillingMethod (
@@ -132,8 +134,8 @@ CREATE TABLE groundwater.borehole_bholeDrillingMethod (
 CREATE TABLE groundwater.borecollar (
   	id serial PRIMARY KEY,
   	collarElevation float(8),
-  	collarElevationType VARCHAR (255),
-  	collarHeadworkType VARCHAR (255),
+  	collarElevationType TEXT,
+  	collarHeadworkType TEXT,
   	collarLocation geometry(POINT,4326),
   	bholeHeadworks int4 REFERENCES groundwater.borehole(id) ON DELETE CASCADE
 );
@@ -157,7 +159,7 @@ CREATE TABLE groundwater.GW_GeologyLog (
 	id serial PRIMARY KEY,
 	phenomenonTime timestamp,
 	resultTime timestamp,
-	parameter  VARCHAR (150),
+	parameter  TEXT,
 	resultQuality int4 REFERENCES groundwater.GW_GeologyLogCoverage(id) ON DELETE SET NULL,
 	startDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL,
 	endDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL
@@ -170,37 +172,37 @@ CREATE TABLE groundwater.gw_geologylog_geologylogcoverage (
 
 CREATE TABLE groundwater.GW_HydrogeoUnit (
 	id serial PRIMARY KEY,
-	name text
+	name TEXT
 );
 
 CREATE TABLE groundwater.WaterWellUseTypeTerm (
 	id serial PRIMARY KEY,
-	name VARCHAR(200)
+	name TEXT
 );
 
 CREATE TABLE groundwater.WellStatusTypeTerm (
 	id serial PRIMARY KEY,
-	name VARCHAR(200)
+	name TEXT
 );
 
 CREATE TABLE groundwater.PositionalAccuracyType (
 	id serial PRIMARY KEY,
-	name text
+	name TEXT
 );
 
 CREATE TABLE groundwater.ElevationMeasurementType (
 	id serial PRIMARY KEY,
-	name text
+	name TEXT
 );
 
 CREATE TABLE groundwater.GW_FluidBody (
 	id serial PRIMARY KEY,
-	name text
+	name TEXT
 );
 
 CREATE TABLE groundwater.WellPurposeType (
 	id serial PRIMARY KEY,
-	name text
+	name TEXT
 );
 
 CREATE TABLE groundwater.Elevation (
@@ -220,7 +222,7 @@ CREATE TABLE groundwater.GW_Licence (
 
 CREATE TABLE groundwater.GW_Well (
 	id serial PRIMARY KEY,
-	gwWellName VARCHAR(50),
+	gwWellName TEXT,
 	gwWellLocation geometry(POINTZ, 4326),
 	gwWellContributionZone geometry(Polygon, 4326),
 	gwWellConstruction int4 REFERENCES groundwater.borehole(id) ON DELETE SET NULL,
@@ -285,3 +287,5 @@ COMMENT ON COLUMN groundwater.borecollar.collarElevation IS 'The elevation of th
 COMMENT ON COLUMN groundwater.borecollar.collarElevationType IS 'Type of reference elevation, defined as a feature, e.g. Top of Casing, Ground, etc.';
 COMMENT ON COLUMN groundwater.borecollar.collarHeadworkType IS 'Type of assembly bolted to the production casing to control the well, and to provide access and protection (e.g. from flooding, vandalism). Example: raised tube, covers, manhole, ''Gattick Cover'' flush, concrete ring, etc. (after Fretwell, et al., 2006).';
 COMMENT ON COLUMN groundwater.borecollar.collarLocation IS 'The geographical location of the collar.';
+
+end;
