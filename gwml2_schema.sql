@@ -160,6 +160,8 @@ CREATE TABLE groundwater.GW_GeologyLog (
 	phenomenonTime timestamp,
 	resultTime timestamp,
 	parameter  TEXT,
+	gw_level float(8),
+	reference text,
 	resultQuality int4 REFERENCES groundwater.GW_GeologyLogCoverage(id) ON DELETE SET NULL,
 	startDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL,
 	endDepth int4 REFERENCES groundwater.Quantity(id) ON DELETE SET NULL
@@ -226,7 +228,7 @@ CREATE TABLE groundwater.GW_Well (
 	gwWellLocation geometry(POINTZ, 4326),
 	gwWellContributionZone geometry(Polygon, 4326),
 	gwWellConstruction int4 REFERENCES groundwater.borehole(id) ON DELETE SET NULL,
-	gwWellTotalLength int4 REFERENCES groundwater.quantity(id) ON DELETE SET NULL,
+	gwWellTotalLength float(8),
 	gwWellStatus int4 REFERENCES groundwater.WellStatusTypeTerm(id) ON DELETE SET NULL,
 	gwWellStaticWaterDepth int4 REFERENCES groundwater.quantity(id) ON DELETE SET NULL,
 	gwWellYield int4 REFERENCES groundwater.GW_Yield(id) ON DELETE SET NULL
