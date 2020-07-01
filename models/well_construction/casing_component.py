@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from groundwater.models import GWTerm, Quantity
+from gwml2.models import GWTerm, Quantity
 
 
 class CasingMaterialTerm(GWTerm):

@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
-from groundwater.models import Quantity
-from groundwater.models.well import GWWell
+from gwml2.models import Quantity
+from gwml2.models.well import GWWell
 
 
 class GWGeologyLog(models.Model):

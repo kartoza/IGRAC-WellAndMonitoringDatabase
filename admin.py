@@ -1,5 +1,5 @@
 from django.contrib import admin
-from groundwater.models.well import GWWell, GWGeologyLog
+from gwml2.models.well import GWWell, GWGeologyLog
 
 
 class GWGeologyLogAdmin(admin.ModelAdmin):

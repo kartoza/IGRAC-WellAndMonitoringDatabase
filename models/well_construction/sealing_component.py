@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from groundwater.models import GWTerm
+from gwml2.models import GWTerm
 
 
 class SealingTypeTerm(GWTerm):

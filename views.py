@@ -6,7 +6,7 @@ from django.utils import dateparse
 from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 from .forms import CsvWellForm
-from groundwater.models.well import GWWell, GWGeologyLog
+from gwml2.models.well import GWWell, GWGeologyLog
 
 
 class CsvUploadView(FormView):

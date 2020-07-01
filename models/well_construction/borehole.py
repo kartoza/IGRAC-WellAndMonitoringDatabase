@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from groundwater.models import Quantity
+from gwml2.models import Quantity
 
 
 class Borehole(models.Model):

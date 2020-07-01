@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
-from groundwater.models.well_construction import Borehole
-from groundwater.models import GWTerm, Quantity
+from gwml2.models.well_construction import Borehole
+from gwml2.models import GWTerm, Quantity
 
 
 class WellStatusTypeTerm(GWTerm):
