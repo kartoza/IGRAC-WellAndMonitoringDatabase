@@ -1,18 +1,4 @@
-from django.contrib.gis.db import models
-
-
-class Quantity(models.Model):
-    """ Model to define quantity. """
-    unit = models.TextField(
-        null=True, blank=True)
-    value = models.FloatField(
-        null=True, blank=True)
-
-
-class GWTerm(models.Model):
-    """ Abstract model for Term """
-    name = models.CharField(max_length=256)
-    description = models.TextField()
-
-    class Meta:
-        abstract = True
+from gwml2.models.universal import GWTerm, Quantity
+from gwml2.models.fluid_body import *
+from gwml2.models.well import *
+from gwml2.models.well_construction import *
