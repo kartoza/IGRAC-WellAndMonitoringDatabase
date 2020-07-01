@@ -1,0 +1,5 @@
+from gwml2.models.well_construction.borehole import Borehole
+from gwml2.models.well_construction.casing_component import CasingComponent
+from gwml2.models.well_construction.construction_component import ConstructionComponent
+from gwml2.models.well_construction.filtration_component import FiltrationComponent
+from gwml2.models.well_construction.sealing_component import SealingComponent
