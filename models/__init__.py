@@ -1,4 +1,5 @@
 from gwml2.models.contact_information import *
+from gwml2.models.flow import *
 from gwml2.models.geometry import *
 from gwml2.models.universal import *
 from gwml2.models.observations_measurements import *

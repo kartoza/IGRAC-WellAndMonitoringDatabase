@@ -1,12 +1,5 @@
 from django.contrib.gis.db import models
-from gwml2.models.universal import GWTerm
-
-
-class EquipmentCharacteristicTerm(GWTerm):
-    """
-    General characteristics of the equipment.
-    """
-    pass
+from gwml2.models.universal import GWTerm, NamedValue
 
 
 class EquipmentTypeTerm(GWTerm):
@@ -22,7 +15,7 @@ class Equipment(models.Model):
     Equipment installed in a borehole (like a pump or any other device).
     """
     characteristics = models.ManyToManyField(
-        EquipmentCharacteristicTerm, null=True, blank=True,
+        NamedValue, null=True, blank=True,
         verbose_name='Characteristics',
         help_text="General characteristics of the equipment.")
     equipment_type = models.ForeignKey(
