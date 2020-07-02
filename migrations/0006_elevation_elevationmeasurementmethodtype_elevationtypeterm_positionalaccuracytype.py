@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('gwml2', '0004_casing_filtration_screen_wellconstruction'),
+        ('gwml2', '0005_auto_20200702_0810'),
     ]
 
     operations = [
