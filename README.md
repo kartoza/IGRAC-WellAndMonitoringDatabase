@@ -46,3 +46,7 @@ DATABASE_ROUTERS = ["gwml2.router.GWML2Router"]
 ```
 
 
+# Model diagram
+Here is model diagram of gwml2
+
+![Model diagram](https://raw.githubusercontent.com/kartoza/gwml2/master/model_diagram.png)
