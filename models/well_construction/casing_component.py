@@ -40,7 +40,7 @@ class CasingComponent(models.Model):
                   "steel, iron, concrete, wood, brick, plastic, teflon,"
                   "PVC, ABS, fibreglass, etc.")
     casing_coating = models.ForeignKey(
-        CasingMaterialTerm, null=True, blank=True,
+        CasingCoatingTerm, null=True, blank=True,
         related_name='casing_coating',
         on_delete=models.SET_NULL, verbose_name='casingCoating',
         help_text="Coating applied to the casing. E.g. galvanized,"
