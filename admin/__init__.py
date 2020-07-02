@@ -3,9 +3,12 @@ from gwml2.admin.universal import *
 from gwml2.admin.fluid_body.gw_fluid_body import *
 from gwml2.admin.well.gw_well import *
 from gwml2.admin.well.gw_geology_log import *
+from gwml2.admin.well_construction.casing import *
 from gwml2.admin.well_construction.casing_component import *
 from gwml2.admin.well_construction.construction_component import *
+from gwml2.admin.well_construction.filtration import *
 from gwml2.admin.well_construction.filtration_component import *
 from gwml2.admin.well_construction.screen_component import *
 from gwml2.admin.well_construction.sealing import *
 from gwml2.admin.well_construction.sealing_component import *
+from gwml2.admin.well_construction.well_construction import *
