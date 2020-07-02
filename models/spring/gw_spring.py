@@ -38,7 +38,7 @@ class GWSpring(models.Model):
         help_text="Geometry / position of the spring."
     )
     gw_spring_reference_elevation = models.ManyToManyField(
-        Elevation, null=True, blank=True,
+        Elevation, null=False, blank=False,
         verbose_name="gwSpringReferenceElevation",
         help_text="Description of the accuracy of the elevation measurement.")
     gw_spring_type = models.ForeignKey(

@@ -49,6 +49,7 @@ class Elevation(models.Model):
 
     """
 
+    # TODO we need to ask details about the elevation whether it's actually just a point or 3D point.
     elevation = models.PointField(
         null=False, blank=False, verbose_name="elevation",
         help_text="Numeric value, coordinate reference system (CRS), "
