@@ -33,3 +33,6 @@ class SealingComponent(models.Model):
         SealingTypeTerm, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name='sealingType',
         help_text="Type of sealing. E.g. annular sealing, plugging, etc.")
+
+    def __str__(self):
+        return '{} - {}'.format(self.sealing_material, self.sealing_type)

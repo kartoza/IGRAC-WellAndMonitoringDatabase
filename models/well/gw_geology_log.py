@@ -34,3 +34,6 @@ class GWGeologyLog(models.Model):
         GWWell,
         null=True, blank=True, verbose_name="gwWell",
         on_delete=models.SET_NULL)  # many to one to GWWell
+
+    def __str__(self):
+        return self.gw_well
