@@ -1,3 +1,5 @@
+from gwml2.admin.contact_information import *
+from gwml2.admin.geometry import *
 from gwml2.admin.observations_measurements import *
 from gwml2.admin.universal import *
 from gwml2.admin.fluid_body.gw_fluid_body import *
