@@ -11,6 +11,9 @@ class GWMetadata(models.Model):
         null=False, blank=False, verbose_name="GW_Metadata"
     )
 
+    def __str__(self):
+        return self.text
+
 
 class BodyQualityType(GWTerm):
     """
@@ -29,7 +32,8 @@ class VulnerabilityType(GWTerm):
 class GWVulnerability(models.Model):
     """
     7.6.36 GW_Vulnerability
-    The susceptibility of a feature to specific threats such as various physical events (earthquakes),
+    The susceptibility of a feature to specific
+    threats such as various physical events (earthquakes),
     human processes (depletion), etc.
     """
 
@@ -42,16 +46,22 @@ class GWVulnerability(models.Model):
         Quantity, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="gwVulnerability",
         help_text="A quantitative estimate of the susceptibility to contamination, "
-                  "e.g. a DRASTIC value. Should be accompanied by metadata about the method of calculation.",
+                  "e.g. a DRASTIC value. "
+                  "Should be accompanied by metadata about the method of calculation.",
         related_name='gw_vulnerability'
     )
+
+    def __str__(self):
+        return '{} - {}'.format(self.gw_vulnerability_type, self.gw_vulnerability)
 
 
 class GWFluidBody(models.Model):
     """
     7.6.18 GW_FluidBody
-    A distinct body of some fluid (liquid, gas) that fills the voids of a container such as an aquifer,
-    system of aquifers, water well, etc. In hydrogeology this body is usually constituted by groundwater,
+    A distinct body of some fluid (liquid, gas) that fills
+    the voids of a container such as an aquifer,
+    system of aquifers, water well, etc.
+    In hydrogeology this body is usually constituted by groundwater,
     but the model allows for other types of fillers e.g. petroleum.
     """
 
@@ -94,3 +104,6 @@ class GWFluidBody(models.Model):
         verbose_name='gwBodyVulnerability',
         help_text='The susceptibility of the fluid body to specific threats such as surface contamination, etc.'
     )
+
+    def __str__(self):
+        return self.gw_body_description

@@ -22,3 +22,6 @@ class ConstructionComponent(models.Model):
         db_column='to',
         help_text="Position of the bottom "
                   "(farthest to the borehole start) of the component.")
+
+    def __str__(self):
+        return '{} - {}'.format(self.from_component, self.to_component)

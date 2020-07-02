@@ -36,6 +36,9 @@ class GWLicence(models.Model):
         help_text='The period of time for which the licence is valid.'
     )
 
+    def __str__(self):
+        return self.gw_licence_id
+
 
 class GWWell(models.Model):
     """
@@ -88,3 +91,6 @@ class GWWell(models.Model):
         help_text="Constructed depth of the well.",
         related_name='gw_well_constructed_depth'
     )
+
+    def __str__(self):
+        return '{} - {}'.format(self.gw_well_name, self.gw_well_licence)
