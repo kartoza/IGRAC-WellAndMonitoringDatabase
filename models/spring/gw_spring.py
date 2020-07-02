@@ -69,7 +69,7 @@ class GWSpring(models.Model):
 
     gw_spring_body = models.ManyToManyField(
         GWFluidBody, null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name="gwSpringBody",
+        verbose_name="gwSpringBody",
         help_text="The fluid body being depleted by the spring.")
 
     gw_spring_construction = models.TextField(
@@ -79,7 +79,7 @@ class GWSpring(models.Model):
 
     gw_spring_licence = models.ManyToManyField(
         GWLicence, null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name="gwSpringLicence",
+        verbose_name="gwSpringLicence",
         help_text="Any licence relating to the spring.")
 
     def __str__(self):
