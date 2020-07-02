@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 from gwml2.models.universal import GWTerm, Quantity
 from gwml2.models.contact_information import CIResponsibleParty
 from gwml2.models.geometry import GMEnvelope
+from gwml2.models.well_construction.equipment import Equipment
 
 
 class BoreholeDrillingMethodTerm(GWTerm):
@@ -84,6 +85,11 @@ class Borehole(models.Model):
         verbose_name="bholeStartPoint",
         help_text="Describes the location of the start of the"
                   "borehole, e.g. ground surface.")
+
+    installed_equipment = models.ManyToManyField(
+        Equipment, null=True, blank=True,
+        verbose_name='installedEquipment',
+        help_text="Relation designating the equipment installed in a borehole.")
 
     def __str__(self):
         return self.name
