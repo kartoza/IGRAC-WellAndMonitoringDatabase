@@ -3,6 +3,7 @@ from gwml2.admin.geometry import *
 from gwml2.admin.observations_measurements import *
 from gwml2.admin.universal import *
 from gwml2.admin.fluid_body.gw_fluid_body import *
+from gwml2.admin.spring.gw_spring import *
 from gwml2.admin.well.gw_well import *
 from gwml2.admin.well.gw_geology_log import *
 from gwml2.admin.well_construction.casing import *
