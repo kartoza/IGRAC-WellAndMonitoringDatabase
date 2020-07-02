@@ -66,3 +66,6 @@ class CasingComponent(models.Model):
         related_name='casing_wall_thickness',
         on_delete=models.SET_NULL, verbose_name='casingWallThickness',
         help_text="Thickness of the wall of the casing.")
+
+    def __str__(self):
+        return '{} - {} - {}'.format(self.casing_material, self.casing_coating, self.casing_form)
