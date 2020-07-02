@@ -66,3 +66,16 @@ class Elevation(models.Model):
         ElevationTypeTerm, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="elevationType",
         help_text="Type of reference elevation, defined as a feature, e.g. Top of Casing, Ground, etc.")
+
+
+class NamedValue(models.Model):
+    """
+    NamedValue stores arbitrary event-specific parameter.
+    """
+
+    name = models.TextField(null=True, blank=True)
+    value = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
