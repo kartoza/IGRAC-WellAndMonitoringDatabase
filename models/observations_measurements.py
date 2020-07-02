@@ -7,7 +7,7 @@ class OMProcess(models.Model):
     calculation of aquifer parameters
     """
     name = models.CharField(max_length=512)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name

@@ -5,8 +5,7 @@ class Quantity(models.Model):
     """ Model to define quantity. """
     value = models.FloatField(
         null=True, blank=True)
-    unit = models.CharField(
-        max_length=256,
+    unit = models.TextField(
         null=True, blank=True)
 
     def __str__(self):
@@ -15,7 +14,7 @@ class Quantity(models.Model):
 
 class GWTerm(models.Model):
     """ Abstract model for Term """
-    name = models.CharField(max_length=256)
+    name = models.TextField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
