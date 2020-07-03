@@ -10,6 +10,8 @@ class GWVulnerabilityAdmin(admin.ModelAdmin):
 
 class GWFluidBodyAdmin(admin.ModelAdmin):
     list_display = ('gw_body_description', 'gw_body_volume')
+    filter_horizontal = ('gw_body_metadata', 'gw_body_flow', 'gw_body_quality', 'gw_body_vulnerability',
+                         'gw_body_property', 'gw_body_surface', 'gw_body_constituent', 'gw_background_constituent',)
 
 
 admin.site.register(VulnerabilityType)
