@@ -1,4 +1,9 @@
 from django.contrib.gis.db import models
+from gwml2.models.flow.gw_flow import GWFlow
+from gwml2.models.fluid_body.gw_fluid_body_property import GWFluidBodyProperty
+from gwml2.models.fluid_body.gw_fluid_body_surface import GWFluidBodySurface
+from gwml2.models.fluid_body.gw_constituent import GWConstituent
+from gwml2.models.fluid_body.gw_mixture import GWMixtureConstituent
 from gwml2.models.universal import GWTerm, Quantity
 
 
@@ -75,13 +80,11 @@ class GWFluidBody(models.Model):
         help_text='Metadata for the unit.'
     )
 
-    # TODO: add this field when GW_FLow model is made
-    # gw_body_flow = models.ManyToManyField(
-    #     GWFlow, null=True, blank=True,
-    #     verbose_name='gwBodyFlow',
-    #     on_delete=models.SET_NULL,
-    #     help_text='Flows associated with the fluid body.'
-    # )
+    gw_body_flow = models.ManyToManyField(
+        GWFlow, null=True, blank=True,
+        verbose_name='gwBodyFlow',
+        help_text='Flows associated with the fluid body.'
+    )
 
     gw_body_quality = models.ManyToManyField(
         BodyQualityType, null=True, blank=True,
@@ -103,6 +106,32 @@ class GWFluidBody(models.Model):
         GWVulnerability, null=True, blank=True,
         verbose_name='gwBodyVulnerability',
         help_text='The susceptibility of the fluid body to specific threats such as surface contamination, etc.'
+    )
+    gw_part_of_body = models.ForeignKey(
+        "self", null=True, blank=True,
+        on_delete=models.SET_NULL,
+        help_text="Relates a void and a fluid body contained by.")
+    gw_body_property = models.ManyToManyField(
+        GWFluidBodyProperty, null=False, blank=False,
+        verbose_name='gwBodyProperty',
+        help_text='The property of fluid body.'
+    )
+    gw_body_surface = models.ManyToManyField(
+        GWFluidBodySurface, null=False, blank=False,
+        verbose_name='gwBodySurface',
+        help_text='Relates a fluid body to a surface hosted by the body, e.g. the top of the water table.'
+    )
+    gw_body_constituent = models.ManyToManyField(
+        GWMixtureConstituent, null=False, blank=False,
+        verbose_name='gwBodyConstituent',
+        help_text='Relates a fluid body to its chemical, biologic, or material constituents, '
+                  'and specifies the nature of the mixture of the constituent within the body, '
+                  'e.g. solution, suspension.'
+    )
+    gw_background_constituent = models.ManyToManyField(
+        GWConstituent, null=False, blank=False,
+        verbose_name='gwBackgroundConstituent',
+        help_text='Relates a fluid body to typical background constituent values for that body.'
     )
 
     def __str__(self):
