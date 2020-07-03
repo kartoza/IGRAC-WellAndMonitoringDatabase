@@ -7,6 +7,9 @@ class GWDischarge(models.Model):
     7.6.14 GW_Discharge
     An outflow of fluid from a container such as an aquifer, watershed, pipe
     """
+    # TODO:
+    #  Not sure what discharge data is
+    #  just add flow_rate because of definition
     flow_rate = models.ForeignKey(
         Quantity,
         on_delete=models.CASCADE,

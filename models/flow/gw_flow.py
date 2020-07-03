@@ -69,7 +69,7 @@ class GWFlow(models.Model):
         verbose_name="GWFlowVolumeRate",
         help_text="Measure of water quantity per time period with uom."
     )
-    gw_flow_persistence = models.OneToOneField(
+    gw_flow_persistence = models.ForeignKey(
         FlowPersistenceType, null=True, blank=True,
         on_delete=models.SET_NULL,
         verbose_name="gwFlowPersistence",
