@@ -14,6 +14,9 @@ from gwml2.admin.flow.gw_recharge import *
 
 from gwml2.admin.fluid_body.gw_fluid_body import *
 
+from gwml2.admin.hydrogeo_void.gl_earth_material import *
+from gwml2.admin.hydrogeo_void.gw_hydrogeo_void import *
+
 from gwml2.admin.hydrogeological_unit.gw_aquifer import *
 from gwml2.admin.hydrogeological_unit.gw_aquifer_system import *
 from gwml2.admin.hydrogeological_unit.gw_aquifer_unit import *

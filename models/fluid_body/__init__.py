@@ -3,4 +3,5 @@ from gwml2.models.fluid_body.gw_fluid_body import *
 from gwml2.models.fluid_body.gw_fluid_body_property import *
 from gwml2.models.fluid_body.gw_fluid_body_surface import *
 from gwml2.models.fluid_body.gw_mixture import *
+from gwml2.models.fluid_body.gw_unit_fluid_property import *
 from gwml2.models.fluid_body.gw_yield import *
