@@ -1,29 +1,11 @@
 from django.contrib.gis.db import models
 from gwml2.models.universal import GWTerm, Quantity
+from gwml2.models.fluid_body.gw_constitute_of import GWConstituteOf
 
 
 class StateType(GWTerm):
     """
     The physical state of the constituent, i.e. solid, liquid, or gas.
-
-    """
-
-    pass
-
-
-class ConstituentRelationType(GWTerm):
-    """
-    Specific type of relation between fluid body components,
-    e.g. coating, constitution, aggregation, containment.
-
-    """
-
-    pass
-
-
-class MechanismType(GWTerm):
-    """Mechanisms by which materials (of various states) come into a relationship,
-    e.g. sorption, precipitation, digestion, excretion, etc.
 
     """
 
@@ -46,27 +28,6 @@ class OrganismType(GWTerm):
     """Biological species."""
 
     pass
-
-
-class GWConstituentRelation(models.Model):
-    """
-    7.6.13 GW_ConstituentRelation
-    Relation between fluid body components, typically caused by a specific mechanism,
-    e.g. coating (from adsorption), constitution (from chemical bonding forming a new material),
-    aggregation (from physical bonding, e.g. pressure), containment (from absorption, digestion).
-
-    """
-
-    gw_constituent_relation_type = models.ForeignKey(
-        ConstituentRelationType, null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='gwConstituentRelationType',
-        help_text="Specific type of relation between fluid body components, "
-                  "e.g. coating, constitution, aggregation, containment.")
-    gw_constitution_relation_mechanism = models.ForeignKey(
-        MechanismType, null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='gwConstitutionRelationMechanism',
-        help_text="Mechanisms by which materials (of various states) come into a relationship, "
-                  "e.g. sorption, precipitation, digestion, excretion, etc.")
 
 
 class GWMaterialConstituent(models.Model):
@@ -137,13 +98,12 @@ class GWConstituent(models.Model):
         StateType, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name='gwState',
         help_text="The physical state of the constituent, i.e. solid, liquid, or gas.")
-    gw_constituent_relation = models.ManyToManyField(
-        GWConstituentRelation, null=True, blank=True,
-        verbose_name='GWConstituentRelation',
-        help_text='A general binary relation between constituents, '
-                  'in which the relation type can be specified in addition '
-                  'to the causal mechanism that caused the relationship.'
-    )
+    gw_constitute_of = models.ForeignKey(
+        GWConstituteOf, null=True, blank=True,
+        on_delete=models.SET_NULL, verbose_name='GWConstituteOf',
+        help_text="A general binary relation between constituents, "
+                  "in which the relation type can be specified in addition to the causal "
+                  "mechanism that caused the relationship.")
     gw_material_constituent = models.ForeignKey(
         GWMaterialConstituent, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name='GWMaterialConstituent',
