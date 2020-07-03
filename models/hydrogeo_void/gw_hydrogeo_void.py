@@ -1,9 +1,20 @@
 from django.contrib.gis.db import models
 from gwml2.models.hydrogeological_unit.gw_hydrogeo_unit import GWHydrogeoUnit
-from gwml2.models.hydrogeo_void.gl_earth_material import GLEarthMaterial
+from gwml2.models.hydrogeo_void.gl_earth_material import GLEarthMaterial, GWUnitVoidProperty
 from gwml2.models.fluid_body.gw_fluid_body import GWMetadata, GWFluidBody
 from gwml2.models.hydrogeological_unit.gw_porosity import PorosityTypeTerm
 from gwml2.models.universal import Quantity
+
+
+class GWVoidUnit(models.Model):
+    """Model to connect GW_HydrogeoUnit and GW_UnitVoidProperty"""
+
+    gw_hydrogeo_unit = models.ForeignKey(
+        GWHydrogeoUnit, null=False, blank=False,
+        on_delete=models.CASCADE, verbose_name='GWHydrogeoUnit')
+    gw_unit_void_property = models.ForeignKey(
+        GWUnitVoidProperty, null=False, blank=False,
+        on_delete=models.CASCADE, verbose_name='GWUnitVoidProperty')
 
 
 class GWHydrogeoVoid(models.Model):
@@ -28,8 +39,9 @@ class GWHydrogeoVoid(models.Model):
         help_text="The material that hosts the void, if specified. "
                   "Note voids can be hosted by a unit (an aquifer) or its material (e.g. sandstone)."
     )
-    gw_void_metadata = models.ManyToManyField(
+    gw_void_metadata = models.ForeignKey(
         GWMetadata, null=True, blank=True,
+        on_delete=models.SET_NULL,
         verbose_name='gwVoidMetadata',
         help_text='Metadata for the void.'
     )
@@ -55,7 +67,7 @@ class GWHydrogeoVoid(models.Model):
         help_text="Each void contains at most one fluid body, "
                   "which can have multiple parts that could be disconnected.")
     gw_void_unit = models.ManyToManyField(
-        GWHydrogeoUnit, null=True, blank=True,
+        GWVoidUnit, null=True, blank=True,
         verbose_name='gwVoidUnit',
         help_text="Relates hydrogeological units with a void hosted by the units.")
 
