@@ -79,3 +79,24 @@ class NamedValue(models.Model):
     def __str__(self):
         return self.name
 
+
+class DocumentCitation(models.Model):
+    """
+    7.6.1 DocumentCitation
+    The class DocumentCitation is abstract, and has no attributes, operations or associations.
+    It serves as a placeholder for legislative and reference documentation for a management
+    area. Legislative documentation refers to the legal instrument or document that required
+    the establishment of the management area. Reference documentation might describe the
+    environmental objectives and measures that are to be undertaken in the management area
+    to protect the environment (a reference to a management or action plan), licensing
+    information, and associated maps.
+    The 'Legislation References' and 'DocumentCitation' classes from the INSPIRE Generic
+    Conceptual Model are possible candidates for DocumentCitation.
+    """
+
+    name = models.TextField()
+    date = models.DateField(null=True, blank=True)
+    link = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
