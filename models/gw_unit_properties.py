@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from gwml2.models.universal import GWTerm, Quantity
+from gwml2.models.universal import GWTerm
 
 
 class UnitPropertyTerm(GWTerm):

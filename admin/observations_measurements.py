@@ -1,6 +1,5 @@
 from django.contrib import admin
 from gwml2.models.observations_measurements import OMProcess, OMObservation
-from gwml2.models.universal import NamedValue
 
 
 class OMObservationAdmin(admin.ModelAdmin):
@@ -13,4 +12,3 @@ class NamedValueAdmin(admin.ModelAdmin):
 
 admin.site.register(OMProcess)
 admin.site.register(OMObservation)
-admin.site.register(NamedValue)
