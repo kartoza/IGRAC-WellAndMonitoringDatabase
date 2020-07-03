@@ -50,3 +50,12 @@ DATABASE_ROUTERS = ["gwml2.router.GWML2Router"]
 Here is model diagram of gwml2
 
 ![Model diagram](https://raw.githubusercontent.com/kartoza/gwml2/master/model_diagram.png)
+
+
+# Generating the model diagram
+Here's a nifty way to do it using pycharm:
+1. Connect your database using pycharm, so it will appear on the database tab as below:
+<img width="595" alt="Screen Shot 2020-07-01 at 14 06 11" src="https://user-images.githubusercontent.com/26101337/86213546-0fa93700-bba4-11ea-84c1-6190073ce16a.png">
+2. Select your tables that you want to visualise then hit right click and click show visualisation
+<img width="604" alt="Screen Shot 2020-07-01 at 14 10 14" src="https://user-images.githubusercontent.com/26101337/86213974-bbeb1d80-bba4-11ea-82ae-2e8635737bda.png">
+3. Your diagrams will show on a separate tab.
