@@ -22,6 +22,8 @@ from gwml2.admin.hydrogeological_unit.gw_confining_bed import *
 from gwml2.admin.hydrogeological_unit.gw_hydrogeo_unit import *
 from gwml2.admin.hydrogeological_unit.gw_porosity import *
 
+from gwml2.admin.monitoring_site.gw_monitoring_site import *
+
 from gwml2.admin.well.gw_well import *
 from gwml2.admin.well.gw_geology_log import *
 from gwml2.admin.well_construction.casing import *
