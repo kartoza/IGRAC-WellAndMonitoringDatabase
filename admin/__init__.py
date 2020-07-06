@@ -12,7 +12,13 @@ from gwml2.admin.flow.gw_inter_flow import *
 from gwml2.admin.flow.gw_intra_flow import *
 from gwml2.admin.flow.gw_recharge import *
 
+from gwml2.admin.fluid_body.gw_constituent import *
 from gwml2.admin.fluid_body.gw_fluid_body import *
+from gwml2.admin.fluid_body.gw_fluid_body_property import *
+from gwml2.admin.fluid_body.gw_fluid_body_surface import *
+from gwml2.admin.fluid_body.gw_mixture import *
+from gwml2.admin.fluid_body.gw_unit_void_property import *
+from gwml2.admin.fluid_body.gw_yield import *
 
 from gwml2.admin.hydrogeo_void.gl_earth_material import *
 from gwml2.admin.hydrogeo_void.gw_hydrogeo_void import *

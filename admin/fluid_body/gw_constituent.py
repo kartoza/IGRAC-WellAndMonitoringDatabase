@@ -1,5 +1,6 @@
 from django.contrib import admin
 from gwml2.models.fluid_body.gw_constituent import *
+from gwml2.models.fluid_body.gw_constitute_of import *
 
 
 class GWConstituentRelationAdmin(admin.ModelAdmin):
