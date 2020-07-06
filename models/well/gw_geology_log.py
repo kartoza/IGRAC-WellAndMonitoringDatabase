@@ -58,4 +58,4 @@ class GWGeologyLog(models.Model):
         on_delete=models.SET_NULL)  # many to one to GWWell
 
     def __str__(self):
-        return self.gw_well
+        return self.gw_well.gw_well_name

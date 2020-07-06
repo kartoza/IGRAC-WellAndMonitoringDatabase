@@ -93,4 +93,4 @@ class GWWell(models.Model):
     )
 
     def __str__(self):
-        return '{} - {}'.format(self.gw_well_name, self.gw_well_licence)
+        return '{}'.format(self.gw_well_name)

@@ -7,6 +7,7 @@ from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 from .forms import CsvWellForm
 from gwml2.models.well import GWWell, GWGeologyLog
+from gwml2.models.universal import Quantity
 
 
 class CsvUploadView(FormView):
@@ -76,11 +77,17 @@ class CsvUploadView(FormView):
                         continue
 
                     point = Point(x=record[3], y=record[2], srid=4326)
-                    well = GWWell.objects.create(
-                        gwwellname=record[0],
-                        gwwelllocation=point,
-                        gwwelltotallength=record[1]
-                    )
+                    try:
+                        well = GWWell.objects.get(gw_well_name=record[0])
+                        well.gw_well_location = point
+                        well.gw_well_total_length = record[1]
+                        well.save()
+                    except GWWell.DoesNotExist:
+                        well = GWWell.objects.create(
+                            gw_well_name=record[0],
+                            gw_well_location=point,
+                            gw_well_total_length=record[1]
+                        )
 
             if gw_level_file:
                 gw_level_file.seek(0)
@@ -95,15 +102,21 @@ class CsvUploadView(FormView):
                         continue
 
                     try:
-                        well = GWWell.objects.get(gwwellname=record[3])
+                        well = GWWell.objects.get(gw_well_name=record[3])
                         time = dateparse.parse_datetime(record[0])
-                        well_level_log = GWGeologyLog.objects.create(
-                            phenomenonTime=time,
-                            resultTime=time,
-                            gw_level=record[2],
-                            reference=record[1]
+                        depth = Quantity.objects.create(
+                            value=record[2],
+                            unit='meter'
                         )
-                        well.gwwellgeology.add(well_level_log)
+                        well_level_log = GWGeologyLog.objects.create(
+                            phenomenon_time=time,
+                            result_time=time,
+                            gw_level=record[2],
+                            reference=record[1],
+                            gw_well=well,
+                            start_depth=depth,
+                            end_depth=depth
+                        )
                     except GWWell.DoesNotExist:
                         pass
                 pass
