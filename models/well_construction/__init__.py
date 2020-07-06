@@ -1,3 +1,4 @@
+from gwml2.models.well_construction.bore_collar import BoreCollar
 from gwml2.models.well_construction.borehole import Borehole
 from gwml2.models.well_construction.casing import Casing
 from gwml2.models.well_construction.casing_component import CasingComponent
