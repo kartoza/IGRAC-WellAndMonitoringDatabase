@@ -1,7 +1,7 @@
 from django.contrib import admin
 from gwml2.models.universal import (
     Quantity, PositionalAccuracyType, ElevationMeasurementMethodType,
-    ElevationTypeTerm, Elevation, DocumentCitation, NamedValue)
+    ElevationTypeTerm, Elevation, DocumentCitation, NamedValue, TemporalType)
 
 
 class QuantityAdmin(admin.ModelAdmin):
@@ -15,3 +15,4 @@ admin.site.register(ElevationTypeTerm)
 admin.site.register(Elevation)
 admin.site.register(DocumentCitation)
 admin.site.register(NamedValue)
+admin.site.register(TemporalType)

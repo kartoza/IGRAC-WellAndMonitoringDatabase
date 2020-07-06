@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from gwml2.models.flow.gw_recharge import GWRecharge
 from gwml2.models.flow.gw_discharge import GWDischarge
-from gwml2.models.universal import Quantity
+from gwml2.models.universal import Quantity, TemporalType
 
 
 class GWWaterBudget(models.Model):
@@ -18,8 +18,9 @@ class GWWaterBudget(models.Model):
                   "discharge, the sum is 0."
     )
 
-    gw_budget_valid_time = models.DateTimeField(
-        null=True, blank=True,
+    gw_budget_valid_time = models.ForeignKey(
+        TemporalType, null=True, blank=True,
+        on_delete=models.SET_NULL,
         verbose_name='GWBudgetValidTime',
         help_text='Valid time of this budget (e.g., 2010).'
     )

@@ -1,5 +1,5 @@
 from django.contrib.gis.db import models
-from gwml2.models.universal import GWTerm, Quantity
+from gwml2.models.universal import GWTerm, Quantity, TemporalType
 from gwml2.models.flow.gw_flow_system import GWFlowSystem
 
 
@@ -48,8 +48,9 @@ class GWFlow(models.Model):
                   "evapotranspiration, evaporation, transpiration, runoff, "
                   "baseflow, pumping, infiltration, injection, etc."
     )
-    gw_flow_time = models.TextField(
-        null=True, blank=True,
+    gw_flow_time = models.ForeignKey(
+        TemporalType, null=True, blank=True,
+        on_delete=models.SET_NULL,
         verbose_name="GWFlowTime",
         help_text="Refers to the duration, instant or interval of the flow "
                   "(actual time, not observation time). "

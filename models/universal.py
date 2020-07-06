@@ -100,3 +100,12 @@ class DocumentCitation(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class TemporalType(GWTerm):
+    """
+    Refers to the duration, instant or interval of the
+    flow (actual time, not observation time). E.g.
+    "yearly", "summer", "2009" or "2009-2011".
+    """
+    pass
