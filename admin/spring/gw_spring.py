@@ -1,8 +1,8 @@
 from django.contrib import admin
-from gwml2.models.spring.gw_spring import GWSpring, GWStringType, SpringCauseType, SpringPersistenceType
+from gwml2.models.spring.gw_spring import GWSpring, SpringType, SpringCauseType, SpringPersistenceType
 
 
 admin.site.register(GWSpring)
-admin.site.register(GWStringType)
+admin.site.register(SpringType)
 admin.site.register(SpringPersistenceType)
 admin.site.register(SpringCauseType)

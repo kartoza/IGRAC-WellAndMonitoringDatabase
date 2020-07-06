@@ -4,7 +4,7 @@ from gwml2.models.fluid_body.gw_fluid_body import GWFluidBody
 from gwml2.models.well.gw_well import GWLicence
 
 
-class GWStringType(GWTerm):
+class SpringType(GWTerm):
     """Type of spring e.g. mineral, thermal, saline, etc."""
 
     pass
@@ -42,7 +42,7 @@ class GWSpring(models.Model):
         verbose_name="gwSpringReferenceElevation",
         help_text="Description of the accuracy of the elevation measurement.")
     gw_spring_type = models.ForeignKey(
-        GWStringType, null=True, blank=True,
+        SpringType, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="gwSpringType",
         help_text="Type of spring e.g. mineral, thermal, saline, etc.")
     gw_spring_cause_type = models.ForeignKey(
