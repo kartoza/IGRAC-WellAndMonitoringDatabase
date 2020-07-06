@@ -1148,57 +1148,6 @@ create index if not exists gwml2_borehole_bhole_operator_id_9ede8b50
 create index if not exists gwml2_borehole_bhole_start_point_id_6239a4a0
 	on gwml2_borehole (bhole_start_point_id);
 
-create table if not exists gwml2_gwwell
-(
-	id serial not null
-		constraint gwml2_gwwell_pkey
-			primary key,
-	gw_well_name text not null,
-	gw_well_location geometry(Point,4326) not null,
-	gw_well_contribution_zone geometry(Geometry,4326),
-	gw_well_total_length double precision,
-	gw_well_constructed_depth_id integer
-		constraint gwml2_gwwell_gw_well_constructed_depth_id_key
-			unique
-		constraint gwml2_gwwell_gw_well_constructed__c45f26b1_fk_gwml2_qua
-			references gwml2_quantity
-				deferrable initially deferred,
-	gw_well_construction_id integer
-		constraint gwml2_gwwell_gw_well_construction_0c14cc72_fk_gwml2_bor
-			references gwml2_borehole
-				deferrable initially deferred,
-	gw_well_licence_id integer
-		constraint gwml2_gwwell_gw_well_licence_id_key
-			unique
-		constraint gwml2_gwwell_gw_well_licence_id_9879a016_fk_gwml2_gwlicence_id
-			references gwml2_gwlicence
-				deferrable initially deferred,
-	gw_well_static_water_depth_id integer
-		constraint gwml2_gwwell_gw_well_static_water_depth_id_key
-			unique
-		constraint gwml2_gwwell_gw_well_static_water_09ad2c8e_fk_gwml2_qua
-			references gwml2_quantity
-				deferrable initially deferred,
-	gw_well_status_id integer
-		constraint gwml2_gwwell_gw_well_status_id_e8797d9f_fk_gwml2_wel
-			references gwml2_wellstatustypeterm
-				deferrable initially deferred
-);
-
-alter table gwml2_gwwell owner to geonode;
-
-create index if not exists gwml2_gwwell_gw_well_location_id
-	on gwml2_gwwell (gw_well_location);
-
-create index if not exists gwml2_gwwell_gw_well_contribution_zone_id
-	on gwml2_gwwell (gw_well_contribution_zone);
-
-create index if not exists gwml2_gwwell_gw_well_construction_id_0c14cc72
-	on gwml2_gwwell (gw_well_construction_id);
-
-create index if not exists gwml2_gwwell_gw_well_status_id_e8797d9f
-	on gwml2_gwwell (gw_well_status_id);
-
 create table if not exists gwml2_ciresponsibleparty_role
 (
 	id serial not null
@@ -1396,48 +1345,6 @@ create table if not exists gwml2_tmperiod
 
 alter table gwml2_tmperiod owner to geonode;
 
-create table if not exists gwml2_gwgeologylog
-(
-	id serial not null
-		constraint gwml2_gwgeologylog_pkey
-			primary key,
-	phenomenon_time timestamp with time zone,
-	result_time timestamp with time zone,
-	gw_level double precision,
-	reference text,
-	end_depth_id integer
-		constraint gwml2_gwgeologylog_end_depth_id_c1477caa_fk_gwml2_quantity_id
-			references gwml2_quantity
-				deferrable initially deferred,
-	gw_well_id integer
-		constraint gwml2_gwgeologylog_gw_well_id_f666ee8f_fk_gwml2_gwwell_id
-			references gwml2_gwwell
-				deferrable initially deferred,
-	start_depth_id integer
-		constraint gwml2_gwgeologylog_start_depth_id_ac595dc7_fk_gwml2_quantity_id
-			references gwml2_quantity
-				deferrable initially deferred,
-	"resultQuality" text,
-	valid_time_id integer
-		constraint gwml2_gwgeologylog_valid_time_id_5787349a_fk_gwml2_tmperiod_id
-			references gwml2_tmperiod
-				deferrable initially deferred
-);
-
-alter table gwml2_gwgeologylog owner to geonode;
-
-create index if not exists gwml2_gwgeologylog_end_depth_id_c1477caa
-	on gwml2_gwgeologylog (end_depth_id);
-
-create index if not exists gwml2_gwgeologylog_gw_well_id_f666ee8f
-	on gwml2_gwgeologylog (gw_well_id);
-
-create index if not exists gwml2_gwgeologylog_start_depth_id_ac595dc7
-	on gwml2_gwgeologylog (start_depth_id);
-
-create index if not exists gwml2_gwgeologylog_valid_time_id_5787349a
-	on gwml2_gwgeologylog (valid_time_id);
-
 create table if not exists gwml2_omobservation
 (
 	id serial not null
@@ -1481,31 +1388,6 @@ create index if not exists gwml2_omobservation_parameter_omobservation_id_25ff6f
 
 create index if not exists gwml2_omobservation_parameter_namedvalue_id_eb77f766
 	on gwml2_omobservation_parameter (namedvalue_id);
-
-create table if not exists gwml2_gwgeologylog_parameter
-(
-	id serial not null
-		constraint gwml2_gwgeologylog_parameter_pkey
-			primary key,
-	gwgeologylog_id integer not null
-		constraint gwml2_gwgeologylog_p_gwgeologylog_id_92bfca87_fk_gwml2_gwg
-			references gwml2_gwgeologylog
-				deferrable initially deferred,
-	namedvalue_id integer not null
-		constraint gwml2_gwgeologylog_p_namedvalue_id_2a82cdcb_fk_gwml2_nam
-			references gwml2_namedvalue
-				deferrable initially deferred,
-	constraint gwml2_gwgeologylog_param_gwgeologylog_id_namedval_388fb1ed_uniq
-		unique (gwgeologylog_id, namedvalue_id)
-);
-
-alter table gwml2_gwgeologylog_parameter owner to geonode;
-
-create index if not exists gwml2_gwgeologylog_parameter_gwgeologylog_id_92bfca87
-	on gwml2_gwgeologylog_parameter (gwgeologylog_id);
-
-create index if not exists gwml2_gwgeologylog_parameter_namedvalue_id_2a82cdcb
-	on gwml2_gwgeologylog_parameter (namedvalue_id);
 
 create table if not exists gwml2_gwstringtype
 (
@@ -1801,49 +1683,6 @@ create index if not exists gwml2_gwflowsystem_gw_flow_path_id
 create index if not exists gwml2_gwflowsystem_gw_part_of_system_flow_id_9b18dbc3
 	on gwml2_gwflowsystem (gw_part_of_system_flow_id);
 
-create table if not exists gwml2_gwflow
-(
-	id serial not null
-		constraint gwml2_gwflow_pkey
-			primary key,
-	gw_flow_time text,
-	gw_flow_persistence_id integer
-		constraint gwml2_gwflow_gw_flow_persistence__26e55600_fk_gwml2_flo
-			references gwml2_flowpersistencetype
-				deferrable initially deferred,
-	gw_flow_process_id integer
-		constraint gwml2_gwflow_gw_flow_process_id_f3ba682a_fk_gwml2_wat
-			references gwml2_waterflowprocess
-				deferrable initially deferred,
-	gw_flow_system_id integer
-		constraint gwml2_gwflow_gw_flow_system_id_040cf9fa_fk_gwml2_gwf
-			references gwml2_gwflowsystem
-				deferrable initially deferred,
-	gw_flow_velocity_id integer
-		constraint gwml2_gwflow_gw_flow_velocity_id_key
-			unique
-		constraint gwml2_gwflow_gw_flow_velocity_id_cd9d1bae_fk_gwml2_quantity_id
-			references gwml2_quantity
-				deferrable initially deferred,
-	gw_flow_volume_rate_id integer
-		constraint gwml2_gwflow_gw_flow_volume_rate_id_key
-			unique
-		constraint gwml2_gwflow_gw_flow_volume_rate__a0141b3f_fk_gwml2_qua
-			references gwml2_quantity
-				deferrable initially deferred
-);
-
-alter table gwml2_gwflow owner to geonode;
-
-create index if not exists gwml2_gwflow_gw_flow_process_id_f3ba682a
-	on gwml2_gwflow (gw_flow_process_id);
-
-create index if not exists gwml2_gwflow_gw_flow_system_id_040cf9fa
-	on gwml2_gwflow (gw_flow_system_id);
-
-create index if not exists gwml2_gwflow_gw_flow_persistence_id_26e55600
-	on gwml2_gwflow (gw_flow_persistence_id);
-
 create table if not exists gwml2_aquifertypeterm
 (
 	id serial not null
@@ -1927,73 +1766,6 @@ create table if not exists gwml2_unitpropertyterm
 
 alter table gwml2_unitpropertyterm owner to geonode;
 
-create table if not exists gwml2_gwwaterbudget
-(
-	id serial not null
-		constraint gwml2_gwwaterbudget_pkey
-			primary key,
-	gw_budget_valid_time timestamp with time zone,
-	gw_budget_amount_id integer
-		constraint gwml2_gwwaterbudget_gw_budget_amount_id_c655e3a8_fk_gwml2_qua
-			references gwml2_quantity
-				deferrable initially deferred
-);
-
-alter table gwml2_gwwaterbudget owner to geonode;
-
-create index if not exists gwml2_gwwaterbudget_gw_budget_amount_id_c655e3a8
-	on gwml2_gwwaterbudget (gw_budget_amount_id);
-
-create table if not exists gwml2_gwwaterbudget_gw_budget_discharge
-(
-	id serial not null
-		constraint gwml2_gwwaterbudget_gw_budget_discharge_pkey
-			primary key,
-	gwwaterbudget_id integer not null
-		constraint gwml2_gwwaterbudget__gwwaterbudget_id_b362993d_fk_gwml2_gww
-			references gwml2_gwwaterbudget
-				deferrable initially deferred,
-	gwdischarge_id integer not null
-		constraint gwml2_gwwaterbudget__gwdischarge_id_be947e9d_fk_gwml2_gwd
-			references gwml2_gwdischarge
-				deferrable initially deferred,
-	constraint gwml2_gwwaterbudget_gw_b_gwwaterbudget_id_gwdisch_a9f3d02f_uniq
-		unique (gwwaterbudget_id, gwdischarge_id)
-);
-
-alter table gwml2_gwwaterbudget_gw_budget_discharge owner to geonode;
-
-create index if not exists gwml2_gwwaterbudget_gw_bud_gwwaterbudget_id_b362993d
-	on gwml2_gwwaterbudget_gw_budget_discharge (gwwaterbudget_id);
-
-create index if not exists gwml2_gwwaterbudget_gw_budget_discharge_gwdischarge_id_be947e9d
-	on gwml2_gwwaterbudget_gw_budget_discharge (gwdischarge_id);
-
-create table if not exists gwml2_gwwaterbudget_gw_budget_recharge
-(
-	id serial not null
-		constraint gwml2_gwwaterbudget_gw_budget_recharge_pkey
-			primary key,
-	gwwaterbudget_id integer not null
-		constraint gwml2_gwwaterbudget__gwwaterbudget_id_a990b1eb_fk_gwml2_gww
-			references gwml2_gwwaterbudget
-				deferrable initially deferred,
-	gwrecharge_id integer not null
-		constraint gwml2_gwwaterbudget__gwrecharge_id_3d18800b_fk_gwml2_gwr
-			references gwml2_gwrecharge
-				deferrable initially deferred,
-	constraint gwml2_gwwaterbudget_gw_b_gwwaterbudget_id_gwrecha_c8d58d77_uniq
-		unique (gwwaterbudget_id, gwrecharge_id)
-);
-
-alter table gwml2_gwwaterbudget_gw_budget_recharge owner to geonode;
-
-create index if not exists gwml2_gwwaterbudget_gw_bud_gwwaterbudget_id_a990b1eb
-	on gwml2_gwwaterbudget_gw_budget_recharge (gwwaterbudget_id);
-
-create index if not exists gwml2_gwwaterbudget_gw_budget_recharge_gwrecharge_id_3d18800b
-	on gwml2_gwwaterbudget_gw_budget_recharge (gwrecharge_id);
-
 create table if not exists gwml2_gwunitproperties
 (
 	id serial not null
@@ -2033,129 +1805,6 @@ create index if not exists gwml2_gwporosity_gw_porosity_id_0c1b8bb1
 
 create index if not exists gwml2_gwporosity_gw_porosity_type_id_b7a1acd6
 	on gwml2_gwporosity (gw_porosity_type_id);
-
-create table if not exists gwml2_gwhydrogeounit
-(
-	id serial not null
-		constraint gwml2_gwhydrogeounit_pkey
-			primary key,
-	gw_unit_media_id integer
-		constraint gwml2_gwhydrogeounit_gw_unit_media_id_690a8541_fk_gwml2_por
-			references gwml2_porositytypeterm
-				deferrable initially deferred,
-	gw_unit_water_budget_id integer
-		constraint gwml2_gwhydrogeounit_gw_unit_water_budget_d0764e3c_fk_gwml2_gww
-			references gwml2_gwwaterbudget
-				deferrable initially deferred
-);
-
-alter table gwml2_gwhydrogeounit owner to geonode;
-
-create index if not exists gwml2_gwhydrogeounit_gw_unit_media_id_690a8541
-	on gwml2_gwhydrogeounit (gw_unit_media_id);
-
-create index if not exists gwml2_gwhydrogeounit_gw_unit_water_budget_id_d0764e3c
-	on gwml2_gwhydrogeounit (gw_unit_water_budget_id);
-
-create table if not exists gwml2_gwhydrogeounit_gw_unit_discharge
-(
-	id serial not null
-		constraint gwml2_gwhydrogeounit_gw_unit_discharge_pkey
-			primary key,
-	gwhydrogeounit_id integer not null
-		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_9f0bb928_fk_gwml2_gwh
-			references gwml2_gwhydrogeounit
-				deferrable initially deferred,
-	gwdischarge_id integer not null
-		constraint gwml2_gwhydrogeounit_gwdischarge_id_bed0b609_fk_gwml2_gwd
-			references gwml2_gwdischarge
-				deferrable initially deferred,
-	constraint gwml2_gwhydrogeounit_gw__gwhydrogeounit_id_gwdisc_cec64a02_uniq
-		unique (gwhydrogeounit_id, gwdischarge_id)
-);
-
-alter table gwml2_gwhydrogeounit_gw_unit_discharge owner to geonode;
-
-create index if not exists gwml2_gwhydrogeounit_gw_un_gwhydrogeounit_id_9f0bb928
-	on gwml2_gwhydrogeounit_gw_unit_discharge (gwhydrogeounit_id);
-
-create index if not exists gwml2_gwhydrogeounit_gw_unit_discharge_gwdischarge_id_bed0b609
-	on gwml2_gwhydrogeounit_gw_unit_discharge (gwdischarge_id);
-
-create table if not exists gwml2_gwhydrogeounit_gw_unit_recharge
-(
-	id serial not null
-		constraint gwml2_gwhydrogeounit_gw_unit_recharge_pkey
-			primary key,
-	gwhydrogeounit_id integer not null
-		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_54d4c9a5_fk_gwml2_gwh
-			references gwml2_gwhydrogeounit
-				deferrable initially deferred,
-	gwrecharge_id integer not null
-		constraint gwml2_gwhydrogeounit_gwrecharge_id_d557cd72_fk_gwml2_gwr
-			references gwml2_gwrecharge
-				deferrable initially deferred,
-	constraint gwml2_gwhydrogeounit_gw__gwhydrogeounit_id_gwrech_5035369d_uniq
-		unique (gwhydrogeounit_id, gwrecharge_id)
-);
-
-alter table gwml2_gwhydrogeounit_gw_unit_recharge owner to geonode;
-
-create index if not exists gwml2_gwhydrogeounit_gw_un_gwhydrogeounit_id_54d4c9a5
-	on gwml2_gwhydrogeounit_gw_unit_recharge (gwhydrogeounit_id);
-
-create index if not exists gwml2_gwhydrogeounit_gw_unit_recharge_gwrecharge_id_d557cd72
-	on gwml2_gwhydrogeounit_gw_unit_recharge (gwrecharge_id);
-
-create table if not exists gwml2_gwhydrogeounit_gw_unit_vulnerability
-(
-	id serial not null
-		constraint gwml2_gwhydrogeounit_gw_unit_vulnerability_pkey
-			primary key,
-	gwhydrogeounit_id integer not null
-		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_349fcfaf_fk_gwml2_gwh
-			references gwml2_gwhydrogeounit
-				deferrable initially deferred,
-	gwvulnerability_id integer not null
-		constraint gwml2_gwhydrogeounit_gwvulnerability_id_8840a050_fk_gwml2_gwv
-			references gwml2_gwvulnerability
-				deferrable initially deferred,
-	constraint gwml2_gwhydrogeounit_gw__gwhydrogeounit_id_gwvuln_51f9d8f2_uniq
-		unique (gwhydrogeounit_id, gwvulnerability_id)
-);
-
-alter table gwml2_gwhydrogeounit_gw_unit_vulnerability owner to geonode;
-
-create index if not exists gwml2_gwhydrogeounit_gw_un_gwhydrogeounit_id_349fcfaf
-	on gwml2_gwhydrogeounit_gw_unit_vulnerability (gwhydrogeounit_id);
-
-create index if not exists gwml2_gwhydrogeounit_gw_un_gwvulnerability_id_8840a050
-	on gwml2_gwhydrogeounit_gw_unit_vulnerability (gwvulnerability_id);
-
-create table if not exists gwml2_gwhydrogeounit_properties
-(
-	id serial not null
-		constraint gwml2_gwhydrogeounit_properties_pkey
-			primary key,
-	gwhydrogeounit_id integer not null
-		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_97af89d1_fk_gwml2_gwh
-			references gwml2_gwhydrogeounit
-				deferrable initially deferred,
-	gwunitproperties_id integer not null
-		constraint gwml2_gwhydrogeounit_gwunitproperties_id_4e56f813_fk_gwml2_gwu
-			references gwml2_gwunitproperties
-				deferrable initially deferred,
-	constraint gwml2_gwhydrogeounit_pro_gwhydrogeounit_id_gwunit_efd045d5_uniq
-		unique (gwhydrogeounit_id, gwunitproperties_id)
-);
-
-alter table gwml2_gwhydrogeounit_properties owner to geonode;
-
-create index if not exists gwml2_gwhydrogeounit_properties_gwhydrogeounit_id_97af89d1
-	on gwml2_gwhydrogeounit_properties (gwhydrogeounit_id);
-
-create index if not exists gwml2_gwhydrogeounit_properties_gwunitproperties_id_4e56f813
-	on gwml2_gwhydrogeounit_properties (gwunitproperties_id);
 
 create table if not exists gwml2_gwdivide
 (
@@ -2478,31 +2127,6 @@ create table if not exists gwml2_surfacetype
 );
 
 alter table gwml2_surfacetype owner to geonode;
-
-create table if not exists gwml2_gwfluidbody_gw_body_flow
-(
-	id serial not null
-		constraint gwml2_gwfluidbody_gw_body_flow_pkey
-			primary key,
-	gwfluidbody_id integer not null
-		constraint gwml2_gwfluidbody_gw_gwfluidbody_id_c74c4027_fk_gwml2_gwf
-			references gwml2_gwfluidbody
-				deferrable initially deferred,
-	gwflow_id integer not null
-		constraint gwml2_gwfluidbody_gw_gwflow_id_550b6958_fk_gwml2_gwf
-			references gwml2_gwflow
-				deferrable initially deferred,
-	constraint gwml2_gwfluidbody_gw_bod_gwfluidbody_id_gwflow_id_017ed410_uniq
-		unique (gwfluidbody_id, gwflow_id)
-);
-
-alter table gwml2_gwfluidbody_gw_body_flow owner to geonode;
-
-create index if not exists gwml2_gwfluidbody_gw_body_flow_gwfluidbody_id_c74c4027
-	on gwml2_gwfluidbody_gw_body_flow (gwfluidbody_id);
-
-create index if not exists gwml2_gwfluidbody_gw_body_flow_gwflow_id_550b6958
-	on gwml2_gwfluidbody_gw_body_flow (gwflow_id);
 
 create table if not exists gwml2_gwmaterialconstituent
 (
@@ -2946,6 +2570,138 @@ create table if not exists gwml2_gwyield
 
 alter table gwml2_gwyield owner to geonode;
 
+create table if not exists gwml2_gwwell
+(
+	id serial not null
+		constraint gwml2_gwwell_pkey
+			primary key,
+	gw_well_name text not null,
+	gw_well_location geometry(Point,4326) not null,
+	gw_well_contribution_zone geometry(Geometry,4326),
+	gw_well_total_length double precision,
+	gw_well_constructed_depth_id integer
+		constraint gwml2_gwwell_gw_well_constructed_depth_id_key
+			unique
+		constraint gwml2_gwwell_gw_well_constructed__c45f26b1_fk_gwml2_qua
+			references gwml2_quantity
+				deferrable initially deferred,
+	gw_well_construction_id integer
+		constraint gwml2_gwwell_gw_well_construction_0c14cc72_fk_gwml2_bor
+			references gwml2_borehole
+				deferrable initially deferred,
+	gw_well_licence_id integer
+		constraint gwml2_gwwell_gw_well_licence_id_key
+			unique
+		constraint gwml2_gwwell_gw_well_licence_id_9879a016_fk_gwml2_gwlicence_id
+			references gwml2_gwlicence
+				deferrable initially deferred,
+	gw_well_static_water_depth_id integer
+		constraint gwml2_gwwell_gw_well_static_water_depth_id_key
+			unique
+		constraint gwml2_gwwell_gw_well_static_water_09ad2c8e_fk_gwml2_qua
+			references gwml2_quantity
+				deferrable initially deferred,
+	gw_well_status_id integer
+		constraint gwml2_gwwell_gw_well_status_id_e8797d9f_fk_gwml2_wel
+			references gwml2_wellstatustypeterm
+				deferrable initially deferred,
+	gw_well_body_id integer
+		constraint gwml2_gwwell_gw_well_body_id_9506b9f2_fk_gwml2_gwfluidbody_id
+			references gwml2_gwfluidbody
+				deferrable initially deferred,
+	gw_well_yield_id integer
+		constraint gwml2_gwwell_gw_well_yield_id_c54fedd7_fk_gwml2_gwyield_id
+			references gwml2_gwyield
+				deferrable initially deferred
+);
+
+alter table gwml2_gwwell owner to geonode;
+
+create index if not exists gwml2_gwwell_gw_well_location_id
+	on gwml2_gwwell (gw_well_location);
+
+create index if not exists gwml2_gwwell_gw_well_contribution_zone_id
+	on gwml2_gwwell (gw_well_contribution_zone);
+
+create index if not exists gwml2_gwwell_gw_well_construction_id_0c14cc72
+	on gwml2_gwwell (gw_well_construction_id);
+
+create index if not exists gwml2_gwwell_gw_well_status_id_e8797d9f
+	on gwml2_gwwell (gw_well_status_id);
+
+create index if not exists gwml2_gwwell_gw_well_body_id_9506b9f2
+	on gwml2_gwwell (gw_well_body_id);
+
+create index if not exists gwml2_gwwell_gw_well_yield_id_c54fedd7
+	on gwml2_gwwell (gw_well_yield_id);
+
+create table if not exists gwml2_gwgeologylog
+(
+	id serial not null
+		constraint gwml2_gwgeologylog_pkey
+			primary key,
+	phenomenon_time timestamp with time zone,
+	result_time timestamp with time zone,
+	gw_level double precision,
+	reference text,
+	end_depth_id integer
+		constraint gwml2_gwgeologylog_end_depth_id_c1477caa_fk_gwml2_quantity_id
+			references gwml2_quantity
+				deferrable initially deferred,
+	gw_well_id integer
+		constraint gwml2_gwgeologylog_gw_well_id_f666ee8f_fk_gwml2_gwwell_id
+			references gwml2_gwwell
+				deferrable initially deferred,
+	start_depth_id integer
+		constraint gwml2_gwgeologylog_start_depth_id_ac595dc7_fk_gwml2_quantity_id
+			references gwml2_quantity
+				deferrable initially deferred,
+	"resultQuality" text,
+	valid_time_id integer
+		constraint gwml2_gwgeologylog_valid_time_id_5787349a_fk_gwml2_tmperiod_id
+			references gwml2_tmperiod
+				deferrable initially deferred
+);
+
+alter table gwml2_gwgeologylog owner to geonode;
+
+create index if not exists gwml2_gwgeologylog_end_depth_id_c1477caa
+	on gwml2_gwgeologylog (end_depth_id);
+
+create index if not exists gwml2_gwgeologylog_gw_well_id_f666ee8f
+	on gwml2_gwgeologylog (gw_well_id);
+
+create index if not exists gwml2_gwgeologylog_start_depth_id_ac595dc7
+	on gwml2_gwgeologylog (start_depth_id);
+
+create index if not exists gwml2_gwgeologylog_valid_time_id_5787349a
+	on gwml2_gwgeologylog (valid_time_id);
+
+create table if not exists gwml2_gwgeologylog_parameter
+(
+	id serial not null
+		constraint gwml2_gwgeologylog_parameter_pkey
+			primary key,
+	gwgeologylog_id integer not null
+		constraint gwml2_gwgeologylog_p_gwgeologylog_id_92bfca87_fk_gwml2_gwg
+			references gwml2_gwgeologylog
+				deferrable initially deferred,
+	namedvalue_id integer not null
+		constraint gwml2_gwgeologylog_p_namedvalue_id_2a82cdcb_fk_gwml2_nam
+			references gwml2_namedvalue
+				deferrable initially deferred,
+	constraint gwml2_gwgeologylog_param_gwgeologylog_id_namedval_388fb1ed_uniq
+		unique (gwgeologylog_id, namedvalue_id)
+);
+
+alter table gwml2_gwgeologylog_parameter owner to geonode;
+
+create index if not exists gwml2_gwgeologylog_parameter_gwgeologylog_id_92bfca87
+	on gwml2_gwgeologylog_parameter (gwgeologylog_id);
+
+create index if not exists gwml2_gwgeologylog_parameter_namedvalue_id_2a82cdcb
+	on gwml2_gwgeologylog_parameter (namedvalue_id);
+
 create index if not exists gwml2_gwyield_gw_yield_id_510ee769
 	on gwml2_gwyield (gw_yield_id);
 
@@ -3065,56 +2821,6 @@ create index if not exists gwml2_gwmanagementarea_gw__gwmanagementarea_id_9d9a6d
 
 create index if not exists gwml2_gwmanagementarea_gw__ciresponsibleparty_id_dcfac191
 	on gwml2_gwmanagementarea_gw_area_competent_authority (ciresponsibleparty_id);
-
-create table if not exists gwml2_gwmanagementarea_gw_area_water_budget
-(
-	id serial not null
-		constraint gwml2_gwmanagementarea_gw_area_water_budget_pkey
-			primary key,
-	gwmanagementarea_id integer not null
-		constraint gwml2_gwmanagementar_gwmanagementarea_id_f41fa079_fk_gwml2_gwm
-			references gwml2_gwmanagementarea
-				deferrable initially deferred,
-	gwwaterbudget_id integer not null
-		constraint gwml2_gwmanagementar_gwwaterbudget_id_e268529a_fk_gwml2_gww
-			references gwml2_gwwaterbudget
-				deferrable initially deferred,
-	constraint gwml2_gwmanagementarea_g_gwmanagementarea_id_gwwa_d004c683_uniq
-		unique (gwmanagementarea_id, gwwaterbudget_id)
-);
-
-alter table gwml2_gwmanagementarea_gw_area_water_budget owner to geonode;
-
-create index if not exists gwml2_gwmanagementarea_gw__gwmanagementarea_id_f41fa079
-	on gwml2_gwmanagementarea_gw_area_water_budget (gwmanagementarea_id);
-
-create index if not exists gwml2_gwmanagementarea_gw__gwwaterbudget_id_e268529a
-	on gwml2_gwmanagementarea_gw_area_water_budget (gwwaterbudget_id);
-
-create table if not exists gwml2_gwmanagementarea_gw_managed_unit
-(
-	id serial not null
-		constraint gwml2_gwmanagementarea_gw_managed_unit_pkey
-			primary key,
-	gwmanagementarea_id integer not null
-		constraint gwml2_gwmanagementar_gwmanagementarea_id_f5512a50_fk_gwml2_gwm
-			references gwml2_gwmanagementarea
-				deferrable initially deferred,
-	gwhydrogeounit_id integer not null
-		constraint gwml2_gwmanagementar_gwhydrogeounit_id_535e0e29_fk_gwml2_gwh
-			references gwml2_gwhydrogeounit
-				deferrable initially deferred,
-	constraint gwml2_gwmanagementarea_g_gwmanagementarea_id_gwhy_8327a37d_uniq
-		unique (gwmanagementarea_id, gwhydrogeounit_id)
-);
-
-alter table gwml2_gwmanagementarea_gw_managed_unit owner to geonode;
-
-create index if not exists gwml2_gwmanagementarea_gw__gwmanagementarea_id_f5512a50
-	on gwml2_gwmanagementarea_gw_managed_unit (gwmanagementarea_id);
-
-create index if not exists gwml2_gwmanagementarea_gw__gwhydrogeounit_id_535e0e29
-	on gwml2_gwmanagementarea_gw_managed_unit (gwhydrogeounit_id);
 
 create table if not exists gwml2_gwunitvoidproperty
 (
@@ -3329,6 +3035,10 @@ create table if not exists gwml2_gwhydrogeovoid
 	gw_void_volume_id integer
 		constraint gwml2_gwhydrogeovoid_gw_void_volume_id_907c91cc_fk_gwml2_qua
 			references gwml2_quantity
+				deferrable initially deferred,
+	gw_void_metadata_id integer
+		constraint gwml2_gwhydrogeovoid_gw_void_metadata_id_82e950cb_fk_gwml2_gwm
+			references gwml2_gwmetadata
 				deferrable initially deferred
 );
 
@@ -3348,6 +3058,9 @@ create index if not exists gwml2_gwhydrogeovoid_gw_void_type_id_0f618838
 
 create index if not exists gwml2_gwhydrogeovoid_gw_void_volume_id_907c91cc
 	on gwml2_gwhydrogeovoid (gw_void_volume_id);
+
+create index if not exists gwml2_gwhydrogeovoid_gw_void_metadata_id_82e950cb
+	on gwml2_gwhydrogeovoid (gw_void_metadata_id);
 
 create table if not exists gwml2_gwhydrogeovoid_gw_void_host_material
 (
@@ -3374,30 +3087,353 @@ create index if not exists gwml2_gwhydrogeovoid_gw_vo_gwhydrogeovoid_id_47ec9a85
 create index if not exists gwml2_gwhydrogeovoid_gw_vo_glearthmaterial_id_7f434a76
 	on gwml2_gwhydrogeovoid_gw_void_host_material (glearthmaterial_id);
 
-create table if not exists gwml2_gwhydrogeovoid_gw_void_metadata
+create table if not exists gwml2_temporaltype
 (
 	id serial not null
-		constraint gwml2_gwhydrogeovoid_gw_void_metadata_pkey
+		constraint gwml2_temporaltype_pkey
 			primary key,
-	gwhydrogeovoid_id integer not null
-		constraint gwml2_gwhydrogeovoid_gwhydrogeovoid_id_83a0ac99_fk_gwml2_gwh
-			references gwml2_gwhydrogeovoid
-				deferrable initially deferred,
-	gwmetadata_id integer not null
-		constraint gwml2_gwhydrogeovoid_gwmetadata_id_351e47fd_fk_gwml2_gwm
-			references gwml2_gwmetadata
-				deferrable initially deferred,
-	constraint gwml2_gwhydrogeovoid_gw__gwhydrogeovoid_id_gwmeta_de08dc05_uniq
-		unique (gwhydrogeovoid_id, gwmetadata_id)
+	name text,
+	description text
 );
 
-alter table gwml2_gwhydrogeovoid_gw_void_metadata owner to geonode;
+alter table gwml2_temporaltype owner to geonode;
 
-create index if not exists gwml2_gwhydrogeovoid_gw_vo_gwhydrogeovoid_id_83a0ac99
-	on gwml2_gwhydrogeovoid_gw_void_metadata (gwhydrogeovoid_id);
+create table if not exists gwml2_gwflow
+(
+	id serial not null
+		constraint gwml2_gwflow_pkey
+			primary key,
+	gw_flow_time_id integer
+		constraint gwml2_gwflow_gw_flow_time_id_b429b982_fk_gwml2_temporaltype_id
+			references gwml2_temporaltype
+				deferrable initially deferred,
+	gw_flow_persistence_id integer
+		constraint gwml2_gwflow_gw_flow_persistence__26e55600_fk_gwml2_flo
+			references gwml2_flowpersistencetype
+				deferrable initially deferred,
+	gw_flow_process_id integer
+		constraint gwml2_gwflow_gw_flow_process_id_f3ba682a_fk_gwml2_wat
+			references gwml2_waterflowprocess
+				deferrable initially deferred,
+	gw_flow_system_id integer
+		constraint gwml2_gwflow_gw_flow_system_id_040cf9fa_fk_gwml2_gwf
+			references gwml2_gwflowsystem
+				deferrable initially deferred,
+	gw_flow_velocity_id integer
+		constraint gwml2_gwflow_gw_flow_velocity_id_key
+			unique
+		constraint gwml2_gwflow_gw_flow_velocity_id_cd9d1bae_fk_gwml2_quantity_id
+			references gwml2_quantity
+				deferrable initially deferred,
+	gw_flow_volume_rate_id integer
+		constraint gwml2_gwflow_gw_flow_volume_rate_id_key
+			unique
+		constraint gwml2_gwflow_gw_flow_volume_rate__a0141b3f_fk_gwml2_qua
+			references gwml2_quantity
+				deferrable initially deferred
+);
 
-create index if not exists gwml2_gwhydrogeovoid_gw_void_metadata_gwmetadata_id_351e47fd
-	on gwml2_gwhydrogeovoid_gw_void_metadata (gwmetadata_id);
+alter table gwml2_gwflow owner to geonode;
+
+create index if not exists gwml2_gwflow_gw_flow_process_id_f3ba682a
+	on gwml2_gwflow (gw_flow_process_id);
+
+create index if not exists gwml2_gwflow_gw_flow_system_id_040cf9fa
+	on gwml2_gwflow (gw_flow_system_id);
+
+create index if not exists gwml2_gwflow_gw_flow_persistence_id_26e55600
+	on gwml2_gwflow (gw_flow_persistence_id);
+
+create index if not exists gwml2_gwflow_gw_flow_time_id_b429b982
+	on gwml2_gwflow (gw_flow_time_id);
+
+create table if not exists gwml2_gwwaterbudget
+(
+	id serial not null
+		constraint gwml2_gwwaterbudget_pkey
+			primary key,
+	gw_budget_amount_id integer
+		constraint gwml2_gwwaterbudget_gw_budget_amount_id_c655e3a8_fk_gwml2_qua
+			references gwml2_quantity
+				deferrable initially deferred,
+	gw_budget_valid_time_id integer
+		constraint gwml2_gwwaterbudget_gw_budget_valid_time_9d315cb8_fk_gwml2_tem
+			references gwml2_temporaltype
+				deferrable initially deferred
+);
+
+alter table gwml2_gwwaterbudget owner to geonode;
+
+create index if not exists gwml2_gwwaterbudget_gw_budget_amount_id_c655e3a8
+	on gwml2_gwwaterbudget (gw_budget_amount_id);
+
+create index if not exists gwml2_gwwaterbudget_gw_budget_valid_time_id_9d315cb8
+	on gwml2_gwwaterbudget (gw_budget_valid_time_id);
+
+create table if not exists gwml2_gwwaterbudget_gw_budget_discharge
+(
+	id serial not null
+		constraint gwml2_gwwaterbudget_gw_budget_discharge_pkey
+			primary key,
+	gwwaterbudget_id integer not null
+		constraint gwml2_gwwaterbudget__gwwaterbudget_id_b362993d_fk_gwml2_gww
+			references gwml2_gwwaterbudget
+				deferrable initially deferred,
+	gwdischarge_id integer not null
+		constraint gwml2_gwwaterbudget__gwdischarge_id_be947e9d_fk_gwml2_gwd
+			references gwml2_gwdischarge
+				deferrable initially deferred,
+	constraint gwml2_gwwaterbudget_gw_b_gwwaterbudget_id_gwdisch_a9f3d02f_uniq
+		unique (gwwaterbudget_id, gwdischarge_id)
+);
+
+alter table gwml2_gwwaterbudget_gw_budget_discharge owner to geonode;
+
+create index if not exists gwml2_gwwaterbudget_gw_bud_gwwaterbudget_id_b362993d
+	on gwml2_gwwaterbudget_gw_budget_discharge (gwwaterbudget_id);
+
+create index if not exists gwml2_gwwaterbudget_gw_budget_discharge_gwdischarge_id_be947e9d
+	on gwml2_gwwaterbudget_gw_budget_discharge (gwdischarge_id);
+
+create table if not exists gwml2_gwwaterbudget_gw_budget_recharge
+(
+	id serial not null
+		constraint gwml2_gwwaterbudget_gw_budget_recharge_pkey
+			primary key,
+	gwwaterbudget_id integer not null
+		constraint gwml2_gwwaterbudget__gwwaterbudget_id_a990b1eb_fk_gwml2_gww
+			references gwml2_gwwaterbudget
+				deferrable initially deferred,
+	gwrecharge_id integer not null
+		constraint gwml2_gwwaterbudget__gwrecharge_id_3d18800b_fk_gwml2_gwr
+			references gwml2_gwrecharge
+				deferrable initially deferred,
+	constraint gwml2_gwwaterbudget_gw_b_gwwaterbudget_id_gwrecha_c8d58d77_uniq
+		unique (gwwaterbudget_id, gwrecharge_id)
+);
+
+alter table gwml2_gwwaterbudget_gw_budget_recharge owner to geonode;
+
+create index if not exists gwml2_gwwaterbudget_gw_bud_gwwaterbudget_id_a990b1eb
+	on gwml2_gwwaterbudget_gw_budget_recharge (gwwaterbudget_id);
+
+create index if not exists gwml2_gwwaterbudget_gw_budget_recharge_gwrecharge_id_3d18800b
+	on gwml2_gwwaterbudget_gw_budget_recharge (gwrecharge_id);
+
+create table if not exists gwml2_gwhydrogeounit
+(
+	id serial not null
+		constraint gwml2_gwhydrogeounit_pkey
+			primary key,
+	gw_unit_media_id integer
+		constraint gwml2_gwhydrogeounit_gw_unit_media_id_690a8541_fk_gwml2_por
+			references gwml2_porositytypeterm
+				deferrable initially deferred,
+	gw_unit_water_budget_id integer
+		constraint gwml2_gwhydrogeounit_gw_unit_water_budget_d0764e3c_fk_gwml2_gww
+			references gwml2_gwwaterbudget
+				deferrable initially deferred
+);
+
+alter table gwml2_gwhydrogeounit owner to geonode;
+
+create index if not exists gwml2_gwhydrogeounit_gw_unit_media_id_690a8541
+	on gwml2_gwhydrogeounit (gw_unit_media_id);
+
+create index if not exists gwml2_gwhydrogeounit_gw_unit_water_budget_id_d0764e3c
+	on gwml2_gwhydrogeounit (gw_unit_water_budget_id);
+
+create table if not exists gwml2_gwhydrogeounit_gw_unit_discharge
+(
+	id serial not null
+		constraint gwml2_gwhydrogeounit_gw_unit_discharge_pkey
+			primary key,
+	gwhydrogeounit_id integer not null
+		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_9f0bb928_fk_gwml2_gwh
+			references gwml2_gwhydrogeounit
+				deferrable initially deferred,
+	gwdischarge_id integer not null
+		constraint gwml2_gwhydrogeounit_gwdischarge_id_bed0b609_fk_gwml2_gwd
+			references gwml2_gwdischarge
+				deferrable initially deferred,
+	constraint gwml2_gwhydrogeounit_gw__gwhydrogeounit_id_gwdisc_cec64a02_uniq
+		unique (gwhydrogeounit_id, gwdischarge_id)
+);
+
+alter table gwml2_gwhydrogeounit_gw_unit_discharge owner to geonode;
+
+create index if not exists gwml2_gwhydrogeounit_gw_un_gwhydrogeounit_id_9f0bb928
+	on gwml2_gwhydrogeounit_gw_unit_discharge (gwhydrogeounit_id);
+
+create index if not exists gwml2_gwhydrogeounit_gw_unit_discharge_gwdischarge_id_bed0b609
+	on gwml2_gwhydrogeounit_gw_unit_discharge (gwdischarge_id);
+
+create table if not exists gwml2_gwhydrogeounit_gw_unit_recharge
+(
+	id serial not null
+		constraint gwml2_gwhydrogeounit_gw_unit_recharge_pkey
+			primary key,
+	gwhydrogeounit_id integer not null
+		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_54d4c9a5_fk_gwml2_gwh
+			references gwml2_gwhydrogeounit
+				deferrable initially deferred,
+	gwrecharge_id integer not null
+		constraint gwml2_gwhydrogeounit_gwrecharge_id_d557cd72_fk_gwml2_gwr
+			references gwml2_gwrecharge
+				deferrable initially deferred,
+	constraint gwml2_gwhydrogeounit_gw__gwhydrogeounit_id_gwrech_5035369d_uniq
+		unique (gwhydrogeounit_id, gwrecharge_id)
+);
+
+alter table gwml2_gwhydrogeounit_gw_unit_recharge owner to geonode;
+
+create index if not exists gwml2_gwhydrogeounit_gw_un_gwhydrogeounit_id_54d4c9a5
+	on gwml2_gwhydrogeounit_gw_unit_recharge (gwhydrogeounit_id);
+
+create index if not exists gwml2_gwhydrogeounit_gw_unit_recharge_gwrecharge_id_d557cd72
+	on gwml2_gwhydrogeounit_gw_unit_recharge (gwrecharge_id);
+
+create table if not exists gwml2_gwhydrogeounit_gw_unit_vulnerability
+(
+	id serial not null
+		constraint gwml2_gwhydrogeounit_gw_unit_vulnerability_pkey
+			primary key,
+	gwhydrogeounit_id integer not null
+		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_349fcfaf_fk_gwml2_gwh
+			references gwml2_gwhydrogeounit
+				deferrable initially deferred,
+	gwvulnerability_id integer not null
+		constraint gwml2_gwhydrogeounit_gwvulnerability_id_8840a050_fk_gwml2_gwv
+			references gwml2_gwvulnerability
+				deferrable initially deferred,
+	constraint gwml2_gwhydrogeounit_gw__gwhydrogeounit_id_gwvuln_51f9d8f2_uniq
+		unique (gwhydrogeounit_id, gwvulnerability_id)
+);
+
+alter table gwml2_gwhydrogeounit_gw_unit_vulnerability owner to geonode;
+
+create index if not exists gwml2_gwhydrogeounit_gw_un_gwhydrogeounit_id_349fcfaf
+	on gwml2_gwhydrogeounit_gw_unit_vulnerability (gwhydrogeounit_id);
+
+create index if not exists gwml2_gwhydrogeounit_gw_un_gwvulnerability_id_8840a050
+	on gwml2_gwhydrogeounit_gw_unit_vulnerability (gwvulnerability_id);
+
+create table if not exists gwml2_gwhydrogeounit_properties
+(
+	id serial not null
+		constraint gwml2_gwhydrogeounit_properties_pkey
+			primary key,
+	gwhydrogeounit_id integer not null
+		constraint gwml2_gwhydrogeounit_gwhydrogeounit_id_97af89d1_fk_gwml2_gwh
+			references gwml2_gwhydrogeounit
+				deferrable initially deferred,
+	gwunitproperties_id integer not null
+		constraint gwml2_gwhydrogeounit_gwunitproperties_id_4e56f813_fk_gwml2_gwu
+			references gwml2_gwunitproperties
+				deferrable initially deferred,
+	constraint gwml2_gwhydrogeounit_pro_gwhydrogeounit_id_gwunit_efd045d5_uniq
+		unique (gwhydrogeounit_id, gwunitproperties_id)
+);
+
+alter table gwml2_gwhydrogeounit_properties owner to geonode;
+
+create index if not exists gwml2_gwhydrogeounit_properties_gwhydrogeounit_id_97af89d1
+	on gwml2_gwhydrogeounit_properties (gwhydrogeounit_id);
+
+create index if not exists gwml2_gwhydrogeounit_properties_gwunitproperties_id_4e56f813
+	on gwml2_gwhydrogeounit_properties (gwunitproperties_id);
+
+create table if not exists gwml2_gwfluidbody_gw_body_flow
+(
+	id serial not null
+		constraint gwml2_gwfluidbody_gw_body_flow_pkey
+			primary key,
+	gwfluidbody_id integer not null
+		constraint gwml2_gwfluidbody_gw_gwfluidbody_id_c74c4027_fk_gwml2_gwf
+			references gwml2_gwfluidbody
+				deferrable initially deferred,
+	gwflow_id integer not null
+		constraint gwml2_gwfluidbody_gw_gwflow_id_550b6958_fk_gwml2_gwf
+			references gwml2_gwflow
+				deferrable initially deferred,
+	constraint gwml2_gwfluidbody_gw_bod_gwfluidbody_id_gwflow_id_017ed410_uniq
+		unique (gwfluidbody_id, gwflow_id)
+);
+
+alter table gwml2_gwfluidbody_gw_body_flow owner to geonode;
+
+create index if not exists gwml2_gwfluidbody_gw_body_flow_gwfluidbody_id_c74c4027
+	on gwml2_gwfluidbody_gw_body_flow (gwfluidbody_id);
+
+create index if not exists gwml2_gwfluidbody_gw_body_flow_gwflow_id_550b6958
+	on gwml2_gwfluidbody_gw_body_flow (gwflow_id);
+
+create table if not exists gwml2_gwmanagementarea_gw_area_water_budget
+(
+	id serial not null
+		constraint gwml2_gwmanagementarea_gw_area_water_budget_pkey
+			primary key,
+	gwmanagementarea_id integer not null
+		constraint gwml2_gwmanagementar_gwmanagementarea_id_f41fa079_fk_gwml2_gwm
+			references gwml2_gwmanagementarea
+				deferrable initially deferred,
+	gwwaterbudget_id integer not null
+		constraint gwml2_gwmanagementar_gwwaterbudget_id_e268529a_fk_gwml2_gww
+			references gwml2_gwwaterbudget
+				deferrable initially deferred,
+	constraint gwml2_gwmanagementarea_g_gwmanagementarea_id_gwwa_d004c683_uniq
+		unique (gwmanagementarea_id, gwwaterbudget_id)
+);
+
+alter table gwml2_gwmanagementarea_gw_area_water_budget owner to geonode;
+
+create index if not exists gwml2_gwmanagementarea_gw__gwmanagementarea_id_f41fa079
+	on gwml2_gwmanagementarea_gw_area_water_budget (gwmanagementarea_id);
+
+create index if not exists gwml2_gwmanagementarea_gw__gwwaterbudget_id_e268529a
+	on gwml2_gwmanagementarea_gw_area_water_budget (gwwaterbudget_id);
+
+create table if not exists gwml2_gwmanagementarea_gw_managed_unit
+(
+	id serial not null
+		constraint gwml2_gwmanagementarea_gw_managed_unit_pkey
+			primary key,
+	gwmanagementarea_id integer not null
+		constraint gwml2_gwmanagementar_gwmanagementarea_id_f5512a50_fk_gwml2_gwm
+			references gwml2_gwmanagementarea
+				deferrable initially deferred,
+	gwhydrogeounit_id integer not null
+		constraint gwml2_gwmanagementar_gwhydrogeounit_id_535e0e29_fk_gwml2_gwh
+			references gwml2_gwhydrogeounit
+				deferrable initially deferred,
+	constraint gwml2_gwmanagementarea_g_gwmanagementarea_id_gwhy_8327a37d_uniq
+		unique (gwmanagementarea_id, gwhydrogeounit_id)
+);
+
+alter table gwml2_gwmanagementarea_gw_managed_unit owner to geonode;
+
+create index if not exists gwml2_gwmanagementarea_gw__gwmanagementarea_id_f5512a50
+	on gwml2_gwmanagementarea_gw_managed_unit (gwmanagementarea_id);
+
+create index if not exists gwml2_gwmanagementarea_gw__gwhydrogeounit_id_535e0e29
+	on gwml2_gwmanagementarea_gw_managed_unit (gwhydrogeounit_id);
+
+create table if not exists gwml2_gwvoidunit
+(
+	id serial not null
+		constraint gwml2_gwvoidunit_pkey
+			primary key,
+	gw_hydrogeo_unit_id integer not null
+		constraint gwml2_gwvoidunit_gw_hydrogeo_unit_id_83dad8a8_fk_gwml2_gwh
+			references gwml2_gwhydrogeounit
+				deferrable initially deferred,
+	gw_unit_void_property_id integer not null
+		constraint gwml2_gwvoidunit_gw_unit_void_propert_b4cc6f93_fk_gwml2_gwu
+			references gwml2_gwunitvoidproperty
+				deferrable initially deferred
+);
+
+alter table gwml2_gwvoidunit owner to geonode;
 
 create table if not exists gwml2_gwhydrogeovoid_gw_void_unit
 (
@@ -3408,12 +3444,12 @@ create table if not exists gwml2_gwhydrogeovoid_gw_void_unit
 		constraint gwml2_gwhydrogeovoid_gwhydrogeovoid_id_f3dd2ada_fk_gwml2_gwh
 			references gwml2_gwhydrogeovoid
 				deferrable initially deferred,
-	gwhydrogeounit_id integer not null
-		constraint gwml2_gwhydrogeovoid_gwhydrogeounit_id_b356b699_fk_gwml2_gwh
-			references gwml2_gwhydrogeounit
+	gwvoidunit_id integer not null
+		constraint gwml2_gwhydrogeovoid_gwvoidunit_id_cd774ad7_fk_gwml2_gwv
+			references gwml2_gwvoidunit
 				deferrable initially deferred,
 	constraint gwml2_gwhydrogeovoid_gw__gwhydrogeovoid_id_gwhydr_42555129_uniq
-		unique (gwhydrogeovoid_id, gwhydrogeounit_id)
+		unique (gwhydrogeovoid_id, gwvoidunit_id)
 );
 
 alter table gwml2_gwhydrogeovoid_gw_void_unit owner to geonode;
@@ -3422,6 +3458,109 @@ create index if not exists gwml2_gwhydrogeovoid_gw_void_unit_gwhydrogeovoid_id_f
 	on gwml2_gwhydrogeovoid_gw_void_unit (gwhydrogeovoid_id);
 
 create index if not exists gwml2_gwhydrogeovoid_gw_void_unit_gwhydrogeounit_id_b356b699
-	on gwml2_gwhydrogeovoid_gw_void_unit (gwhydrogeounit_id);
+	on gwml2_gwhydrogeovoid_gw_void_unit (gwvoidunit_id);
+
+create index if not exists gwml2_gwvoidunit_gw_hydrogeo_unit_id_83dad8a8
+	on gwml2_gwvoidunit (gw_hydrogeo_unit_id);
+
+create index if not exists gwml2_gwvoidunit_gw_unit_void_property_id_b4cc6f93
+	on gwml2_gwvoidunit (gw_unit_void_property_id);
+
+create table if not exists gwml2_wellpurposetype
+(
+	id serial not null
+		constraint gwml2_wellpurposetype_pkey
+			primary key,
+	name text,
+	description text
+);
+
+alter table gwml2_wellpurposetype owner to geonode;
+
+create table if not exists gwml2_wellwaterusetype
+(
+	id serial not null
+		constraint gwml2_wellwaterusetype_pkey
+			primary key,
+	name text,
+	description text
+);
+
+alter table gwml2_wellwaterusetype owner to geonode;
+
+create table if not exists "gwml2_gwwell_gwWellReferenceElevation"
+(
+	id serial not null
+		constraint "gwml2_gwwell_gwWellReferenceElevation_pkey"
+			primary key,
+	gwwell_id integer not null
+		constraint "gwml2_gwwell_gwWellR_gwwell_id_4ab095e0_fk_gwml2_gww"
+			references gwml2_gwwell
+				deferrable initially deferred,
+	elevation_id integer not null
+		constraint "gwml2_gwwell_gwWellR_elevation_id_cc232d96_fk_gwml2_ele"
+			references gwml2_elevation
+				deferrable initially deferred,
+	constraint "gwml2_gwwell_gwWellRefer_gwwell_id_elevation_id_c8a873f3_uniq"
+		unique (gwwell_id, elevation_id)
+);
+
+alter table "gwml2_gwwell_gwWellReferenceElevation" owner to geonode;
+
+create index if not exists "gwml2_gwwell_gwWellReferenceElevation_gwwell_id_4ab095e0"
+	on "gwml2_gwwell_gwWellReferenceElevation" (gwwell_id);
+
+create index if not exists "gwml2_gwwell_gwWellReferenceElevation_elevation_id_cc232d96"
+	on "gwml2_gwwell_gwWellReferenceElevation" (elevation_id);
+
+create table if not exists gwml2_gwwell_gw_well_unit
+(
+	id serial not null
+		constraint gwml2_gwwell_gw_well_unit_pkey
+			primary key,
+	gwwell_id integer not null
+		constraint gwml2_gwwell_gw_well_unit_gwwell_id_30648c26_fk_gwml2_gwwell_id
+			references gwml2_gwwell
+				deferrable initially deferred,
+	gwhydrogeounit_id integer not null
+		constraint gwml2_gwwell_gw_well_gwhydrogeounit_id_50cb2836_fk_gwml2_gwh
+			references gwml2_gwhydrogeounit
+				deferrable initially deferred,
+	constraint gwml2_gwwell_gw_well_uni_gwwell_id_gwhydrogeounit_e8e536c1_uniq
+		unique (gwwell_id, gwhydrogeounit_id)
+);
+
+alter table gwml2_gwwell_gw_well_unit owner to geonode;
+
+create index if not exists gwml2_gwwell_gw_well_unit_gwwell_id_30648c26
+	on gwml2_gwwell_gw_well_unit (gwwell_id);
+
+create index if not exists gwml2_gwwell_gw_well_unit_gwhydrogeounit_id_50cb2836
+	on gwml2_gwwell_gw_well_unit (gwhydrogeounit_id);
+
+create table if not exists gwml2_gwwell_gw_well_water_use
+(
+	id serial not null
+		constraint gwml2_gwwell_gw_well_water_use_pkey
+			primary key,
+	gwwell_id integer not null
+		constraint gwml2_gwwell_gw_well_gwwell_id_14bd35c9_fk_gwml2_gww
+			references gwml2_gwwell
+				deferrable initially deferred,
+	wellwaterusetype_id integer not null
+		constraint gwml2_gwwell_gw_well_wellwaterusetype_id_b889e3ea_fk_gwml2_wel
+			references gwml2_wellwaterusetype
+				deferrable initially deferred,
+	constraint gwml2_gwwell_gw_well_wat_gwwell_id_wellwaterusety_88a90a37_uniq
+		unique (gwwell_id, wellwaterusetype_id)
+);
+
+alter table gwml2_gwwell_gw_well_water_use owner to geonode;
+
+create index if not exists gwml2_gwwell_gw_well_water_use_gwwell_id_14bd35c9
+	on gwml2_gwwell_gw_well_water_use (gwwell_id);
+
+create index if not exists gwml2_gwwell_gw_well_water_use_wellwaterusetype_id_b889e3ea
+	on gwml2_gwwell_gw_well_water_use (wellwaterusetype_id)
 
 end;
