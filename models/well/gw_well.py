@@ -131,7 +131,7 @@ class GWWell(models.Model):
     gw_well_yield = models.ForeignKey(
         GWYield, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="gwWellYield",
-        help_text="CEstimated or calculated yield from a well.")
+        help_text="Estimated or calculated yield from a well.")
 
     def __str__(self):
         return '{}'.format(self.gw_well_name)
