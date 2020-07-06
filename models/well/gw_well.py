@@ -1,15 +1,35 @@
 from django.contrib.gis.db import models
+from gwml2.models.fluid_body.gw_fluid_body import GWFluidBody
+from gwml2.models.fluid_body.gw_yield import GWYield
 from gwml2.models.well_construction import Borehole
-from gwml2.models import GWTerm, Quantity
+from gwml2.models.hydrogeological_unit.gw_hydrogeo_unit import GWHydrogeoUnit
+from gwml2.models.universal import Elevation, GWTerm, Quantity
 
 
 class WellStatusTypeTerm(GWTerm):
     """
-    Status of the well, Can be new, unfinished,
-    reconditioned, deepened, not in use, standby,
-    unknown, abandoned dry, abandoned
-    insufficient, abandoned quality. (gwml1)
+    Status of the well.
+
     """
+
+    pass
+
+
+class WellPurposeType(GWTerm):
+    """
+    Purpose of the well.
+
+    """
+
+    pass
+
+
+class WellWaterUseType(GWTerm):
+    """
+    Water use type of the well.
+
+    """
+
     pass
 
 
@@ -52,12 +72,29 @@ class GWWell(models.Model):
     gw_well_location = models.PointField(
         null=False, blank=False, verbose_name="gwWellLocation",
         help_text="Surface location of the well.")
+    gwWellReferenceElevation = models.ManyToManyField(
+        Elevation, null=True, blank=True,
+        verbose_name="gwWellReferenceElevation",
+        help_text="Reference elevation for all observations at the site, "
+                  "e.g. ground elevation, casing elevation.")
     gw_well_contribution_zone = models.GeometryField(
         null=True, blank=True, verbose_name="gwWellContributionZone",
         help_text="The area or volume surrounding a pumping well"
                   "or other discharge site that encompasses all areas"
                   "and features that supply groundwater to the well"
                   "or discharge site.")
+    gw_well_unit = models.ManyToManyField(
+        GWHydrogeoUnit, null=True, blank=True,
+        verbose_name="gwWellUnit",
+        help_text="The aquifers or confining beds intersecting the well.")
+    gw_well_body = models.ForeignKey(
+        GWFluidBody, null=True, blank=True,
+        on_delete=models.SET_NULL, verbose_name="gwWellBody",
+        help_text="The fluid body occupying the well.")
+    gw_well_water_use = models.ManyToManyField(
+        WellWaterUseType, null=True, blank=True,
+        verbose_name="gwWellWaterUse",
+        help_text="Water use type of the well.")
     gw_well_construction = models.ForeignKey(
         Borehole, null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name="gwWellConstruction",
@@ -91,6 +128,10 @@ class GWWell(models.Model):
         help_text="Constructed depth of the well.",
         related_name='gw_well_constructed_depth'
     )
+    gw_well_yield = models.ForeignKey(
+        GWYield, null=True, blank=True,
+        on_delete=models.SET_NULL, verbose_name="gwWellYield",
+        help_text="CEstimated or calculated yield from a well.")
 
     def __str__(self):
         return '{}'.format(self.gw_well_name)

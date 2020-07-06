@@ -1,5 +1,5 @@
 from django.contrib import admin
-from gwml2.models.well.gw_well import WellStatusTypeTerm, GWLicence, GWWell
+from gwml2.models.well.gw_well import WellStatusTypeTerm, GWLicence, GWWell, WellPurposeType, WellWaterUseType
 
 
 class GWLicenceAdmin(admin.ModelAdmin):
@@ -11,5 +11,7 @@ class GWWellAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WellStatusTypeTerm)
+admin.site.register(WellPurposeType)
+admin.site.register(WellWaterUseType)
 admin.site.register(GWLicence, GWLicenceAdmin)
 admin.site.register(GWWell, GWWellAdmin)
