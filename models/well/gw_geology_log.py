@@ -39,6 +39,7 @@ class GWGeologyLog(models.Model):
                   'or an event-specific sampling parameter that is not tightly bound to either the feature-of-interest'
                   ' or to the observation procedure (6.2.2.10).'
     )
+    # gw_level and reference were added to match the excel sample file and not from the PDF.
     gw_level = models.FloatField(
         null=True, blank=True, verbose_name='gw_level')
     reference = models.TextField(
