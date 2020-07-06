@@ -9,10 +9,8 @@ class GWConstituentRelationAdmin(admin.ModelAdmin):
 
 class GWConstituentAdmin(admin.ModelAdmin):
     list_display = (
-        'pk', 'gw_concentration', 'gw_state', 'gw_constituent_relation',
+        'pk', 'gw_concentration', 'gw_state', 'gw_constitute_of',
         'gw_material_constituent', 'gw_chemical_constituent', 'gw_biologic_constituent')
-
-    filter_horizontal = ('gw_constituent_relation',)
 
 
 # Terms
