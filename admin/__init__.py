@@ -29,7 +29,8 @@ from gwml2.admin.monitoring_site.gw_monitoring_site import *
 
 from gwml2.admin.well.gw_well import *
 from gwml2.admin.well.gw_geology_log import *
-from gwml2.admin.well_construction.casing import *
+from gwml2.admin.well_construction.bore_collar import *
+from gwml2.admin.well_construction.borehole import *
 from gwml2.admin.well_construction.casing_component import *
 from gwml2.admin.well_construction.construction_component import *
 from gwml2.admin.well_construction.filtration import *

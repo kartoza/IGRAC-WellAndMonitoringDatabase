@@ -23,6 +23,7 @@ class CasingCoatingTerm(GWTerm):
 class CasingFormTerm(GWTerm):
     """
     Form of material used in the casing. E.g.
+    curbing, cribbing, corrugated, culvert, hose, etc.
     """
     pass
 
@@ -50,7 +51,8 @@ class CasingComponent(models.Model):
         CasingFormTerm, null=True, blank=True,
         related_name='casing_form',
         on_delete=models.SET_NULL, verbose_name='casingForm',
-        help_text="Form of material used in the casing. E.g.")
+        help_text="Form of material used in the casing. E.g."
+                  "curbing, cribbing, corrugated, culvert, hose, etc.")
     casing_internal_diameter = models.OneToOneField(
         Quantity, null=True, blank=True,
         related_name='casing_internal_diameter',
