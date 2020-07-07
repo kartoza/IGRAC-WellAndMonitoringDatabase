@@ -1389,7 +1389,7 @@ create index if not exists gwml2_omobservation_parameter_omobservation_id_25ff6f
 create index if not exists gwml2_omobservation_parameter_namedvalue_id_eb77f766
 	on gwml2_omobservation_parameter (namedvalue_id);
 
-create table if not exists gwml2_gwstringtype
+create table if not exists gwml2_springtype
 (
 	id serial not null
 		constraint gwml2_gwstringtype_pkey
@@ -1398,7 +1398,7 @@ create table if not exists gwml2_gwstringtype
 	description text
 );
 
-alter table gwml2_gwstringtype owner to geonode;
+alter table gwml2_springtype owner to geonode;
 
 create table if not exists gwml2_springcausetype
 (
@@ -1439,8 +1439,8 @@ create table if not exists gwml2_gwspring
 			references gwml2_springcausetype
 				deferrable initially deferred,
 	gw_spring_type_id integer
-		constraint gwml2_gwspring_gw_spring_type_id_04e4abd8_fk_gwml2_gws
-			references gwml2_gwstringtype
+		constraint gwml2_gwspring_gw_spring_type_id_04e4abd8_fk_gwml2_spr
+			references gwml2_springtype
 				deferrable initially deferred
 );
 
@@ -3561,6 +3561,63 @@ create index if not exists gwml2_gwwell_gw_well_water_use_gwwell_id_14bd35c9
 	on gwml2_gwwell_gw_well_water_use (gwwell_id);
 
 create index if not exists gwml2_gwwell_gw_well_water_use_wellwaterusetype_id_b889e3ea
-	on gwml2_gwwell_gw_well_water_use (wellwaterusetype_id)
+	on gwml2_gwwell_gw_well_water_use (wellwaterusetype_id);
+
+create table if not exists gwml2_collarelevationtypeterm
+(
+	id serial not null
+		constraint gwml2_collarelevationtypeterm_pkey
+			primary key,
+	name text,
+	description text
+);
+
+alter table gwml2_collarelevationtypeterm owner to geonode;
+
+create table if not exists gwml2_headworktypeterm
+(
+	id serial not null
+		constraint gwml2_headworktypeterm_pkey
+			primary key,
+	name text,
+	description text
+);
+
+alter table gwml2_headworktypeterm owner to geonode;
+
+create table if not exists gwml2_borecollar
+(
+	id serial not null
+		constraint gwml2_borecollar_pkey
+			primary key,
+	collar_location geometry(PointZ,4326),
+	bhole_headworks_id integer not null
+		constraint gwml2_borecollar_bhole_headworks_id_51286765_fk_gwml2_bor
+			references gwml2_borehole
+				deferrable initially deferred,
+	collar_elevation_type_id integer
+		constraint gwml2_borecollar_collar_elevation_typ_74cdf4cc_fk_gwml2_col
+			references gwml2_collarelevationtypeterm
+				deferrable initially deferred,
+	collar_headwork_type_id integer
+		constraint gwml2_borecollar_collar_headwork_type_8290b7d6_fk_gwml2_hea
+			references gwml2_headworktypeterm
+				deferrable initially deferred
+);
+
+alter table gwml2_borecollar owner to geonode;
+
+create index if not exists gwml2_borecollar_collar_location_id
+	on gwml2_borecollar (collar_location);
+
+create index if not exists gwml2_borecollar_bhole_headworks_id_51286765
+	on gwml2_borecollar (bhole_headworks_id);
+
+create index if not exists gwml2_borecollar_collar_elevation_type_id_74cdf4cc
+	on gwml2_borecollar (collar_elevation_type_id);
+
+create index if not exists gwml2_borecollar_collar_headwork_type_id_8290b7d6
+	on gwml2_borecollar (collar_headwork_type_id);
+
 
 end;
