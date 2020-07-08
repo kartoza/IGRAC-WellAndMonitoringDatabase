@@ -8,6 +8,7 @@ class GWLicenceAdmin(admin.ModelAdmin):
 
 class GWWellAdmin(admin.ModelAdmin):
     list_display = ('gw_well_name',)
+    filter_horizontal = ('gw_well_reference_elevation', 'gw_well_unit', 'gw_well_water_use')
 
 
 admin.site.register(WellStatusTypeTerm)
