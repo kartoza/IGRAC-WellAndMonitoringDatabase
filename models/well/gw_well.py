@@ -72,7 +72,7 @@ class GWWell(models.Model):
     gw_well_location = models.PointField(
         null=False, blank=False, verbose_name="gwWellLocation",
         help_text="Surface location of the well.")
-    gwWellReferenceElevation = models.ManyToManyField(
+    gw_well_reference_elevation = models.ManyToManyField(
         Elevation, null=True, blank=True,
         verbose_name="gwWellReferenceElevation",
         help_text="Reference elevation for all observations at the site, "

@@ -3488,30 +3488,30 @@ create table if not exists gwml2_wellwaterusetype
 
 alter table gwml2_wellwaterusetype owner to geonode;
 
-create table if not exists "gwml2_gwwell_gwWellReferenceElevation"
+create table if not exists gwml2_gwwell_gw_well_reference_elevation
 (
 	id serial not null
 		constraint "gwml2_gwwell_gwWellReferenceElevation_pkey"
 			primary key,
 	gwwell_id integer not null
-		constraint "gwml2_gwwell_gwWellR_gwwell_id_4ab095e0_fk_gwml2_gww"
+		constraint gwml2_gwwell_gw_well_gwwell_id_234b259d_fk_gwml2_gww
 			references gwml2_gwwell
 				deferrable initially deferred,
 	elevation_id integer not null
-		constraint "gwml2_gwwell_gwWellR_elevation_id_cc232d96_fk_gwml2_ele"
+		constraint gwml2_gwwell_gw_well_elevation_id_039a9e9e_fk_gwml2_ele
 			references gwml2_elevation
 				deferrable initially deferred,
 	constraint "gwml2_gwwell_gwWellRefer_gwwell_id_elevation_id_c8a873f3_uniq"
 		unique (gwwell_id, elevation_id)
 );
 
-alter table "gwml2_gwwell_gwWellReferenceElevation" owner to geonode;
+alter table gwml2_gwwell_gw_well_reference_elevation owner to geonode;
 
 create index if not exists "gwml2_gwwell_gwWellReferenceElevation_gwwell_id_4ab095e0"
-	on "gwml2_gwwell_gwWellReferenceElevation" (gwwell_id);
+	on gwml2_gwwell_gw_well_reference_elevation (gwwell_id);
 
 create index if not exists "gwml2_gwwell_gwWellReferenceElevation_elevation_id_cc232d96"
-	on "gwml2_gwwell_gwWellReferenceElevation" (elevation_id);
+	on gwml2_gwwell_gw_well_reference_elevation (elevation_id);
 
 create table if not exists gwml2_gwwell_gw_well_unit
 (
@@ -3618,6 +3618,5 @@ create index if not exists gwml2_borecollar_collar_elevation_type_id_74cdf4cc
 
 create index if not exists gwml2_borecollar_collar_headwork_type_id_8290b7d6
 	on gwml2_borecollar (collar_headwork_type_id);
-
 
 end;
