@@ -17,10 +17,8 @@ def get_progress_upload(request):
     if request.is_ajax():
         if 'task_id' in request.POST.keys() and request.POST['task_id']:
             task_id = request.POST['task_id']
-            print('task id')
-            print(task_id)
             task = AsyncResult(task_id)
-            data = task.info
+            data = task.result
         else:
             data = 'No task_id in the request'
     else:
