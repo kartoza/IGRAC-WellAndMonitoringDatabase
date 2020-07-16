@@ -1,17 +1,37 @@
+import json
 from django.db import transaction
-from django.contrib.gis.geos import Point
+from django.http import HttpResponse, JsonResponse
 from django.urls import reverse
 from django.views.generic import FormView
-from django.utils import dateparse
+from django.conf import settings
 from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 from .forms import CsvWellForm
-from gwml2.models.well import GWWell, GWGeologyLog
-from gwml2.models.universal import Quantity
+from gwml2.tasks import process_excel
+from celery.result import AsyncResult
 
 
-class CsvUploadView(FormView):
-    """Upload csv well view.
+def get_progress_upload(request):
+    """A view to return progress of the upload to user."""
+
+    if request.is_ajax():
+        if 'task_id' in request.POST.keys() and request.POST['task_id']:
+            task_id = request.POST['task_id']
+            print('task id')
+            print(task_id)
+            task = AsyncResult(task_id)
+            data = task.info
+        else:
+            data = 'No task_id in the request'
+    else:
+        data = 'This is not an ajax request'
+
+    json_data = json.dumps(data)
+    return JsonResponse({'data': json_data})
+
+
+class ExcelUploadView(FormView):
+    """Upload excel well view.
     """
 
     context_object_name = 'csvupload'
@@ -25,7 +45,7 @@ class CsvUploadView(FormView):
        :rtype: HttpResponse
        """
 
-        return reverse('home_igrac')
+        return reverse('excel_upload_view')
 
     def get_context_data(self, **kwargs):
         """Get the context data which is passed to a template.
@@ -38,7 +58,11 @@ class CsvUploadView(FormView):
         """
 
         context = super(
-            CsvUploadView, self).get_context_data(**kwargs)
+            ExcelUploadView, self).get_context_data(**kwargs)
+        try:
+            context['task_id'] = self.request.session['task_id']
+        except KeyError:
+            context['task_id'] = None
         return context
 
     def get_form_kwargs(self):
@@ -48,7 +72,7 @@ class CsvUploadView(FormView):
         :rtype: dict
         """
 
-        kwargs = super(CsvUploadView, self).get_form_kwargs()
+        kwargs = super(ExcelUploadView, self).get_form_kwargs()
         return kwargs
 
     @transaction.atomic()
@@ -62,6 +86,8 @@ class CsvUploadView(FormView):
         form = self.get_form(form_class)
         gw_location_file = request.FILES.get('gw_location_file')
         gw_level_file = request.FILES.get('gw_level_file')
+        location_records = None
+        level_records = None
 
         if form.is_valid():
             if gw_location_file:
@@ -71,23 +97,7 @@ class CsvUploadView(FormView):
                 elif str(gw_location_file).split('.')[-1] == "xlsx":
                     sheet = xlsx_get(gw_location_file, column_limit=4)
                 sheetname = next(iter(sheet))
-                records = sheet[sheetname]
-                for record in records:
-                    if record[0].lower() == 'id well':
-                        continue
-
-                    point = Point(x=record[3], y=record[2], srid=4326)
-                    try:
-                        well = GWWell.objects.get(gw_well_name=record[0])
-                        well.gw_well_location = point
-                        well.gw_well_total_length = record[1]
-                        well.save()
-                    except GWWell.DoesNotExist:
-                        well = GWWell.objects.create(
-                            gw_well_name=record[0],
-                            gw_well_location=point,
-                            gw_well_total_length=record[1]
-                        )
+                location_records = sheet[sheetname]
 
             if gw_level_file:
                 gw_level_file.seek(0)
@@ -96,30 +106,11 @@ class CsvUploadView(FormView):
                 elif str(gw_level_file).split('.')[-1] == "xlsx":
                     sheet = xlsx_get(gw_level_file, column_limit=4)
                 sheetname = next(iter(sheet))
-                records = sheet[sheetname]
-                for record in records:
-                    if record[0].lower == 'time':
-                        continue
+                level_records = sheet[sheetname]
 
-                    try:
-                        well = GWWell.objects.get(gw_well_name=record[3])
-                        time = dateparse.parse_datetime(record[0])
-                        depth = Quantity.objects.create(
-                            value=record[2],
-                            unit='meter'
-                        )
-                        well_level_log = GWGeologyLog.objects.create(
-                            phenomenon_time=time,
-                            result_time=time,
-                            gw_level=record[2],
-                            reference=record[1],
-                            gw_well=well,
-                            start_depth=depth,
-                            end_depth=depth
-                        )
-                    except GWWell.DoesNotExist:
-                        pass
-                pass
+            print(settings.CELERY_TASK_ALWAYS_EAGER)
+            job = process_excel.delay(location_records, level_records)
+            request.session['task_id'] = job.id
             return self.form_valid(form)
 
         else:

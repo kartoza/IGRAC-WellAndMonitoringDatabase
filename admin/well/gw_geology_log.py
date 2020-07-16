@@ -8,7 +8,11 @@ class Admin(admin.ModelAdmin):
     filter_horizontal = ('parameter',)
 
     def well_name(self, obj):
-        return obj.gw_well.gw_well_name
+        try:
+            wellname = obj.gw_well.gw_well_name
+        except AttributeError:
+            wellname = '-'
+        return wellname
 
 
 admin.site.register(GWGeologyLog, Admin)

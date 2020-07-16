@@ -35,7 +35,7 @@
                     </div>
                     <div class="row form-group">
                         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12" style="margin-top: 20px">
-                            <a href="{% url "csv_upload_view" %}" class="btn btn-danger pull-left" onClick="$(form)[0].reset();" style="margin-right: 10px">Clear </a>
+                            <a href="{% url "excel_upload_view" %}" class="btn btn-danger pull-left" onClick="$(form)[0].reset();" style="margin-right: 10px">Clear </a>
                             <button class="btn btn-primary pull-left"> <span class="glyphicon glyphicon-upload" style="margin-right:5px;" type="file"></span>Upload </button>
                         </div>
                     </div>
@@ -44,9 +44,38 @@
         </div>
     </div>
 
+    {% if task_id %}
+    <div class="container" style="margin-top: 25px">
+        <h2>Upload progress {{ task_id }}</h2>
+        <div class="progress">
+            <div id="upload-progress" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
+                0%
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script src="{% static "lib/js/jquery.js" %}"></script>
     <script>
-        function showLoading(btn) {
-            $(btn).prop('disabled', true)
-        }
+        $(document).ready(function () {
+            let uploadProgress = 0;
+            let task_id = '{{ task_id }}';
+            let progressInterval = setInterval(function () {
+
+                $.ajax({
+                    url: '{% url "progress_upload" %}',
+                    type: "POST",
+                    data: "task_id=" + task_id,
+                    success: function (data) {
+                        uploadProgress = data.process_percent
+                    }
+                });
+                $('#upload-progress').css('width', uploadProgress + '%').html(uploadProgress+'%');
+
+                if(uploadProgress >= 100){
+                    clearInterval(progressInterval);
+                }
+            }, 200)
+        })
     </script>
 {% endblock %}
