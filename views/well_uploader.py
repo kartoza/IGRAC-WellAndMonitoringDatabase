@@ -1,35 +1,17 @@
-import json
-from django.db import transaction
-from django.http import HttpResponse, JsonResponse
-from django.urls import reverse
-from django.views.generic import FormView
-from django.conf import settings
 from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
-from .forms import CsvWellForm
-from gwml2.tasks import process_excel
-from celery.result import AsyncResult
+
+from django.db import transaction
+from django.http import HttpResponse
+from django.urls import reverse
+from django.views.generic import FormView
+
+from gwml2.forms import CsvWellForm
+from gwml2.tasks import well_from_excell
 
 
-def get_progress_upload(request):
-    """A view to return progress of the upload to user."""
-
-    if request.is_ajax():
-        if 'task_id' in request.POST.keys() and request.POST['task_id']:
-            task_id = request.POST['task_id']
-            task = AsyncResult(task_id)
-            data = task.result
-        else:
-            data = 'No task_id in the request'
-    else:
-        data = 'This is not an ajax request'
-
-    json_data = json.dumps(data)
-    return JsonResponse({'data': json_data})
-
-
-class ExcelUploadView(FormView):
-    """Upload excel well view.
+class WellUploadView(FormView):
+    """ Upload excel well view.
     """
 
     context_object_name = 'csvupload'
@@ -43,7 +25,7 @@ class ExcelUploadView(FormView):
        :rtype: HttpResponse
        """
 
-        return reverse('excel_upload_view')
+        return reverse('well_upload_view')
 
     def get_context_data(self, **kwargs):
         """Get the context data which is passed to a template.
@@ -56,7 +38,7 @@ class ExcelUploadView(FormView):
         """
 
         context = super(
-            ExcelUploadView, self).get_context_data(**kwargs)
+            WellUploadView, self).get_context_data(**kwargs)
         try:
             context['task_id'] = self.request.session['task_id']
         except KeyError:
@@ -70,7 +52,7 @@ class ExcelUploadView(FormView):
         :rtype: dict
         """
 
-        kwargs = super(ExcelUploadView, self).get_form_kwargs()
+        kwargs = super(WellUploadView, self).get_form_kwargs()
         return kwargs
 
     @transaction.atomic()
@@ -106,11 +88,9 @@ class ExcelUploadView(FormView):
                 sheetname = next(iter(sheet))
                 level_records = sheet[sheetname]
 
-            print(settings.CELERY_TASK_ALWAYS_EAGER)
-            job = process_excel.delay(location_records, level_records)
+            job = well_from_excell.delay(location_records, level_records)
             request.session['task_id'] = job.id
             return self.form_valid(form)
 
         else:
             return self.form_invalid(form)
-

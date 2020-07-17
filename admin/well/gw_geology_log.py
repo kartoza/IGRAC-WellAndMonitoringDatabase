@@ -9,10 +9,9 @@ class Admin(admin.ModelAdmin):
 
     def well_name(self, obj):
         try:
-            wellname = obj.gw_well.gw_well_name
+            return obj.gw_well.gw_well_name
         except AttributeError:
-            wellname = '-'
-        return wellname
+            return '-'
 
 
 admin.site.register(GWGeologyLog, Admin)
