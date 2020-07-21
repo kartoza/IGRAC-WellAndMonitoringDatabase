@@ -11,7 +11,7 @@ logger = get_task_logger(__name__)
 
 
 @shared_task(bind=True, queue='update')
-def well_from_excell(self, location_records, level_records):
+def well_from_excel(self, location_records, level_records):
     logger.debug('----- begin processing excel -------')
     logger.debug('Found {} locations'.format(len(location_records)))
     logger.debug('Found {} levels'.format(len(level_records)))
