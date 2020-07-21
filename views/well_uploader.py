@@ -16,7 +16,7 @@ class WellUploadView(FormView):
 
     context_object_name = 'csvupload'
     form_class = CsvWellForm
-    template_name = 'upload_well_csv.html'
+    template_name = 'well/upload_well_excel.html'
 
     def get_success_url(self):
         """Define the redirect URL.

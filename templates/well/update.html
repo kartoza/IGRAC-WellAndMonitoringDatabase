@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load crispy_forms_tags %}
+
+{% block page_title %}
+    <h1>Update Well.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    {{ form.media }}
+    <style>
+        #id_gw_well_location_div_map, .selector, #id_gw_well_contribution_zone_div_map {
+            float: none !important;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class='container' style="margin-bottom: 50px; margin-top:50px">
+        <h3 style="font-size: 30px">Update Well</h3>
+        <hr/>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <input type="submit" value="Submit" class="btn btn-primary">
+        </form>
+    </div>
+{% endblock %}

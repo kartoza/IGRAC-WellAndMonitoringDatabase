@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block page_title %}
+    <h1>Well List.</h1>
+{% endblock page_title %}
+
+{% block body %}
+    <style>
+        table, th, td {
+            padding: 15px 10px;
+            border: 1px solid black;
+        }
+    </style>
+
+    <div class="container">
+        <h1 class="page-header" style="font-size: 30px">
+            List of wells
+        </h1>
+
+        <table>
+            <tr>
+                <th>
+                    Well name
+                </th>
+                <th>
+                    Latitude
+                </th>
+                <th>
+                    Longitude
+                </th>
+                <th>
+                    Total Length
+                </th>
+                <th>
+                    Well Static Water Depth
+                </th>
+                <th>
+                    Well Licence
+                </th>
+                <th>
+                    Well Constructed Depth
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+            {% for well in wells %}
+                <tr>
+                    <td>
+                        {{ well }}
+                    </td>
+                    <td>
+                        {{ well.gw_well_location.y }}
+                    </td>
+                    <td>
+                        {{ well.gw_well_location.x }}
+                    </td>
+                    <td>
+                        {{ well.gw_well_total_length }}
+                    </td>
+                    <td>
+                        {{ welll.gw_well_static_water_depth }}
+                    </td>
+                    <td>
+                        {{ well.gw_well_licence }}
+                    </td>
+                    <td>
+                        {{ well.gw_well_constructed_depth }}
+                    </td>
+                    <td>
+                        <a href="{% url 'well_update_view' pk=well.pk %}">edit</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+    </div>
+{% endblock %}
