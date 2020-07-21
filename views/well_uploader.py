@@ -6,11 +6,13 @@ from django.http import HttpResponse
 from django.urls import reverse
 from django.views.generic import FormView
 
+from braces.views import StaffuserRequiredMixin
+
 from gwml2.forms import CsvWellForm
-from gwml2.tasks import well_from_excell
+from gwml2.tasks import well_from_excel
 
 
-class WellUploadView(FormView):
+class WellUploadView(StaffuserRequiredMixin, FormView):
     """ Upload excel well view.
     """
 
@@ -88,7 +90,7 @@ class WellUploadView(FormView):
                 sheetname = next(iter(sheet))
                 level_records = sheet[sheetname]
 
-            job = well_from_excell.delay(location_records, level_records)
+            job = well_from_excel.delay(location_records, level_records)
             request.session['task_id'] = job.id
             return self.form_valid(form)
 
