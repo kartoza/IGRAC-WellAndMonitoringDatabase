@@ -1,0 +1,125 @@
+{% load gwml2_forms %}
+<div id="drilling_and_construction" class="tab-pane">
+    <div class="section">
+        <table>
+            {% field_as_row form.drilling_method %}
+            {% field_as_row form.driller %}
+            {% field_as_row form.successful %}
+        </table>
+    </div>
+    <div id="casing" class="many-to-many">
+        <h4>Casing</h4>
+        <table>
+            <tr>
+                <th>From</th>
+                <th>To</th>
+                <th>Unit Material</th>
+                <th>Diameter</th>
+                <th>Further Description</th>
+            </tr>
+        </table>
+        <template>
+            <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="number"></td>
+                <td><input type="text"></td>
+            </tr>
+        </template>
+        <div class="add-new-many-to-many">add new</div>
+    </div>
+    <div id="screen" class="many-to-many">
+        <h4>Screen</h4>
+        <table>
+            <tr>
+                <th>From</th>
+                <th>To</th>
+                <th>Unit Material</th>
+                <th>Diameter</th>
+                <th>Further Description</th>
+            </tr>
+        </table>
+        <template>
+            <tr>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="text"></td>
+                <td><input type="number"></td>
+                <td><input type="text"></td>
+            </tr>
+        </template>
+        <div class="add-new-many-to-many">add new</div>
+    </div>
+    <div id="water-strike" class="many-to-many">
+        <h4>Water Strike</h4>
+        <table>
+            <tr>
+                <th>Depth</th>
+                <th>Further Description</th>
+            </tr>
+        </table>
+        <template>
+            <tr>
+                <td><input type="number"></td>
+                <td><input type="text"></td>
+            </tr>
+        </template>
+        <div class="add-new-many-to-many">add new</div>
+    </div>
+</div>
+<script>
+    submitFunctions['drilling_and_construction'] = function () {
+        let data = {
+            drilling_method: $('#id_drilling_method').val(),
+            driller: $('#id_driller').val(),
+            successful: $('#id_successful').is(":checked"),
+            casing: [],
+            screen: [],
+            water_strike: [],
+        }
+
+        {# casing data #}
+        $('#casing tr').each(function (index) {
+            let values = $(this).find('td');
+            if (values.length === 0) {
+                return
+            }
+            data['casing'].push({
+                from: $(values[0]).find('input').val(),
+                to: $(values[1]).find('input').val(),
+                unit_material: $(values[2]).find('input').val(),
+                diameter: $(values[3]).find('input').val(),
+                description: $(values[4]).find('input').val(),
+            })
+        });
+
+        {# screen data #}
+        $('#screen tr').each(function (index) {
+            let values = $(this).find('td');
+            if (values.length === 0) {
+                return
+            }
+            data['screen'].push({
+                from: $(values[0]).find('input').val(),
+                to: $(values[1]).find('input').val(),
+                unit_material: $(values[2]).find('input').val(),
+                diameter: $(values[3]).find('input').val(),
+                description: $(values[4]).find('input').val(),
+            })
+        });
+
+        {# water-strike data #}
+        $('#water-strike tr').each(function (index) {
+            let values = $(this).find('td');
+            if (values.length === 0) {
+                return
+            }
+            data['water_strike'].push({
+                depth: $(values[0]).find('input').val(),
+                description: $(values[1]).find('input').val(),
+            })
+        });
+        return data;
+    }
+</script>

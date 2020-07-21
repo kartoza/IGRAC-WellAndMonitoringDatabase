@@ -1,0 +1,36 @@
+{% load gwml2_forms %}
+<div id="general_information" class="tab-pane fade in active">
+    <div class="section">
+        <table>
+            <tr>
+                <td><h4>Identification</h4></td>
+            </tr>
+            {% field_as_row form.id %}
+            {% field_as_row form.water_point_reference %}
+            {% field_as_row form.water_point_type %}
+            <tr>
+                <td><h4>Location Information</h4></td>
+            </tr>
+            {% field_as_row form.latitude %}
+            {% field_as_row form.longitude %}
+            {% field_as_row form.elevation %}
+            {% field_as_row form.country %}
+            {% field_as_row form.address %}
+        </table>
+    </div>
+    <div class="section">
+        <table>
+            <tr>
+                <td><h4>Summary Information</h4></td>
+            </tr>
+            <tr>
+                <td>{{ form.picture.label }}</td>
+                <td>{{ form.picture }}</td>
+            </tr>
+            <tr>
+                <td>{{ form.description.label }}</td>
+                <td>{{ form.description }}</td>
+            </tr>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block page_title %}
+    <h1>Well form.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        let submitFunctions = {}
+    </script>
+{% endblock %}
+
+{% block body %}
+    <style>
+        .page-header {
+            border-bottom: none;
+            margin-top: 0;
+        }
+
+        .tab-pane {
+            padding: 20px;
+        }
+
+        .tab-content {
+            border-right: 1px solid #ddd;
+            border-left: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        h4 {
+            color: #0a66b7;
+            margin-bottom: 15px;
+            margin-top: 30px;
+        }
+
+        .form {
+            font-size: 14px;
+        }
+
+        #wrap .container {
+            width: 100%;
+            padding: 20px 40px;
+        }
+
+        #wrap .col-md-8 {
+            width: 100%
+        }
+
+        table {
+            width: 100%;
+        }
+
+        table td {
+            vertical-align: middle;
+            padding-bottom: 10px;
+        }
+
+        .section {
+            width: 49%;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        input, textarea, select {
+            border: 1px solid #ccc !important;
+            padding: 5px;
+        }
+
+        select, option, input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        input[type="file"] {
+            border: none !important;
+            padding-left: 0;
+        }
+
+        input[type="checkbox"] {
+            height: 20px;
+            width: 20px;;
+        }
+
+        .many-to-many th {
+            background-color: #eee;
+        }
+
+        .many-to-many td, .many-to-many th {
+            border: 1px solid #ccc !important;
+            padding: 5px;
+        }
+
+        .add-new-many-to-many {
+            text-align: right;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+    </style>
+
+    <div class="page-header">
+        <h5>Groundwater Point Form</h5>
+    </div>
+
+    <div class="form">
+        <ul class="nav nav-tabs">
+            <li class="active"><a data-toggle="tab" href="#general_information">General Information</a></li>
+            <li><a data-toggle="tab" href="#geology">Geology</a></li>
+            <li><a data-toggle="tab" href="#drilling_and_construction">Drilling and Construction</a></li>
+            <li><a data-toggle="tab" href="#hydrogeology">Hydrogeology</a></li>
+        </ul>
+
+        <form method="POST" id="form">
+            {% csrf_token %}
+            <div class="tab-content">
+
+                {# GENERAL INFORMATION #}
+                {% include "groundwater_form/general_information.html" with form=general_information %}
+                {# GEOLOGY #}
+                {% include "groundwater_form/geology.html" with form=geology %}
+                {# DRILLING AND CONSTRUCTION #}
+                {% include "groundwater_form/drilling_and_construction.html" with form=drilling_and_construction %}
+                {# HYDROGEOLOGY #}
+                {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
+            </div>
+            <button type="submit">submit</button>
+        </form>
+    </div>
+    <script>
+        $('.add-new-many-to-many').click(function () {
+            let $table = $(this).closest('.many-to-many').find('table');
+            let template = $(this).closest('.many-to-many').find('template')[0];
+            $table.append(template.content.cloneNode(true));
+        })
+
+        $('#form').submit(function (event) {
+            event.preventDefault();
+            let data = {}
+            $.each(submitFunctions, function (form, value) {
+                data[form] = value();
+            });
+            var formData = new FormData();
+            formData.append('data', JSON.stringify(data));
+            $.ajax({
+                url: window.location,
+                type: "POST",
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function (xhr, settings) {
+                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                        xhr.setRequestHeader("X-CSRFToken", $(this).find('*[name=csrfmiddlewaretoken]').val());
+                    }
+                },
+                success: function (data) {
+
+                },
+                error: function (error) {
+                    alert(error['responseText'])
+                },
+                data: formData
+            });
+        })
+    </script>
+{% endblock %}

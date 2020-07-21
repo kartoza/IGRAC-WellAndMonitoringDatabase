@@ -1,0 +1,26 @@
+{% load gwml2_forms %}
+<div id="hydrogeology" class="tab-pane">
+    <div class="section">
+        <table>
+            <tr>
+                <td><h4>Aquifer</h4></td>
+            </tr>
+            {% field_as_row form.aquifer_name %}
+            {% field_as_row form.aquifer_material %}
+            <tr>
+                <td><h4>Springs</h4></td>
+            </tr>
+            {% field_as_row form.average_yield %}
+            <tr>
+                <td><h4>Well</h4></td>
+            </tr>
+            {% field_as_row form.aquifer_type %}
+            {% field_as_row form.specific_capacity %}
+            {% field_as_row form.transmissivity %}
+            {% field_as_row form.aquifer_thickness %}
+            {% field_as_row form.specific_yield %}
+            {% field_as_row form.storativity %}
+            </tr>
+        </table>
+    </div>
+</div>
