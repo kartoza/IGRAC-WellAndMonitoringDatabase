@@ -59,3 +59,11 @@ Here's a nifty way to do it using pycharm:
 2. Select your tables that you want to visualise then hit right click and click show visualisation
 <img width="604" alt="Screen Shot 2020-07-01 at 14 10 14" src="https://user-images.githubusercontent.com/26101337/86213974-bbeb1d80-bba4-11ea-82ae-2e8635737bda.png">
 3. Your diagrams will show on a separate tab.
+
+
+# Library needed
+Some views in GWML2 need specific libraries as follows in order to work properly:
+- django-braces==1.14.0
+- pyexcel-xls
+- pyexcel-xlsx
+- django-crispy-forms==1.8.1

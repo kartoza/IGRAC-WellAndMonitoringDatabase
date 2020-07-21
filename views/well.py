@@ -2,10 +2,10 @@ from django.views.generic import ListView, UpdateView
 from django.urls import reverse
 from gwml2.models.well.gw_well import GWWell
 from gwml2.forms import WellUpdateForm
-from django.conf import settings
+from braces.views import StaffuserRequiredMixin, LoginRequiredMixin
 
 
-class WellListView(ListView):
+class WellListView(LoginRequiredMixin, ListView):
     """View for list of wells."""
 
     model = GWWell
@@ -29,7 +29,7 @@ class WellListView(ListView):
         return self.queryset
 
 
-class WellUpdateView(UpdateView):
+class WellUpdateView(StaffuserRequiredMixin, UpdateView):
     """View for updating well."""
 
     model = GWWell
@@ -57,5 +57,4 @@ class WellUpdateView(UpdateView):
         """
 
         context = super(WellUpdateView, self).get_context_data(**kwargs)
-        context['settings'] = settings.INSTALLED_APPS
         return context
