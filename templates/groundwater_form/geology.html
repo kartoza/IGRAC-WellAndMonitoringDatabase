@@ -6,9 +6,9 @@
             <tr>
                 <td><h4>Reference Elevation</h4></td>
             </tr>
-            {% field_as_row form.reference_elevation_value %}
-            {% field_as_row form.reference_elevation_unit %}
-            {% field_as_row form.reference_elevation_description %}
+            {% field_as_row reference_elevation.value %}
+            {% field_as_row reference_elevation.unit %}
+            {% field_as_row reference_elevation.description %}
         </table>
     </div>
     <div id="geology_log" class="many-to-many">
@@ -38,12 +38,14 @@
     submitFunctions['geology'] = function () {
         let data = {
             total_depth: $('#id_total_depth').val(),
-            reference_elevation_value: $(
-                '#geology #id_reference_elevation_value').val(),
-            reference_elevation_unit: $(
-                '#geology #id_reference_elevation_unit').val(),
-            reference_elevation_description: $(
-                '#geology #id_reference_elevation_description').val(),
+            reference_elevation: {
+                value: $(
+                    '#geology #id_value').val(),
+                unit: $(
+                    '#geology #id_unit').val(),
+                description: $(
+                    '#geology #id_description').val(),
+            },
             geology_log: []
         };
         {# casing data #}
