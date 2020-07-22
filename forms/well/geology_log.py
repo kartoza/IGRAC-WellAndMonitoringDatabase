@@ -7,7 +7,7 @@ class GeologyLogForm(forms.Form):
     Form of geology log of well.
     """
     # identification
-    id = forms.ModelMultipleChoiceField(
+    id = forms.ModelChoiceField(
         queryset=GWWell.objects.all())
     start_depth = forms.FloatField(
         label='From', required=False)
