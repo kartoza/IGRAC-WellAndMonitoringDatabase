@@ -67,6 +67,13 @@
         </template>
         <div class="add-new-many-to-many">add new</div>
     </div>
+    <div class="section">
+        <h4>Pump (Well Production)</h4>
+        <table>
+            {% field_as_row form.pump_installer %}
+            {% field_as_row form.pump_details %}
+        </table>
+    </div>
 </div>
 <script>
     submitFunctions['drilling_and_construction'] = function () {
@@ -77,6 +84,8 @@
             casing: [],
             screen: [],
             water_strike: [],
+            pump_installer: $('#id_pump_installer').val(),
+            pump_details: $('#id_pump_details').val(),
         }
 
         {# casing data #}
