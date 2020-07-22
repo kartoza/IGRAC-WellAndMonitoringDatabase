@@ -1,0 +1,33 @@
+{% load gwml2_forms %}
+<div id="management" class="tab-pane">
+    <div class="section">
+        <table>
+            <tr>
+                <td><h4>Organisation</h4></td>
+            </tr>
+            {% field_as_row form.management_type %}
+            <tr>
+                <td><h5>Organisation/Owner/Responsible Entity</h5></td>
+            </tr>
+            {% field_as_row form.organisation_description %}
+            <tr>
+                <td><h4>Production</h4></td>
+            </tr>
+            <tr>
+                <td><h5>Groundwater Use</h5></td>
+            </tr>
+            {% field_as_row form.number_of_people_served %}
+            </tr>
+            <tr>
+                <td><h4>License</h4></td>
+            </tr>
+            {% field_as_row form.license_id %}
+            {% field_as_row form.license_description %}
+            <tr>
+                <td><h5>Validity Period</h5></td>
+            </tr>
+            {% field_as_row form.validity_from %}
+            {% field_as_row form.validity_to %}
+        </table>
+    </div>
+</div>

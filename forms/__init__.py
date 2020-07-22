@@ -3,3 +3,4 @@ from gwml2.forms.well.drilling_and_construction import DrillingAndConstructionFo
 from gwml2.forms.well.general_information import GeneralInformationForm
 from gwml2.forms.well.geology import GeologyForm
 from gwml2.forms.well.hydrogeology import HydrogeologyForm
+from gwml2.forms.well.management import ManagementForm

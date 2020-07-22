@@ -116,6 +116,7 @@
             <li><a data-toggle="tab" href="#geology">Geology</a></li>
             <li><a data-toggle="tab" href="#drilling_and_construction">Drilling and Construction</a></li>
             <li><a data-toggle="tab" href="#hydrogeology">Hydrogeology</a></li>
+            <li><a data-toggle="tab" href="#management">Management</a></li>
         </ul>
 
         <form method="POST" id="form">
@@ -130,6 +131,8 @@
                 {% include "groundwater_form/drilling_and_construction.html" with form=drilling_and_construction %}
                 {# HYDROGEOLOGY #}
                 {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
+                {# MANAGEMENT #}
+                {% include "groundwater_form/management.html" with form=management %}
             </div>
             <button type="submit">submit</button>
         </form>
