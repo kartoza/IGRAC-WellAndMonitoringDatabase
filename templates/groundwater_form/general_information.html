@@ -33,10 +33,32 @@
             </tr>
         </table>
     </div>
+    <div id="documents" class="many-to-many">
+        <h4>Documents</h4>
+        <table>
+            <tr>
+                <th>{{ document.file.label }}</th>
+                <th>{{ document.document_type.label }}</th>
+                <th>{{ document.description.label }}</th>
+                <th>{{ document.file_type.label }}</th>
+                <th>{{ document.file_size.label }}</th>
+            </tr>
+        </table>
+        <template>
+            <tr>
+                <td>{{ document.file }}</td>
+                <td>{{ document.document_type }}</td>
+                <td>{{ document.description }}</td>
+                <td>{{ document.file_type }}</td>
+                <td>{{ document.file_size }}</td>
+            </tr>
+        </template>
+        <div class="add-new-many-to-many">add new</div>
+    </div>
 </div>
 <script>
     submitFunctions['general_information'] = function () {
-        return {
+        let data = {
             id: $('#id_id').val(),
             water_point_reference: $('#id_water_point_reference').val(),
             water_point_type: $('#id_water_point_type').val(),
@@ -44,7 +66,29 @@
             longitude_type: $('#id_longitude').val(),
             elevation_type: $('#id_elevation').val(),
             country_type: $('#id_country').val(),
-            address_type: $('#id_address').val()
+            address_type: $('#id_address').val(),
+            description: $('#id_description').val(),
+            documents: []
         };
+        let picture = $('#id_file').get(0).files[0]
+        if (picture) {
+            data['picture'] = picture.name
+        }
+
+
+        $('#documents tr').each(function (index) {
+            let values = $(this).find('td');
+            if (values.length === 0) {
+                return
+            }
+            let file = $(values[0]).find('input').get(0).files[0]
+            if (file) {
+                data['documents'].push({
+                    file: file.name,
+                    description: $(values[2]).find('input').val(),
+                })
+            }
+        });
+        return data
     }
 </script>

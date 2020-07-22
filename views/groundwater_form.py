@@ -5,7 +5,7 @@ from django.views.generic.base import View
 from gwml2.forms import (
     DrillingAndConstructionForm, GeneralInformationForm,
     GeologyForm, HydrogeologyForm, ManagementForm,
-    GeologyLogForm, CasingForm, ScreenForm
+    GeologyLogForm, CasingForm, ScreenForm, DocumentForm
 )
 
 
@@ -22,6 +22,7 @@ class GroundwaterFormView(View):
                 'geology_log': GeologyLogForm(),
                 'casing': CasingForm(),
                 'screen': ScreenForm(),
+                'document': DocumentForm(),
             }
         )
 

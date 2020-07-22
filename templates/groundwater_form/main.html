@@ -8,7 +8,7 @@
 {% block extra_head %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script>
-        let submitFunctions = {}
+        let submitFunctions = {};
     </script>
 {% endblock %}
 
@@ -151,6 +151,12 @@
                 data[form] = value();
             });
             var formData = new FormData();
+            $('input[type="file"]').each(function (index) {
+                let file = $(this).get(0).files[0];
+                if (file) {
+                    formData.append(file.name, file);
+                }
+            });
             formData.append('data', JSON.stringify(data));
             $.ajax({
                 url: window.location,
