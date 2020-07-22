@@ -7,24 +7,28 @@
             {% field_as_row form.successful %}
         </table>
     </div>
+
+    {# CASING #}
     <div id="casing" class="many-to-many">
         <h4>Casing</h4>
         <table>
             <tr>
-                <th>From</th>
-                <th>To</th>
-                <th>Unit Material</th>
-                <th>Diameter</th>
-                <th>Further Description</th>
+                <th>{{ casing.material.label }}</th>
+                <th>{{ casing.coating.label }}</th>
+                <th>{{ casing.form.label }}</th>
+                <th>{{ casing.internal_diameter.label }}</th>
+                <th>{{ casing.external_diameter.label }}</th>
+                <th>{{ casing.wall_thickness.label }}</th>
             </tr>
         </table>
         <template>
             <tr>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="number"></td>
-                <td><input type="text"></td>
+                <td>{{ casing.material }}</td>
+                <td>{{ casing.coating }}</td>
+                <td>{{ casing.form }}</td>
+                <td>{{ casing.internal_diameter }}</td>
+                <td>{{ casing.external_diameter }}</td>
+                <td>{{ casing.wall_thickness }}</td>
             </tr>
         </template>
         <div class="add-new-many-to-many">add new</div>
@@ -33,20 +37,32 @@
         <h4>Screen</h4>
         <table>
             <tr>
-                <th>From</th>
-                <th>To</th>
-                <th>Unit Material</th>
-                <th>Diameter</th>
-                <th>Further Description</th>
+                <th>{{ screen.attachment_method.label }}</th>
+                <th>{{ screen.coating.label }}</th>
+                <th>{{ screen.form.label }}</th>
+                <th>{{ screen.material.label }}</th>
+                <th>{{ screen.perforation_method.label }}</th>
+                <th>{{ screen.fitting.label }}</th>
+                <th>{{ screen.placement.label }}</th>
+                <th>{{ screen.hole_size.label }}</th>
+                <th>{{ screen.internal_diameter.label }}</th>
+                <th>{{ screen.external_diameter.label }}</th>
+                <th>{{ screen.wall_thickness.label }}</th>
             </tr>
         </table>
         <template>
             <tr>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="text"></td>
-                <td><input type="number"></td>
-                <td><input type="text"></td>
+                <td>{{ screen.attachment_method }}</td>
+                <td>{{ screen.coating }}</td>
+                <td>{{ screen.form }}</td>
+                <td>{{ screen.material }}</td>
+                <td>{{ screen.perforation_method }}</td>
+                <td>{{ screen.fitting }}</td>
+                <td>{{ screen.placement }}</td>
+                <td>{{ screen.hole_size }}</td>
+                <td>{{ screen.internal_diameter }}</td>
+                <td>{{ screen.external_diameter }}</td>
+                <td>{{ screen.wall_thickness }}</td>
             </tr>
         </template>
         <div class="add-new-many-to-many">add new</div>
@@ -67,6 +83,13 @@
         </template>
         <div class="add-new-many-to-many">add new</div>
     </div>
+    <div class="section">
+        <h4>Pump (Well Production)</h4>
+        <table>
+            {% field_as_row form.pump_installer %}
+            {% field_as_row form.pump_details %}
+        </table>
+    </div>
 </div>
 <script>
     submitFunctions['drilling_and_construction'] = function () {
@@ -77,6 +100,8 @@
             casing: [],
             screen: [],
             water_strike: [],
+            pump_installer: $('#id_pump_installer').val(),
+            pump_details: $('#id_pump_details').val(),
         }
 
         {# casing data #}
@@ -86,11 +111,12 @@
                 return
             }
             data['casing'].push({
-                from: $(values[0]).find('input').val(),
-                to: $(values[1]).find('input').val(),
-                unit_material: $(values[2]).find('input').val(),
-                diameter: $(values[3]).find('input').val(),
-                description: $(values[4]).find('input').val(),
+                material: $(values[0]).find('select').val(),
+                coating: $(values[1]).find('select').val(),
+                form: $(values[2]).find('select').val(),
+                internal_diameter: $(values[3]).find('input').val(),
+                external_diameter: $(values[4]).find('input').val(),
+                wall_thickness: $(values[5]).find('input').val(),
             })
         });
 
@@ -101,11 +127,17 @@
                 return
             }
             data['screen'].push({
-                from: $(values[0]).find('input').val(),
-                to: $(values[1]).find('input').val(),
-                unit_material: $(values[2]).find('input').val(),
-                diameter: $(values[3]).find('input').val(),
-                description: $(values[4]).find('input').val(),
+                attachment_method: $(values[0]).find('select').val(),
+                coating: $(values[1]).find('select').val(),
+                form: $(values[2]).find('select').val(),
+                material: $(values[3]).find('select').val(),
+                perforation_method: $(values[4]).find('select').val(),
+                fitting: $(values[5]).find('select').val(),
+                placement: $(values[6]).find('select').val(),
+                hole_size: $(values[7]).find('input').val(),
+                internal_diameter: $(values[8]).find('input').val(),
+                external_diameter: $(values[9]).find('input').val(),
+                wall_thickness: $(values[10]).find('input').val(),
             })
         });
 

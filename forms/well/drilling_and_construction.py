@@ -14,3 +14,7 @@ class DrillingAndConstructionForm(forms.Form):
         queryset=CIResponsibleParty.objects.all(),
         empty_label='------')
     successful = forms.BooleanField(required=False)
+
+    # pump
+    pump_installer = forms.CharField(required=False)
+    pump_details = forms.CharField(required=False)

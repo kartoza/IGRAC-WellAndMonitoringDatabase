@@ -2,8 +2,64 @@
 <div id="geology" class="tab-pane">
     <div class="section">
         <table>
-            {% field_as_row form.total_depth %}
+            {% field_as_row form.total_depth 'meter' %}
+            <tr>
+                <td><h4>Reference Elevation</h4></td>
             </tr>
+            {% field_as_row form.reference_elevation_value %}
+            {% field_as_row form.reference_elevation_unit %}
+            {% field_as_row form.reference_elevation_description %}
         </table>
     </div>
+    <div id="geology_log" class="many-to-many">
+        <h4>Geology Log</h4>
+        <table>
+            <tr>
+                <th>{{ geology_log.start_depth.label }}</th>
+                <th>{{ geology_log.end_depth.label }}</th>
+                <th>{{ geology_log.phenomenon_time.label }}</th>
+                <th>{{ geology_log.result_time.label }}</th>
+                <th>{{ geology_log.result.label }}</th>
+            </tr>
+        </table>
+        <template>
+            <tr>
+                <td>{{ geology_log.start_depth }}</td>
+                <td>{{ geology_log.end_depth }}</td>
+                <td>{{ geology_log.phenomenon_time }}</td>
+                <td>{{ geology_log.result_time }}</td>
+                <td>{{ geology_log.result }}</td>
+            </tr>
+        </template>
+        <div class="add-new-many-to-many">add new</div>
+    </div>
 </div>
+<script>
+    submitFunctions['geology'] = function () {
+        let data = {
+            total_depth: $('#id_total_depth').val(),
+            reference_elevation_value: $(
+                '#geology #id_reference_elevation_value').val(),
+            reference_elevation_unit: $(
+                '#geology #id_reference_elevation_unit').val(),
+            reference_elevation_description: $(
+                '#geology #id_reference_elevation_description').val(),
+            geology_log: []
+        };
+        {# casing data #}
+        $('#geology_log tr').each(function (index) {
+            let values = $(this).find('td');
+            if (values.length === 0) {
+                return
+            }
+            data['geology_log'].push({
+                start_depth: $(values[0]).find('input').val(),
+                end_depth: $(values[1]).find('input').val(),
+                phenomenon_time: $(values[2]).find('input').val(),
+                result_time: $(values[3]).find('input').val(),
+                result: $(values[4]).find('input').val(),
+            })
+        });
+        return data;
+    }
+</script>
