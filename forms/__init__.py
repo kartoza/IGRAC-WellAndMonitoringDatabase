@@ -8,3 +8,5 @@ from gwml2.forms.well.management import ManagementForm
 from gwml2.forms.well.casing import CasingForm
 from gwml2.forms.well.screen import ScreenForm
 from gwml2.forms.well.document import DocumentForm
+from gwml2.forms.well.license import LicenseForm
+from gwml2.forms.well.organisation import OrganisationForm

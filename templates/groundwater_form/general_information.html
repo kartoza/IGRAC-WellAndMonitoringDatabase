@@ -59,18 +59,18 @@
 <script>
     submitFunctions['general_information'] = function () {
         let data = {
-            id: $('#id_id').val(),
-            water_point_reference: $('#id_water_point_reference').val(),
-            water_point_type: $('#id_water_point_type').val(),
-            latitude_type: $('#id_latitude').val(),
-            longitude_type: $('#id_longitude').val(),
-            elevation_type: $('#id_elevation').val(),
-            country_type: $('#id_country').val(),
-            address_type: $('#id_address').val(),
-            description: $('#id_description').val(),
+            id: $('#general_information #id_id').val(),
+            water_point_reference: $('#general_information #id_water_point_reference').val(),
+            water_point_type: $('#general_information #id_water_point_type').val(),
+            latitude_type: $('#general_information #id_latitude').val(),
+            longitude_type: $('#general_information #id_longitude').val(),
+            elevation_type: $('#general_information #id_elevation').val(),
+            country_type: $('#general_information #id_country').val(),
+            address_type: $('#general_information #id_address').val(),
+            description: $('#general_information #id_description').val(),
             documents: []
         };
-        let picture = $('#id_file').get(0).files[0]
+        let picture = $('#general_information #id_file').get(0).files[0]
         if (picture) {
             data['picture'] = picture.name
         }

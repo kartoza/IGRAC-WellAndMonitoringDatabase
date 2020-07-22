@@ -5,29 +5,56 @@
             <tr>
                 <td><h4>Organisation</h4></td>
             </tr>
-            {% field_as_row form.management_type %}
-            <tr>
-                <td><h5>Organisation/Owner/Responsible Entity</h5></td>
-            </tr>
-            {% field_as_row form.organisation_description %}
+            {% field_as_row organisation.management_type %}
+            {% field_as_row organisation.organisation %}
+            {% field_as_row organisation.owner %}
+            {% field_as_row organisation.responsible %}
+            {% field_as_row organisation.description %}
             <tr>
                 <td><h4>Production</h4></td>
             </tr>
-            <tr>
-                <td><h5>Groundwater Use</h5></td>
-            </tr>
+            {% field_as_row form.groundwater_use %}
             {% field_as_row form.number_of_people_served %}
             </tr>
             <tr>
                 <td><h4>License</h4></td>
             </tr>
-            {% field_as_row form.license_id %}
-            {% field_as_row form.license_description %}
-            <tr>
-                <td><h5>Validity Period</h5></td>
-            </tr>
-            {% field_as_row form.validity_from %}
-            {% field_as_row form.validity_to %}
+            {% field_as_row license.id %}
+            {% field_as_row license.validity_from %}
+            {% field_as_row license.validity_to %}
+            {% field_as_row license.description %}
         </table>
     </div>
 </div>
+
+<script>
+    $('#management #id_validity_from').datepicker({
+        format: 'DD-MM-YYYY',
+    });
+    $('#management #id_validity_to').datepicker({
+        format: 'DD-MM-YYYY',
+    });
+    submitFunctions['management'] = function () {
+        return {
+            groundwater_use: $('#id_groundwater_use').val(),
+            number_of_people_served: $('#id_number_of_people_served').val()
+        };
+    }
+    submitFunctions['organisation'] = function () {
+        return {
+            management_type: $('#management #id_management_type').val(),
+            organisation: $('#management #id_organisation').val(),
+            owner: $('#management #id_owner').val(),
+            responsible: $('#management #id_responsible').val(),
+            description: $('#management #id_description').val(),
+        };
+    }
+    submitFunctions['license'] = function () {
+        return {
+            id: $('#management #id_id').val(),
+            validity_from: $('#management #id_validity_from').val(),
+            validity_to: $('#management #id_validity_to').val(),
+            description: $('#management #id_description').val()
+        };
+    }
+</script>
