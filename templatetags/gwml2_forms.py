@@ -15,9 +15,10 @@ def render_label(field):
 
 
 @register.simple_tag
-def field_as_row(field):
+def field_as_row(field, unit=''):
     return mark_safe(
-        '<tr><td>{label}</td><td>{input}</td></tr>'.format(
+        '<tr><td>{label}</td><td>{input} {unit}</td></tr>'.format(
             label=render_label(field),
             input=field,
+            unit=unit
         ))
