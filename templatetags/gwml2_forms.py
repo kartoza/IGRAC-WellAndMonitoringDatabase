@@ -21,7 +21,12 @@ def field_as_row(field, unit=''):
         help_text = '<i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{}">'.format(
             field.help_text)
     return mark_safe(
-        '<tr><td>{label} {help_text}</i></td><td>{input} {unit}</td></tr>'.format(
+        '<tr>'
+        '   <td>{label} {help_text}</i></td>'
+        '   <td>'
+        '       <div class="input">{input} {unit}</div>'
+        '   </td>'
+        '</tr>'.format(
             help_text=help_text,
             label=render_label(field),
             input=field,

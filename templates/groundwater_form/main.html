@@ -8,6 +8,7 @@
 {% block extra_head %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script>
         let submitFunctions = {};
@@ -22,7 +23,25 @@
             margin-top: 0;
         }
 
+        .nav-tabs a i {
+            color: red;
+            display: none;
+        }
+
+        .nav-tabs a.error i {
+            display: inline-block;
+        }
+
+
         .tab-pane {
+            display: block !important;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .tab-content > .active {
+            height: auto;
+            overflow: auto;
             padding: 20px;
         }
 
@@ -65,6 +84,11 @@
             padding-bottom: 10px;
         }
 
+        .input {
+            width: fit-content;
+            position: relative;
+        }
+
         .section {
             width: 49%;
             display: inline-block;
@@ -99,11 +123,12 @@
             padding: 5px;
         }
 
+        {# this is for add many to many button#}
         .add-new-many-to-many {
-            text-align: right;
+            cursor: pointer;
             margin-top: 10px;
             margin-bottom: 10px;
-            cursor: pointer;
+            text-align: right;
         }
 
         .fa-question-circle-o {
@@ -111,6 +136,36 @@
             opacity: 0.6;
         }
 
+        {# tooltip of error #}
+        table td div.error {
+            background: white;
+            border: 1px solid #ff5e5e;
+            border-radius: 3px;
+            color: #ff5e5e;
+            font-size: 14px;
+            left: 100%;
+            margin-left: 10px;
+            padding: 5px;
+            position: absolute;
+            top: 0;
+            width: fit-content;
+            min-width: 150px;
+
+            -webkit-box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
+            -moz-box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
+            box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        table td div.error::after {
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent #ff5e5e transparent transparent;
+            content: " ";
+            left: -10px;
+            margin-top: -5px;
+            position: absolute;
+            top: 50%;
+        }
 
     </style>
 
@@ -120,12 +175,36 @@
 
     <div class="form">
         <ul class="nav nav-tabs">
-            <li class="active"><a data-toggle="tab" href="#general_information">General Information</a></li>
-            <li><a data-toggle="tab" href="#geology">Geology</a></li>
-            <li><a data-toggle="tab" href="#drilling_and_construction">Drilling and Construction</a></li>
-            <li><a data-toggle="tab" href="#hydrogeology">Hydrogeology</a></li>
-            <li><a data-toggle="tab" href="#management">Management</a></li>
-            <li><a data-toggle="tab" href="#monitoring_data">Monitoring Data</a></li>
+            <li class="active">
+                <a data-toggle="tab" href="#general_information">
+                    General Information <i class="fa fa-exclamation" aria-hidden="true"></i>
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#geology">
+                    Geology <i class="fa fa-exclamation" aria-hidden="true"></i>
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#drilling_and_construction">
+                    Drilling and Construction <i class="fa fa-exclamation" aria-hidden="true"></i>
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#hydrogeology">
+                    Hydrogeology <i class="fa fa-exclamation" aria-hidden="true"></i>
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#management">
+                    Management <i class="fa fa-exclamation" aria-hidden="true"></i>
+                </a>
+            </li>
+            <li>
+                <a data-toggle="tab" href="#monitoring_data">
+                    Monitoring Data <i class="fa fa-exclamation" aria-hidden="true"></i>
+                </a>
+            </li>
         </ul>
 
         <form method="POST" id="form">
@@ -145,7 +224,7 @@
                 {# MONITORING DATA #}
                 {% include "groundwater_form/monitoring_data.html" %}
             </div>
-            <button type="submit">submit</button>
+            <button id="form-submit" type="submit">submit</button>
         </form>
     </div>
     <script>
@@ -155,39 +234,54 @@
             $table.append(template.content.cloneNode(true));
         })
 
-        $('#form').submit(function (event) {
-            event.preventDefault();
-            let data = {}
-            $.each(submitFunctions, function (form, value) {
-                data[form] = value();
-            });
-            var formData = new FormData();
-            $('input[type="file"]').each(function (index) {
-                let file = $(this).get(0).files[0];
-                if (file) {
-                    formData.append(file.name, file);
+        $('#form').validate({
+            errorElement: 'div',
+            invalidHandler: function (event, validator) {
+                $('.nav-tabs a').removeClass('error')
+                if (validator.invalid) {
+                    {# we check the error message show on form and show red exclamation on tab #}
+                    setTimeout(function () {
+                        $('div.error:visible').each(function () {
+                            $("a[href$='#" + $(this).closest('.tab-pane').attr('id') + "']").addClass('error')
+                        })
+                    }, 100);
                 }
-            });
-            formData.append('data', JSON.stringify(data));
-            $.ajax({
-                url: window.location,
-                type: "POST",
-                cache: false,
-                contentType: false,
-                processData: false,
-                beforeSend: function (xhr, settings) {
-                    if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
-                        xhr.setRequestHeader("X-CSRFToken", $(this).find('*[name=csrfmiddlewaretoken]').val());
+            },
+            submitHandler: function (form, event) {
+                $('.nav-tabs a').removeClass('error')
+                event.preventDefault();
+                let data = {}
+                $.each(submitFunctions, function (form, value) {
+                    data[form] = value();
+                });
+                var formData = new FormData();
+                $('input[type="file"]').each(function () {
+                    let file = $(this).get(0).files[0];
+                    if (file) {
+                        formData.append(file.name, file);
                     }
-                },
-                success: function (data) {
+                });
+                formData.append('data', JSON.stringify(data));
+                $.ajax({
+                    url: window.location,
+                    type: "POST",
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function (xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", $(this).find('*[name=csrfmiddlewaretoken]').val());
+                        }
+                    },
+                    success: function (data) {
 
-                },
-                error: function (error) {
-                    alert(error['responseText'])
-                },
-                data: formData
-            });
-        })
+                    },
+                    error: function (error) {
+                        alert(error['responseText'])
+                    },
+                    data: formData
+                });
+            }
+        });
     </script>
 {% endblock %}
