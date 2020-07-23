@@ -10,56 +10,17 @@
             {% field_as_row reference_elevation.description %}
         </table>
     </div>
-    <div id="measurement" class="many-to-many">
-        <h4>Measurement</h4>
-        <table>
-            <tr>
-                <th>{{ measurement.time.label }}</th>
-                <th>{{ measurement.parameter.label }}</th>
-                <th>{{ measurement.facility.label }}</th>
-                <th>{{ measurement.value.label }}</th>
-                <th>{{ measurement.unit.label }}</th>
-            </tr>
-        </table>
-        <template>
-            <tr>
-                <td>{{ measurement.time }}</td>
-                <td>{{ measurement.parameter }}</td>
-                <td>{{ measurement.facility }}</td>
-                <td>{{ measurement.value }}</td>
-                <td>{{ measurement.unit }}</td>
-            </tr>
-        </template>
-        <div class="add-new-many-to-many">add new</div>
-    </div>
+    {% include "groundwater_form/_many-to-many.html" with id='measurement' title='Measurement' theform=measurement %}
 </div>
 <script>
     submitFunctions['monitoring_data'] = function () {
         let data = {
-            reference_elevation: {
-                value: $(
-                    '#monitoring_data #id_value').val(),
-                unit: $(
-                    '#monitoring_data #id_unit').val(),
-                description: $(
-                    '#monitoring_data #id_description').val(),
-            },
-            measurement: []
+            reference_elevation: {},
+            measurement: submitFunctionsManyToMany['measurement']()
         };
-        {# casing data #}
-        $('#measurement tr').each(function (index) {
-            let values = $(this).find('td');
-            if (values.length === 0) {
-                return
-            }
-            data['measurement'].push({
-                time: $(values[0]).find('input').val(),
-                parameter: $(values[1]).find('input').val(),
-                facility: $(values[2]).find('input').val(),
-                value: $(values[3]).find('input').val(),
-                unit: $(values[4]).find('input').val(),
-            })
-        });
+        {% for field in reference_elevation %}
+            data['reference_elevation']['{{ field.name }}'] = $('#monitoring_data #{{ field.id_for_label }}').val()
+        {% endfor %}
         return data;
     }
 </script>

@@ -26,16 +26,11 @@
 </div>
 <script>
     submitFunctions['hydrogeology'] = function () {
-        return {
-            aquifer_name: $('#id_aquifer_name').val(),
-            aquifer_material: $('#id_aquifer_material').val(),
-            average_yield: $('#id_average_yield').val(),
-            aquifer_type: $('#id_aquifer_type').val(),
-            specific_capacity: $('#id_specific_capacity').val(),
-            transmissivity: $('#id_transmissivity').val(),
-            aquifer_thickness: $('#id_aquifer_thickness').val(),
-            specific_yield: $('#id_specific_yield').val(),
-            storativity: $('#id_storativity').val()
-        };
+        let data = {}
+        $('#hydrogeology .section').find('input,textarea,select').each(
+            function () {
+                data[$(this).attr('name')] = $(this).val()
+            });
+        return data
     }
 </script>

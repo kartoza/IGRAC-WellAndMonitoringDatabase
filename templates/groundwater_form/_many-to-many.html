@@ -1,0 +1,49 @@
+{# THIS IS MANY TO MANY HTML #}
+<div id="{{ id }}" class="many-to-many">
+    <h4>{{ title }}</h4>
+    <table>
+        <tr>
+            {% for field in theform %}
+                <th>{{ field.label }}</th>
+            {% endfor %}
+        </tr>
+    </table>
+    <template>
+        <tr>
+            {% for field in theform %}
+                <td>{{ field }}</td>
+            {% endfor %}
+        </tr>
+    </template>
+    <div class="add-new-many-to-many">add new</div>
+</div>
+<script>
+    {# accessing many to many data is through submitFunctionsManyToMany by id#}
+    submitFunctionsManyToMany['{{ id }}'] = function () {
+        let data = [];
+        $('#{{ id }} tr').each(function (index) {
+
+            {# skip if it is header #}
+            let values = $(this).find('td');
+            if (values.length === 0) {
+                return
+            }
+
+            {# find every td and extract the data #}
+            let rowData = {}
+            $(this).find('input, textarea, select').each(function (index) {
+                const key = $(this).attr('name')
+                let value = $(this).val()
+                {# if file, get the file name #}
+                if ($(this).attr('type') === 'file') {
+                    if ($(values[0]).find('input').get(0).files[0]) {
+                        value = $(values[0]).find('input').get(0).files[0].name
+                    }
+                }
+                rowData[key] = value
+            });
+            data.push(rowData)
+        });
+        return data
+    }
+</script>

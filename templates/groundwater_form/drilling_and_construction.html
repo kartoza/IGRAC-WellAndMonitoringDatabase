@@ -7,82 +7,9 @@
             {% field_as_row form.successful %}
         </table>
     </div>
-
-    {# CASING #}
-    <div id="casing" class="many-to-many">
-        <h4>Casing</h4>
-        <table>
-            <tr>
-                <th>{{ casing.material.label }}</th>
-                <th>{{ casing.coating.label }}</th>
-                <th>{{ casing.form.label }}</th>
-                <th>{{ casing.internal_diameter.label }}</th>
-                <th>{{ casing.external_diameter.label }}</th>
-                <th>{{ casing.wall_thickness.label }}</th>
-            </tr>
-        </table>
-        <template>
-            <tr>
-                <td>{{ casing.material }}</td>
-                <td>{{ casing.coating }}</td>
-                <td>{{ casing.form }}</td>
-                <td>{{ casing.internal_diameter }}</td>
-                <td>{{ casing.external_diameter }}</td>
-                <td>{{ casing.wall_thickness }}</td>
-            </tr>
-        </template>
-        <div class="add-new-many-to-many">add new</div>
-    </div>
-    <div id="screen" class="many-to-many">
-        <h4>Screen</h4>
-        <table>
-            <tr>
-                <th>{{ screen.attachment_method.label }}</th>
-                <th>{{ screen.coating.label }}</th>
-                <th>{{ screen.form.label }}</th>
-                <th>{{ screen.material.label }}</th>
-                <th>{{ screen.perforation_method.label }}</th>
-                <th>{{ screen.fitting.label }}</th>
-                <th>{{ screen.placement.label }}</th>
-                <th>{{ screen.hole_size.label }}</th>
-                <th>{{ screen.internal_diameter.label }}</th>
-                <th>{{ screen.external_diameter.label }}</th>
-                <th>{{ screen.wall_thickness.label }}</th>
-            </tr>
-        </table>
-        <template>
-            <tr>
-                <td>{{ screen.attachment_method }}</td>
-                <td>{{ screen.coating }}</td>
-                <td>{{ screen.form }}</td>
-                <td>{{ screen.material }}</td>
-                <td>{{ screen.perforation_method }}</td>
-                <td>{{ screen.fitting }}</td>
-                <td>{{ screen.placement }}</td>
-                <td>{{ screen.hole_size }}</td>
-                <td>{{ screen.internal_diameter }}</td>
-                <td>{{ screen.external_diameter }}</td>
-                <td>{{ screen.wall_thickness }}</td>
-            </tr>
-        </template>
-        <div class="add-new-many-to-many">add new</div>
-    </div>
-    <div id="water-strike" class="many-to-many">
-        <h4>Water Strike</h4>
-        <table>
-            <tr>
-                <th>Depth</th>
-                <th>Further Description</th>
-            </tr>
-        </table>
-        <template>
-            <tr>
-                <td><input type="number"></td>
-                <td><input type="text"></td>
-            </tr>
-        </template>
-        <div class="add-new-many-to-many">add new</div>
-    </div>
+    {% include "groundwater_form/_many-to-many.html" with id='casing' title='Casing' theform=casing %}
+    {% include "groundwater_form/_many-to-many.html" with id='screen' title='Screen' theform=screen %}
+    {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike %}
     <div class="section">
         <h4>Pump (Well Production)</h4>
         <table>
@@ -94,64 +21,19 @@
 <script>
     submitFunctions['drilling_and_construction'] = function () {
         let data = {
-            drilling_method: $('#id_drilling_method').val(),
-            driller: $('#id_driller').val(),
-            successful: $('#id_successful').is(":checked"),
-            casing: [],
-            screen: [],
-            water_strike: [],
-            pump_installer: $('#id_pump_installer').val(),
-            pump_details: $('#id_pump_details').val(),
+            casing: submitFunctionsManyToMany['casing'](),
+            screen: submitFunctionsManyToMany['screen'](),
+            water_strike: submitFunctionsManyToMany['water_strike'](),
         }
-
-        {# casing data #}
-        $('#casing tr').each(function (index) {
-            let values = $(this).find('td');
-            if (values.length === 0) {
-                return
-            }
-            data['casing'].push({
-                material: $(values[0]).find('select').val(),
-                coating: $(values[1]).find('select').val(),
-                form: $(values[2]).find('select').val(),
-                internal_diameter: $(values[3]).find('input').val(),
-                external_diameter: $(values[4]).find('input').val(),
-                wall_thickness: $(values[5]).find('input').val(),
-            })
-        });
-
-        {# screen data #}
-        $('#screen tr').each(function (index) {
-            let values = $(this).find('td');
-            if (values.length === 0) {
-                return
-            }
-            data['screen'].push({
-                attachment_method: $(values[0]).find('select').val(),
-                coating: $(values[1]).find('select').val(),
-                form: $(values[2]).find('select').val(),
-                material: $(values[3]).find('select').val(),
-                perforation_method: $(values[4]).find('select').val(),
-                fitting: $(values[5]).find('select').val(),
-                placement: $(values[6]).find('select').val(),
-                hole_size: $(values[7]).find('input').val(),
-                internal_diameter: $(values[8]).find('input').val(),
-                external_diameter: $(values[9]).find('input').val(),
-                wall_thickness: $(values[10]).find('input').val(),
-            })
-        });
-
-        {# water-strike data #}
-        $('#water-strike tr').each(function (index) {
-            let values = $(this).find('td');
-            if (values.length === 0) {
-                return
-            }
-            data['water_strike'].push({
-                depth: $(values[0]).find('input').val(),
-                description: $(values[1]).find('input').val(),
-            })
-        });
+        $('#drilling_and_construction .section').find('input,textarea,select').each(
+            function () {
+                const key = $(this).attr('name');
+                let value = $(this).val()
+                if ($(this).attr('type') === 'checkbox') {
+                    value = $(this).is(":checked")
+                }
+                data[key] = value
+            });
         return data;
     }
 </script>

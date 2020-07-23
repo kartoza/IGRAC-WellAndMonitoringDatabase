@@ -35,26 +35,19 @@
         format: 'DD-MM-YYYY',
     });
     submitFunctions['management'] = function () {
-        return {
-            groundwater_use: $('#id_groundwater_use').val(),
-            number_of_people_served: $('#id_number_of_people_served').val()
-        };
-    }
-    submitFunctions['organisation'] = function () {
-        return {
-            management_type: $('#management #id_management_type').val(),
-            organisation: $('#management #id_organisation').val(),
-            owner: $('#management #id_owner').val(),
-            responsible: $('#management #id_responsible').val(),
-            description: $('#management #id_description').val(),
-        };
-    }
-    submitFunctions['license'] = function () {
-        return {
-            id: $('#management #id_id').val(),
-            validity_from: $('#management #id_validity_from').val(),
-            validity_to: $('#management #id_validity_to').val(),
-            description: $('#management #id_description').val()
-        };
+        let data = {
+            organisation: {},
+            license: {}
+        }
+        {% for field in form %}
+            data['{{ field.name }}'] = $('#management #{{ field.id_for_label }}').val()
+        {% endfor %}
+        {% for field in organisation %}
+            data['organisation']['{{ field.name }}'] = $('#management #{{ field.id_for_label }}').val()
+        {% endfor %}
+        {% for field in license %}
+            data['license']['{{ field.name }}'] = $('#management #{{ field.id_for_label }}').val()
+        {% endfor %}
+        return data
     }
 </script>

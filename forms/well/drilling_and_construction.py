@@ -9,10 +9,13 @@ class DrillingAndConstructionForm(forms.Form):
     """
     drilling_method = forms.ModelChoiceField(
         queryset=BoreholeDrillingMethodTerm.objects.all(),
-        empty_label='------')
+        empty_label='------',
+        help_text="Method of drilling.")
     driller = forms.ModelChoiceField(
         queryset=CIResponsibleParty.objects.all(),
-        empty_label='------')
+        empty_label='------',
+        help_text="The organisation responsible for drilling the "
+                  "borehole (as opposed to commissioning the borehole).")
     successful = forms.BooleanField(required=False)
 
     # pump

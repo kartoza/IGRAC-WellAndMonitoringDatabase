@@ -6,7 +6,8 @@ from gwml2.forms import (
     DrillingAndConstructionForm, GeneralInformationForm,
     GeologyForm, HydrogeologyForm, ManagementForm,
     GeologyLogForm, CasingForm, ScreenForm, DocumentForm,
-    OrganisationForm, LicenseForm, ReferenceElevationForm, MeasurementForm
+    OrganisationForm, LicenseForm, ReferenceElevationForm, MeasurementForm,
+    WaterStrikeForm
 )
 
 
@@ -28,6 +29,7 @@ class GroundwaterFormView(View):
                 'drilling_and_construction': DrillingAndConstructionForm(),
                 'casing': CasingForm(),
                 'screen': ScreenForm(),
+                'water_strike': WaterStrikeForm(),
 
                 # hydrogeology
                 'hydrogeology': HydrogeologyForm(),

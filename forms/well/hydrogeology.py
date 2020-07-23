@@ -9,16 +9,16 @@ class HydrogeologyForm(forms.Form):
     # Aquifer
     aquifer_name = forms.CharField()
     aquifer_material = forms.CharField()
+    aquifer_type = forms.ModelChoiceField(
+        queryset=AquiferTypeTerm.objects.all(),
+        empty_label='------')
+    aquifer_thickness = forms.FloatField()
 
     # Springs only
     average_yield = forms.FloatField()
 
     # wells only
-    aquifer_type = forms.ModelChoiceField(
-        queryset=AquiferTypeTerm.objects.all(),
-        empty_label='------')
     specific_capacity = forms.FloatField()
     transmissivity = forms.FloatField()
-    aquifer_thickness = forms.FloatField()
     specific_yield = forms.FloatField()
     storativity = forms.FloatField()

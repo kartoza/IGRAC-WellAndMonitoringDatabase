@@ -11,11 +11,13 @@ class GeneralInformationForm(forms.Form):
     water_point_type = forms.CharField()
 
     # Location Information
-    latitude = forms.FloatField()
-    longitude = forms.FloatField()
-    country = forms.CharField()
-    address = forms.CharField(widget=forms.Textarea, required=False)
-    elevation = forms.CharField()
+    latitude = forms.FloatField(help_text='latitude of well')
+    longitude = forms.FloatField(help_text='longitude of well')
+    country = forms.CharField(help_text='country of well')
+    address = forms.CharField(
+        widget=forms.Textarea, required=False,
+        help_text='country of well')
+    elevation = forms.CharField(help_text='elevation of well')
 
     # Summary Information
     picture = forms.FileField(required=False)
