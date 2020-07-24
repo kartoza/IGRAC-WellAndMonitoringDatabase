@@ -1,4 +1,10 @@
 {% load gwml2_forms %}
+{# leaflet #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
 <div id="general_information" class="tab-pane fade in active">
     <div class="section">
         <table>
@@ -17,6 +23,8 @@
             {% field_as_row form.country %}
             {% field_as_row form.address %}
         </table>
+        <div id="map-location" style="width: 80%; height: 300px;">
+        </div>
     </div>
     <div class="section">
         <table>
@@ -52,4 +60,64 @@
         }
         return data
     }
+
+    {# leaflet #}
+    let map = L.map(
+        'map-location'
+    ).setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    {# Draw Control#}
+    let layers = new L.FeatureGroup();
+    map.addLayer(layers);
+    map.addControl(new L.Control.Draw({
+        draw: {
+            marker: true,
+            polyline: false,
+            circle: false,
+            rectangle: false,
+            polygon: false,
+            circlemarker: false
+        },
+        edit: false
+    }));
+
+    {# Draw Event #}
+    const $lat = $('#id_latitude');
+    const $lng = $('#id_longitude');
+    let onDrag = function (e) {
+        const latLng = e.target.getLatLng()
+        $lat.val(latLng.lat)
+        $lng.val(latLng.lng)
+    }
+    map.on('draw:created', function (e) {
+        layers.clearLayers();
+        var marker = new L.Marker(e.layer.getLatLng(), {draggable: true});
+        marker.on('dragend', onDrag);
+        layers.addLayer(marker)
+
+        {# setup the input #}
+        const latLng = e.layer.getLatLng()
+        $lat.val(latLng.lat)
+        $lng.val(latLng.lng)
+    });
+
+    $('#id_latitude, #id_longitude').change(function () {
+        const latLng = {
+            lat: $lat.val(),
+            lng: $lng.val()
+        }
+        if (latLng.lat && latLng.lng) {
+            let marker = layers.getLayers()[0];
+            if (!layers.getLayers()[0]) {
+                marker = new L.Marker(latLng, {draggable: true});
+                marker.on('dragend', onDrag);
+                layers.addLayer(marker)
+            }
+            marker.setLatLng(latLng);
+        }
+    })
+
 </script>
