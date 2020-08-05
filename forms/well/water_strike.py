@@ -1,6 +1,4 @@
 from django import forms
-from gwml2.models.well_construction.casing_component import (
-    CasingMaterialTerm, CasingCoatingTerm, CasingFormTerm)
 
 
 class WaterStrikeForm(forms.Form):

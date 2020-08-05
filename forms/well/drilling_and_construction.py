@@ -1,5 +1,5 @@
 from django import forms
-from gwml2.models.contact_information import CIResponsibleParty
+from gwml2.models.general_information import CIResponsibleParty
 from gwml2.models.well_construction.borehole import BoreholeDrillingMethodTerm
 
 

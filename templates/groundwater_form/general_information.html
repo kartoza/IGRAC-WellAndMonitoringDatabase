@@ -11,15 +11,15 @@
             <tr>
                 <td><h4>Identification</h4></td>
             </tr>
-            {% field_as_row form.id %}
-            {% field_as_row form.water_point_reference %}
-            {% field_as_row form.water_point_type %}
+            {% field_as_row form.id_well %}
+            {% field_as_row form.name %}
+            {% field_as_row form.feature_type %}
             <tr>
                 <td><h4>Location Information</h4></td>
             </tr>
             {% field_as_row form.latitude '°' %}
             {% field_as_row form.longitude '°' %}
-            {% field_as_row form.elevation 'm.o.a.d.' %}
+            {% field_as_row form.elevation_val 'a.s.l.' %}
             {% field_as_row form.country %}
             {% field_as_row form.address %}
         </table>
@@ -32,8 +32,8 @@
                 <td><h4>Summary Information</h4></td>
             </tr>
             <tr>
-                <td>{{ form.picture.label }}</td>
-                <td>{{ form.picture }}</td>
+                <td>{{ form.photo.label }}</td>
+                <td>{{ form.photo }}</td>
             </tr>
             <tr>
                 <td>{{ form.description.label }}</td>
@@ -41,24 +41,30 @@
             </tr>
         </table>
     </div>
-    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document %}
+    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document thedata=documents %}
 </div>
 <script>
     submitFunctions['general_information'] = function () {
-        let data = {
-            documents: submitFunctionsManyToMany['documents']()
-        }
+        let data = {}
         $('#general_information .section').find('input,textarea,select').each(
             function () {
-                data[$(this).attr('name')] = $(this).val()
+                const key = $(this).attr('name');
+                let value = $(this).val()
+                if ($(this).attr('type') === 'checkbox') {
+                    value = $(this).is(":checked")
+                }
+                data[key] = value
             });
 
         {# get the picture file name #}
-        let picture = $('#general_information #id_picture').get(0).files[0]
+        let picture = $('#general_information #id_photo').get(0).files[0]
         if (picture) {
-            data['picture'] = picture.name
+            data['photo'] = picture.name
         }
         return data
+    }
+    submitFunctions['documents'] = function () {
+        return submitFunctionsManyToMany['documents']()
     }
 
     {# leaflet #}
@@ -117,7 +123,10 @@
                 layers.addLayer(marker)
             }
             marker.setLatLng(latLng);
+            map.setView(latLng, 8);
         }
     })
+    $('#id_latitude, #id_longitude').trigger('change')
+    $('#id_photo').attr('accept', 'image/x-png,image/gif,image/jpeg')
 
 </script>
