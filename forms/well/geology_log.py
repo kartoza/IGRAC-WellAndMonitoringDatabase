@@ -33,11 +33,13 @@ class GeologyLogForm(forms.ModelForm):
         """
 
         if data['top_depth_val']:
-            top_depth, created = Quantity.objects.get_or_create(value=data['top_depth_val'])
+            top_depth, created = Quantity.objects.get_or_create(
+                value=data['top_depth_val'], unit='meters')
             instance.top_depth = top_depth
 
         if data['bottom_depth_val']:
-            bottom_depth, created = Quantity.objects.get_or_create(value=data['bottom_depth_val'])
+            bottom_depth, created = Quantity.objects.get_or_create(
+                value=data['bottom_depth_val'], unit='meters')
             instance.bottom_depth = bottom_depth
         return GeologyLogForm(data, files, instance=instance)
 

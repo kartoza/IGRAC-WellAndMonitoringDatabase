@@ -30,7 +30,8 @@ class GeologyForm(forms.ModelForm):
         :rtype: GeologyForm
         """
         if data['total_depth']:
-            total_depth, created = Quantity.objects.get_or_create(value=data['total_depth'])
+            total_depth, created = Quantity.objects.get_or_create(
+                value=data['total_depth'], unit='meters')
             data['total_depth'] = total_depth.id
         return GeologyForm(data, files, instance=instance)
 

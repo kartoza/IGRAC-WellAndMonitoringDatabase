@@ -41,16 +41,20 @@ class PumpingTestForm(forms.ModelForm):
         """
 
         if data['hydraulic_conductivity_val']:
-            quantity, created = Quantity.objects.get_or_create(value=data['hydraulic_conductivity_val'])
+            quantity, created = Quantity.objects.get_or_create(
+                value=data['hydraulic_conductivity_val'], unit='')
             data['hydraulic_conductivity'] = quantity.id
         if data['transmissivity_val']:
-            quantity, created = Quantity.objects.get_or_create(value=data['transmissivity_val'], unit='m2/day')
+            quantity, created = Quantity.objects.get_or_create(
+                value=data['transmissivity_val'], unit='m2/day')
             data['transmissivity'] = quantity.id
         if data['specific_storage_val']:
-            quantity, created = Quantity.objects.get_or_create(value=data['specific_storage_val'], unit='%')
+            quantity, created = Quantity.objects.get_or_create(
+                value=data['specific_storage_val'], unit='%')
             data['specific_storage'] = quantity.id
         if data['specific_capacity_val']:
-            quantity, created = Quantity.objects.get_or_create(value=data['specific_capacity_val'], unit='m2/day')
+            quantity, created = Quantity.objects.get_or_create(
+                value=data['specific_capacity_val'], unit='m2/day')
             data['specific_capacity'] = quantity.id
         return PumpingTestForm(data, files, instance=instance)
 

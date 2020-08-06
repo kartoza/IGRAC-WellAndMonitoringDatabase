@@ -9,7 +9,7 @@ from gwml2.forms.well.hydrogeology import HydrogeologyParameterForm
 from gwml2.forms.well.pumping_test import PumpingTestForm
 from gwml2.forms.well.license import LicenseForm
 from gwml2.forms.well.management import ManagementForm
-# from gwml2.forms.well.measurement import MeasurementForm
+from gwml2.forms.well.measurement import MeasurementForm
 # from gwml2.forms.well.reference_elevation import ReferenceElevationForm
 # from gwml2.forms.well.screen import ScreenForm
 # from gwml2.forms.well.water_strike import WaterStrikeForm

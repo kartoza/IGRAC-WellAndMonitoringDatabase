@@ -13,13 +13,14 @@ from gwml2.forms import (
     ManagementForm, LicenseForm, GeologyLogForm,
     # CasingForm, ScreenForm,
     DocumentForm,
-    # OrganisationForm, ReferenceElevationForm, MeasurementForm,
+    # OrganisationForm, ReferenceElevationForm,
+    MeasurementForm,
     # WaterStrikeForm
 )
 from gwml2.models.geology import Geology, GeologyLog
 from gwml2.models.hydrogeology import HydrogeologyParameter, PumpingTest
 from gwml2.models.management import Management, License
-from gwml2.models.well import Well, WellDocument
+from gwml2.models.well import Well, WellDocument, WellMeasurement
 
 
 class FormNotValid(Exception):
@@ -39,6 +40,11 @@ class WellFormView(StaffuserRequiredMixin, View):
         if well.geology:
             for geology_log in well.geology.geologylog_set.all():
                 geology_logs.append(GeologyLogForm.make_from_instance(geology_log))
+
+        measurements = []
+        for measurement in well.wellmeasurement_set.all():
+            measurements.append(MeasurementForm.make_from_instance(measurement))
+
         return render(
             request, 'groundwater_form/main.html',
             {
@@ -68,9 +74,10 @@ class WellFormView(StaffuserRequiredMixin, View):
                 'management': ManagementForm.make_from_instance(well.management),
                 'license': LicenseForm.make_from_instance(
                     well.management.license if well.management else None),
-                #
-                # # monitoring data
-                # 'measurement': MeasurementForm(),
+
+                # monitoring data
+                'measurement': MeasurementForm(),
+                'measurements': measurements
             }
         )
 
@@ -151,6 +158,19 @@ class WellFormView(StaffuserRequiredMixin, View):
             )
 
             # -----------------------------------------
+            # measurements
+            # -----------------------------------------
+            measurements = []
+            for measurement in data['monitoring_data']['measurement']:
+                obj = WellMeasurement.objects.get(
+                    id=measurement['id_']) if measurement['id_'] else WellMeasurement()
+                if not obj.well_id:
+                    obj.well = well
+
+                measurements.append(
+                    self.make_form(obj, MeasurementForm, measurement)
+                )
+            # -----------------------------------------
             # save all forms
             # -----------------------------------------
             geology_form.save()
@@ -173,6 +193,9 @@ class WellFormView(StaffuserRequiredMixin, View):
 
             for document in documents:
                 document.save()
+
+            for measurement in measurements:
+                measurement.save()
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
         except (ValueError, FormNotValid) as e:

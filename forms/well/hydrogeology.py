@@ -33,7 +33,8 @@ class HydrogeologyParameterForm(forms.ModelForm):
         """
 
         if data['thickness_val']:
-            quantity, created = Quantity.objects.get_or_create(value=data['thickness_val'], unit='meter')
+            quantity, created = Quantity.objects.get_or_create(
+                value=data['thickness_val'], unit='meters')
             data['thickness'] = quantity.id
         return HydrogeologyParameterForm(data, files, instance=instance)
 
