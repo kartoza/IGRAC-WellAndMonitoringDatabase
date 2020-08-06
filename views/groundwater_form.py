@@ -7,12 +7,15 @@ from django.views.generic.base import View
 from gwml2.forms import (
     # DrillingAndConstructionForm,
     GeneralInformationForm,
-    # GeologyForm, HydrogeologyForm, ManagementForm,
-    # GeologyLogForm, CasingForm, ScreenForm,
+    GeologyForm,
+    # HydrogeologyForm, ManagementForm,
+    GeologyLogForm,
+    # CasingForm, ScreenForm,
     DocumentForm,
     # OrganisationForm, LicenseForm, ReferenceElevationForm, MeasurementForm,
     # WaterStrikeForm
 )
+from gwml2.models.geology import Geology, GeologyLog
 from gwml2.models.well import Well, WellDocument
 
 
@@ -28,6 +31,11 @@ class WellFormView(StaffuserRequiredMixin, View):
         documents = []
         for document in well.welldocument_set.all():
             documents.append(DocumentForm.make_from_instance(document))
+
+        geology_logs = []
+        if well.geology:
+            for geology_log in well.geology.geologylog_set.all():
+                geology_logs.append(GeologyLogForm.make_from_instance(geology_log))
         return render(
             request, 'groundwater_form/main.html',
             {
@@ -37,9 +45,9 @@ class WellFormView(StaffuserRequiredMixin, View):
                 'documents': documents,  # manytomany data
 
                 # # geology
-                # 'geology': GeologyForm(),
-                # 'reference_elevation': ReferenceElevationForm(),
-                # 'geology_log': GeologyLogForm(),
+                'geology': GeologyForm.make_from_instance(well.geology),
+                'geology_log': GeologyLogForm(),
+                'geology_logs': geology_logs,
                 #
                 # # drilling_and_construction
                 # 'drilling_and_construction': DrillingAndConstructionForm(),
@@ -60,13 +68,13 @@ class WellFormView(StaffuserRequiredMixin, View):
             }
         )
 
-    def make_form(self, well, form, data):
+    def make_form(self, instance, form, data):
         """ make form from data
 
         :rtype: ModelForm
         """
         form = form.make_from_data(
-            well, data, self.request.FILES)
+            instance, data, self.request.FILES)
         if not form.is_valid():
             raise FormNotValid(json.dumps(form.errors))
         return form
@@ -93,9 +101,32 @@ class WellFormView(StaffuserRequiredMixin, View):
                         well_doc, DocumentForm, document
                     )
                 )
+
+            # geology and geology logs
+            geology = well.geology if well.geology else Geology()
+            geology_form = self.make_form(
+                geology, GeologyForm, data['geology'])
+
+            geology_logs = []
+            for log in data['geology']['geology_log']:
+                geo_log = GeologyLog.objects.get(
+                    id=log['id_log']) if log['id_log'] else GeologyLog()
+
+                geology_logs.append(
+                    self.make_form(
+                        geo_log, GeologyLogForm, log
+                    )
+                )
+
+            geology_form.save()
+            for log in geology_logs:
+                log.instance.geology = geology_form.instance
+                log.save()
+
+            well.geology = geology_form.instance
+            # save all forms
             for document in documents:
                 document.save()
-
             general_information.save()
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
