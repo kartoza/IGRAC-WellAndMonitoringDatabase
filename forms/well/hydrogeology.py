@@ -1,24 +1,53 @@
+import copy
 from django import forms
-from gwml2.models.hydrogeological_unit.gw_aquifer import AquiferTypeTerm
+from django.forms.models import model_to_dict
+from gwml2.models.general import Quantity
+from gwml2.models.hydrogeology import HydrogeologyParameter
 
 
-class HydrogeologyForm(forms.Form):
+class HydrogeologyParameterForm(forms.ModelForm):
     """
-    Form of hydro geology of well and spring
+    Form for HydrogeologyParameter.
     """
-    # Aquifer
-    aquifer_name = forms.CharField()
-    aquifer_material = forms.CharField()
-    aquifer_type = forms.ModelChoiceField(
-        queryset=AquiferTypeTerm.objects.all(),
-        empty_label='------')
-    aquifer_thickness = forms.FloatField()
 
-    # Springs only
-    average_yield = forms.FloatField()
+    thickness_val = forms.CharField(required=False, label='thickness')
 
-    # wells only
-    specific_capacity = forms.FloatField()
-    transmissivity = forms.FloatField()
-    specific_yield = forms.FloatField()
-    storativity = forms.FloatField()
+    class Meta:
+        model = HydrogeologyParameter
+        fields = ('aquifer_name', 'aquifer_material', 'aquifer_type', 'thickness', 'thickness_val', 'confinement')
+
+    @staticmethod
+    def make_from_data(instance, data, files):
+        """ Create form from request data
+        :param instance: HydrogeologyParameter object
+        :type instance: HydrogeologyParameter
+
+        :param data: dictionary of data
+        :type data: dict
+
+        :param files: dictionary of files that uploaded
+        :type files: dict
+
+        :return: Form
+        :rtype: HydrogeologyParameterForm
+        """
+
+        if data['thickness_val']:
+            quantity, created = Quantity.objects.get_or_create(value=data['thickness_val'], unit='meter')
+            data['thickness'] = quantity.id
+        return HydrogeologyParameterForm(data, files, instance=instance)
+
+    @staticmethod
+    def make_from_instance(instance):
+        """ Create form from instance
+        :param instance: HydrogeologyParameter object
+        :type instance: HydrogeologyParameter
+
+        :return: Form
+        :rtype: HydrogeologyParameterForm
+        """
+        data = {}
+        if instance:
+            data = model_to_dict(instance)
+            data['thickness_val'] = instance.thickness.value
+        return HydrogeologyParameterForm(initial=data)

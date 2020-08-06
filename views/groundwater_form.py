@@ -8,7 +8,8 @@ from gwml2.forms import (
     # DrillingAndConstructionForm,
     GeneralInformationForm,
     GeologyForm,
-    # HydrogeologyForm,
+    HydrogeologyParameterForm,
+    PumpingTestForm,
     ManagementForm, LicenseForm, GeologyLogForm,
     # CasingForm, ScreenForm,
     DocumentForm,
@@ -16,6 +17,7 @@ from gwml2.forms import (
     # WaterStrikeForm
 )
 from gwml2.models.geology import Geology, GeologyLog
+from gwml2.models.hydrogeology import HydrogeologyParameter, PumpingTest
 from gwml2.models.management import Management, License
 from gwml2.models.well import Well, WellDocument
 
@@ -56,12 +58,16 @@ class WellFormView(StaffuserRequiredMixin, View):
                 # 'screen': ScreenForm(),
                 # 'water_strike': WaterStrikeForm(),
                 #
-                # # hydrogeology
-                # 'hydrogeology': HydrogeologyForm(),
+                # hydrogeology
+                'hydrogeology': HydrogeologyParameterForm.make_from_instance(
+                    well.hydrogeology_parameter),
+                'pumping_test': PumpingTestForm.make_from_instance(
+                    well.hydrogeology_parameter.pumping_test if well.hydrogeology_parameter else None),
                 #
                 # management
                 'management': ManagementForm.make_from_instance(well.management),
-                'license': LicenseForm.make_from_instance(well.management.license if well.management else None),
+                'license': LicenseForm.make_from_instance(
+                    well.management.license if well.management else None),
                 #
                 # # monitoring data
                 # 'measurement': MeasurementForm(),
@@ -121,13 +127,25 @@ class WellFormView(StaffuserRequiredMixin, View):
                 )
 
             # -----------------------------------------
+            # hydrogeology
+            # -----------------------------------------
+            hydrogeo = well.hydrogeology_parameter if well.hydrogeology_parameter else HydrogeologyParameter()
+            hydrogeo_form = self.make_form(
+                hydrogeo, HydrogeologyParameterForm, data['hydrogeology'])
+
+            pumping_test = hydrogeo.pumping_test if hydrogeo.pumping_test else PumpingTest()
+            pumping_test_form = self.make_form(
+                pumping_test, PumpingTestForm, data['hydrogeology']['pumping_test']
+            )
+
+            # -----------------------------------------
             # management
             # -----------------------------------------
             management = well.management if well.management else Management()
             management_form = self.make_form(
                 management, ManagementForm, data['management'])
 
-            license = management.license if well.management else License()
+            license = management.license if management.license else License()
             license_form = self.make_form(
                 license, LicenseForm, data['management']['license']
             )
@@ -140,15 +158,21 @@ class WellFormView(StaffuserRequiredMixin, View):
                 log.instance.geology = geology_form.instance
                 log.save()
 
+            pumping_test_form.save()
+            hydrogeo.pumping_test = pumping_test_form.instance
+            hydrogeo_form.save()
+
             license_form.save()
             management.license = license_form.instance
             management_form.save()
 
-            for document in documents:
-                document.save()
             well.geology = geology_form.instance
+            well.hydrogeology_parameter = hydrogeo_form.instance
             well.management = management
             general_information.save()
+
+            for document in documents:
+                document.save()
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
         except (ValueError, FormNotValid) as e:

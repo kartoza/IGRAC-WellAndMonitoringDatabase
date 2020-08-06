@@ -7,30 +7,34 @@
             </tr>
             {% field_as_row form.aquifer_name %}
             {% field_as_row form.aquifer_material %}
-            <tr>
-                <td><h4>Springs</h4></td>
-            </tr>
-            {% field_as_row form.average_yield %}
-            <tr>
-                <td><h4>Well</h4></td>
-            </tr>
             {% field_as_row form.aquifer_type %}
-            {% field_as_row form.specific_capacity 'm<sup>2</sup>/day' %}
-            {% field_as_row form.transmissivity 'm<sup>2</sup>/day' %}
-            {% field_as_row form.aquifer_thickness 'meter' %}
-            {% field_as_row form.specific_yield '%' %}
-            {% field_as_row form.storativity %}
+            {% field_as_row form.thickness_val 'meter' %}
+            {% field_as_row form.confinement %}
+            <tr>
+                <td><h4>Pumping test</h4></td>
+            </tr>
+            {% field_as_row pumping_test.porosity %}
+            {% field_as_row pumping_test.hydraulic_conductivity_val %}
+            {% field_as_row pumping_test.transmissivity_val 'm<sup>2</sup>/day' %}
+            {% field_as_row pumping_test.specific_storage_val '%' %}
+            {% field_as_row pumping_test.specific_capacity_val 'm<sup>2</sup>/day' %}
+            {% field_as_row pumping_test.storativity %}
+            {% field_as_row pumping_test.test_type %}
             </tr>
         </table>
     </div>
 </div>
 <script>
     submitFunctions['hydrogeology'] = function () {
-        let data = {}
-        $('#hydrogeology .section').find('input,textarea,select').each(
-            function () {
-                data[$(this).attr('name')] = $(this).val()
-            });
+        let data = {
+            pumping_test: {}
+        }
+        {% for field in form %}
+            data['{{ field.name }}'] = $('#hydrogeology #{{ field.id_for_label }}').val()
+        {% endfor %}
+        {% for field in pumping_test %}
+            data['pumping_test']['{{ field.name }}'] = $('#hydrogeology #{{ field.id_for_label }}').val()
+        {% endfor %}
         return data
     }
 </script>
