@@ -8,14 +8,15 @@ from gwml2.forms import (
     # DrillingAndConstructionForm,
     GeneralInformationForm,
     GeologyForm,
-    # HydrogeologyForm, ManagementForm,
-    GeologyLogForm,
+    # HydrogeologyForm,
+    ManagementForm, LicenseForm, GeologyLogForm,
     # CasingForm, ScreenForm,
     DocumentForm,
-    # OrganisationForm, LicenseForm, ReferenceElevationForm, MeasurementForm,
+    # OrganisationForm, ReferenceElevationForm, MeasurementForm,
     # WaterStrikeForm
 )
 from gwml2.models.geology import Geology, GeologyLog
+from gwml2.models.management import Management, License
 from gwml2.models.well import Well, WellDocument
 
 
@@ -58,10 +59,9 @@ class WellFormView(StaffuserRequiredMixin, View):
                 # # hydrogeology
                 # 'hydrogeology': HydrogeologyForm(),
                 #
-                # # management
-                # 'management': ManagementForm(),
-                # 'organisation': OrganisationForm(),
-                # 'license': LicenseForm(),
+                # management
+                'management': ManagementForm.make_from_instance(well.management),
+                'license': LicenseForm.make_from_instance(well.management.license if well.management else None),
                 #
                 # # monitoring data
                 # 'measurement': MeasurementForm(),
@@ -88,7 +88,9 @@ class WellFormView(StaffuserRequiredMixin, View):
             general_information = self.make_form(
                 well, GeneralInformationForm, data['general_information'])
 
+            # -----------------------------------------
             # documents
+            # -----------------------------------------
             documents = []
             for document in data['documents']:
                 well_doc = WellDocument.objects.get(
@@ -97,12 +99,12 @@ class WellFormView(StaffuserRequiredMixin, View):
                     well_doc.well = well
 
                 documents.append(
-                    self.make_form(
-                        well_doc, DocumentForm, document
-                    )
+                    self.make_form(well_doc, DocumentForm, document)
                 )
 
+            # -----------------------------------------
             # geology and geology logs
+            # -----------------------------------------
             geology = well.geology if well.geology else Geology()
             geology_form = self.make_form(
                 geology, GeologyForm, data['geology'])
@@ -118,15 +120,34 @@ class WellFormView(StaffuserRequiredMixin, View):
                     )
                 )
 
+            # -----------------------------------------
+            # management
+            # -----------------------------------------
+            management = well.management if well.management else Management()
+            management_form = self.make_form(
+                management, ManagementForm, data['management'])
+
+            license = management.license if well.management else License()
+            license_form = self.make_form(
+                license, LicenseForm, data['management']['license']
+            )
+
+            # -----------------------------------------
+            # save all forms
+            # -----------------------------------------
             geology_form.save()
             for log in geology_logs:
                 log.instance.geology = geology_form.instance
                 log.save()
 
-            well.geology = geology_form.instance
-            # save all forms
+            license_form.save()
+            management.license = license_form.instance
+            management_form.save()
+
             for document in documents:
                 document.save()
+            well.geology = geology_form.instance
+            well.management = management
             general_information.save()
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
