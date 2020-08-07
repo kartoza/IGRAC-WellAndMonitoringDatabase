@@ -1,4 +1,3 @@
-import copy
 import os
 from django import forms
 from django.forms.models import model_to_dict
@@ -33,8 +32,6 @@ class DocumentForm(forms.ModelForm):
         :return: Form
         :rtype: DocumentForm
         """
-        data = copy.deepcopy(data)
-
         # check the files
         if data['file']:
             files = {

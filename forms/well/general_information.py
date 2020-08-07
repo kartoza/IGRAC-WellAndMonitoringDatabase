@@ -1,8 +1,7 @@
-import copy
 from django import forms
 from django.contrib.gis.geos import Point
 from django.forms.models import model_to_dict
-from gwml2.models.general import Quantity
+from gwml2.forms.widgets import QuantityInput
 from gwml2.models.well import Well
 
 
@@ -14,11 +13,13 @@ class GeneralInformationForm(forms.ModelForm):
         help_text='latitude of well', min_value=-90, max_value=90)
     longitude = forms.FloatField(
         help_text='longitude of well', min_value=-180, max_value=180)
-    elevation_val = forms.CharField(help_text='elevation of well', label='elevation')
 
     class Meta:
         model = Well
         fields = ('id_well', 'location', 'name', 'feature_type', 'country', 'address', 'elevation', 'photo', 'description')
+        widgets = {
+            'elevation': QuantityInput(unit_choices=['a.s.l', 'm.o.a.d']),
+        }
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -35,12 +36,8 @@ class GeneralInformationForm(forms.ModelForm):
         :return: Form
         :rtype: GeneralInformationForm
         """
-        data = copy.deepcopy(data)
         data['location'] = Point(
             x=float(data['longitude']), y=float(data['latitude']), srid=4326)
-        if data['elevation_val']:
-            elevation, created = Quantity.objects.get_or_create(value=data['elevation_val'], unit='a.s.l.')
-            data['elevation'] = elevation.id
 
         # check the files
         if data['photo']:
@@ -62,7 +59,6 @@ class GeneralInformationForm(forms.ModelForm):
         :rtype: GeneralInformationForm
         """
         data = model_to_dict(instance)
-        data['elevation_val'] = instance.elevation.value if instance.elevation else None
         data['latitude'] = instance.location.y
         data['longitude'] = instance.location.x
         data['id'] = instance.id_well

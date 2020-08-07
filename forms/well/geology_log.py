@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import model_to_dict
-from gwml2.models.general import Quantity
+from gwml2.forms.widgets import QuantityInput
 from gwml2.models.geology import GeologyLog
 
 
@@ -8,13 +8,15 @@ class GeologyLogForm(forms.ModelForm):
     """
     Form of geology log of well.
     """
-    id_log = forms.CharField(required=False)
-    top_depth_val = forms.CharField(required=False)
-    bottom_depth_val = forms.CharField(required=False)
+    id_ = forms.CharField(required=False)
 
     class Meta:
         model = GeologyLog
-        fields = ('id_log', 'top_depth_val', 'bottom_depth_val', 'material', 'geological_unit')
+        fields = ('id_', 'top_depth', 'bottom_depth', 'material', 'geological_unit')
+        widgets = {
+            'top_depth': QuantityInput(unit_choices=['m', 'km']),
+            'bottom_depth': QuantityInput(unit_choices=['m', 'km']),
+        }
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -32,15 +34,6 @@ class GeologyLogForm(forms.ModelForm):
         :rtype: GeologyLogForm
         """
 
-        if data['top_depth_val']:
-            top_depth, created = Quantity.objects.get_or_create(
-                value=data['top_depth_val'], unit='meters')
-            instance.top_depth = top_depth
-
-        if data['bottom_depth_val']:
-            bottom_depth, created = Quantity.objects.get_or_create(
-                value=data['bottom_depth_val'], unit='meters')
-            instance.bottom_depth = bottom_depth
         return GeologyLogForm(data, files, instance=instance)
 
     @staticmethod
@@ -53,7 +46,5 @@ class GeologyLogForm(forms.ModelForm):
         :rtype: GeologyLogForm
         """
         data = model_to_dict(instance)
-        data['id_log'] = instance.id
-        data['top_depth_val'] = instance.top_depth.value if instance.top_depth else None
-        data['bottom_depth_val'] = instance.bottom_depth.value if instance.bottom_depth else None
+        data['id_'] = instance.id
         return GeologyLogForm(initial=data)

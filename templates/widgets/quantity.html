@@ -1,0 +1,14 @@
+<input
+        type="{{ widget.type }}"
+        name="{{ widget.name }}_value"
+        {% if value != None %} value="{{ value }}" {% endif %}
+        id="{{ widget.attrs.id }}_value"
+        {% include "django/forms/widgets/attrs.html" %}
+/>
+<select id="{{ widget.attrs.id }}_unit" name="{{ widget.name }}_unit">
+    {% for choice in unit_choices %}
+        <option value="{{ choice }}"
+                {% if unit == choice %} selected {% endif %}
+        >{{ choice }}</option>
+    {% endfor %}
+</select>

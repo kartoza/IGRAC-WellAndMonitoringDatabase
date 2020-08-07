@@ -1,7 +1,6 @@
-import copy
 from django import forms
 from django.forms.models import model_to_dict
-from gwml2.models.general import Quantity
+from gwml2.forms.widgets import QuantityInput
 from gwml2.models.hydrogeology import HydrogeologyParameter
 
 
@@ -10,11 +9,12 @@ class HydrogeologyParameterForm(forms.ModelForm):
     Form for HydrogeologyParameter.
     """
 
-    thickness_val = forms.CharField(required=False, label='thickness')
-
     class Meta:
         model = HydrogeologyParameter
-        fields = ('aquifer_name', 'aquifer_material', 'aquifer_type', 'thickness', 'thickness_val', 'confinement')
+        fields = ('aquifer_name', 'aquifer_material', 'aquifer_type', 'thickness', 'confinement')
+        widgets = {
+            'thickness': QuantityInput(unit_choices=['m', 'km'])
+        }
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -32,10 +32,6 @@ class HydrogeologyParameterForm(forms.ModelForm):
         :rtype: HydrogeologyParameterForm
         """
 
-        if data['thickness_val']:
-            quantity, created = Quantity.objects.get_or_create(
-                value=data['thickness_val'], unit='meters')
-            data['thickness'] = quantity.id
         return HydrogeologyParameterForm(data, files, instance=instance)
 
     @staticmethod
@@ -50,5 +46,4 @@ class HydrogeologyParameterForm(forms.ModelForm):
         data = {}
         if instance:
             data = model_to_dict(instance)
-            data['thickness_val'] = instance.thickness.value if instance.thickness else ''
         return HydrogeologyParameterForm(initial=data)

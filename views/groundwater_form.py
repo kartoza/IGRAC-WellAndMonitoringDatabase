@@ -144,7 +144,7 @@ class WellFormView(StaffuserRequiredMixin, View):
             geology_logs = []
             for log in data['geology']['geology_log']:
                 geo_log = GeologyLog.objects.get(
-                    id=log['id_log']) if log['id_log'] else GeologyLog()
+                    id=log['id_']) if log['id_'] else GeologyLog()
 
                 geology_logs.append(
                     self.make_form(

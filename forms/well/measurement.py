@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import model_to_dict
-from gwml2.models.general import Quantity
+from gwml2.forms.widgets import QuantityInput
 from gwml2.models.well import WellMeasurement
 
 
@@ -9,11 +9,13 @@ class MeasurementForm(forms.ModelForm):
     Form of measurement of well.
     """
     id_ = forms.CharField(required=False)
-    quality_val = forms.CharField(required=False, label='quality')
 
     class Meta:
         model = WellMeasurement
-        fields = ('id_', 'time', 'parameter', 'methodology', 'quality_val')
+        fields = ('id_', 'time', 'parameter', 'methodology', 'quality')
+        widgets = {
+            'quality': QuantityInput(unit_choices=['m2'])
+        }
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -31,9 +33,6 @@ class MeasurementForm(forms.ModelForm):
         :rtype: WellMeasurementForm
         """
 
-        if data['quality_val']:
-            quantity, created = Quantity.objects.get_or_create(value=data['quality_val'], unit='')
-            instance.quality = quantity
         return MeasurementForm(data, files, instance=instance)
 
     @staticmethod
@@ -47,5 +46,4 @@ class MeasurementForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        data['quality_val'] = instance.quality.value if instance.quality else ''
         return MeasurementForm(initial=data)

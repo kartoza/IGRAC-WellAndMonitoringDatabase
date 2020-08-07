@@ -2,7 +2,7 @@
 <div id="geology" class="tab-pane">
     <div class="section">
         <table>
-            {% field_as_row form.depth %}
+            {% field_as_row form.total_depth %}
         </table>
     </div>
 
@@ -11,7 +11,8 @@
 <script>
     submitFunctions['geology'] = function () {
         let data = {
-            total_depth: $('#geology #id_depth').val(),
+            total_depth_value: $('#geology #id_total_depth_value').val(),
+            total_depth_unit: $('#geology #id_total_depth_unit').val(),
             geology_log: submitFunctionsManyToMany['geology_log']()
         };
         return data;
