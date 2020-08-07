@@ -1,6 +1,6 @@
 from django.contrib import admin
 from gwml2.models.drilling_and_construction import (
-    DrillingAndConstruction, Casing, Screening, WaterStrike
+    DrillingAndConstruction, Casing, Screen, WaterStrike
 )
 
 
@@ -8,8 +8,8 @@ class CasingInline(admin.TabularInline):
     model = Casing
 
 
-class ScreeningInline(admin.TabularInline):
-    model = Screening
+class ScreenInline(admin.TabularInline):
+    model = Screen
 
 
 class WaterStrikeInline(admin.TabularInline):
@@ -17,7 +17,7 @@ class WaterStrikeInline(admin.TabularInline):
 
 
 class DrillingAndConstructionAdmin(admin.ModelAdmin):
-    inlines = [CasingInline, ScreeningInline, WaterStrikeInline]
+    inlines = [CasingInline, ScreenInline, WaterStrikeInline]
 
 
 admin.site.register(DrillingAndConstruction, DrillingAndConstructionAdmin)

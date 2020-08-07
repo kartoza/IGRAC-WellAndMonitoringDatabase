@@ -1,23 +1,45 @@
 from django import forms
-from gwml2.models.general_information import CIResponsibleParty
-from gwml2.models.well_construction.borehole import BoreholeDrillingMethodTerm
+from django.forms.models import model_to_dict
+from gwml2.models.drilling_and_construction import DrillingAndConstruction
 
 
-class DrillingAndConstructionForm(forms.Form):
+class DrillingAndConstructionForm(forms.ModelForm):
     """
-    Form of drilling and construction of well.
+    Form for DrillingAndConstructionForm.
     """
-    drilling_method = forms.ModelChoiceField(
-        queryset=BoreholeDrillingMethodTerm.objects.all(),
-        empty_label='------',
-        help_text="Method of drilling.")
-    driller = forms.ModelChoiceField(
-        queryset=CIResponsibleParty.objects.all(),
-        empty_label='------',
-        help_text="The organisation responsible for drilling the "
-                  "borehole (as opposed to commissioning the borehole).")
-    successful = forms.BooleanField(required=False)
 
-    # pump
-    pump_installer = forms.CharField(required=False)
-    pump_details = forms.CharField(required=False)
+    class Meta:
+        model = DrillingAndConstruction
+        fields = ('drilling_method', 'driller', 'successful', 'pump_installer', 'pump_description')
+
+    @staticmethod
+    def make_from_data(instance, data, files):
+        """ Create form from request data
+        :param instance: Management object
+        :type instance: Management
+
+        :param data: dictionary of data
+        :type data: dict
+
+        :param files: dictionary of files that uploaded
+        :type files: dict
+
+        :return: Form
+        :rtype: ManagementForm
+        """
+
+        return DrillingAndConstructionForm(data, files, instance=instance)
+
+    @staticmethod
+    def make_from_instance(instance):
+        """ Create form from instance
+        :param instance: Management object
+        :type instance: Management
+
+        :return: Form
+        :rtype: ManagementForm
+        """
+        data = {}
+        if instance:
+            data = model_to_dict(instance)
+        return DrillingAndConstructionForm(initial=data)

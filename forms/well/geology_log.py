@@ -54,6 +54,6 @@ class GeologyLogForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_log'] = instance.id
-        data['top_depth_val'] = instance.top_depth.value
-        data['bottom_depth_val'] = instance.bottom_depth.value
+        data['top_depth_val'] = instance.top_depth.value if instance.top_depth else None
+        data['bottom_depth_val'] = instance.bottom_depth.value if instance.bottom_depth else None
         return GeologyLogForm(initial=data)

@@ -50,5 +50,5 @@ class HydrogeologyParameterForm(forms.ModelForm):
         data = {}
         if instance:
             data = model_to_dict(instance)
-            data['thickness_val'] = instance.thickness.value
+            data['thickness_val'] = instance.thickness.value if instance.thickness else ''
         return HydrogeologyParameterForm(initial=data)

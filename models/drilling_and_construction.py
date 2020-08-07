@@ -53,6 +53,9 @@ class _CasingAndScreen(models.Model):
         null=True, blank=True, max_length=512,
         help_text="material of the feature."
     )
+    description = models.TextField(
+        null=True,
+        blank=True)
 
     class Meta:
         abstract = True
@@ -84,7 +87,7 @@ class Casing(_CasingAndScreen):
     )
 
 
-class Screening(_CasingAndScreen):
+class Screen(_CasingAndScreen):
     """
     8.1.12 Screen
     Collection of components of the water pump screen.

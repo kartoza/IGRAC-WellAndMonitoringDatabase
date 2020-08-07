@@ -47,6 +47,5 @@ class GeologyForm(forms.ModelForm):
         data = {}
         if instance:
             data = model_to_dict(instance)
-            if instance.total_depth:
-                data['depth'] = instance.total_depth.value
+            data['depth'] = instance.total_depth.value if instance.total_depth else None
         return GeologyForm(initial=data)

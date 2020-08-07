@@ -70,8 +70,12 @@ class PumpingTestForm(forms.ModelForm):
         data = {}
         if instance:
             data = model_to_dict(instance)
-            data['hydraulic_conductivity_val'] = instance.hydraulic_conductivity.value
-            data['transmissivity_val'] = instance.transmissivity.value
-            data['specific_storage_val'] = instance.specific_storage.value
-            data['specific_capacity_val'] = instance.specific_capacity.value
+            data['hydraulic_conductivity_val'] = instance.hydraulic_conductivity.value \
+                if instance.hydraulic_conductivity else None
+            data['transmissivity_val'] = instance.transmissivity.value \
+                if instance.transmissivity else None
+            data['specific_storage_val'] = instance.specific_storage.value \
+                if instance.specific_storage else None
+            data['specific_capacity_val'] = instance.specific_capacity.value \
+                if instance.specific_capacity else None
         return PumpingTestForm(initial=data)

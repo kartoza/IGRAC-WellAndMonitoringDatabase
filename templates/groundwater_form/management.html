@@ -31,6 +31,8 @@
     $('#management #id_valid_until').datepicker({
         format: 'DD-MM-YYYY',
     });
+    $('#management #id_valid_from').attr('autocomplete', 'off')
+    $('#management #id_valid_until').attr('autocomplete', 'off')
     submitFunctions['management'] = function () {
         let data = {
             license: {}

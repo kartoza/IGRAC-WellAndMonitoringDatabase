@@ -62,7 +62,7 @@ class GeneralInformationForm(forms.ModelForm):
         :rtype: GeneralInformationForm
         """
         data = model_to_dict(instance)
-        data['elevation_val'] = instance.elevation.value if instance.elevation else ''
+        data['elevation_val'] = instance.elevation.value if instance.elevation else None
         data['latitude'] = instance.location.y
         data['longitude'] = instance.location.x
         data['id'] = instance.id_well

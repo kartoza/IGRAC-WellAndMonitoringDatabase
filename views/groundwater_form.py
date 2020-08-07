@@ -5,17 +5,20 @@ from django.shortcuts import get_object_or_404, render
 from braces.views import StaffuserRequiredMixin
 from django.views.generic.base import View
 from gwml2.forms import (
-    # DrillingAndConstructionForm,
+    DrillingAndConstructionForm,
     GeneralInformationForm,
     GeologyForm,
     HydrogeologyParameterForm,
     PumpingTestForm,
     ManagementForm, LicenseForm, GeologyLogForm,
-    # CasingForm, ScreenForm,
+    CasingForm, ScreenForm, WaterStrikeForm,
     DocumentForm,
     # OrganisationForm, ReferenceElevationForm,
-    MeasurementForm,
-    # WaterStrikeForm
+    MeasurementForm
+
+)
+from gwml2.models.drilling_and_construction import (
+    DrillingAndConstruction, Casing, Screen, WaterStrike
 )
 from gwml2.models.geology import Geology, GeologyLog
 from gwml2.models.hydrogeology import HydrogeologyParameter, PumpingTest
@@ -45,6 +48,17 @@ class WellFormView(StaffuserRequiredMixin, View):
         for measurement in well.wellmeasurement_set.all():
             measurements.append(MeasurementForm.make_from_instance(measurement))
 
+        casings = []
+        screens = []
+        water_strikes = []
+        if well.drilling_and_construction:
+            for obj in well.drilling_and_construction.casing_set.all():
+                casings.append(CasingForm.make_from_instance(obj))
+            for obj in well.drilling_and_construction.screen_set.all():
+                screens.append(ScreenForm.make_from_instance(obj))
+            for obj in well.drilling_and_construction.waterstrike_set.all():
+                water_strikes.append(WaterStrikeForm.make_from_instance(obj))
+
         return render(
             request, 'groundwater_form/main.html',
             {
@@ -53,23 +67,28 @@ class WellFormView(StaffuserRequiredMixin, View):
                 'document': DocumentForm(),  # manytomany form
                 'documents': documents,  # manytomany data
 
-                # # geology
+                # geology
                 'geology': GeologyForm.make_from_instance(well.geology),
                 'geology_log': GeologyLogForm(),
                 'geology_logs': geology_logs,
-                #
-                # # drilling_and_construction
-                # 'drilling_and_construction': DrillingAndConstructionForm(),
-                # 'casing': CasingForm(),
-                # 'screen': ScreenForm(),
-                # 'water_strike': WaterStrikeForm(),
-                #
+
+                # drilling_and_construction
+                'drilling_and_construction': DrillingAndConstructionForm.make_from_instance(
+                    well.drilling_and_construction),
+                'casing': CasingForm(),
+                'casings': casings,
+                'screen': ScreenForm(),
+                'screens': screens,
+                'water_strike': WaterStrikeForm(),
+                'water_strikes': water_strikes,
+
                 # hydrogeology
                 'hydrogeology': HydrogeologyParameterForm.make_from_instance(
                     well.hydrogeology_parameter),
                 'pumping_test': PumpingTestForm.make_from_instance(
-                    well.hydrogeology_parameter.pumping_test if well.hydrogeology_parameter else None),
-                #
+                    well.hydrogeology_parameter.pumping_test
+                    if well.hydrogeology_parameter else None),
+
                 # management
                 'management': ManagementForm.make_from_instance(well.management),
                 'license': LicenseForm.make_from_instance(
@@ -132,6 +151,44 @@ class WellFormView(StaffuserRequiredMixin, View):
                         geo_log, GeologyLogForm, log
                     )
                 )
+            # -----------------------------------------
+            # drilling and construction
+            # -----------------------------------------
+            drilling_and_construction = well.drilling_and_construction \
+                if well.drilling_and_construction else DrillingAndConstruction()
+            drilling_and_construction_form = self.make_form(
+                drilling_and_construction, DrillingAndConstructionForm, data['drilling_and_construction'])
+
+            casings = []
+            for casing in data['drilling_and_construction']['casing']:
+                obj = Casing.objects.get(
+                    id=casing['id_']) if casing['id_'] else Casing()
+
+                casings.append(
+                    self.make_form(
+                        obj, CasingForm, casing
+                    )
+                )
+            screens = []
+            for screen in data['drilling_and_construction']['screen']:
+                obj = Screen.objects.get(
+                    id=screen['id_']) if screen['id_'] else Screen()
+
+                screens.append(
+                    self.make_form(
+                        obj, ScreenForm, screen
+                    )
+                )
+            water_strikes = []
+            for water_strike in data['drilling_and_construction']['water_strike']:
+                obj = WaterStrike.objects.get(
+                    id=water_strike['id_']) if water_strike['id_'] else WaterStrike()
+
+                water_strikes.append(
+                    self.make_form(
+                        obj, WaterStrikeForm, water_strike
+                    )
+                )
 
             # -----------------------------------------
             # hydrogeology
@@ -173,6 +230,17 @@ class WellFormView(StaffuserRequiredMixin, View):
             # -----------------------------------------
             # save all forms
             # -----------------------------------------
+            drilling_and_construction_form.save()
+            for casing in casings:
+                casing.instance.drilling_and_construction = drilling_and_construction_form.instance
+                casing.save()
+            for screen in screens:
+                screen.instance.drilling_and_construction = drilling_and_construction_form.instance
+                screen.save()
+            for water_strike in water_strikes:
+                water_strike.instance.drilling_and_construction = drilling_and_construction_form.instance
+                water_strike.save()
+
             geology_form.save()
             for log in geology_logs:
                 log.instance.geology = geology_form.instance
@@ -186,6 +254,7 @@ class WellFormView(StaffuserRequiredMixin, View):
             management.license = license_form.instance
             management_form.save()
 
+            well.drilling_and_construction = drilling_and_construction_form.instance
             well.geology = geology_form.instance
             well.hydrogeology_parameter = hydrogeo_form.instance
             well.management = management
