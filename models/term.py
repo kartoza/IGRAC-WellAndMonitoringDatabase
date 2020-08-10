@@ -3,7 +3,8 @@ from django.contrib.gis.db import models
 
 class _Term(models.Model):
     """ Abstract model for Term """
-    name = models.CharField(max_length=512)
+    name = models.CharField(
+        max_length=512, unique=True)
     description = models.TextField(null=True, blank=True)
 
     def __str__(self):
