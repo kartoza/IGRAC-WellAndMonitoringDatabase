@@ -10,7 +10,7 @@ class GeneralInformationForm(forms.ModelForm):
     Form of general information of well.
     """
     id = forms.CharField(
-        label='GGIS ID', disabled=True)
+        label='GGIS ID', disabled=True, required=False)
     latitude = forms.FloatField(
         help_text='latitude of well', min_value=-90, max_value=90)
     longitude = forms.FloatField(
