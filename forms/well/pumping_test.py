@@ -14,10 +14,10 @@ class PumpingTestForm(forms.ModelForm):
         fields = ('porosity', 'hydraulic_conductivity', 'transmissivity', 'specific_storage',
                   'storativity', 'specific_capacity', 'test_type')
         widgets = {
-            'hydraulic_conductivity': QuantityInput(unit_choices=['m', 'km']),
-            'transmissivity': QuantityInput(unit_choices=['m2/day']),
-            'specific_storage': QuantityInput(unit_choices=['%']),
-            'specific_capacity': QuantityInput(unit_choices=['m2/day'])
+            'hydraulic_conductivity': QuantityInput(unit_group='length'),
+            'transmissivity': QuantityInput(unit_group='flow rate'),
+            'specific_storage': QuantityInput(unit_group='percentage'),
+            'specific_capacity': QuantityInput(unit_group='flow rate')
         }
 
     @staticmethod

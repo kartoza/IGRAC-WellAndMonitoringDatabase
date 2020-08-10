@@ -14,7 +14,7 @@ class WaterStrikeForm(forms.ModelForm):
         model = WaterStrike
         fields = ('id_', 'depth', 'description')
         widgets = {
-            'depth': QuantityInput(unit_choices=['m', 'km'])
+            'depth': QuantityInput(unit_group='length')
         }
 
     @staticmethod

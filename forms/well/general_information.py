@@ -18,7 +18,7 @@ class GeneralInformationForm(forms.ModelForm):
         model = Well
         fields = ('id_well', 'location', 'name', 'feature_type', 'country', 'address', 'elevation', 'photo', 'description')
         widgets = {
-            'elevation': QuantityInput(unit_choices=['a.s.l', 'm.o.a.d']),
+            'elevation': QuantityInput(unit_group='elevation'),
         }
 
     @staticmethod

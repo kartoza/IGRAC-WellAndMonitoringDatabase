@@ -14,7 +14,7 @@ class MeasurementForm(forms.ModelForm):
         model = WellMeasurement
         fields = ('id_', 'time', 'parameter', 'methodology', 'quality')
         widgets = {
-            'quality': QuantityInput(unit_choices=['m2'])
+            'quality': QuantityInput(unit_group='length')
         }
 
     @staticmethod

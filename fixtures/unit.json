@@ -1,0 +1,44 @@
+{
+  "m": {
+    "description": "Meters",
+    "groups": [
+      "length"
+    ]
+  },
+  "km": {
+    "description": "Kilometers",
+    "groups": [
+      "length"
+    ]
+  },
+  "a.s.l.": {
+    "description": "Above Sea Level",
+    "groups": [
+      "elevation"
+    ]
+  },
+  "a.g.l.": {
+    "description": "Above Ground Level",
+    "groups": [
+      "elevation"
+    ]
+  },
+  "m2": {
+    "description": "Cubic meter",
+    "groups": [
+      "volume"
+    ]
+  },
+  "m2/day": {
+    "description": "Cubic meter per day",
+    "groups": [
+      "flow rate"
+    ]
+  },
+  "%": {
+    "description": "Percent",
+    "groups": [
+      "Percentage"
+    ]
+  }
+}

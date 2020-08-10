@@ -13,7 +13,7 @@ class HydrogeologyParameterForm(forms.ModelForm):
         model = HydrogeologyParameter
         fields = ('aquifer_name', 'aquifer_material', 'aquifer_type', 'thickness', 'confinement')
         widgets = {
-            'thickness': QuantityInput(unit_choices=['m', 'km'])
+            'thickness': QuantityInput(unit_group='length')
         }
 
     @staticmethod

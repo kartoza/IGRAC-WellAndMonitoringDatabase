@@ -14,8 +14,8 @@ class GeologyLogForm(forms.ModelForm):
         model = GeologyLog
         fields = ('id_', 'top_depth', 'bottom_depth', 'material', 'geological_unit')
         widgets = {
-            'top_depth': QuantityInput(unit_choices=['m', 'km']),
-            'bottom_depth': QuantityInput(unit_choices=['m', 'km']),
+            'top_depth': QuantityInput(unit_group='length'),
+            'bottom_depth': QuantityInput(unit_group='length'),
         }
 
     @staticmethod

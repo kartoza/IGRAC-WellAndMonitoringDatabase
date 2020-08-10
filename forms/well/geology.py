@@ -13,7 +13,7 @@ class GeologyForm(forms.ModelForm):
         model = Geology
         fields = ('total_depth',)
         widgets = {
-            'total_depth': QuantityInput(unit_choices=['m', 'km']),
+            'total_depth': QuantityInput(unit_group='length'),
         }
 
     @staticmethod
