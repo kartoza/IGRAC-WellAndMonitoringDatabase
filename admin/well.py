@@ -13,7 +13,7 @@ class WellDocumentInline(admin.TabularInline):
 
 
 class WellAdmin(admin.ModelAdmin):
-    list_display = ('id_well', 'edit')
+    list_display = ('original_id', 'edit')
     inlines = [WellMeasurementInline, WellDocumentInline]
 
     def edit(self, obj):

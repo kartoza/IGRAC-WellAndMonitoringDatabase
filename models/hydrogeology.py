@@ -27,7 +27,7 @@ class PumpingTest(models.Model):
     )
     storativity = models.FloatField(
         null=True, blank=True,
-        verbose_name='Storativity/Specific yield'
+        verbose_name='Storativity / Specific yield'
     )
     specific_capacity = models.ForeignKey(
         Quantity, on_delete=models.SET_NULL,

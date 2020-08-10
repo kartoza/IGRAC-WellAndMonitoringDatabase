@@ -2,7 +2,7 @@ from django.contrib.gis.geos import Point
 from django.http import JsonResponse
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from gwml2.models.general import Quantity
+from gwml2.models.general import Quantity, Unit
 from gwml2.models.well import Well
 from gwml2.tasks.controller import update_progress
 
@@ -33,11 +33,11 @@ def well_from_excel(self, location_records, level_records):
 
             elevation, created = Quantity.objects.get_or_create(
                 value=record[1],
-                unit='meters')
+                unit=Unit.objects.get(name='a.s.l.'))
             point = Point(x=record[3], y=record[2], srid=4326)
 
             well, created = Well.objects.get_or_create(
-                id_well=record[0],
+                original_id=record[0],
                 defaults={
                     'location': point,
                     'elevation': elevation

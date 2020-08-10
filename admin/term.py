@@ -1,6 +1,6 @@
 from django.contrib import admin
 from gwml2.models.term import (
-    TermAquiferType, TermConfinement, TermDrillingMethod,
+    TermAquiferType, TermConfinement, TermDrillingMethod, TermWellPurpose,
     TermFeatureType, TermGroundwaterUse, TermMeasurementParameter
 )
 
@@ -10,3 +10,4 @@ admin.site.register(TermDrillingMethod)
 admin.site.register(TermFeatureType)
 admin.site.register(TermGroundwaterUse)
 admin.site.register(TermMeasurementParameter)
+admin.site.register(TermWellPurpose)

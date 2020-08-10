@@ -3551,7 +3551,7 @@ create table if not exists gwml2_gwwell_gw_well_water_use
 		constraint gwml2_gwwell_gw_well_wellwaterusetype_id_b889e3ea_fk_gwml2_wel
 			references gwml2_wellwaterusetype
 				deferrable initially deferred,
-	constraint gwml2_gwwell_gw_well_wat_gwwell_id_wellwaterusety_88a90a37_uniq
+	constraint gwml2_gwwell_gw_well_wat_gwwell_original_idwaterusety_88a90a37_uniq
 		unique (gwwell_id, wellwaterusetype_id)
 );
 

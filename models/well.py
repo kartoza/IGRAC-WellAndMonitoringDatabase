@@ -10,6 +10,7 @@ from gwml2.models.drilling_and_construction import DrillingAndConstruction
 from gwml2.models.measurement import Measurement
 from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
+from gwml2.models.term import TermWellPurpose
 
 
 class Well(GeneralInformation):
@@ -17,8 +18,12 @@ class Well(GeneralInformation):
     7.6.38 GW_Well
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after
     IGH1397)."""
-    id_well = models.CharField(
+    original_id = models.CharField(
         unique=True, max_length=256)
+    purpose = models.ForeignKey(
+        TermWellPurpose, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
     geology = models.ForeignKey(
         Geology, on_delete=models.SET_NULL,
         null=True, blank=True
@@ -37,10 +42,10 @@ class Well(GeneralInformation):
     )
 
     def __str__(self):
-        return self.id_well
+        return self.original_id
 
     class Meta:
-        ordering = ['id_well']
+        ordering = ['original_id']
 
 
 class WellMeasurement(Measurement):
@@ -74,7 +79,7 @@ def pre_save_well(sender, instance, **kwargs):
 
     new_file = instance.photo
     if not old_file == new_file:
-        if os.path.isfile(old_file.path):
+        if old_file and os.path.isfile(old_file.path):
             os.remove(old_file.path)
 
 
@@ -119,5 +124,5 @@ def pre_save_document(sender, instance, **kwargs):
 
     new_file = instance.file
     if not old_file == new_file:
-        if os.path.isfile(old_file.path):
+        if old_file and os.path.isfile(old_file.path):
             os.remove(old_file.path)

@@ -9,6 +9,8 @@ class GeneralInformationForm(forms.ModelForm):
     """
     Form of general information of well.
     """
+    id = forms.CharField(
+        label='GGIS ID', disabled=True)
     latitude = forms.FloatField(
         help_text='latitude of well', min_value=-90, max_value=90)
     longitude = forms.FloatField(
@@ -16,7 +18,7 @@ class GeneralInformationForm(forms.ModelForm):
 
     class Meta:
         model = Well
-        fields = ('id_well', 'location', 'name', 'feature_type', 'country', 'address', 'elevation', 'photo', 'description')
+        fields = ('original_id', 'location', 'name', 'feature_type', 'country', 'address', 'elevation', 'photo', 'description')
         widgets = {
             'elevation': QuantityInput(unit_group='elevation'),
         }
@@ -59,7 +61,7 @@ class GeneralInformationForm(forms.ModelForm):
         :rtype: GeneralInformationForm
         """
         data = model_to_dict(instance)
+        data['id'] = instance.id
         data['latitude'] = instance.location.y
         data['longitude'] = instance.location.x
-        data['id'] = instance.id_well
         return GeneralInformationForm(initial=data)

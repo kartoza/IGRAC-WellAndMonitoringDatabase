@@ -19,7 +19,7 @@ class License(models.Model):
 class Management(models.Model):
     """ Management model """
     manager = models.CharField(
-        verbose_name='Manager/owner',
+        verbose_name='Manager / owner',
         max_length=512
     )
     description = models.TextField(
@@ -33,7 +33,7 @@ class Management(models.Model):
     number_of_users = models.IntegerField(
         null=True, blank=True,
         validators=[MinValueValidator(0)],
-        verbose_name='Number of users/beneficiaries'
+        verbose_name='Number of users / beneficiaries'
     )
     license = models.ForeignKey(
         License, on_delete=models.SET_NULL,

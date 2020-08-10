@@ -13,6 +13,12 @@ class _Term(models.Model):
         abstract = True
 
 
+class TermWellPurpose(_Term):
+    """ List of well purpose term."""
+
+    pass
+
+
 class TermDrillingMethod(_Term):
     """ List of drilling method."""
 
