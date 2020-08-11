@@ -8,7 +8,7 @@
 <select id="{{ widget.attrs.id }}_unit" name="{{ widget.name }}_unit">
     {% for choice in unit_choices %}
         <option value="{{ choice.id }}"
-                {% if unit == choice.name %} selected {% endif %}
+                {% if unit == choice.id %} selected {% endif %}
         >{{ choice.name }}</option>
     {% endfor %}
 </select>

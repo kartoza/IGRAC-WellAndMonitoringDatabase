@@ -1,0 +1,303 @@
+html,
+body {
+    height: 100%;
+    overflow-y: hidden;
+}
+
+body {
+    padding-top: 0;
+    width: 100%;
+}
+
+.navbar {
+
+    /*shadow*/
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+.footer-wrapper {
+    z-index: 999;
+}
+
+#wrap .container, #wrap .col-md-8, #wrap .row {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+}
+
+.row {
+    margin: 0;
+}
+
+#wrap sup {
+    font-size: 12px;
+}
+
+#wrap {
+    padding-top: 50px;
+    padding-bottom: 20px;
+    height: 100%;
+}
+
+.wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+}
+
+.inner-wrapper {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+.page-header {
+    border-bottom: none;
+    margin: 0 !important;
+    padding: 20px 35px;
+    color: #1F458A;
+    font-size: 20px;
+    background: #F6F6F6;
+
+    /*shadow*/
+    -webkit-box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.23);
+    -moz-box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.23);
+    box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.23);
+}
+
+.form, .navigation {
+    height: 100%;
+    padding-bottom: 82px;
+    position: absolute;
+    top: 82px;
+}
+
+.form {
+    width: 100%;
+}
+
+.form {
+    padding-left: 250px;
+    font-size: 14px;
+}
+
+form {
+    height: 100%;
+}
+
+form input {
+    padding: 6px;
+}
+
+.tab-content {
+    margin-bottom: 20px;
+    padding-bottom: 40px;
+    padding-top: 74px;
+    padding-left: 40px;
+    padding-right: 40px;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.navigation {
+    left: 0;
+    width: 250px;
+}
+
+.inner-navigation {
+    height: 100%;
+    background: #1F458A;
+}
+
+.navigation li {
+    cursor: pointer;
+}
+
+.navigation li:hover, .navigation li.active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.navigation li.active {
+    border-left: 5px solid #F48020;
+}
+
+.navigation a:hover, .navigation a:focus {
+    background: none !important;
+    color: white;
+}
+
+.navigation a {
+    color: white;
+}
+
+.navigation a, .form-title span {
+    padding: 20px !important;
+    display: inline-block;
+}
+
+.form-title {
+    color: #1F458A;
+    font-weight: 600;
+    background: #F6F6F6;
+    position: absolute;
+    z-index: 9999;
+    width: 100%;
+    padding-right: 280px;
+}
+
+.navigation a i {
+    color: red;
+    display: none;
+}
+
+.navigation a.error i {
+    display: inline-block;
+}
+
+
+.tab-pane {
+    display: block !important;
+    height: 0;
+    overflow: hidden;
+}
+
+.tab-content > .active {
+    height: auto;
+    overflow: auto;
+}
+
+.tab-content {
+    margin-bottom: 20px;
+}
+
+#form-submit {
+    padding: 10px 30px;
+    margin-top: 7px;
+    margin-right: 20px;
+    color: white;
+    background: #F48020;
+    border: none;
+}
+
+#form-submit:hover {
+    opacity: 0.7;
+}
+
+.map-wrapper {
+    position: relative;
+    width: 50%;
+}
+
+#map-location {
+    position: absolute;
+    width: 100%;
+    height: 350px;
+}
+
+h4 {
+    color: #0a66b7;
+    margin-bottom: 15px;
+    margin-top: 0;
+}
+
+table {
+    width: 100%;
+}
+
+table td {
+    vertical-align: middle;
+    padding-bottom: 10px;
+}
+
+.input {
+    width: fit-content;
+    position: relative;
+}
+
+.section {
+    width: 49%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+input, textarea, select {
+    border: 1px solid #ccc !important;
+    padding: 5px;
+}
+
+input:disabled, textarea:disabled {
+    background: none;
+    border: none !important;
+}
+
+
+select, option, input[type="checkbox"] {
+    cursor: pointer;
+}
+
+input[type="file"] {
+    border: none !important;
+    padding-left: 0;
+}
+
+input[type="checkbox"] {
+    height: 20px;
+    width: 20px;;
+}
+
+.many-to-many th {
+    background-color: #eee;
+}
+
+.many-to-many td, .many-to-many th {
+    border: 1px solid #ccc !important;
+    padding: 5px;
+}
+
+/* this is for add many to many button */
+.add-new-many-to-many {
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+.fa-question-circle-o {
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+/* tooltip of error */
+table td div.error {
+    background: white;
+    border: 1px solid #ff5e5e;
+    border-radius: 3px;
+    color: #ff5e5e;
+    font-size: 14px;
+    left: 100%;
+    margin-left: 10px;
+    padding: 5px;
+    position: absolute;
+    top: 0;
+    width: fit-content;
+    min-width: 150px;
+
+    -webkit-box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
+    -moz-box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
+    box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
+}
+
+table td div.error::after {
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #ff5e5e transparent transparent;
+    content: " ";
+    left: -10px;
+    margin-top: -5px;
+    position: absolute;
+    top: 50%;
+}

@@ -7,8 +7,11 @@
             {% field_as_row form.successful %}
         </table>
     </div>
+    <br><br>
     {% include "groundwater_form/_many-to-many.html" with id='casing' title='Casing' theform=casing thedata=casings %}
+    <br>
     {% include "groundwater_form/_many-to-many.html" with id='screen' title='Screen' theform=screen thedata=screens %}
+    <br>
     {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike thedata=water_strikes %}
     <div class="section">
         <h4>Pump (For Production well)</h4>

@@ -20,7 +20,7 @@ class GeneralInformationForm(forms.ModelForm):
         model = Well
         fields = ('original_id', 'location', 'name', 'feature_type', 'country', 'address', 'elevation', 'photo', 'description')
         widgets = {
-            'elevation': QuantityInput(unit_group='elevation'),
+            'elevation': QuantityInput(unit_group='length'),
         }
 
     @staticmethod

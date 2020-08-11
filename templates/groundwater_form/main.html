@@ -14,222 +14,78 @@
         let submitFunctions = {};
         let submitFunctionsManyToMany = {};
     </script>
+    {# the css for form #}
+    <style>
+        {% include "groundwater_form/main.css" %}
+    </style>
 {% endblock %}
 
 {% block body %}
-    <style>
-        form input {
-            padding: 6px;
-        }
-
-        .page-header {
-            border-bottom: none;
-            margin-top: 0;
-        }
-
-        .nav-tabs a i {
-            color: red;
-            display: none;
-        }
-
-        .nav-tabs a.error i {
-            display: inline-block;
-        }
-
-
-        .tab-pane {
-            display: block !important;
-            height: 0;
-            overflow: hidden;
-        }
-
-        .tab-content > .active {
-            height: auto;
-            overflow: auto;
-            padding: 20px;
-        }
-
-        .tab-content {
-            border-right: 1px solid #ddd;
-            border-left: 1px solid #ddd;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 20px;
-        }
-
-        h4 {
-            color: #0a66b7;
-            margin-bottom: 15px;
-            margin-top: 30px;
-        }
-
-        .form {
-            font-size: 14px;
-        }
-
-        #wrap .container {
-            width: 100%;
-            padding: 20px 40px;
-        }
-
-        #wrap .col-md-8 {
-            width: 100%
-        }
-
-        #wrap sup {
-            font-size: 12px;
-        }
-
-        table {
-            width: 100%;
-        }
-
-        table td {
-            vertical-align: middle;
-            padding-bottom: 10px;
-        }
-
-        .input {
-            width: fit-content;
-            position: relative;
-        }
-
-        .section {
-            width: 49%;
-            display: inline-block;
-            vertical-align: top;
-        }
-
-        input, textarea, select {
-            border: 1px solid #ccc !important;
-            padding: 5px;
-        }
-
-        select, option, input[type="checkbox"] {
-            cursor: pointer;
-        }
-
-        input[type="file"] {
-            border: none !important;
-            padding-left: 0;
-        }
-
-        input[type="checkbox"] {
-            height: 20px;
-            width: 20px;;
-        }
-
-        .many-to-many th {
-            background-color: #eee;
-        }
-
-        .many-to-many td, .many-to-many th {
-            border: 1px solid #ccc !important;
-            padding: 5px;
-        }
-
-        {# this is for add many to many button#}
-        .add-new-many-to-many {
-            cursor: pointer;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            text-align: right;
-        }
-
-        .fa-question-circle-o {
-            cursor: pointer;
-            opacity: 0.6;
-        }
-
-        {# tooltip of error #}
-        table td div.error {
-            background: white;
-            border: 1px solid #ff5e5e;
-            border-radius: 3px;
-            color: #ff5e5e;
-            font-size: 14px;
-            left: 100%;
-            margin-left: 10px;
-            padding: 5px;
-            position: absolute;
-            top: 0;
-            width: fit-content;
-            min-width: 150px;
-
-            -webkit-box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
-            -moz-box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
-            box-shadow: 3px 2px 4px 0px rgba(0, 0, 0, 0.2);
-        }
-
-        table td div.error::after {
-            border-width: 5px;
-            border-style: solid;
-            border-color: transparent #ff5e5e transparent transparent;
-            content: " ";
-            left: -10px;
-            margin-top: -5px;
-            position: absolute;
-            top: 50%;
-        }
-
-    </style>
-
-    <div class="page-header">
-        <h5>Groundwater Point Form</h5>
-    </div>
-
-    <div class="form">
-        <ul class="nav nav-tabs">
-            <li class="active">
-                <a data-toggle="tab" href="#general_information">
-                    General Information <i class="fa fa-exclamation" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a data-toggle="tab" href="#geology">
-                    Geology <i class="fa fa-exclamation" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a data-toggle="tab" href="#drilling_and_construction">
-                    Drilling and Construction <i class="fa fa-exclamation" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a data-toggle="tab" href="#hydrogeology">
-                    Hydrogeology <i class="fa fa-exclamation" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a data-toggle="tab" href="#management">
-                    Management <i class="fa fa-exclamation" aria-hidden="true"></i>
-                </a>
-            </li>
-            <li>
-                <a data-toggle="tab" href="#monitoring_data">
-                    Monitoring Data <i class="fa fa-exclamation" aria-hidden="true"></i>
-                </a>
-            </li>
-        </ul>
-
-        <form method="POST" id="form" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="tab-content">
-
-                {# GENERAL INFORMATION #}
-                {% include "groundwater_form/general_information.html" with form=general_information %}
-                {# GEOLOGY #}
-                {% include "groundwater_form/geology.html" with form=geology %}
-                {# DRILLING AND CONSTRUCTION #}
-                {% include "groundwater_form/drilling_and_construction.html" with form=drilling_and_construction %}
-                {# HYDROGEOLOGY #}
-                {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
-                {# MANAGEMENT #}
-                {% include "groundwater_form/management.html" with form=management %}
-                {# MONITORING DATA #}
-                {% include "groundwater_form/monitoring_data.html" %}
+    <div class="wrapper">
+        <div class="inner-wrapper">
+            <div class="page-header">
+                <h5>Groundwater Point Form</h5>
             </div>
-            <button id="form-submit" type="submit">submit</button>
-        </form>
+            <div class="form">
+                <form method="POST" id="form" enctype="multipart/form-data">
+                    <div class="form-title">
+                        <span>General Information</span>
+                        <button id="form-submit" class="pull-right" type="submit">submit</button>
+                    </div>
+                    {% csrf_token %}
+                    <div class="tab-content">
+                        {# GENERAL INFORMATION #}
+                        {% include "groundwater_form/general_information.html" with form=general_information %}
+                        {# GEOLOGY #}
+                        {% include "groundwater_form/geology.html" with form=geology %}
+                        {# DRILLING AND CONSTRUCTION #}
+                        {% include "groundwater_form/drilling_and_construction.html" with form=drilling_and_construction %}
+                        {# HYDROGEOLOGY #}
+                        {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
+                        {# MANAGEMENT #}
+                        {% include "groundwater_form/management.html" with form=management %}
+                        {# MONITORING DATA #}
+                        {% include "groundwater_form/monitoring_data.html" %}
+                    </div>
+                </form>
+            </div>
+            <div class="navigation">
+                <div class="inner-navigation">
+                    <ul class="nav">
+                        <li class="active">
+                            <a data-toggle="tab" href="#general_information">
+                                General Information <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="tab" href="#geology">
+                                Geology <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="tab" href="#drilling_and_construction">
+                                Drilling and Construction <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="tab" href="#hydrogeology">
+                                Hydrogeology <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="tab" href="#management">
+                                Management <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a data-toggle="tab" href="#monitoring_data">
+                                Monitoring Data <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
         $('.add-new-many-to-many').click(function () {
@@ -237,11 +93,14 @@
             let template = $(this).closest('.many-to-many').find('template')[0];
             $table.append(template.content.cloneNode(true));
         })
+        $('.navigation a').click(function () {
+            $('.form-title span').html($(this).text())
+        })
 
         $('#form').validate({
             errorElement: 'div',
             invalidHandler: function (event, validator) {
-                $('.nav-tabs a').removeClass('error')
+                $('.navigation a').removeClass('error')
                 if (validator.invalid) {
                     {# we check the error message show on form and show red exclamation on tab #}
                     setTimeout(function () {
@@ -252,7 +111,7 @@
                 }
             },
             submitHandler: function (form, event) {
-                $('.nav-tabs a').removeClass('error')
+                $('.navigation a').removeClass('error')
                 event.preventDefault();
                 let data = {}
                 $.each(submitFunctions, function (form, value) {

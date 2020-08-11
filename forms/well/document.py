@@ -2,6 +2,7 @@ import os
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.models.well import WellDocument
+from gwml2.utilities import convert_size
 
 
 class DocumentForm(forms.ModelForm):
@@ -56,4 +57,5 @@ class DocumentForm(forms.ModelForm):
         data['time'] = instance.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')
         filename, file_extension = os.path.splitext(instance.file.url)
         data['file_type'] = file_extension.replace('.', '')
+        data['file_size'] = convert_size(os.path.getsize(instance.file.path))
         return DocumentForm(initial=data)

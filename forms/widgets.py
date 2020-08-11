@@ -17,7 +17,7 @@ class QuantityInput(forms.widgets.Input):
         if value:
             quantity = Quantity.objects.get(id=value)
             context['value'] = '%s' % quantity.value
-            context['unit'] = quantity.unit
+            context['unit'] = quantity.unit.id
         else:
             context['value'] = ''
             context['unit'] = ''

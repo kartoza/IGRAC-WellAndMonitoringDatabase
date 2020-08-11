@@ -11,18 +11,6 @@
       "length"
     ]
   },
-  "a.s.l.": {
-    "description": "Above Sea Level",
-    "groups": [
-      "elevation"
-    ]
-  },
-  "a.g.l.": {
-    "description": "Above Ground Level",
-    "groups": [
-      "elevation"
-    ]
-  },
   "m2": {
     "description": "Cubic meter",
     "groups": [

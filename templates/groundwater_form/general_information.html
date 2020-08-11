@@ -6,48 +6,45 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <div id="general_information" class="tab-pane fade in active">
-    <div class="section">
-        <table>
-            <tr>
-                <td><h4>Identification</h4></td>
-            </tr>
-            {% field_as_row form.id %}
-            {% field_as_row form.original_id %}
-            {% field_as_row form.name %}
-            {% field_as_row form.feature_type %}
-            <tr>
-                <td><h4>Location Information</h4></td>
-            </tr>
-            {% field_as_row form.latitude '°' %}
-            {% field_as_row form.longitude '°' %}
-            {% field_as_row form.elevation %}
-            {% field_as_row form.country %}
-            {% field_as_row form.address %}
-        </table>
-        <div id="map-location" style="width: 80%; height: 300px;">
-        </div>
-    </div>
-    <div class="section">
-        <table>
-            <tr>
-                <td><h4>Summary Information</h4></td>
-            </tr>
-            <tr>
-                <td>{{ form.photo.label }}</td>
-                <td>{{ form.photo }}</td>
-            </tr>
-            <tr>
-                <td>{{ form.description.label }}</td>
-                <td>{{ form.description }}</td>
-            </tr>
-        </table>
-    </div>
+    <table style="width: 100%">
+        <tr>
+            <td><h4>Identification</h4></td>
+        </tr>
+        {% field_as_row form.id %}
+        {% field_as_row form.original_id %}
+        {% field_as_row form.name %}
+        {% field_as_row form.feature_type %}
+        <tr>
+            <td>
+                <br><br>
+                <h4>Location Information</h4>
+            </td>
+            <td></td>
+            <td class="map-wrapper">
+                <div id="map-location">
+                </div>
+            </td>
+        </tr>
+        {% field_as_row form.latitude '°' %}
+        {% field_as_row form.longitude '°' %}
+        {% field_as_row form.elevation 'a.s.l.' %}
+        {% field_as_row form.country %}
+        {% field_as_row form.address %}
+        <tr>
+            <td>
+                <br><br>
+                <h4>Summary Information</h4>
+            </td>
+        </tr>
+        {% field_as_row form.photo %}
+        {% field_as_row form.description %}
+    </table>
     {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document thedata=documents %}
 </div>
 <script>
     submitFunctions['general_information'] = function () {
         let data = {}
-        $('#general_information .section').find('input,textarea,select').each(
+        $('#general_information table').find('input,textarea,select').each(
             function () {
                 const key = $(this).attr('name');
                 let value = $(this).val()
