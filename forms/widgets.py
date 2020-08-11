@@ -42,7 +42,7 @@ class QuantityInput(forms.widgets.Input):
         """
         try:
             if data['{}_value'.format(name)]:
-                quantity, created = Quantity.objects.get_or_create(
+                quantity = Quantity.objects.create(
                     value=data['{}_value'.format(name)],
                     unit=Unit.objects.get(id=data['{}_unit'.format(name)])
                 )
@@ -51,5 +51,3 @@ class QuantityInput(forms.widgets.Input):
                 return None
         except KeyError:
             return None
-        except Unit.DoesNotExist:
-            raise Exception('Unit is not found.')

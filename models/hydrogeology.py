@@ -10,17 +10,17 @@ class PumpingTest(models.Model):
     porosity = models.FloatField(
         null=True, blank=True
     )
-    hydraulic_conductivity = models.ForeignKey(
+    hydraulic_conductivity = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='pumping_test_hydraulic_conductivity'
     )
-    transmissivity = models.ForeignKey(
+    transmissivity = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='pumping_test_transmissivity'
     )
-    specific_storage = models.ForeignKey(
+    specific_storage = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='pumping_test_specific_storage'
@@ -29,7 +29,7 @@ class PumpingTest(models.Model):
         null=True, blank=True,
         verbose_name='Storativity / Specific yield'
     )
-    specific_capacity = models.ForeignKey(
+    specific_capacity = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='pumping_test_specific_capacity'
@@ -53,7 +53,7 @@ class HydrogeologyParameter(models.Model):
         TermAquiferType, on_delete=models.SET_NULL,
         null=True, blank=True
     )
-    thickness = models.ForeignKey(
+    thickness = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -61,7 +61,7 @@ class HydrogeologyParameter(models.Model):
         TermConfinement, on_delete=models.SET_NULL,
         null=True, blank=True
     )
-    pumping_test = models.ForeignKey(
+    pumping_test = models.OneToOneField(
         PumpingTest, on_delete=models.SET_NULL,
         null=True, blank=True
     )

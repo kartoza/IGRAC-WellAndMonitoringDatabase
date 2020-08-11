@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets import QuantityInput
-from gwml2.models.drilling_and_construction import Screen
+from gwml2.models.construction import Screen
 
 
 class ScreenForm(forms.ModelForm):

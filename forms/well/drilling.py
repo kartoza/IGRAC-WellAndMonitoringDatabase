@@ -4,14 +4,14 @@ from gwml2.forms.widgets import QuantityInput
 from gwml2.models.drilling import Drilling
 
 
-class GeologyForm(forms.ModelForm):
+class DrillingForm(forms.ModelForm):
     """
-    Form of geology of well.
+    Form for Drilling.
     """
 
     class Meta:
         model = Drilling
-        fields = ('total_depth',)
+        fields = ('total_depth', 'drilling_method', 'driller', 'successful', 'failed_explanation')
         widgets = {
             'total_depth': QuantityInput(unit_group='length'),
         }
@@ -19,7 +19,7 @@ class GeologyForm(forms.ModelForm):
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data
-        :param instance: Geology object
+        :param instance: Drilling object
         :type instance: Drilling
 
         :param data: dictionary of data
@@ -29,20 +29,21 @@ class GeologyForm(forms.ModelForm):
         :type files: dict
 
         :return: Form
-        :rtype: GeologyForm
+        :rtype: DrillingForm
         """
-        return GeologyForm(data, files, instance=instance)
+
+        return DrillingForm(data, files, instance=instance)
 
     @staticmethod
     def make_from_instance(instance):
         """ Create form from instance
-        :param instance: Geology object
+        :param instance: Drilling object
         :type instance: Drilling
 
         :return: Form
-        :rtype: GeologyForm
+        :rtype: DrillingForm
         """
         data = {}
         if instance:
             data = model_to_dict(instance)
-        return GeologyForm(initial=data)
+        return DrillingForm(initial=data)

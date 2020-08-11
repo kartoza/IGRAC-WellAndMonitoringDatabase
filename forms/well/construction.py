@@ -1,26 +1,22 @@
 from django import forms
 from django.forms.models import model_to_dict
-from gwml2.forms.widgets import QuantityInput
-from gwml2.models.drilling import Drilling
+from gwml2.models.construction import Construction
 
 
-class GeologyForm(forms.ModelForm):
+class ConstructionForm(forms.ModelForm):
     """
-    Form of geology of well.
+    Form for Construction.
     """
 
     class Meta:
-        model = Drilling
-        fields = ('total_depth',)
-        widgets = {
-            'total_depth': QuantityInput(unit_group='length'),
-        }
+        model = Construction
+        fields = ('pump_installer', 'pump_description')
 
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data
-        :param instance: Geology object
-        :type instance: Drilling
+        :param instance: Construction object
+        :type instance: Construction
 
         :param data: dictionary of data
         :type data: dict
@@ -29,20 +25,21 @@ class GeologyForm(forms.ModelForm):
         :type files: dict
 
         :return: Form
-        :rtype: GeologyForm
+        :rtype: ConstructionForm
         """
-        return GeologyForm(data, files, instance=instance)
+
+        return ConstructionForm(data, files, instance=instance)
 
     @staticmethod
     def make_from_instance(instance):
         """ Create form from instance
-        :param instance: Geology object
-        :type instance: Drilling
+        :param instance: Construction object
+        :type instance: Construction
 
         :return: Form
-        :rtype: GeologyForm
+        :rtype: ConstructionForm
         """
         data = {}
         if instance:
             data = model_to_dict(instance)
-        return GeologyForm(initial=data)
+        return ConstructionForm(initial=data)

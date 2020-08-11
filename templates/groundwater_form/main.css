@@ -113,16 +113,30 @@ form input {
     background: #1F458A;
 }
 
-.navigation li {
+.navigation .sub-nav {
+    border: 1px solid #12356d;
+}
+
+.navigation .sub-nav li {
+    background: #1B3F7C;
+    padding-left: 20px;
+}
+
+.navigation li.nav {
     cursor: pointer;
 }
 
-.navigation li:hover, .navigation li.active {
-    background: rgba(255, 255, 255, 0.1);
+.navigation li.nav a:hover {
+    opacity: 0.6;
 }
 
 .navigation li.active {
-    border-left: 5px solid #F48020;
+    border-left: 10px solid #F48020;
+}
+
+.navigation li.active a {
+    font-weight: 600;
+    color: #F48020;
 }
 
 .navigation a:hover, .navigation a:focus {
@@ -135,7 +149,7 @@ form input {
 }
 
 .navigation a, .form-title span {
-    padding: 20px !important;
+    padding: 15px !important;
     display: inline-block;
 }
 

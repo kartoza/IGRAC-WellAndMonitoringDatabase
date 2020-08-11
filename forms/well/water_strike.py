@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets import QuantityInput
-from gwml2.models.drilling_and_construction import WaterStrike
+from gwml2.models.drilling import WaterStrike
 
 
 class WaterStrikeForm(forms.ModelForm):

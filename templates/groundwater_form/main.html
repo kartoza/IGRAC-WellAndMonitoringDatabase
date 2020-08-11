@@ -36,48 +36,54 @@
                     <div class="tab-content">
                         {# GENERAL INFORMATION #}
                         {% include "groundwater_form/general_information.html" with form=general_information %}
-                        {# GEOLOGY #}
-                        {% include "groundwater_form/geology.html" with form=geology %}
                         {# DRILLING AND CONSTRUCTION #}
-                        {% include "groundwater_form/drilling_and_construction.html" with form=drilling_and_construction %}
+                        {% include "groundwater_form/drilling.html" %}
+                        {% include "groundwater_form/construction.html" %}
                         {# HYDROGEOLOGY #}
                         {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
                         {# MANAGEMENT #}
                         {% include "groundwater_form/management.html" with form=management %}
                         {# MONITORING DATA #}
-                        {% include "groundwater_form/monitoring_data.html" %}
+{#                        {% include "groundwater_form/monitoring_data.html" %}#}
                     </div>
                 </form>
             </div>
             <div class="navigation">
                 <div class="inner-navigation">
                     <ul class="nav">
-                        <li class="active">
+                        <li class="nav active">
                             <a data-toggle="tab" href="#general_information">
                                 General Information <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li>
-                            <a data-toggle="tab" href="#geology">
-                                Geology <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            <a>
+                                Drilling and Construction &#9660;
                             </a>
+                            <ul class="nav sub-nav">
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#drilling">
+                                        Drilling <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#construction">
+                                        Construction <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
-                        <li>
-                            <a data-toggle="tab" href="#drilling_and_construction">
-                                Drilling and Construction <i class="fa fa-exclamation" aria-hidden="true"></i>
-                            </a>
-                        </li>
-                        <li>
+                        <li class="nav">
                             <a data-toggle="tab" href="#hydrogeology">
                                 Hydrogeology <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
-                        <li>
+                        <li class="nav">
                             <a data-toggle="tab" href="#management">
                                 Management <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
-                        <li>
+                        <li class="nav">
                             <a data-toggle="tab" href="#monitoring_data">
                                 Monitoring Data <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
@@ -93,7 +99,8 @@
             let template = $(this).closest('.many-to-many').find('template')[0];
             $table.append(template.content.cloneNode(true));
         })
-        $('.navigation a').click(function () {
+        $('.nav a').click(function () {
+            $('.nav li').removeClass('active')
             $('.form-title span').html($(this).text())
         })
 

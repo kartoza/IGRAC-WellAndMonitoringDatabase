@@ -1,18 +1,18 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets import QuantityInput
-from gwml2.models.geology import GeologyLog
+from gwml2.models.drilling import StratigraphicLog
 
 
-class GeologyLogForm(forms.ModelForm):
+class StratigraphicLogForm(forms.ModelForm):
     """
     Form of geology log of well.
     """
     id_ = forms.CharField(required=False)
 
     class Meta:
-        model = GeologyLog
-        fields = ('id_', 'top_depth', 'bottom_depth', 'material', 'geological_unit')
+        model = StratigraphicLog
+        fields = ('id_', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),
             'bottom_depth': QuantityInput(unit_group='length'),
@@ -21,8 +21,8 @@ class GeologyLogForm(forms.ModelForm):
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data
-        :param instance: GeologyLog object
-        :type instance: GeologyLog
+        :param instance: StratigraphicLog object
+        :type instance: StratigraphicLog
 
         :param data: dictionary of data
         :type data: dict
@@ -31,20 +31,20 @@ class GeologyLogForm(forms.ModelForm):
         :type files: dict
 
         :return: Form
-        :rtype: GeologyLogForm
+        :rtype: StratigraphicLogForm
         """
 
-        return GeologyLogForm(data, files, instance=instance)
+        return StratigraphicLogForm(data, files, instance=instance)
 
     @staticmethod
     def make_from_instance(instance):
         """ Create form from instance
-        :param instance: GeologyLog object
-        :type instance: GeologyLog
+        :param instance: StratigraphicLog object
+        :type instance: StratigraphicLog
 
         :return: Form
-        :rtype: GeologyLogForm
+        :rtype: StratigraphicLogForm
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return GeologyLogForm(initial=data)
+        return StratigraphicLogForm(initial=data)

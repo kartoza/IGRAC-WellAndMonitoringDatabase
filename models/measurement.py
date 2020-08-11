@@ -23,7 +23,7 @@ class Measurement(models.Model):
         null=True, blank=True, max_length=512,
         help_text="Methodology of measurement."
     )
-    quality = models.ForeignKey(
+    quality = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
         help_text='The quality of the result'

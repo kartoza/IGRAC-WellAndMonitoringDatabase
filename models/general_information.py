@@ -20,7 +20,7 @@ class GeneralInformation(models.Model):
         verbose_name="location",
         help_text="Location of the feature."
     )
-    elevation = models.ForeignKey(
+    elevation = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
         help_text="Elevation of the feature."

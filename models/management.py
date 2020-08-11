@@ -5,7 +5,7 @@ from gwml2.models.term import TermGroundwaterUse
 
 class License(models.Model):
     """ License model """
-    number = models.TextField()
+    number = models.CharField(max_length=512)
     valid_from = models.DateField()
     valid_until = models.DateField()
     description = models.TextField(
