@@ -44,7 +44,9 @@
                         {# MANAGEMENT #}
                         {% include "groundwater_form/management.html" with form=management %}
                         {# MONITORING DATA #}
-{#                        {% include "groundwater_form/monitoring_data.html" %}#}
+                        {% include "groundwater_form/level_measurement.html" %}
+                        {% include "groundwater_form/quality_measurement.html" %}
+                        {% include "groundwater_form/yield_measurement.html" %}
                     </div>
                 </form>
             </div>
@@ -83,10 +85,27 @@
                                 Management <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
-                        <li class="nav">
-                            <a data-toggle="tab" href="#monitoring_data">
-                                Monitoring Data <i class="fa fa-exclamation" aria-hidden="true"></i>
+                        <li>
+                            <a>
+                                Monitoring Data &#9660;
                             </a>
+                            <ul class="nav sub-nav">
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#level-measurement">
+                                        Groundwater level <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#quality-measurement">
+                                        Groundwater quality <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#yield-measurement">
+                                        Yield / abstraction <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     </ul>
                 </div>
