@@ -81,7 +81,7 @@ body {
 }
 
 .form {
-    padding-left: 250px;
+    padding-left: 280px;
     font-size: 14px;
 }
 
@@ -105,8 +105,13 @@ form input {
 
 .navigation {
     left: 0;
-    width: 250px;
+    width: 280px;
 }
+
+.navigation img {
+    height: 25px;
+}
+
 
 .navigation ul {
     padding-left: 0;
@@ -132,6 +137,26 @@ form input {
     cursor: pointer;
 }
 
+
+.navigation a, .form-title span {
+    padding: 15px !important;
+    display: inline-block;
+}
+
+.navigation a {
+    color: white;
+    padding-left: 25px !important;
+}
+
+.navigation a i {
+    color: red;
+    display: none;
+}
+
+.navigation a.error i {
+    display: inline-block;
+}
+
 .navigation li.nav a:hover {
     opacity: 0.6;
 }
@@ -141,8 +166,20 @@ form input {
 }
 
 .navigation li.active a {
+    padding-left: 15px !important;
+}
+
+.navigation li.active a {
     font-weight: 600;
     color: #F48020;
+}
+
+.navigation li .icon-svg .active {
+    display: none;
+}
+
+.navigation li.active .icon-svg .active {
+    display: block;
 }
 
 .navigation a:hover, .navigation a:focus {
@@ -150,13 +187,34 @@ form input {
     color: white;
 }
 
-.navigation a {
-    color: white;
+.navigation .sub-nav a {
+    padding-left: 40px !important;
 }
 
-.navigation a, .form-title span {
-    padding: 15px !important;
+.navigation .sub-nav li.active a {
+    padding-left: 30px !important;
+}
+
+.icon-svg {
+    position: relative;
+    width: 21px;
+    height: 16px;
     display: inline-block;
+    margin-top: -6px;
+    margin-right: 10px;
+
+}
+
+.icon-svg div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.icon-svg .active .st0 {
+    fill: #F48020;
 }
 
 .form-title {
@@ -167,15 +225,6 @@ form input {
     z-index: 1001;
     width: 100%;
     padding-right: 280px;
-}
-
-.navigation a i {
-    color: red;
-    display: none;
-}
-
-.navigation a.error i {
-    display: inline-block;
 }
 
 .abstract-nav::after {

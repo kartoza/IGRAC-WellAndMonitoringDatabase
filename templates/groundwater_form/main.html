@@ -55,54 +55,54 @@
                     <ul class="nav">
                         <li class="nav active">
                             <a data-toggle="tab" href="#general_information">
-                                General Information <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/general.html" %} <span>General Information</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li>
                             <a>
-                                Drilling and Construction <span class="abstract-nav"></span>
+                                {% include "svg/drilling.html" %} <span>Drilling and Construction <span class="abstract-nav"></span>
                             </a>
                             <ul class="nav sub-nav">
                                 <li class="nav">
                                     <a data-toggle="tab" href="#drilling">
-                                        Drilling <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        <span>Drilling</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
                                     <a data-toggle="tab" href="#construction">
-                                        Construction <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        <span>Construction</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav">
                             <a data-toggle="tab" href="#hydrogeology">
-                                Hydrogeology <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/hydrogeology.html" %} <span>Hydrogeology </span><i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
                             <a data-toggle="tab" href="#management">
-                                Management <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/management.html" %} <span>Management</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li>
                             <a>
-                                Monitoring Data <span class="abstract-nav"></span>
+                                {% include "svg/monitoring.html" %} Monitoring Data <span class="abstract-nav"></span>
                             </a>
                             <ul class="nav sub-nav">
                                 <li class="nav">
                                     <a data-toggle="tab" href="#level-measurement">
-                                        Groundwater level <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        <span>Groundwater level</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
                                     <a data-toggle="tab" href="#quality-measurement">
-                                        Groundwater quality <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        <span>Groundwater quality</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
                                     <a data-toggle="tab" href="#yield-measurement">
-                                        Yield / abstraction <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        <span>Yield / abstraction </span><i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -120,7 +120,7 @@
         })
         $('li.nav').click(function () {
             $('.nav li').removeClass('active')
-            $('.form-title span').html($(this).text())
+            $('.form-title span').html($(this).find('span').text())
         })
 
         $('#form').validate({
