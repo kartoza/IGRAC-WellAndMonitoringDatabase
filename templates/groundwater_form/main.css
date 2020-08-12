@@ -108,6 +108,12 @@ form input {
     width: 250px;
 }
 
+.navigation ul {
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+
 .inner-navigation {
     height: 100%;
     background: #1F458A;
@@ -172,6 +178,10 @@ form input {
     display: inline-block;
 }
 
+.abstract-nav::after {
+    content: '▼';
+    font-size: 12px;
+}
 
 .tab-pane {
     display: block !important;
