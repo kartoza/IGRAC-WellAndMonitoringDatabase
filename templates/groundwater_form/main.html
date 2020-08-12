@@ -52,7 +52,7 @@
             </div>
             <div class="navigation">
                 <div class="inner-navigation">
-                    <ul>
+                    <ul class="nav">
                         <li class="nav active">
                             <a data-toggle="tab" href="#general_information">
                                 General Information <i class="fa fa-exclamation" aria-hidden="true"></i>
@@ -118,7 +118,7 @@
             let template = $(this).closest('.many-to-many').find('template')[0];
             $table.append(template.content.cloneNode(true));
         })
-        $('.nav a').click(function () {
+        $('li.nav').click(function () {
             $('.nav li').removeClass('active')
             $('.form-title span').html($(this).text())
         })

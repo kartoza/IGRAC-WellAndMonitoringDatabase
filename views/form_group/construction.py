@@ -53,7 +53,7 @@ class ConstructionCreateForm(FormGroupCreate):
         # reference elevation
         self.elevation_form = self._make_form(
             self.well.construction.reference_elevation \
-                if self.well.construction.reference_elevation else ReferenceElevation(),
+                if self.well.construction and self.well.construction.reference_elevation else ReferenceElevation(),
             ReferenceElevationForm, self.data['construction']['reference_elevation'])
 
         for casing in self.data['construction']['casing']:

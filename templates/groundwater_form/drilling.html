@@ -56,6 +56,7 @@
             });
         {% for field in drilling_elevation %}
             data['reference_elevation']['{{ field.name }}'] = $('#drilling #{{ field.id_for_label }}').val();
+            data['reference_elevation']['{{ field.name }}_id'] = $('#drilling #{{ field.id_for_label }}_id').val();
             data['reference_elevation']['{{ field.name }}_value'] = $('#drilling #{{ field.id_for_label }}_value').val();
             data['reference_elevation']['{{ field.name }}_unit'] = $('#drilling #{{ field.id_for_label }}_unit').val();
         {% endfor %}

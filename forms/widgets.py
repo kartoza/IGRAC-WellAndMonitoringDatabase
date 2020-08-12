@@ -14,6 +14,7 @@ class QuantityInput(forms.widgets.Input):
         context = super(QuantityInput, self).get_context(name, value, attrs)
         context['widget']['attrs']['maxlength'] = 50
         context['widget']['attrs']['placeholder'] = name.title()
+        context['id'] = value
         if value:
             quantity = Quantity.objects.get(id=value)
             context['value'] = '%s' % quantity.value
@@ -41,13 +42,20 @@ class QuantityInput(forms.widgets.Input):
         of this widget or None if it's not provided.
         """
         try:
-            if data['{}_value'.format(name)]:
-                quantity = Quantity.objects.create(
-                    value=data['{}_value'.format(name)],
-                    unit=Unit.objects.get(id=data['{}_unit'.format(name)])
+            if data['{}_id'.format(name)]:
+                quantity = Quantity.objects.get(
+                    id=data['{}_id'.format(name)]
                 )
+            else:
+                quantity = Quantity()
+            if data['{}_value'.format(name)]:
+                quantity.value = data['{}_value'.format(name)]
+                quantity.unit = Unit.objects.get(id=data['{}_unit'.format(name)])
+                quantity.save()
                 return quantity.id
             else:
+                if quantity.pk:
+                    quantity.delete()
                 return None
         except KeyError:
             return None

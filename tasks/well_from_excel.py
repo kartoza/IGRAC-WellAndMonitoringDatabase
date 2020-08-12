@@ -30,21 +30,20 @@ def well_from_excel(self, location_records, level_records):
             # skip if it is title
             if record[0].lower() == 'id well':
                 continue
-
-            elevation, created = Quantity.objects.get_or_create(
-                value=record[1],
-                unit=Unit.objects.get(name='a.s.l.'))
             point = Point(x=record[3], y=record[2], srid=4326)
 
             well, created = Well.objects.get_or_create(
                 original_id=record[0],
                 defaults={
-                    'location': point,
-                    'elevation': elevation
+                    'location': point
                 }
             )
+            if not well.elevation:
+                well.elevation = Quantity.objects.create(
+                    value=record[1],
+                    unit=Unit.objects.get(name='m')
+                )
             well.location = point
-            well.elevation = elevation
             well.save()
 
     # TODO:

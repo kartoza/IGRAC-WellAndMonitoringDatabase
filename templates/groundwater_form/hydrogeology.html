@@ -34,11 +34,13 @@
         };
         {% for field in form %}
             data['{{ field.name }}'] = $('#hydrogeology #{{ field.id_for_label }}').val();
+            data['{{ field.name }}_id'] = $('#hydrogeology #{{ field.id_for_label }}_id').val();
             data['{{ field.name }}_value'] = $('#hydrogeology #{{ field.id_for_label }}_value').val();
             data['{{ field.name }}_unit'] = $('#hydrogeology #{{ field.id_for_label }}_unit').val();
         {% endfor %}
         {% for field in pumping_test %}
             data['pumping_test']['{{ field.name }}'] = $('#hydrogeology #{{ field.id_for_label }}').val();
+            data['pumping_test']['{{ field.name }}_id'] = $('#hydrogeology #{{ field.id_for_label }}_id').val();
             data['pumping_test']['{{ field.name }}_value'] = $('#hydrogeology #{{ field.id_for_label }}_value').val();
             data['pumping_test']['{{ field.name }}_unit'] = $('#hydrogeology #{{ field.id_for_label }}_unit').val();
         {% endfor %}
