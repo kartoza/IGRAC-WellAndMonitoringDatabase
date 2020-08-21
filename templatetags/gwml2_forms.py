@@ -1,5 +1,5 @@
-import copy
 from django import template
+from django.forms.models import model_to_dict
 from django.utils.safestring import mark_safe
 
 register = template.Library()

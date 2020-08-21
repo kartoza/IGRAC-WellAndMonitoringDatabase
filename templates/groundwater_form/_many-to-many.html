@@ -1,4 +1,5 @@
 {# THIS IS MANY TO MANY HTML #}
+{% load gwml2_forms %}
 <style>
     .many-to-many tr th:first-child, .many-to-many tr td:first-child {
         display: none;
@@ -51,8 +52,7 @@
                     if ($(this).get(0).files[0]) {
                         value = $(this).get(0).files[0].name
                     }
-                }
-                else if ($(this).attr('type') === 'checkbox') {
+                } else if ($(this).attr('type') === 'checkbox') {
                     value = $(this).is(":checked")
                 }
                 rowData[key] = value

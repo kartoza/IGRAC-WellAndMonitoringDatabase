@@ -38,6 +38,9 @@ class PumpingTest(models.Model):
         null=True, blank=True, max_length=512
     )
 
+    class Meta:
+        db_table = 'pumping_test'
+
 
 class HydrogeologyParameter(models.Model):
     """ Model for hydrogeology parameter
@@ -65,3 +68,6 @@ class HydrogeologyParameter(models.Model):
         PumpingTest, on_delete=models.SET_NULL,
         null=True, blank=True
     )
+
+    class Meta:
+        db_table = 'hydrogeology_parameter'

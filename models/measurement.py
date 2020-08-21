@@ -28,3 +28,6 @@ class Measurement(models.Model):
         null=True, blank=True,
         help_text='The quality of the result'
     )
+
+    class Meta:
+        abstract = True

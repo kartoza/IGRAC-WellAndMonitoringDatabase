@@ -29,6 +29,9 @@ class Drilling(models.Model):
         null=True,
         blank=True)
 
+    class Meta:
+        db_table = 'drilling'
+
 
 class StratigraphicLog(models.Model):
     """
@@ -65,6 +68,9 @@ class StratigraphicLog(models.Model):
         help_text="Stratigraphic unit of the log."
     )
 
+    class Meta:
+        db_table = 'drilling_stratigraphic_log'
+
 
 class WaterStrike(models.Model):
     """ Water strike
@@ -83,3 +89,6 @@ class WaterStrike(models.Model):
     description = models.TextField(
         null=True,
         blank=True)
+
+    class Meta:
+        db_table = 'drilling_water_strike'

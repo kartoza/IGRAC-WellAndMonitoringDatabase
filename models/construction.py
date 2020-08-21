@@ -16,6 +16,9 @@ class Construction(models.Model):
         null=True,
         blank=True)
 
+    class Meta:
+        db_table = 'construction'
+
 
 class _CasingAndScreen(models.Model):
     """ Abstract model for Casing and Screen """
@@ -62,6 +65,9 @@ class Casing(_CasingAndScreen):
         related_name='casing_diameter'
     )
 
+    class Meta:
+        db_table = 'construction_casing'
+
 
 class Screen(_CasingAndScreen):
     """
@@ -87,3 +93,6 @@ class Screen(_CasingAndScreen):
         help_text='Diameter of the feature',
         related_name='screening_diameter'
     )
+
+    class Meta:
+        db_table = 'construction_screen'

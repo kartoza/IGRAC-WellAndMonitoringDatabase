@@ -14,10 +14,15 @@ class Country(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        db_table = 'country'
+
 
 class Unit(_Term):
     """ List of unit."""
-    pass
+
+    class Meta:
+        db_table = 'unit'
 
 
 class UnitGroup(_Term):
@@ -26,6 +31,9 @@ class UnitGroup(_Term):
         Unit,
         null=True, blank=True
     )
+
+    class Meta:
+        db_table = 'unit_group'
 
 
 class Quantity(models.Model):
@@ -38,3 +46,6 @@ class Quantity(models.Model):
 
     def __str__(self):
         return '{} ({})'.format(self.value, self.unit)
+
+    class Meta:
+        db_table = 'quantity'

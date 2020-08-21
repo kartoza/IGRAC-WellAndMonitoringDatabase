@@ -30,6 +30,8 @@ class QualityMeasurementCreateForm(FormGroupCreate):
         """
 
         for measurement in self.data['quality_measurement']['measurements']:
+            if not measurement['time']:
+                return
             obj = WellQualityMeasurement.objects.get(
                 id=measurement['id_']) if measurement['id_'] else WellQualityMeasurement()
 

@@ -5,9 +5,16 @@ from gwml2.models.term import TermGroundwaterUse
 
 class License(models.Model):
     """ License model """
-    number = models.CharField(max_length=512)
-    valid_from = models.DateField()
-    valid_until = models.DateField()
+    number = models.CharField(
+        max_length=512,
+        null=True,
+        blank=True)
+    valid_from = models.DateField(
+        null=True,
+        blank=True)
+    valid_until = models.DateField(
+        null=True,
+        blank=True)
     description = models.TextField(
         null=True,
         blank=True)
@@ -15,12 +22,17 @@ class License(models.Model):
     def __unicode__(self):
         return self.number
 
+    class Meta:
+        db_table = 'license'
+
 
 class Management(models.Model):
     """ Management model """
     manager = models.CharField(
         verbose_name='Manager / owner',
-        max_length=512
+        max_length=512,
+        null=True,
+        blank=True
     )
     description = models.TextField(
         null=True,
@@ -42,3 +54,6 @@ class Management(models.Model):
 
     def __unicode__(self):
         return self.manager
+
+    class Meta:
+        db_table = 'management'

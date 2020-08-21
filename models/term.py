@@ -17,40 +17,47 @@ class _Term(models.Model):
 class TermWellPurpose(_Term):
     """ List of well purpose term."""
 
-    pass
+    class Meta:
+        db_table = 'term_well_purpose'
 
 
 class TermDrillingMethod(_Term):
     """ List of drilling method."""
 
-    pass
+    class Meta:
+        db_table = 'term_drilling_method'
 
 
 class TermFeatureType(_Term):
     """ List of feature type."""
 
-    pass
+    class Meta:
+        db_table = 'term_feature_type'
 
 
 class TermMeasurementParameter(_Term):
     """ List of parameter for measurement."""
 
-    pass
+    class Meta:
+        db_table = 'term_measurement_parameter'
 
 
 class TermGroundwaterUse(_Term):
     """ List of groundwater use."""
 
-    pass
+    class Meta:
+        db_table = 'term_groundwater_use'
 
 
 class TermAquiferType(_Term):
     """ List of aquifer type."""
 
-    pass
+    class Meta:
+        db_table = 'term_aquifer_type'
 
 
 class TermConfinement(_Term):
     """ List of confinement."""
 
-    pass
+    class Meta:
+        db_table = 'term_confinement'

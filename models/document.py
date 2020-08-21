@@ -19,4 +19,5 @@ class Document(models.Model):
     )
 
     class Meta:
+        db_table = 'document'
         abstract = True

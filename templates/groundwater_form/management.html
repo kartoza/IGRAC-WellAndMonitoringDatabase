@@ -31,12 +31,6 @@
 </div>
 
 <script>
-    $('#management #id_valid_from').datepicker({
-        format: 'DD-MM-YYYY',
-    });
-    $('#management #id_valid_until').datepicker({
-        format: 'DD-MM-YYYY',
-    });
     $('#management #id_valid_from').attr('autocomplete', 'off')
     $('#management #id_valid_until').attr('autocomplete', 'off')
     submitFunctions['management'] = function () {
@@ -51,4 +45,12 @@
         {% endfor %}
         return data
     }
+    $(document).ready(function () {
+        $('#management #id_valid_from').datepicker({
+            dateFormat: 'yy-mm-dd',
+        });
+        $('#management #id_valid_until').datepicker({
+            dateFormat: 'yy-mm-dd',
+        });
+    })
 </script>

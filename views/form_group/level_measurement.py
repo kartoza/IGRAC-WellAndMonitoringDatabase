@@ -45,6 +45,8 @@ class LevelMeasurementCreateForm(FormGroupCreate):
             ReferenceElevationForm, self.data['level_measurement']['reference_elevation'])
 
         for measurement in self.data['level_measurement']['measurements']:
+            if not measurement['time']:
+                return
             obj = WellGroundwaterLevelMeasurement.objects.get(
                 id=measurement['id_']) if measurement['id_'] else WellGroundwaterLevelMeasurement()
 

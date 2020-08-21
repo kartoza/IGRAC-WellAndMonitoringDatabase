@@ -18,11 +18,18 @@ class WellGroundwaterLevel(models.Model):
         null=True, blank=True
     )
 
+    class Meta:
+        db_table = 'well_groundwater_level'
+
 
 class WellGroundwaterLevelMeasurement(Measurement):
     groundwater_level = models.ForeignKey(
         WellGroundwaterLevel, on_delete=models.CASCADE,
     )
+
+    class Meta:
+        db_table = 'well_groundwater_level_measurement'
+        ordering = ('-time',)
 
 
 class Well(GeneralInformation):
@@ -61,6 +68,7 @@ class Well(GeneralInformation):
         return self.original_id
 
     class Meta:
+        db_table = 'well'
         ordering = ['original_id']
 
 
@@ -70,6 +78,9 @@ class WellDocument(Document):
         Well, on_delete=models.CASCADE,
     )
 
+    class Meta:
+        db_table = 'well_document'
+
 
 # Monitoring data
 class WellQualityMeasurement(Measurement):
@@ -77,8 +88,16 @@ class WellQualityMeasurement(Measurement):
         Well, on_delete=models.CASCADE,
     )
 
+    class Meta:
+        db_table = 'well_quality_measurement'
+        ordering = ('-time',)
+
 
 class WellYieldMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,
     )
+
+    class Meta:
+        db_table = 'well_yield_measurement'
+        ordering = ('-time',)

@@ -20,3 +20,6 @@ class ReferenceElevation(models.Model):
 
     def __str__(self):
         return '{} ({})'.format(self.value.value, self.value.unit)
+
+    class Meta:
+        db_table = 'reference_elevation'
