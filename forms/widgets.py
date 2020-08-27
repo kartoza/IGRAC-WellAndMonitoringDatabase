@@ -31,7 +31,7 @@ class QuantityInput(forms.widgets.Input):
         for unit in unit_group.units.all():
             unit_choices.append({
                 'id': unit.id,
-                'name': unit.name
+                'name': unit.html if unit.html else unit.name
             })
         context['unit_choices'] = unit_choices
         return context

@@ -13,6 +13,7 @@ def import_data(apps, schema_editor):
             os.path.dirname(os.path.abspath(__file__))
         ))
 
+    # unit fixture
     fixture_file = os.path.join(
         DJANGO_ROOT, 'gwml2', 'fixtures', 'unit.json')
     with open(fixture_file) as json_file:
@@ -22,13 +23,42 @@ def import_data(apps, schema_editor):
         for unit_name, value in data.items():
             unit, created = Unit.objects.using(db_alias).get_or_create(
                 name=unit_name.lower(),
-                defaults={'description': value['description']}
+                defaults={
+                    'description': value['description'] if 'description' in value else None,
+                    'html': value['html'] if 'html' in value else None,
+                }
             )
             for group_name in value['groups']:
                 group, created = UnitGroup.objects.using(db_alias).get_or_create(
                     name=group_name.lower()
                 )
                 group.units.add(unit)
+
+    # term fixture
+    fixture_file = os.path.join(
+        DJANGO_ROOT, 'gwml2', 'fixtures', 'term.json')
+    with open(fixture_file) as json_file:
+        data = json.load(json_file)
+        for model_name, terms in data.items():
+            Model = apps.get_model(app_name, model_name)
+            for term in terms:
+                Model.objects.using(db_alias).get_or_create(
+                    name=term
+                )
+
+    # country fixture
+    fixture_file = os.path.join(
+        DJANGO_ROOT, 'gwml2', 'fixtures', 'country.json')
+    with open(fixture_file) as json_file:
+        data = json.load(json_file)
+        Country = apps.get_model(app_name, "Country")
+        for country in data:
+            Country.objects.using(db_alias).get_or_create(
+                name=country['name'],
+                defaults={
+                    'code': country['code']
+                }
+            )
 
 
 class Migration(migrations.Migration):

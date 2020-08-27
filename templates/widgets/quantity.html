@@ -10,12 +10,13 @@
         name="{{ widget.name }}_value"
         {% if value != None %} value="{{ value }}" {% endif %}
         id="{{ widget.attrs.id }}_value"
+        placeholder=""
         {% include "django/forms/widgets/attrs.html" %}
 />
 <select id="{{ widget.attrs.id }}_unit" name="{{ widget.name }}_unit">
     {% for choice in unit_choices %}
         <option value="{{ choice.id }}"
                 {% if unit == choice.id %} selected {% endif %}
-        >{{ choice.name }}</option>
+        >{{ choice.name |safe }}</option>
     {% endfor %}
 </select>

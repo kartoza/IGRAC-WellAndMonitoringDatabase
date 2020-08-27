@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets import QuantityInput
-from gwml2.models.drilling import Drilling
+from gwml2.models.geology import Geology
 
 
 class GeologyForm(forms.ModelForm):
@@ -10,7 +10,7 @@ class GeologyForm(forms.ModelForm):
     """
 
     class Meta:
-        model = Drilling
+        model = Geology
         fields = ('total_depth',)
         widgets = {
             'total_depth': QuantityInput(unit_group='length'),

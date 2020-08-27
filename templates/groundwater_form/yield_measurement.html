@@ -1,6 +1,6 @@
 {% load gwml2_forms %}
 <div id="yield-measurement" class="tab-pane">
-    {% include "groundwater_form/_many-to-many.html" with id='yield_measurement' title='Measurement' theform=yield_measurement thedata=yield_measurements %}
+    {% include "groundwater_form/_many-to-many.html" with id='yield_measurement' title='Measurement' theform=yield_measurement thedata=yield_measurements help_text=''%}
 </div>
 <script>
     submitFunctions['yield_measurement'] = function () {

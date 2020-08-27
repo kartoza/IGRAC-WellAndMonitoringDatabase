@@ -8,6 +8,9 @@ from gwml2.models.well import Well
 from gwml2.views.form_group.general_information import (
     GeneralInformationGetForms, GeneralInformationCreateForm
 )
+from gwml2.views.form_group.geology import (
+    GeologyGetForms, GeologyCreateForm
+)
 from gwml2.views.form_group.construction import (
     ConstructionGetForms, ConstructionCreateForm
 )
@@ -44,6 +47,7 @@ class WellFormView(StaffuserRequiredMixin, View):
 
         context = {}
         context.update(GeneralInformationGetForms(well).get())
+        context.update(GeologyGetForms(well).get())
         context.update(DrillingGetForms(well).get())
         context.update(ConstructionGetForms(well).get())
         context.update(HydrogeologyGetForms(well).get())
@@ -73,6 +77,7 @@ class WellFormView(StaffuserRequiredMixin, View):
 
         try:
             general_information = GeneralInformationCreateForm(well, data, self.request.FILES)
+            geology = GeologyCreateForm(well, data, self.request.FILES)
             drilling = DrillingCreateForm(well, data, self.request.FILES)
             construction = ConstructionCreateForm(well, data, self.request.FILES)
             hydrogeology = HydrogeologyCreateForm(well, data, self.request.FILES)
@@ -84,6 +89,7 @@ class WellFormView(StaffuserRequiredMixin, View):
             # -----------------------------------------
             # save all forms
             # -----------------------------------------
+            geology.save()
             construction.save()
             drilling.save()
             management.save()

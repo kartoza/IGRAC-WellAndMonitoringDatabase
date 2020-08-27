@@ -17,7 +17,8 @@ class License(models.Model):
         blank=True)
     description = models.TextField(
         null=True,
-        blank=True)
+        blank=True,
+        help_text='Explain what the license entails.')
 
     def __unicode__(self):
         return self.number
@@ -32,20 +33,23 @@ class Management(models.Model):
         verbose_name='Manager / owner',
         max_length=512,
         null=True,
-        blank=True
+        blank=True,
+        help_text='Name of the manager or owner of the groundwater point. '
+                  'This can be a single person, a group of persons or an organisation.'
     )
-    description = models.TextField(
-        null=True,
-        blank=True)
-
     groundwater_use = models.ForeignKey(
         TermGroundwaterUse, on_delete=models.SET_NULL,
         null=True, blank=True
     )
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text='Explain how the groundwater point is managed.')
     number_of_users = models.IntegerField(
         null=True, blank=True,
         validators=[MinValueValidator(0)],
-        verbose_name='Number of users / beneficiaries'
+        verbose_name='Number of people served',
+        help_text='Indicate how many people use the groundwater.'
     )
     license = models.ForeignKey(
         License, on_delete=models.SET_NULL,

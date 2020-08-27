@@ -21,13 +21,15 @@ class Drilling(models.Model):
         null=True, blank=True
     )
     driller = models.CharField(
-        null=True, blank=True, max_length=512)
+        null=True, blank=True, max_length=512,
+        help_text="Name of the drilling company or responsible person.")
     successful = models.BooleanField(
         null=True,
         blank=True)
     failed_explanation = models.TextField(
         null=True,
-        blank=True)
+        blank=True,
+        help_text="Explain why the drilling was not successful.")
 
     class Meta:
         db_table = 'drilling'
@@ -50,22 +52,18 @@ class StratigraphicLog(models.Model):
     top_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Top depth of the log',
         related_name='stratigraphic_log_top_depth'
     )
     bottom_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Bottom depth of the log',
         related_name='stratigraphic_log_bottom_depth'
     )
     material = models.CharField(
-        null=True, blank=True, max_length=512,
-        help_text="Material of the log."
+        null=True, blank=True, max_length=512
     )
     stratigraphic_unit = models.CharField(
-        null=True, blank=True, max_length=256,
-        help_text="Stratigraphic unit of the log."
+        null=True, blank=True, max_length=256
     )
 
     class Meta:
@@ -83,8 +81,7 @@ class WaterStrike(models.Model):
     # information
     depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        help_text='Top depth of feature'
+        null=True, blank=True
     )
     description = models.TextField(
         null=True,

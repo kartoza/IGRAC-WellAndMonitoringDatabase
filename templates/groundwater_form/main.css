@@ -271,6 +271,13 @@ form input {
     height: 350px;
 }
 
+h3 {
+    color: #00529b;
+    font-size: 18px;
+    margin-bottom: 20px;
+    margin-top: 0px;
+}
+
 h4 {
     color: #0a66b7;
     margin-bottom: 15px;

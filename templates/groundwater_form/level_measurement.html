@@ -1,13 +1,17 @@
 {% load gwml2_forms %}
 <div id="level-measurement" class="tab-pane">
     <div class="section">
-        <h4>Reference Elevation</h4>
+        <h4>Reference Elevation
+            <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip"
+               title="Provide the reference elevation (above sea level) from which the depth of the water level(s) were measured.">
+            </i>
+        </h4>
         <table>
             {% field_as_row level_measurement_elevation.value %}
-            {% field_as_row level_measurement_elevation.description %}
+            {% field_as_row level_measurement_elevation.description help_text='Explain what constitutes the reference elevation.' %}
         </table>
     </div>
-    {% include "groundwater_form/_many-to-many.html" with id='level_measurement' title='Measurement' theform=level_measurement thedata=level_measurements %}
+    {% include "groundwater_form/_many-to-many.html" with id='level_measurement' title='Measurement' theform=level_measurement thedata=level_measurements help_text='' %}
 </div>
 <script>
     submitFunctions['level_measurement'] = function () {

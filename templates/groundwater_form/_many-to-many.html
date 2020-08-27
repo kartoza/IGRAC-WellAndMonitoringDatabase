@@ -6,11 +6,20 @@
     }
 </style>
 <div id="{{ id }}" class="many-to-many">
-    <h4>{{ title }}</h4>
+    <h4>{{ title }}
+        {% if help_text %}
+            <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ help_text }}"></i>
+        {% endif %}
+    </h4>
     <table>
         <tr>
             {% for field in theform %}
-                <th>{{ field.label }}</th>
+                <th>
+                    {{ field.label }}
+                    {% if field.help_text %}
+                        <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ field.help_text }}"></i>
+                    {% endif %}
+                </th>
             {% endfor %}
         </tr>
         {% for data in thedata %}

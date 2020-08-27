@@ -11,10 +11,14 @@ class Construction(models.Model):
         null=True, blank=True
     )
     pump_installer = models.CharField(
-        null=True, blank=True, max_length=512)
+        null=True, blank=True, max_length=512,
+        help_text="Name of the company or person who installed the pump."
+    )
     pump_description = models.TextField(
         null=True,
-        blank=True)
+        blank=True,
+        help_text="Any relevant information on the pump (e.g. model, capacity, energy supply, depth)."
+    )
 
     class Meta:
         db_table = 'construction'
@@ -29,8 +33,7 @@ class _CasingAndScreen(models.Model):
 
     # information
     material = models.CharField(
-        null=True, blank=True, max_length=512,
-        help_text="material of the feature."
+        null=True, blank=True, max_length=512
     )
     description = models.TextField(
         null=True,
@@ -49,19 +52,16 @@ class Casing(_CasingAndScreen):
     top_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Top depth of the feature',
         related_name='casing_top_depth'
     )
     bottom_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Bottom depth of the feature',
         related_name='casing_bottom_depth'
     )
     diameter = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Diameter of the feature',
         related_name='casing_diameter'
     )
 
@@ -78,19 +78,16 @@ class Screen(_CasingAndScreen):
     top_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Top depth of the feature',
         related_name='screening_top_depth'
     )
     bottom_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Bottom depth of the feature',
         related_name='screening_bottom_depth'
     )
     diameter = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Diameter of the feature',
         related_name='screening_diameter'
     )
 

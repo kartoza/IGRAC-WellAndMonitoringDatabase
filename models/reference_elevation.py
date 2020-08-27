@@ -10,12 +10,10 @@ class ReferenceElevation(models.Model):
     """
     value = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        help_text='value of elevation with unit'
+        null=True, blank=True
     )
     description = models.TextField(
-        null=True, blank=True,
-        help_text="Description of the feature."
+        null=True, blank=True
     )
 
     def __str__(self):

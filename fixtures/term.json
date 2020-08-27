@@ -1,0 +1,43 @@
+{
+  "TermAquiferType": [
+    "Sand and gravel",
+    "Sandstone",
+    "Carbonate-rock",
+    "Sandstone and carbonate-rock",
+    "Igneous and metamorphic",
+    "Other - specify"
+  ],
+  "TermConfinement": [
+    "Semi-confined",
+    "Unconfined",
+    "Confined"
+  ],
+  "TermDrillingMethod": [
+    "Cable tool drilling",
+    "Down-the-hole drilling",
+    "Rotary drilling",
+    "Auger drilling",
+    "Drilled (specific method unknown)",
+    "Hand-dug"
+  ],
+  "TermFeatureType": [
+    "Other - specify",
+    "Spring",
+    "Borehole",
+    "Hand-dug well"
+  ],
+  "TermGroundwaterUse": [
+    "Services (e.g. tourism)",
+    "Livestock",
+    "Irrigation",
+    "Industrial",
+    "Domestic"
+  ],
+  "TermWellPurpose": [
+    "Injection (Managed Aquifer Recharge)",
+    "Drainage",
+    "Geothermal energy",
+    "Observation / monitoring",
+    "Production"
+  ]
+}

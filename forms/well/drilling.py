@@ -1,6 +1,5 @@
 from django import forms
 from django.forms.models import model_to_dict
-from gwml2.forms.widgets import QuantityInput
 from gwml2.models.drilling import Drilling
 
 
@@ -11,10 +10,7 @@ class DrillingForm(forms.ModelForm):
 
     class Meta:
         model = Drilling
-        fields = ('total_depth', 'drilling_method', 'driller', 'successful', 'failed_explanation')
-        widgets = {
-            'total_depth': QuantityInput(unit_group='length'),
-        }
+        fields = ('drilling_method', 'driller', 'successful', 'failed_explanation')
 
     @staticmethod
     def make_from_data(instance, data, files):

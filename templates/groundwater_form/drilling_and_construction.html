@@ -1,33 +1,42 @@
 {% load gwml2_forms %}
 <div id="drilling-and-construction" class="tab-pane">
-    <div id="drilling">
+    <div id="geology" class="section">
+        <table>
+            {% field_as_row geology.total_depth %}
+        </table>
+    </div>
+    <div id="drilling" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
+        <h3>
+            Drilling
+        </h3>
         <div id="drilling-data" class="section drilling">
             <table>
-                {% field_as_row drilling.total_depth %}
                 {% field_as_row drilling.drilling_method %}
                 {% field_as_row drilling.driller %}
                 {% field_as_row drilling.successful %}
-                <tr id="failed-explanation">
-                    <td>{{ drilling.failed_explanation.label }}</td>
-                    <td>
-                        {{ drilling.failed_explanation }}
-                    </td>
-                </tr>
+                {% field_as_row drilling.failed_explanation id='failed-explanation' %}
             </table>
         </div>
         <div class="section">
-            <h4>Reference Elevation</h4>
+            <h4>
+                Reference Elevation
+                <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip"
+                   title="Provide the reference elevation (above sea level) from which the depth of the water strike(s) and the stratigraphic log(s) were measured."></i>
+            </h4>
             <table>
                 {% field_as_row drilling_elevation.value %}
-                {% field_as_row drilling_elevation.description %}
+                {% field_as_row drilling_elevation.description help_text='Explain what constitutes the reference elevation.' %}
             </table>
         </div>
 
         <br><br>
-        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike thedata=water_strikes %}
-        {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title='Stratigraphic Log' theform=stratigraphic_log thedata=stratigraphic_logs %}
+        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike thedata=water_strikes help_text='' %}
+        {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title='Stratigraphic Log' theform=stratigraphic_log thedata=stratigraphic_logs help_text='' %}
     </div>
-    <div id="construction" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 50px">
+    <div id="construction" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
+        <h3>
+            Construction
+        </h3>
         <div id="construction-data" class="section">
             <h4>Pump (For Production well)</h4>
             <table>
@@ -36,17 +45,36 @@
             </table>
         </div>
         <div class="section">
-            <h4>Reference Elevation</h4>
+            <h4>
+                Reference Elevation
+                <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip"
+                   title="Provide the reference elevation (above sea level) from which the depths of the casing(s) and the screen(s) were measured."></i>
+            </h4>
             <table>
                 {% field_as_row construction_elevation.value %}
-                {% field_as_row construction_elevation.description %}
+                {% field_as_row construction_elevation.description help_text='Explain what constitutes the reference elevation.' %}
             </table>
         </div>
-        {% include "groundwater_form/_many-to-many.html" with id='casing' title='Casing' theform=casing thedata=casings %}
+        {% include "groundwater_form/_many-to-many.html" with id='casing' title='Casing' theform=casing thedata=casings help_text='' %}
         <br>
-        {% include "groundwater_form/_many-to-many.html" with id='screen' title='Screen' theform=screen thedata=screens %}
+        {% include "groundwater_form/_many-to-many.html" with id='screen' title='Screen' theform=screen thedata=screens help_text='' %}
     </div>
 </div>
+<script>
+    submitFunctions['geology'] = function () {
+        let data = {}
+        $('#geology').find('input,textarea,select').each(
+            function () {
+                const key = $(this).attr('name');
+                let value = $(this).val()
+                if ($(this).attr('type') === 'checkbox') {
+                    value = $(this).is(":checked")
+                }
+                data[key] = value
+            });
+        return data;
+    }
+</script>
 <script>
     let $successful = $($('#id_successful').find('option')[0]);
     $successful.val('');

@@ -1,6 +1,7 @@
 from django.contrib.gis.db import models
 from gwml2.models.document import Document
 from gwml2.models.general_information import GeneralInformation
+from gwml2.models.geology import Geology
 from gwml2.models.drilling import Drilling
 from gwml2.models.construction import Construction
 from gwml2.models.measurement import Measurement
@@ -38,13 +39,18 @@ class Well(GeneralInformation):
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after
     IGH1397)."""
     original_id = models.CharField(
-        unique=True, max_length=256)
+        unique=True, max_length=256,
+        help_text='As recorded in the original database.')
     purpose = models.ForeignKey(
         TermWellPurpose, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     drilling = models.OneToOneField(
         Drilling, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    geology = models.OneToOneField(
+        Geology, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     construction = models.OneToOneField(

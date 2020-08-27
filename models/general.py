@@ -15,13 +15,19 @@ class Country(models.Model):
         return self.name
 
     class Meta:
+        ordering = ('name',)
         db_table = 'country'
 
 
 class Unit(_Term):
     """ List of unit."""
+    html = models.CharField(
+        max_length=512,
+        null=True, blank=True
+    )
 
     class Meta:
+        ordering = ('name',)
         db_table = 'unit'
 
 
@@ -33,6 +39,7 @@ class UnitGroup(_Term):
     )
 
     class Meta:
+        ordering = ('name',)
         db_table = 'unit_group'
 
 
