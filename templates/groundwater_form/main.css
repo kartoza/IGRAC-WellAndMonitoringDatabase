@@ -381,3 +381,18 @@ table td div.error::after {
     position: absolute;
     top: 50%;
 }
+
+.select2 {
+    margin-top: -2px !important;
+    min-width: 100px;
+}
+
+.select2-selection, .select2 {
+    height: 30px;
+}
+
+.select2-selection {
+    height: 30px !important;;
+    border: 1px solid #ccc !important;
+    border-radius: 0 !important;;
+}

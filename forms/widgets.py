@@ -5,10 +5,12 @@ from gwml2.models.general import Quantity, Unit, UnitGroup
 class QuantityInput(forms.widgets.Input):
     template_name = 'widgets/quantity.html'
     input_type = 'text'
+    unit_group = None
 
     def __init__(self, unit_group=None, attrs=None):
         super().__init__(attrs)
-        self.unit_group = unit_group
+        if unit_group:
+            self.unit_group = UnitGroup.objects.get(name=unit_group)
 
     def get_context(self, name, value, attrs):
         context = super(QuantityInput, self).get_context(name, value, attrs)
@@ -25,13 +27,12 @@ class QuantityInput(forms.widgets.Input):
 
         # create choices
         unit_choices = []
-        unit_group = Unit.objects.all()
-        if self.unit_group:
-            unit_group = UnitGroup.objects.get(name=self.unit_group)
-        for unit in unit_group.units.all():
+        units = self.unit_group.units.all() if self.unit_group else Unit.objects.all()
+        for unit in units:
             unit_choices.append({
                 'id': unit.id,
-                'name': unit.html if unit.html else unit.name
+                'name': unit.name,
+                'html': unit.html if unit.html else unit.name,
             })
         context['unit_choices'] = unit_choices
         return context
@@ -50,7 +51,10 @@ class QuantityInput(forms.widgets.Input):
                 quantity = Quantity()
             if data['{}_value'.format(name)]:
                 quantity.value = data['{}_value'.format(name)]
-                quantity.unit = Unit.objects.get(id=data['{}_unit'.format(name)])
+                unit, created = Unit.objects.get_or_create(name=data['{}_unit'.format(name)])
+                if created and self.unit_group:
+                    self.unit_group.units.add(unit)
+                quantity.unit = unit
                 quantity.save()
                 return quantity.id
             else:
