@@ -21,12 +21,18 @@
                     {% endif %}
                 </th>
             {% endfor %}
+            {% if delete %}
+                <th>Action</th>
+            {% endif %}
         </tr>
         {% for data in thedata %}
             <tr>
                 {% for field in data %}
                     <td>{{ field }}</td>
                 {% endfor %}
+                {% if delete %}
+                    <td data-url="{% delete_url data.instance %}" onclick="deleteRelation(this)">{% include "svg/delete.html" %}</td>
+                {% endif %}
             </tr>
         {% endfor %}
     </table>

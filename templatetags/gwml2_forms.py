@@ -1,5 +1,6 @@
 from django import template
 from django.utils.safestring import mark_safe
+from django.urls import reverse
 
 register = template.Library()
 
@@ -35,3 +36,13 @@ def field_as_row(field, id='', unit='', help_text=''):
             input=field,
             unit=unit
         ))
+
+
+@register.simple_tag
+def delete_url(instance):
+    return reverse('well-relation-delete', kwargs={
+        'id': instance.well.id,
+        'model': instance.__class__.__name__,
+        'model_id': instance.id
+
+    })

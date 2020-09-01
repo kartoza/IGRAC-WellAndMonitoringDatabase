@@ -62,3 +62,28 @@ $('#form').validate({
         });
     }
 });
+
+function deleteRelation(elm) {
+    console.log($(elm));
+    var r = confirm("Are you sure want to delete this?");
+    if (r === true) {
+        $.ajax({
+            url: $(elm).data('url'),
+            type: "POST",
+            cache: false,
+            contentType: false,
+            processData: false,
+            beforeSend: function (xhr, settings) {
+                if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", $('*[name=csrfmiddlewaretoken]').val());
+                }
+            },
+            success: function (data) {
+                $(elm).closest('tr').remove()
+            },
+            error: function (error) {
+                alert(error['responseText'])
+            }
+        });
+    }
+}

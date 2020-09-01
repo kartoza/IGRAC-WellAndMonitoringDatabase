@@ -1,3 +1,4 @@
+
 html,
 body {
     height: 100%;
@@ -19,6 +20,7 @@ body {
 
 .footer-wrapper {
     z-index: 999;
+    /*! display: none; */
 }
 
 #wrap .container, #wrap .col-md-8, #wrap .row {
@@ -73,7 +75,7 @@ body {
     height: 100%;
     padding-bottom: 82px;
     position: absolute;
-    top: 82px;
+    /*! top: 82px; */
 }
 
 .form {
@@ -83,10 +85,14 @@ body {
 .form {
     padding-left: 280px;
     font-size: 14px;
+    background: #f8f8f8;
+    /*! position: relative; */
 }
 
 form {
     height: 100%;
+    padding-bottom: 20px;
+    position: relative;
 }
 
 form input {
@@ -96,9 +102,9 @@ form input {
 .tab-content {
     margin-bottom: 20px;
     padding-bottom: 40px;
-    padding-top: 74px;
-    padding-left: 40px;
-    padding-right: 40px;
+    padding-top: 90px;
+    padding-left: 50px;
+    padding-right: 50px;
     height: 100%;
     overflow-y: scroll;
 }
@@ -106,6 +112,8 @@ form input {
 .navigation {
     left: 0;
     width: 280px;
+    top: 83px;
+    padding-bottom: 60px;
 }
 
 .navigation img {
@@ -139,8 +147,10 @@ form input {
 
 
 .navigation a, .form-title span {
-    padding: 15px !important;
+    padding: 18px 15px !important;
     display: inline-block;
+    font-size: 14px;
+    letter-spacing: 0.5px;
 }
 
 .navigation a {
@@ -162,7 +172,8 @@ form input {
 }
 
 .navigation li.active {
-    border-left: 10px solid #F48020;
+    border-left: 4px solid #F48020;
+    background: #02366c;
 }
 
 .navigation li.active a {
@@ -170,7 +181,7 @@ form input {
 }
 
 .navigation li.active a {
-    font-weight: 600;
+    /*! font-weight: 600; */
     color: #F48020;
 }
 
@@ -220,11 +231,12 @@ form input {
 .form-title {
     color: #1F458A;
     font-weight: 600;
-    background: #F6F6F6;
+    background: #fff;
     position: absolute;
     z-index: 1001;
     width: 100%;
-    padding-right: 280px;
+    /*! padding-right: 280px; */
+    box-sizing: border-box;
 }
 
 .abstract-nav::after {
@@ -249,7 +261,7 @@ form input {
 
 #form-submit {
     padding: 10px 30px;
-    margin-top: 7px;
+    margin-top: 8px;
     margin-right: 20px;
     color: white;
     background: #F48020;
@@ -271,17 +283,12 @@ form input {
     height: 350px;
 }
 
-h3 {
-    color: #00529b;
-    font-size: 18px;
-    margin-bottom: 20px;
-    margin-top: 0px;
-}
-
 h4 {
     color: #0a66b7;
     margin-bottom: 15px;
     margin-top: 0;
+    font-size: 16px;
+    color: #313131;
 }
 
 table {
@@ -305,8 +312,19 @@ table td {
 }
 
 input, textarea, select {
-    border: 1px solid #ccc !important;
-    padding: 5px;
+    border: 1px solid #cac8c8 !important;
+    padding: 6px;
+    border-radius: 2px;
+    box-sizing: border-box;;
+}
+
+.select2-container--default .select2-selection--single {
+    border: 1px solid #cac8c8 !important;
+    border-radius: 2px !important;
+}
+
+.select2-container .select2-selection--single {
+    height: 30px;
 }
 
 input:disabled, textarea:disabled {
@@ -329,14 +347,27 @@ input[type="checkbox"] {
     width: 20px;;
 }
 
+.many-to-many table {
+    background: #fff;
+    -webkit-box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.11);
+    -moz-box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.11);
+    box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.11);
+}
+
+.many-to-many tr:hover {
+    background: #f7f9fb;
+}
+
 .many-to-many th {
-    background-color: #eee;
+    color: #00458b;
+    font-size: 14px;
 }
 
 .many-to-many td, .many-to-many th {
-    border: 1px solid #ccc !important;
-    padding: 5px;
+    border: 1px solid #ebebeb;
+    padding: 18px;
 }
+
 
 /* this is for add many to many button */
 .add-new-many-to-many {
@@ -344,6 +375,12 @@ input[type="checkbox"] {
     margin-top: 10px;
     margin-bottom: 10px;
     text-align: right;
+    color: #00458b;
+    font-weight: bold;
+}
+
+.add-new-many-to-many:before {
+    content: '+ ';
 }
 
 .fa-question-circle-o {
@@ -382,17 +419,14 @@ table td div.error::after {
     top: 50%;
 }
 
-.select2 {
-    margin-top: -2px !important;
-    min-width: 100px;
+.icon-svg.delete {
+    cursor: pointer;
+    background: #FE4359;
+    width: 21px;
+    height: 21px;
+    padding: 5px;
 }
 
-.select2-selection, .select2 {
-    height: 30px;
-}
-
-.select2-selection {
-    height: 30px !important;;
-    border: 1px solid #ccc !important;
-    border-radius: 0 !important;;
+.icon-svg.delete:hover {
+    opacity: 0.3;
 }

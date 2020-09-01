@@ -1,6 +1,7 @@
 import os
 from django import forms
 from django.forms.models import model_to_dict
+from django.urls import reverse
 from gwml2.models.well import WellDocument
 from gwml2.utilities import convert_size
 
@@ -58,4 +59,4 @@ class DocumentForm(forms.ModelForm):
         filename, file_extension = os.path.splitext(instance.file.url)
         data['file_type'] = file_extension.replace('.', '')
         data['file_size'] = convert_size(os.path.getsize(instance.file.path))
-        return DocumentForm(initial=data)
+        return DocumentForm(initial=data, instance=instance)
