@@ -28,14 +28,17 @@ class FormGroupGet(object):
 
 class FormGroupCreate(object):
     """ Collection form for general information section """
-    general_information = None
-    documents = []
+    form = None
+    elevation_form = None
 
     def __init__(self, well, data, files):
         """
         :param well:
         :type well : Well
         """
+        self.form = None
+        self.elevation_form = None
+
         self.well = well
         self.data = data
         self.files = files

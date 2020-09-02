@@ -26,7 +26,6 @@ class HydrogeologyGetForms(FormGroupGet):
 
 class HydrogeologyCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    form = None
     pumping_test_form = None
 
     def create(self):

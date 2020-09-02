@@ -6,7 +6,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <div id="general_information" class="tab-pane fade in active">
-    <table style="width: 100%">
+    <table id="general_information_data" style="width: 100%">
         <tr>
             <td><h4>Identification</h4></td>
         </tr>
@@ -44,7 +44,7 @@
 <script>
     submitFunctions['general_information'] = function () {
         let data = {}
-        $('#general_information table').find('input,textarea,select').each(
+        $('#general_information_data').find('input,textarea,select').each(
             function () {
                 const key = $(this).attr('name');
                 let value = $(this).val()

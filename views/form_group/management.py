@@ -20,7 +20,6 @@ class ManagementGetForms(FormGroupGet):
 
 class ManagementCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    form = None
     license_form = None
 
     def create(self):

@@ -38,14 +38,15 @@ class ConstructionGetForms(FormGroupGet):
 
 class ConstructionCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    form = None
-    elevation_form = None
     casings = []
     screens = []
 
     def create(self):
         """ create form from data
         """
+        self.casings = []
+        self.screens = []
+
         self.form = self._make_form(
             self.well.construction if self.well.construction else Construction(),
             ConstructionForm, self.data['construction'])

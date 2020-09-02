@@ -87,3 +87,17 @@ function deleteRelation(elm) {
         });
     }
 }
+
+function fileSelectionChanged(element) {
+    var fileName = '';
+    if ($(element).val()) {
+        fileName = $(element).val().split('\\').pop();
+    }
+    $(element).closest('div').find('span').html(fileName)
+}
+
+$(document).ready(function () {
+    $(".select-2").select2({
+        tags: true
+    });
+});

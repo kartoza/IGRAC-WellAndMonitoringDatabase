@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import model_to_dict
-from gwml2.forms.widgets import QuantityInput
+from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.construction import Casing
 
 

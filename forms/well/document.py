@@ -1,7 +1,7 @@
 import os
 from django import forms
 from django.forms.models import model_to_dict
-from django.urls import reverse
+from gwml2.forms.widgets.file_selection import FileSelectionInput
 from gwml2.models.well import WellDocument
 from gwml2.utilities import convert_size
 
@@ -18,6 +18,9 @@ class DocumentForm(forms.ModelForm):
     class Meta:
         model = WellDocument
         fields = ('id_doc', 'file', 'description', 'time', 'file_type', 'file_size')
+        widgets = {
+            'file': FileSelectionInput(read_only=True)
+        }
 
     @staticmethod
     def make_from_data(instance, data, files):

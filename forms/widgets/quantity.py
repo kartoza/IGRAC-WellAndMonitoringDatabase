@@ -1,4 +1,5 @@
 from django import forms
+from django.db.utils import ProgrammingError
 from gwml2.models.general import Quantity, Unit, UnitGroup
 
 
@@ -9,8 +10,11 @@ class QuantityInput(forms.widgets.Input):
 
     def __init__(self, unit_group=None, attrs=None):
         super().__init__(attrs)
-        if unit_group:
-            self.unit_group = UnitGroup.objects.get(name=unit_group)
+        try:
+            if unit_group:
+                self.unit_group = UnitGroup.objects.get(name=unit_group)
+        except ProgrammingError:
+            pass
 
     def get_context(self, name, value, attrs):
         context = super(QuantityInput, self).get_context(name, value, attrs)

@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.gis.geos import Point
 from django.forms.models import model_to_dict
-from gwml2.forms.widgets import QuantityInput
+from gwml2.forms.widgets.file_selection import FileSelectionInput
+from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.well import Well
 
 
@@ -22,6 +23,7 @@ class GeneralInformationForm(forms.ModelForm):
         fields = ('original_id', 'location', 'name', 'feature_type', 'country', 'address', 'elevation', 'photo', 'description')
         widgets = {
             'elevation': QuantityInput(unit_group='length'),
+            'photo': FileSelectionInput(),
         }
 
     @staticmethod

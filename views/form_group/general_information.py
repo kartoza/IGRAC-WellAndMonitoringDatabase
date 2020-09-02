@@ -28,12 +28,12 @@ class GeneralInformationGetForms(FormGroupGet):
 
 class GeneralInformationCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    form = None
     documents = []
 
     def create(self):
         """ create form from data
         """
+        self.documents = []
         self.form = self._make_form(
             self.well, GeneralInformationForm,
             self.data['general_information'])

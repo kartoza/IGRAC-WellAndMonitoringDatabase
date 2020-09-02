@@ -39,14 +39,15 @@ class DrillingGetForms(FormGroupGet):
 
 class DrillingCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    form = None
-    elevation_form = None
     stratigraphic_log = []
     water_strike = []
 
     def create(self):
         """ create form from data
         """
+        self.stratigraphic_log = []
+        self.water_strike = []
+
         self.form = self._make_form(
             self.well.drilling if self.well.drilling else Drilling(),
             DrillingForm, self.data['drilling'])

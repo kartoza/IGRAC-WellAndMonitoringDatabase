@@ -19,8 +19,6 @@ class GeologyGetForms(FormGroupGet):
 
 class GeologyCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    form = None
-    documents = []
 
     def create(self):
         """ create form from data

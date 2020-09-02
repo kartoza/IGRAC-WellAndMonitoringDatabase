@@ -22,13 +22,12 @@ class QualityMeasurementGetForms(FormGroupGet):
 
 class QualityMeasurementCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    form = None
     measurements = []
 
     def create(self):
         """ create form from data
         """
-
+        self.measurements = []
         for measurement in self.data['quality_measurement']['measurements']:
             if not measurement['time']:
                 return

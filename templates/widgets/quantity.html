@@ -13,7 +13,7 @@
         placeholder=""
         {% include "django/forms/widgets/attrs.html" %}
 />
-<select id="{{ widget.attrs.id }}_unit" name="{{ widget.name }}_unit">
+<select id="{{ widget.attrs.id }}_unit" name="{{ widget.name }}_unit" class="select-2">
     {% for choice in unit_choices %}
         <option value="{{ choice.name }}"
                 {% if unit == choice.id %} selected {% endif %}

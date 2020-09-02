@@ -29,13 +29,12 @@ class LevelMeasurementGetForms(FormGroupGet):
 class LevelMeasurementCreateForm(FormGroupCreate):
     """ Collection form for general information section """
     well_level = None
-    elevation_form = None
     measurements = []
 
     def create(self):
         """ create form from data
         """
-
+        self.measurements = []
         self.well_level = self.well.groundwater_level if self.well.groundwater_level else WellGroundwaterLevel()
 
         # reference elevation
