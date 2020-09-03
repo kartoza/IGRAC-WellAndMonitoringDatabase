@@ -1,3 +1,12 @@
+const chartColors = [
+    "rgb(255, 99, 132)",
+    "rgb(54, 162, 235)",
+    "rgb(153, 102, 255)",
+    "rgb(255, 205, 86)",
+    "rgb(75, 192, 192)",
+    "rgb(255, 159, 64)",
+    "rgb(201, 203, 207)"
+]
 $('.add-new-many-to-many').click(function () {
     let $table = $(this).closest('.many-to-many').find('table');
     let template = $(this).closest('.many-to-many').find('template')[0];
@@ -6,7 +15,8 @@ $('.add-new-many-to-many').click(function () {
     let $inputTime = $table.find('tr').last().find('input[name ="time"]');
     $inputTime.attr('autocomplete', 'off');
     $inputTime.datetimepicker({
-        format: 'Y-m-d h:m:s',
+        formatTime: 'H:i',
+        format: 'Y-m-d H:i',
     });
 })
 $('li.nav').click(function () {
@@ -64,7 +74,6 @@ $('#form').validate({
 });
 
 function deleteRelation(elm) {
-    console.log($(elm));
     var r = confirm("Are you sure want to delete this?");
     if (r === true) {
         $.ajax({
@@ -101,3 +110,15 @@ $(document).ready(function () {
         tags: true
     });
 });
+
+function chartTableToggle(elm, dataID) {
+    $(elm).toggleClass('fa-line-chart fa-table');
+    if ($(elm).hasClass('fa-table')) {
+        $(`#${dataID}_table`).hide();
+        $(`#${dataID}_chart`).show();
+        chartFunctions[dataID]();
+    } else {
+        $(`#${dataID}_table`).show();
+        $(`#${dataID}_chart`).hide();
+    }
+}

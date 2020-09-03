@@ -252,7 +252,6 @@ form input {
 
 .tab-content > .active {
     height: auto;
-    overflow: auto;
 }
 
 .tab-content {
@@ -352,7 +351,17 @@ input[type="checkbox"] {
     width: 20px;;
 }
 
-.many-to-many table {
+
+.many-to-many tr th:first-child, .many-to-many tr td:first-child {
+    display: none;
+}
+
+.many-to-many .chart {
+    display: none;
+    padding: 20px;
+}
+
+.many-to-many table, .many-to-many .chart {
     background: #fff;
     -webkit-box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.11);
     -moz-box-shadow: 0px 2px 12px 0px rgba(0, 0, 0, 0.11);
@@ -371,6 +380,23 @@ input[type="checkbox"] {
 .many-to-many td, .many-to-many th {
     border: 1px solid #ebebeb;
     padding: 18px;
+}
+
+.chart-table-toggle {
+    color: white;
+    border-radius: 2px;
+    background: #aaa;
+    margin-left: 5px;
+    padding: 2px 4px;
+    cursor: pointer;
+}
+
+.chart-table-toggle:hover {
+    opacity: 0.6;
+}
+
+.chart .loading {
+    color: #888888;
 }
 
 

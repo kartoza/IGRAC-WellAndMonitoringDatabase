@@ -1,0 +1,69 @@
+{# THIS IS MANY TO MANY HTML #}
+{% load gwml2_forms %}
+<div id="{{ id }}_table">
+    <table>
+        <tr>
+            {% for field in theform %}
+                <th>
+                    {{ field.label }}
+                    {% if field.help_text %}
+                        <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ field.help_text }}"></i>
+                    {% endif %}
+                </th>
+            {% endfor %}
+            {% if delete %}
+                <th>Action</th>
+            {% endif %}
+        </tr>
+        {% for data in thedata %}
+            <tr>
+                {% for field in data %}
+                    <td>{{ field }}</td>
+                {% endfor %}
+                {% if delete %}
+                    <td data-url="{% delete_url data.instance %}" onclick="deleteRelation(this)">{% include "svg/delete.html" %}</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+    <template>
+        <tr>
+            {% for field in theform %}
+                <td>{{ field }}</td>
+            {% endfor %}
+        </tr>
+    </template>
+    <div class="add-new-many-to-many">add new</div>
+</div>
+<script>
+    {# accessing many to many data is through submitFunctionsManyToMany by id#}
+    submitFunctionsManyToMany['{{ id }}'] = function () {
+        let data = [];
+        $('#{{ id }}_table tr').each(function (index) {
+
+            {# skip if it is header #}
+            let values = $(this).find('td');
+            if (values.length === 0) {
+                return
+            }
+
+            {# find every td and extract the data #}
+            let rowData = {}
+            $(this).find('input, textarea, select').each(function (index) {
+                const key = $(this).attr('name')
+                let value = $(this).val()
+                {# if file, get the file name #}
+                if ($(this).attr('type') === 'file') {
+                    if ($(this).get(0).files[0]) {
+                        value = $(this).get(0).files[0].name
+                    }
+                } else if ($(this).attr('type') === 'checkbox') {
+                    value = $(this).is(":checked")
+                }
+                rowData[key] = value
+            });
+            data.push(rowData)
+        });
+        return data
+    }
+</script>
