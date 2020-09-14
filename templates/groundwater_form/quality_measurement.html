@@ -1,5 +1,6 @@
 {% load gwml2_forms %}
-<div id="quality-measurement" class="tab-pane">
+<div id="quality-measurement" class="page-section">
+    <h2 class="section-title">Quality measurement</h2>
     {% include "groundwater_form/_many-to-many.html" with id='quality_measurement' title='Measurement' theform=quality_measurement thedata=quality_measurements help_text='' use_chart=True %}
 </div>
 <script>

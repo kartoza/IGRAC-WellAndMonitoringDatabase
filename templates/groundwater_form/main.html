@@ -7,6 +7,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -17,10 +18,6 @@
         let submitFunctionsManyToMany = {};
         let mainData = {};
     </script>
-    {# the css for form #}
-    <style>
-        {% include "groundwater_form/main.css" %}
-    </style>
 {% endblock %}
 
 {% block body %}
@@ -33,10 +30,10 @@
                 <form method="POST" id="form" enctype="multipart/form-data">
                     <div class="form-title">
                         <span>General Information</span>
-                        <button id="form-submit" class="pull-right" type="submit">SUBMIT</button>
+                        <button id="form-submit" class="pull-right" type="submit">Submit</button>
                     </div>
                     {% csrf_token %}
-                    <div class="tab-content">
+                    <div class="singlepage">
                         {# GENERAL INFORMATION #}
                         {% include "groundwater_form/general_information.html" with form=general_information %}
                         {# DRILLING AND CONSTRUCTION #}
@@ -103,7 +100,55 @@
         </div>
     </div>
     <script>
-        {% include "groundwater_form/functions.js" %}
+
+        $('#form').validate({
+            errorElement: 'div',
+            invalidHandler: function (event, validator) {
+                $('.navigation a').removeClass('error')
+                if (validator.invalid) {
+                    setTimeout(function () {
+                        $('div.error:visible').each(function () {
+                            $("a[href$='#" + $(this).closest('.tab-pane').attr('id') + "']").addClass('error')
+                        })
+                    }, 100);
+                }
+            },
+            submitHandler: function (form, event) {
+                $('.navigation a').removeClass('error')
+                event.preventDefault();
+                let data = {}
+                $.each(submitFunctions, function (form, value) {
+                    data[form] = value();
+                });
+                var formData = new FormData();
+                $('input[type="file"]').each(function () {
+                    let file = $(this).get(0).files[0];
+                    if (file) {
+                        formData.append(file.name, file);
+                    }
+                });
+                formData.append('data', JSON.stringify(data));
+                $.ajax({
+                    url: window.location,
+                    type: "POST",
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function (xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", $(this).find('*[name=csrfmiddlewaretoken]').val());
+                        }
+                    },
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function (error) {
+                        alert(error['responseText'])
+                    },
+                    data: formData
+                });
+            }
+        });
     </script>
 {% endblock %}
 
@@ -115,4 +160,5 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="{% static 'gwml2/js/scripts.js' %}">
 {% endblock extra_script %}

@@ -5,7 +5,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
-<div id="general_information" class="tab-pane fade in active">
+<div id="general_information" class="page-section">
+    <h2 class="section-title">General information</h2>
     <table id="general_information_data" style="width: 100%">
         <tr>
             <td><h4>Identification</h4></td>
@@ -39,7 +40,7 @@
         {% field_as_row form.photo %}
         {% field_as_row form.description %}
     </table>
-    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document thedata=documents help_text='Relevant documents or images can be added here.' delete='yes'%}
+    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document thedata=documents help_text='Relevant documents or images can be added here.' delete='yes' %}
 </div>
 <script>
     submitFunctions['general_information'] = function () {

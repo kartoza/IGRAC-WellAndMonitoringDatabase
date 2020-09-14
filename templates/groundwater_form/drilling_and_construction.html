@@ -1,11 +1,12 @@
 {% load gwml2_forms %}
-<div id="drilling-and-construction" class="tab-pane">
+<div id="drilling-and-construction" class="page-section">
+    <h2 class="section-title">Drilling and construction</h2>
     <div id="geology" class="section">
         <table>
             {% field_as_row geology.total_depth %}
         </table>
     </div>
-    <div id="drilling" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
+    <div id="drilling" class="subsection" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
         <h3>
             Drilling
         </h3>
@@ -33,7 +34,7 @@
         {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike thedata=water_strikes help_text='' %}
         {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title='Stratigraphic Log' theform=stratigraphic_log thedata=stratigraphic_logs help_text='' %}
     </div>
-    <div id="construction" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
+    <div id="construction" class="subsection" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
         <h3>
             Construction
         </h3>
