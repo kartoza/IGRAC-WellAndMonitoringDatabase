@@ -14,6 +14,20 @@ class WellRelationView(StaffuserRequiredMixin, View):
         try:
             if model == 'WellDocument':
                 well.welldocument_set.get(id=model_id).delete()
+            elif model == 'WaterStrike':
+                well.drilling.waterstrike_set.get(id=model_id).delete()
+            elif model == 'StratigraphicLog':
+                well.drilling.stratigraphiclog_set.get(id=model_id).delete()
+            elif model == 'Casing':
+                well.construction.casing_set.get(id=model_id).delete()
+            elif model == 'Screen':
+                well.construction.screen_set.get(id=model_id).delete()
+            elif model == 'WellGroundwaterLevelMeasurement':
+                well.groundwater_level.wellgroundwaterlevelmeasurement_set.get(id=model_id).delete()
+            elif model == 'WellQualityMeasurement':
+                well.wellqualitymeasurement_set.get(id=model_id).delete()
+            elif model == 'WellYieldMeasurement':
+                well.wellyieldmeasurement_set.get(id=model_id).delete()
         except WellDocument.DoesNotExist:
             return Http404('instance is not found')
         return HttpResponse('OK')

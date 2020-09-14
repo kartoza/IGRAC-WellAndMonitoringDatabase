@@ -42,4 +42,4 @@ class DrillingForm(forms.ModelForm):
         data = {}
         if instance:
             data = model_to_dict(instance)
-        return DrillingForm(initial=data)
+        return DrillingForm(initial=data, instance=instance)

@@ -46,4 +46,4 @@ class WellQualityMeasurementForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return WellQualityMeasurementForm(initial=data)
+        return WellQualityMeasurementForm(initial=data, instance=instance)

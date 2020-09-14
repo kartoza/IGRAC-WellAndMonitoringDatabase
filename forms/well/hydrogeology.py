@@ -46,4 +46,4 @@ class HydrogeologyParameterForm(forms.ModelForm):
         data = {}
         if instance:
             data = model_to_dict(instance)
-        return HydrogeologyParameterForm(initial=data)
+        return HydrogeologyParameterForm(initial=data, instance=instance)

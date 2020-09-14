@@ -47,4 +47,4 @@ class StratigraphicLogForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return StratigraphicLogForm(initial=data)
+        return StratigraphicLogForm(initial=data, instance=instance)

@@ -39,9 +39,9 @@ def field_as_row(field, id='', unit='', help_text=''):
 
 
 @register.simple_tag
-def delete_url(instance):
+def delete_url(well, instance):
     return reverse('well-relation-delete', kwargs={
-        'id': instance.well.id,
+        'id': well.id,
         'model': instance.__class__.__name__,
         'model_id': instance.id
 

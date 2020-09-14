@@ -46,4 +46,4 @@ class WellGroundwaterLevelMeasurementForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return WellGroundwaterLevelMeasurementForm(initial=data)
+        return WellGroundwaterLevelMeasurementForm(initial=data, instance=instance)

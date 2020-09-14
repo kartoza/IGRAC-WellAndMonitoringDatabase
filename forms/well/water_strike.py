@@ -45,4 +45,4 @@ class WaterStrikeForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return WaterStrikeForm(initial=data)
+        return WaterStrikeForm(initial=data, instance=instance)

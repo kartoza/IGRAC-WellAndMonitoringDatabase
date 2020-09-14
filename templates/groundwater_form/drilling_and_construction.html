@@ -31,8 +31,8 @@
         </div>
 
         <br><br>
-        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike thedata=water_strikes help_text='' %}
-        {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title='Stratigraphic Log' theform=stratigraphic_log thedata=stratigraphic_logs help_text='' %}
+        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike thedata=water_strikes help_text='' delete='yes'%}
+        {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title='Stratigraphic Log' theform=stratigraphic_log thedata=stratigraphic_logs help_text='' delete='yes'%}
     </div>
     <div id="construction" class="subsection" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
         <h3>
@@ -56,9 +56,9 @@
                 {% field_as_row construction_elevation.description help_text='Explain what constitutes the reference elevation.' %}
             </table>
         </div>
-        {% include "groundwater_form/_many-to-many.html" with id='casing' title='Casing' theform=casing thedata=casings help_text='' %}
+        {% include "groundwater_form/_many-to-many.html" with id='casing' title='Casing' theform=casing thedata=casings help_text='' delete='yes'%}
         <br>
-        {% include "groundwater_form/_many-to-many.html" with id='screen' title='Screen' theform=screen thedata=screens help_text='' %}
+        {% include "groundwater_form/_many-to-many.html" with id='screen' title='Screen' theform=screen thedata=screens help_text='' delete='yes'%}
     </div>
 </div>
 <script>

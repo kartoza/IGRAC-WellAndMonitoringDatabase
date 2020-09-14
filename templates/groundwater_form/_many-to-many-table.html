@@ -22,7 +22,7 @@
                     <td>{{ field }}</td>
                 {% endfor %}
                 {% if delete %}
-                    <td data-url="{% delete_url data.instance %}" onclick="deleteRelation(this)">
+                    <td data-url="{% delete_url well data.instance %}" onclick="deleteRelation(this)">
                         <img class="icon-svg delete" src="{% static 'gwml2/svg/delete.svg' %}"/>
                     </td>
                 {% endif %}

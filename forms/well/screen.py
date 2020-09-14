@@ -48,4 +48,4 @@ class ScreenForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return ScreenForm(initial=data)
+        return ScreenForm(initial=data, instance=instance)

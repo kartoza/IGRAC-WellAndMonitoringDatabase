@@ -45,7 +45,9 @@ class WellFormView(StaffuserRequiredMixin, View):
     def get(self, request, id, *args, **kwargs):
         well = get_object_or_404(Well, id=id)
 
-        context = {}
+        context = {
+            'well': well,
+        }
         context.update(GeneralInformationGetForms(well).get())
         context.update(GeologyGetForms(well).get())
         context.update(DrillingGetForms(well).get())

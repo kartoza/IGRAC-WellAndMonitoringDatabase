@@ -48,4 +48,4 @@ class CasingForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return CasingForm(initial=data)
+        return CasingForm(initial=data, instance=instance)

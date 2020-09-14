@@ -42,4 +42,4 @@ class ConstructionForm(forms.ModelForm):
         data = {}
         if instance:
             data = model_to_dict(instance)
-        return ConstructionForm(initial=data)
+        return ConstructionForm(initial=data, instance=instance)
