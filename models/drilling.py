@@ -26,7 +26,7 @@ class Drilling(models.Model):
     successful = models.BooleanField(
         null=True,
         blank=True)
-    failed_explanation = models.TextField(
+    cause_of_failure = models.TextField(
         null=True,
         blank=True,
         help_text="Explain why the drilling was not successful.")

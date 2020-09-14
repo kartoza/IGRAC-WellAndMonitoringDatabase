@@ -13,7 +13,7 @@ class DocumentForm(forms.ModelForm):
     id_doc = forms.CharField(required=False)
     file_type = forms.CharField(required=False, disabled=True)
     file_size = forms.CharField(required=False, disabled=True)
-    time = forms.CharField(required=False, disabled=True, label='uploaded at')
+    time = forms.CharField(required=False, disabled=True, label='Upload date')
 
     class Meta:
         model = WellDocument

@@ -10,7 +10,7 @@ class DrillingForm(forms.ModelForm):
 
     class Meta:
         model = Drilling
-        fields = ('drilling_method', 'driller', 'successful', 'failed_explanation')
+        fields = ('drilling_method', 'driller', 'successful', 'cause_of_failure')
 
     @staticmethod
     def make_from_data(instance, data, files):

@@ -11,14 +11,16 @@
         <tr>
             <td><h4>Identification</h4></td>
         </tr>
-        {% field_as_row form.id %}
         {% field_as_row form.original_id %}
         {% field_as_row form.name %}
         {% field_as_row form.feature_type %}
+        {% field_as_row form.purpose %}
+        {% field_as_row form.photo %}
+        {% field_as_row form.description %}
         <tr>
             <td>
                 <br><br>
-                <h4>Location Information</h4>
+                <h4>Information</h4>
             </td>
             <td></td>
             <td class="map-wrapper">
@@ -31,14 +33,6 @@
         {% field_as_row form.elevation 'a.s.l.' %}
         {% field_as_row form.country %}
         {% field_as_row form.address %}
-        <tr>
-            <td>
-                <br><br>
-                <h4>Summary Information</h4>
-            </td>
-        </tr>
-        {% field_as_row form.photo %}
-        {% field_as_row form.description %}
     </table>
     {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document thedata=documents help_text='Relevant documents or images can be added here.' delete='yes' %}
 </div>
