@@ -12,7 +12,7 @@
                     {% endif %}
                 </th>
             {% endfor %}
-            {% if delete %}
+            {% if delete and not read_only %}
                 <th>Action</th>
             {% endif %}
         </tr>
@@ -21,7 +21,7 @@
                 {% for field in data %}
                     <td>{{ field }}</td>
                 {% endfor %}
-                {% if delete %}
+                {% if delete and not read_only %}
                     <td data-url="{% delete_url well data.instance %}" onclick="deleteRelation(this)">
                         <img class="icon-svg delete" src="{% static 'gwml2/svg/delete.svg' %}"/>
                     </td>
@@ -36,7 +36,11 @@
             {% endfor %}
         </tr>
     </template>
-    <div class="add-new-many-to-many">add new</div>
+    {% if not read_only %}
+        <div class="add-new-many-to-many">add new</div>
+    {% else %}
+        <div class="separator"></div>
+    {% endif %}
 </div>
 <script>
     {# accessing many to many data is through submitFunctionsManyToMany by id#}

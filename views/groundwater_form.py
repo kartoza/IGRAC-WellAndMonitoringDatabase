@@ -41,11 +41,14 @@ class FormNotValid(Exception):
         self.errors = error
 
 
-class WellFormView(StaffuserRequiredMixin, View):
+class WellView(View):
+    read_only = True
+
     def get(self, request, id, *args, **kwargs):
         well = get_object_or_404(Well, id=id)
 
         context = {
+            'read_only': self.read_only,
             'well': well,
         }
         context.update(GeneralInformationGetForms(well).get())
@@ -61,6 +64,10 @@ class WellFormView(StaffuserRequiredMixin, View):
             request, 'groundwater_form/main.html',
             context
         )
+
+
+class WellFormView(StaffuserRequiredMixin, WellView):
+    read_only = False
 
     def make_form(self, instance, form, data):
         """ make form from data

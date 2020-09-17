@@ -24,7 +24,7 @@ def field_as_row(field, id='', unit='', help_text=''):
     if id:
         id = 'id="{}"'.format(id)
     return mark_safe(
-        '<tr {id}>'
+        '<tr {id} class="input-column">'
         '   <td>{label} {help_text}</i></td>'
         '   <td>'
         '       <div class="input">{input} {unit}</div>'

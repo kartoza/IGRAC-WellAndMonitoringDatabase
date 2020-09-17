@@ -6,17 +6,31 @@
         let data = {};
         $('#{{ id }}_table table tr').each(function (index) {
             if (index > 0) {
-                const parameter = $(this).find('*[name ="parameter"] option:selected').text()
-                if (!data[parameter]) {
-                    data[parameter] = []
+                const $parameterInput = $(this).find('*[name ="parameter"]');
+                if ($parameterInput.is('select')) {
+                    const parameter = $(this).find('*[name ="parameter"] option:selected').text()
+                    if (!data[parameter]) {
+                        data[parameter] = []
+                    }
+                    data[parameter].push({
+                        t: new Date($(this).find('*[name ="time"]').val()),
+                        y: $(this).find('*[name ="quality_value"]').val(),
+                        methodology: $(this).find('*[name ="methodology"]').val()
+                    })
+                } else {
+                    const parameter = $(this).find('*[name ="parameter"]').text()
+                    if (!data[parameter]) {
+                        data[parameter] = []
+                    }
+                    data[parameter].push({
+                        t: new Date($(this).find('*[name ="time"]').text()),
+                        y: $(this).find('*[name ="quality_value"]').text(),
+                        methodology: $(this).find('*[name ="methodology"]').text()
+                    })
                 }
-                data[parameter].push({
-                    t: new Date($(this).find('*[name ="time"]').val()),
-                    y: $(this).find('*[name ="quality_value"]').val(),
-                    methodology: $(this).find('*[name ="methodology"]').val(),
-                })
             }
         });
+        console.log(data)
 
         {# create chart #}
         $('#{{ id }}_chart').html('<canvas id="{{ id }}_chart_canvas"></canvas>');

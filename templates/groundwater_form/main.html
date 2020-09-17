@@ -30,7 +30,9 @@
                 <form method="POST" id="form" enctype="multipart/form-data">
                     <div class="form-title">
                         <span>General Information</span>
-                        <button id="form-submit" class="pull-right" type="submit">Submit</button>
+                        {% if not read_only %}
+                            <button id="form-submit" class="pull-right" type="submit">Submit</button>
+                        {% endif %}
                     </div>
                     {% csrf_token %}
                     <div class="singlepage">
@@ -100,7 +102,6 @@
         </div>
     </div>
     <script>
-
         $('#form').validate({
             errorElement: 'div',
             invalidHandler: function (event, validator) {
@@ -108,7 +109,7 @@
                 if (validator.invalid) {
                     setTimeout(function () {
                         $('div.error:visible').each(function () {
-                            $("a[href$='#" + $(this).closest('.tab-pane').attr('id') + "']").addClass('error')
+                            $("a[href$='#" + $(this).closest('.page-section').attr('id') + "']").addClass('error')
                         })
                     }, 100);
                 }
@@ -160,5 +161,26 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-    <script src="{% static 'gwml2/js/scripts.js' %}">
+    <script src="{% static 'gwml2/js/scripts.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            {% if read_only %}
+                $('input[type=file]').closest('.inputfile').addClass('disabled')
+                $('input, textarea').replaceWith(function () {
+                    const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
+                    return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${$(this).val()}</span>`;
+                });
+                $('select').replaceWith(function () {
+                    const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
+                    const value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
+                    return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
+                });
+            {% else %}
+                $(".select-2").select2({
+                    tags: true
+                });
+            {% endif %}
+        });
+    </script>
 {% endblock extra_script %}

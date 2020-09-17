@@ -99,6 +99,14 @@ form input {
     padding: 6px;
 }
 
+.input-column {
+    width: 100%;
+}
+
+.input-column td:first-child {
+    width: 230px;
+}
+
 .singlepage {
     margin-bottom: 20px;
     padding-bottom: 40px;
@@ -325,6 +333,10 @@ table td {
     position: relative;
 }
 
+#general_information_data {
+    min-height: 700px;
+}
+
 #photo-preview {
     max-width: 160px;
     background: #fff;
@@ -355,6 +367,12 @@ select {
     box-sizing: border-box;;
 }
 
+.input-data {
+    min-height: 31px;
+    display: inline-block;
+    padding: 8px 0;
+}
+
 .select2 {
     height: 32px;
 }
@@ -368,7 +386,7 @@ select {
     height: 30px !important;
 }
 
-input:disabled, textarea:disabled {
+input:disabled, textarea:disabled, select:disabled {
     background: none;
     border: none !important;
     width: 100%;
@@ -438,10 +456,14 @@ input[type="checkbox"] {
 
 
 /* this is for add many to many button */
+.separator {
+    height: 20px;
+}
+
 .add-new-many-to-many {
-    cursor: pointer;
     margin-top: 10px;
     margin-bottom: 10px;
+    cursor: pointer;
     text-align: right;
     color: #24619d;
     font-weight: bold;
@@ -581,4 +603,35 @@ table td div.error::after {
 .inputfile.has-focus label strong,
 .inputfile label:hover strong {
     background-color: #24619d;
+}
+
+
+/* if disabled */
+.inputfile.disabled {
+    border: none;
+    background: none;
+}
+
+.inputfile.disabled:hover {
+    opacity: 1;
+}
+
+.inputfile.disabled strong {
+    display: none;
+}
+
+.inputfile.disabled label {
+    color: inherit;
+    width: auto;
+    padding: 0;
+    cursor: text;
+    overflow: unset;
+}
+
+.inputfile.disabled span {
+    width: auto;
+    min-height: 31px;
+    display: inline-block;
+    padding: 8px 0;
+    font-weight: 300;
 }

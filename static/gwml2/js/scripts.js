@@ -58,9 +58,6 @@ function fileSelectionChanged(element) {
 }
 
 $(document).ready(function () {
-    $(".select-2").select2({
-        tags: true
-    });
 
     function readURL(input) {
         if (input.files && input.files[0]) {

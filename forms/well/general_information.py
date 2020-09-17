@@ -62,6 +62,6 @@ class GeneralInformationForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id'] = instance.id
-        data['latitude'] = instance.location.y
-        data['longitude'] = instance.location.x
+        data['latitude'] = round(instance.location.y, 7)
+        data['longitude'] = round(instance.location.x, 7)
         return GeneralInformationForm(initial=data)
