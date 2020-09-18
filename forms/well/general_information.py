@@ -20,7 +20,7 @@ class GeneralInformationForm(forms.ModelForm):
         fields = ('original_id', 'location', 'name', 'feature_type', 'purpose', 'country', 'address', 'elevation', 'photo', 'description')
         widgets = {
             'elevation': QuantityInput(unit_group='length'),
-            'photo': FileSelectionInput(),
+            'photo': FileSelectionInput(preview=True),
         }
 
     @staticmethod

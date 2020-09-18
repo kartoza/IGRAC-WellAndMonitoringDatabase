@@ -289,6 +289,7 @@ h2.section-title {
     color: white;
     background: #F48020;
     border: none;
+    text-decoration: none;
 }
 
 #form-submit:hover {
@@ -316,7 +317,6 @@ h4 {
     margin-bottom: 15px;
     margin-top: 0;
     font-size: 16px;
-    color: #313131;
 }
 
 table {
@@ -334,10 +334,10 @@ table td {
 }
 
 #general_information_data {
-    min-height: 700px;
+    min-height: 850px;
 }
 
-#photo-preview {
+.photo-preview {
     max-width: 160px;
     background: #fff;
     padding: 5px;
@@ -634,4 +634,8 @@ table td div.error::after {
     display: inline-block;
     padding: 8px 0;
     font-weight: 300;
+}
+
+.measurement-chart {
+    max-width: 1000px;
 }

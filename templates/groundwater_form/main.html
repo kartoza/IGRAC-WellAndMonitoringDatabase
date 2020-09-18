@@ -32,6 +32,10 @@
                         <span>General Information</span>
                         {% if not read_only %}
                             <button id="form-submit" class="pull-right" type="submit">Submit</button>
+                        {% elif user.is_staff %}
+                            <a id="form-submit" class="pull-right" href="{% url 'well_form' well.id %}">
+                                Go to form
+                            </a>
                         {% endif %}
                     </div>
                     {% csrf_token %}
@@ -173,7 +177,10 @@
                 });
                 $('select').replaceWith(function () {
                     const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
-                    const value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
+                    let value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
+                    if (value === '---------') {
+                        value = ''
+                    }
                     return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
                 });
             {% else %}
