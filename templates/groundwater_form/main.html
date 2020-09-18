@@ -170,12 +170,12 @@
     <script>
         $(document).ready(function () {
             {% if read_only %}
-                $('input[type=file]').closest('.inputfile').addClass('disabled')
-                $('input, textarea').replaceWith(function () {
+                $('#form input[type=file]').closest('.inputfile').addClass('disabled')
+                $('#form input, textarea').replaceWith(function () {
                     const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
                     return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${$(this).val()}</span>`;
                 });
-                $('select').replaceWith(function () {
+                $('#form select').replaceWith(function () {
                     const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
                     let value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
                     if (value === '---------') {
