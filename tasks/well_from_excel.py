@@ -2,49 +2,153 @@ from django.contrib.gis.geos import Point
 from django.http import JsonResponse
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from gwml2.models.general import Quantity, Unit
+from pyexcel_xls import get_data as xls_get
+from pyexcel_xlsx import get_data as xlsx_get
+from gwml2.models.general import Quantity, Unit, Country
 from gwml2.models.well import Well
-from gwml2.tasks.controller import update_progress
+from gwml2.models.term import TermWellPurpose, TermFeatureType
+from igrac.models.upload_session import UploadSession
 
 logger = get_task_logger(__name__)
 
+ID = 0
+NAME = 1
+FEATURE_TYPE = 2
+PURPOSE = 3
+LAT = 4
+LON = 5
+GROUND_ELEVATION_NUMBER = 6
+GROUND_ELEVATION_UNIT = 7
+TOP_CASING_ELEVATION_NUMBER = 8
+TOP_CASING_ELEVATION_UNIT = 9
+COUNTRY = 10
+ADDRESS = 11
+DESCRIPTION = 12
+
+
+def validate_well_records(records):
+    """ Validate well records
+       :param records: list of Well records from excel
+       :type records: list
+
+       :return: are records validated, error/success message
+       :rtype: bool, str
+    """
+    # Check if ids are all unique
+    for record in records:
+        if Well.objects.filter(original_id=record[ID]).exists():
+            return False, 'One of the ID is not unique : {}'.format(
+                record[ID]
+            )
+    return True, 'OK'
+
 
 @shared_task(bind=True, queue='update')
-def well_from_excel(self, location_records, level_records):
-    logger.debug('----- begin processing excel -------')
-    logger.debug('Found {} locations'.format(len(location_records)))
-    # logger.debug('Found {} levels'.format(len(level_records)))
+def test_celery(self):
+    logger.debug('Upload session does not exists')
+
+
+@shared_task(bind=True, queue='update')
+def well_from_excel(self, upload_session_token):
+
+    try:
+        upload_session = UploadSession.objects.get(token=upload_session_token)
+    except UploadSession.DoesNotExist:
+        logger.debug('Upload session does not exists')
+        return
+
+    logger.debug('----- Begin processing excel -------')
+
+    well_location_file = upload_session.upload_file
+    location_records = []
+    if well_location_file:
+        well_location_file.seek(0)
+        sheet = None
+        if str(well_location_file).split('.')[-1] == 'xls':
+            sheet = xls_get(well_location_file, column_limit=15)
+        elif str(well_location_file).split('.')[-1] == 'xlsx':
+            sheet = xlsx_get(well_location_file, column_limit=15)
+        if sheet:
+            sheet_name = next(iter(sheet))
+            location_records = sheet[sheet_name]
+    location_records = location_records[2:]
+
+    logger.debug('Found {} wells'.format(len(location_records)))
 
     location_records_length = len(location_records)
     level_records_length = 0
     total_records = location_records_length + level_records_length
     item = 0
+
     if location_records:
+        validated, message = validate_well_records(location_records)
+        if not validated:
+            upload_session.update_progress(
+                finished=True,
+                status=message,
+                progress=0
+            )
+            return message
+
         for record in location_records:
             item += 1
 
             # update the percentage of progress
             process_percent = (item / total_records) * 100
-            update_progress(process_percent)
-
-            # skip if it is title
-            if record[0].lower() == 'id well':
-                continue
-            point = Point(x=record[3], y=record[2], srid=4326)
-
-            well, created = Well.objects.get_or_create(
-                original_id=record[0],
-                defaults={
-                    'location': point
-                }
+            upload_session.update_progress(
+                status='Processing {}'.format(record[ID]),
+                progress=int(process_percent)
             )
-            if not well.elevation:
-                well.elevation = Quantity.objects.create(
-                    value=record[1],
-                    unit=Unit.objects.get(name='m')
+
+            point = Point(x=record[LON], y=record[LAT], srid=4326)
+
+            additional_fields = {}
+
+            if record[COUNTRY]:
+                additional_fields['country'], _ = (
+                    Country.objects.get_or_create(
+                        code=record[COUNTRY]
+                    )
                 )
-            well.location = point
-            well.save()
+
+            if record[PURPOSE]:
+                additional_fields['purpose'], _ = (
+                    TermWellPurpose.objects.get_or_create(
+                        name=record[PURPOSE]
+                    )
+                )
+
+            if record[FEATURE_TYPE]:
+                additional_fields['feature_type'], _ = (
+                    TermFeatureType.objects.get_or_create(
+                        name=record[FEATURE_TYPE]
+                    )
+                )
+
+            if (
+                record[GROUND_ELEVATION_UNIT] and
+                record[GROUND_ELEVATION_NUMBER]
+            ):
+                elevation_unit, _ = (
+                    Unit.objects.get_or_create(
+                        name=record[GROUND_ELEVATION_UNIT])
+                )
+                additional_fields['elevation'] = Quantity.objects.create(
+                    value=record[GROUND_ELEVATION_NUMBER],
+                    unit=elevation_unit
+                )
+
+            try:
+                additional_fields['description'] = record[DESCRIPTION]
+            except IndexError:
+                pass
+
+            Well.objects.get_or_create(
+                original_id=record[ID],
+                location=point,
+                address=record[ADDRESS],
+                **additional_fields
+            )
 
     # TODO:
     #  Not sure which model for level records
@@ -78,5 +182,9 @@ def well_from_excel(self, location_records, level_records):
     #             )
     #         except GWWell.DoesNotExist:
     #             pass
-    update_progress(100)
+    upload_session.update_progress(
+        finished=True,
+        progress=100,
+        status='All {} records has been added'.format(len(location_records))
+    )
     return JsonResponse({'status': 'success'})
