@@ -1,4 +1,6 @@
 from django.contrib.gis.db import models
+from adminsortable.models import Sortable
+
 from gwml2.models.general import Quantity
 from gwml2.models.term import _Term
 
@@ -8,7 +10,7 @@ class ReferenceElevationType(_Term):
     The type of reference for elevation
     """
 
-    class Meta:
+    class Meta(Sortable.Meta):
         db_table = 'reference_elevation_type'
 
 

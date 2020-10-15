@@ -1,14 +1,15 @@
 from django.contrib import admin
+from adminsortable.admin import SortableAdmin
 from gwml2.models.term import (
     TermAquiferType, TermConfinement, TermDrillingMethod, TermWellPurpose, TermWellStatus,
     TermFeatureType, TermGroundwaterUse, TermMeasurementParameter
 )
 
-admin.site.register(TermAquiferType)
-admin.site.register(TermConfinement)
-admin.site.register(TermDrillingMethod)
-admin.site.register(TermFeatureType)
-admin.site.register(TermGroundwaterUse)
-admin.site.register(TermMeasurementParameter)
-admin.site.register(TermWellPurpose)
-admin.site.register(TermWellStatus)
+admin.site.register(TermAquiferType, SortableAdmin)
+admin.site.register(TermConfinement, SortableAdmin)
+admin.site.register(TermDrillingMethod, SortableAdmin)
+admin.site.register(TermFeatureType, SortableAdmin)
+admin.site.register(TermGroundwaterUse, SortableAdmin)
+admin.site.register(TermMeasurementParameter, SortableAdmin)
+admin.site.register(TermWellPurpose, SortableAdmin)
+admin.site.register(TermWellStatus, SortableAdmin)
