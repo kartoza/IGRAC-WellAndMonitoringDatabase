@@ -41,7 +41,7 @@ body {
     padding-top: 50px;
     padding-bottom: 20px;
     height: 100%;
-    margin-top: 0!important;
+    margin-top: 0 !important;
 }
 
 .wrapper {
@@ -374,8 +374,18 @@ select {
     padding: 8px 0;
 }
 
+.quantity-input .select2, .quantity-input .select-2 {
+    margin-left: -6px;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+}
+
 .select2 {
-    height: 32px;
+    margin-top: -2px !important;
+}
+
+.select2, .select-2 {
+    height: 30px;
 }
 
 .select2-container--default .select2-selection--single {
