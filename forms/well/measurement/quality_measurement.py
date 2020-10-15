@@ -12,9 +12,9 @@ class WellQualityMeasurementForm(forms.ModelForm):
 
     class Meta:
         model = WellQualityMeasurement
-        fields = ('id_', 'time', 'parameter', 'methodology', 'quality')
+        fields = ('id_', 'time', 'parameter', 'methodology', 'value')
         widgets = {
-            'quality': QuantityInput(unit_group='length')
+            'value': QuantityInput(unit_group='length')
         }
 
     @staticmethod

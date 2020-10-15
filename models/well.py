@@ -7,7 +7,7 @@ from gwml2.models.construction import Construction
 from gwml2.models.measurement import Measurement
 from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
-from gwml2.models.term import TermWellPurpose
+from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.reference_elevation import ReferenceElevation
 
 
@@ -43,6 +43,10 @@ class Well(GeneralInformation):
         help_text='As recorded in the original database.')
     purpose = models.ForeignKey(
         TermWellPurpose, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    status = models.ForeignKey(
+        TermWellStatus, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     drilling = models.OneToOneField(

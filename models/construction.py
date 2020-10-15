@@ -1,15 +1,11 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
-from gwml2.models.reference_elevation import ReferenceElevation
+from gwml2.models.reference_elevation import ReferenceElevationType
 
 
 class Construction(models.Model):
     """ Construction
     """
-    reference_elevation = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
     pump_installer = models.CharField(
         null=True, blank=True, max_length=512,
         help_text="Name of the company or person who installed the pump."
@@ -28,6 +24,10 @@ class _CasingAndScreen(models.Model):
     """ Abstract model for Casing and Screen """
     construction = models.ForeignKey(
         Construction, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    reference_elevation = models.ForeignKey(
+        ReferenceElevationType, on_delete=models.SET_NULL,
         null=True, blank=True
     )
 

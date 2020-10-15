@@ -6,7 +6,7 @@
             {% field_as_row geology.total_depth %}
         </table>
     </div>
-    <div id="drilling" class="subsection" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
+    <div id="drilling" class="subsection" style="border-top: 1px solid #ddd; padding-top: 30px">
         <h3>
             Drilling
         </h3>
@@ -43,17 +43,6 @@
             <table>
                 {% field_as_row construction.pump_installer %}
                 {% field_as_row construction.pump_description %}
-            </table>
-        </div>
-        <div class="section">
-            <h4>
-                Reference Elevation
-                <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip"
-                   title="Provide the reference elevation (above sea level) from which the depths of the casing(s) and the screen(s) were measured."></i>
-            </h4>
-            <table>
-                {% field_as_row construction_elevation.value %}
-                {% field_as_row construction_elevation.description help_text='Explain what constitutes the reference elevation.' %}
             </table>
         </div>
         {% include "groundwater_form/_many-to-many.html" with id='casing' title='Casing' theform=casing thedata=casings help_text='' delete='yes'%}

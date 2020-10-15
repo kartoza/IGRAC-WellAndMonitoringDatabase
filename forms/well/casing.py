@@ -12,7 +12,7 @@ class CasingForm(forms.ModelForm):
 
     class Meta:
         model = Casing
-        fields = ('id_', 'top_depth', 'bottom_depth',
+        fields = ('id_', 'reference_elevation', 'top_depth', 'bottom_depth',
                   'diameter', 'material', 'description')
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),

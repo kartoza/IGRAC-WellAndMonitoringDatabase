@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
-from gwml2.models.reference_elevation import ReferenceElevation
+from gwml2.models.reference_elevation import ReferenceElevation, ReferenceElevationType
 from gwml2.models.term import TermDrillingMethod
 
 
@@ -49,6 +49,10 @@ class StratigraphicLog(models.Model):
     )
 
     # Log information
+    reference_elevation = models.ForeignKey(
+        ReferenceElevationType, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
     top_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -80,7 +84,7 @@ class WaterStrike(models.Model):
 
     # information
     depth = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
+        ReferenceElevation, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     description = models.TextField(

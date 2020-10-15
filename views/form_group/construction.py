@@ -29,10 +29,7 @@ class ConstructionGetForms(FormGroupGet):
             'casing': CasingForm(),
             'casings': casings,
             'screen': ScreenForm(),
-            'screens': screens,
-            'construction_elevation': ReferenceElevationForm.make_from_instance(
-                self.well.construction.reference_elevation
-                if self.well.construction else None),
+            'screens': screens
         }
 
 
@@ -50,12 +47,6 @@ class ConstructionCreateForm(FormGroupCreate):
         self.form = self._make_form(
             self.well.construction if self.well.construction else Construction(),
             ConstructionForm, self.data['construction'])
-
-        # reference elevation
-        self.elevation_form = self._make_form(
-            self.well.construction.reference_elevation \
-                if self.well.construction and self.well.construction.reference_elevation else ReferenceElevation(),
-            ReferenceElevationForm, self.data['construction']['reference_elevation'])
 
         for casing in self.data['construction']['casing']:
             obj = Casing.objects.get(
@@ -78,8 +69,6 @@ class ConstructionCreateForm(FormGroupCreate):
 
     def save(self):
         """ save all available data """
-        self.elevation_form.save()
-        self.form.instance.reference_elevation = self.elevation_form.instance
         self.form.save()
         for casing in self.casings:
             casing.instance.construction = self.form.instance

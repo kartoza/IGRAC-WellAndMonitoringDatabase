@@ -18,7 +18,7 @@ class Measurement(models.Model):
         null=True, blank=True, max_length=512,
         help_text="Explain the methodology used to collect the data, in the field and eventually in the lab."
     )
-    quality = models.OneToOneField(
+    value = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True
     )

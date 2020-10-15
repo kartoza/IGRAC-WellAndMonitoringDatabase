@@ -17,9 +17,10 @@ class GeneralInformationForm(forms.ModelForm):
 
     class Meta:
         model = Well
-        fields = ('original_id', 'location', 'name', 'feature_type', 'purpose', 'country', 'address', 'elevation', 'photo', 'description')
+        fields = ('original_id', 'location', 'name', 'feature_type', 'purpose', 'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
         widgets = {
-            'elevation': QuantityInput(unit_group='length'),
+            'ground_surface_elevation': QuantityInput(unit_group='length'),
+            'top_borehole_elevation': QuantityInput(unit_group='length'),
             'photo': FileSelectionInput(preview=True),
         }
 

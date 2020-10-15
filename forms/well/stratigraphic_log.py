@@ -12,7 +12,7 @@ class StratigraphicLogForm(forms.ModelForm):
 
     class Meta:
         model = StratigraphicLog
-        fields = ('id_', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
+        fields = ('id_', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),
             'bottom_depth': QuantityInput(unit_group='length'),

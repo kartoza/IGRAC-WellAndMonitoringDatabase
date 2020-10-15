@@ -3,6 +3,7 @@ from django.contrib.gis.db import models
 
 class _Term(models.Model):
     """ Abstract model for Term """
+
     name = models.CharField(
         max_length=512, unique=True)
     description = models.TextField(null=True, blank=True)
@@ -12,6 +13,14 @@ class _Term(models.Model):
 
     class Meta:
         abstract = True
+
+
+class TermWellStatus(_Term):
+    """ List of well status term."""
+
+    class Meta:
+        ordering = ('name',)
+        db_table = 'term_well_status'
 
 
 class TermWellPurpose(_Term):

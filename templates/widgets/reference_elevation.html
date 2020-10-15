@@ -1,0 +1,10 @@
+{% include "widgets/quantity.html" %}
+from
+<select id="{{ widget.attrs.id }}_reference" name="{{ widget.name }}_reference"
+        data-value="{% if reference %}{{ reference }}{% else %}None{% endif %}">
+    {% for choice in reference_choices %}
+        <option value="{{ choice.id }}"
+                {% if reference == choice.id %} selected {% endif %}
+        >{{ choice.name }}</option>
+    {% endfor %}
+</select>
