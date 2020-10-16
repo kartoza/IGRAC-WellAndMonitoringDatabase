@@ -30,6 +30,9 @@ class Drilling(models.Model):
         null=True,
         blank=True,
         help_text="Explain why the drilling was not successful.")
+    year_of_drilling = models.PositiveIntegerField(
+        null=True,
+        blank=True)
 
     class Meta:
         db_table = 'drilling'
