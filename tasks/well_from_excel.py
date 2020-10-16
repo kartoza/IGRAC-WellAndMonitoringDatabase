@@ -38,11 +38,6 @@ def well_from_excel(self, location_records, level_records):
                     'location': point
                 }
             )
-            if not well.elevation:
-                well.elevation = Quantity.objects.create(
-                    value=record[1],
-                    unit=Unit.objects.get(name='m')
-                )
             well.location = point
             well.save()
 
