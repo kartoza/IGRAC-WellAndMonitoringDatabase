@@ -1,4 +1,4 @@
-from gwml2.models.general import Quantity, Unit, UnitGroup
+from gwml2.models.general import Quantity, Unit
 from gwml2.models.reference_elevation import ReferenceElevation, ReferenceElevationType
 from gwml2.forms.widgets.quantity import QuantityInput
 

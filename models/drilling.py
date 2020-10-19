@@ -7,10 +7,6 @@ from gwml2.models.term import TermDrillingMethod
 class Drilling(models.Model):
     """ Drilling
     """
-    reference_elevation = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
     total_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,

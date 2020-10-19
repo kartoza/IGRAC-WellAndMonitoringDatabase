@@ -8,29 +8,6 @@ from gwml2.models.measurement import Measurement
 from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.term import TermWellPurpose, TermWellStatus
-from gwml2.models.reference_elevation import ReferenceElevation
-
-
-# Monitoring data
-class WellGroundwaterLevel(models.Model):
-    """ Groundwater level of well"""
-    reference_elevation = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
-
-    class Meta:
-        db_table = 'well_groundwater_level'
-
-
-class WellGroundwaterLevelMeasurement(Measurement):
-    groundwater_level = models.ForeignKey(
-        WellGroundwaterLevel, on_delete=models.CASCADE,
-    )
-
-    class Meta:
-        db_table = 'well_groundwater_level_measurement'
-        ordering = ('-time',)
 
 
 class Well(GeneralInformation):
@@ -69,10 +46,6 @@ class Well(GeneralInformation):
         HydrogeologyParameter, on_delete=models.SET_NULL,
         null=True, blank=True
     )
-    groundwater_level = models.OneToOneField(
-        WellGroundwaterLevel, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
 
     def __str__(self):
         return self.original_id
@@ -93,6 +66,16 @@ class WellDocument(Document):
 
 
 # Monitoring data
+class WellLevelMeasurement(Measurement):
+    well = models.ForeignKey(
+        Well, on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        db_table = 'well_level_measurement'
+        ordering = ('-time',)
+
+
 class WellQualityMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,

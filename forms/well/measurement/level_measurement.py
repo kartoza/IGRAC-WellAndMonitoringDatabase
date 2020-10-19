@@ -1,17 +1,17 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
-from gwml2.models.well import WellGroundwaterLevelMeasurement
+from gwml2.models.well import WellLevelMeasurement
 
 
-class WellGroundwaterLevelMeasurementForm(forms.ModelForm):
+class WellLevelMeasurementForm(forms.ModelForm):
     """
-    Form of WellGroundwaterLevelMeasurement of well.
+    Form of WellLevelMeasurement of well.
     """
     id_ = forms.CharField(required=False)
 
     class Meta:
-        model = WellGroundwaterLevelMeasurement
+        model = WellLevelMeasurement
         fields = ('id_', 'time', 'parameter', 'methodology', 'value')
         widgets = {
             'value': QuantityInput(unit_group='length')
@@ -20,8 +20,8 @@ class WellGroundwaterLevelMeasurementForm(forms.ModelForm):
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data
-        :param instance: WellWellGroundwaterLevelMeasurement object
-        :type instance: WellWellGroundwaterLevelMeasurement
+        :param instance: WellLevelMeasurement object
+        :type instance: WellLevelMeasurement
 
         :param data: dictionary of data
         :type data: dict
@@ -30,20 +30,20 @@ class WellGroundwaterLevelMeasurementForm(forms.ModelForm):
         :type files: dict
 
         :return: Form
-        :rtype: WellWellGroundwaterLevelMeasurementForm
+        :rtype: WellLevelMeasurementForm
         """
 
-        return WellGroundwaterLevelMeasurementForm(data, files, instance=instance)
+        return WellLevelMeasurementForm(data, files, instance=instance)
 
     @staticmethod
     def make_from_instance(instance):
         """ Create form from instance
-        :param instance: WellWellGroundwaterLevelMeasurement object
-        :type instance: WellWellGroundwaterLevelMeasurement
+        :param instance: WellLevelMeasurement object
+        :type instance: WellLevelMeasurement
 
         :return: Form
-        :rtype: WellWellGroundwaterLevelMeasurementForm
+        :rtype: WellLevelMeasurementForm
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return WellGroundwaterLevelMeasurementForm(initial=data, instance=instance)
+        return WellLevelMeasurementForm(initial=data, instance=instance)

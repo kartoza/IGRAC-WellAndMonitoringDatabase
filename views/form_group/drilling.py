@@ -30,10 +30,7 @@ class DrillingGetForms(FormGroupGet):
             'water_strike': WaterStrikeForm(),
             'water_strikes': water_strikes,
             'stratigraphic_log': StratigraphicLogForm(),
-            'stratigraphic_logs': stratigraphic_logs,
-            'drilling_elevation': ReferenceElevationForm.make_from_instance(
-                self.well.drilling.reference_elevation
-                if self.well.drilling else None),
+            'stratigraphic_logs': stratigraphic_logs
         }
 
 
@@ -51,12 +48,6 @@ class DrillingCreateForm(FormGroupCreate):
         self.form = self._make_form(
             self.well.drilling if self.well.drilling else Drilling(),
             DrillingForm, self.data['drilling'])
-
-        # reference elevation
-        self.elevation_form = self._make_form(
-            self.form.instance.reference_elevation \
-                if self.form.instance.reference_elevation else ReferenceElevation(),
-            ReferenceElevationForm, self.data['drilling']['reference_elevation'])
 
         for log in self.data['drilling']['stratigraphic_log']:
             obj = StratigraphicLog.objects.get(
@@ -76,9 +67,6 @@ class DrillingCreateForm(FormGroupCreate):
 
     def save(self):
         """ save all available data """
-
-        self.elevation_form.save()
-        self.form.instance.reference_elevation = self.elevation_form.instance
         self.form.save()
         for water_strike in self.water_strike:
             water_strike.instance.drilling = self.form.instance

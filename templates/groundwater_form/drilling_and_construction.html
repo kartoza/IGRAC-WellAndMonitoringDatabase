@@ -19,17 +19,6 @@
                 {% field_as_row drilling.year_of_drilling %}
             </table>
         </div>
-        <div class="section">
-            <h4>
-                Reference Elevation
-                <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip"
-                   title="Provide the reference elevation (above sea level) from which the depth of the water strike(s) and the stratigraphic log(s) were measured."></i>
-            </h4>
-            <table>
-                {% field_as_row drilling_elevation.value %}
-                {% field_as_row drilling_elevation.description help_text='Explain what constitutes the reference elevation.' %}
-            </table>
-        </div>
 
         <br><br>
         {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike thedata=water_strikes help_text='' delete='yes'%}

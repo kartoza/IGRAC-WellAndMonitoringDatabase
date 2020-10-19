@@ -1,7 +1,5 @@
-from gwml2.forms import (
-    WellGroundwaterLevelMeasurementForm, ReferenceElevationForm)
-from gwml2.models.reference_elevation import ReferenceElevation
-from gwml2.models.well import WellGroundwaterLevelMeasurement, WellGroundwaterLevel
+from gwml2.forms import WellLevelMeasurementForm
+from gwml2.models.well import WellLevelMeasurement
 from gwml2.views.form_group.form_group import FormGroupGet, FormGroupCreate
 
 
@@ -14,14 +12,10 @@ class LevelMeasurementGetForms(FormGroupGet):
         :rtype: dict
         """
         measurements = []
-        if self.well.groundwater_level:
-            for measurement in self.well.groundwater_level.wellgroundwaterlevelmeasurement_set.all():
-                measurements.append(WellGroundwaterLevelMeasurementForm.make_from_instance(
-                    measurement))
+        for measurement in self.well.welllevelmeasurement_set.all():
+            measurements.append(WellLevelMeasurementForm.make_from_instance(measurement))
         return {
-            'level_measurement_elevation': ReferenceElevationForm.make_from_instance(
-                self.well.groundwater_level.reference_elevation if self.well.groundwater_level else None),
-            'level_measurement': WellGroundwaterLevelMeasurementForm(),  # manytomany form
+            'level_measurement': WellLevelMeasurementForm(),  # manytomany form
             'level_measurements': measurements,  # manytomany data
         }
 
@@ -35,32 +29,20 @@ class LevelMeasurementCreateForm(FormGroupCreate):
         """ create form from data
         """
         self.measurements = []
-        self.well_level = self.well.groundwater_level if self.well.groundwater_level else WellGroundwaterLevel()
-
-        # reference elevation
-        self.elevation_form = self._make_form(
-            self.well_level.reference_elevation \
-                if self.well_level.reference_elevation else ReferenceElevation(),
-            ReferenceElevationForm, self.data['level_measurement']['reference_elevation'])
-
         for measurement in self.data['level_measurement']['measurements']:
             if not measurement['time']:
                 return
-            obj = WellGroundwaterLevelMeasurement.objects.get(
-                id=measurement['id_']) if measurement['id_'] else WellGroundwaterLevelMeasurement()
+            obj = WellLevelMeasurement.objects.get(
+                id=measurement['id_']) if measurement['id_'] else WellLevelMeasurement()
 
             self.measurements.append(
                 self._make_form(
-                    obj, WellGroundwaterLevelMeasurementForm, measurement
+                    obj, WellLevelMeasurementForm, measurement
                 )
             )
 
     def save(self):
         """ save all available data """
-        self.elevation_form.save()
-        self.well_level.reference_elevation = self.elevation_form.instance
-        self.well_level.save()
         for measurement in self.measurements:
-            measurement.instance.groundwater_level = self.well_level
+            measurement.instance.well = self.well
             measurement.save()
-        self.well.groundwater_level = self.well_level
