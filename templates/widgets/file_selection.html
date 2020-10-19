@@ -1,17 +1,29 @@
 {% load staticfiles %}
-{% if read_only and value %}
-    <input type="text" name="{{ widget.name }}"{% if value != None %} value=""{% endif %} {% include "django/forms/widgets/attrs.html" %} hidden>
-    {{ value }}
-{% else %}
-    {% if preview %}
-        <img class="photo-preview" src="
+{% if preview or file_type == 'image' %}
+    <div>
+        <a {% if url %}
+            href="{{ url }}"
+        {% endif %}
+            target="_blank">
+            <img class="photo-preview" src="
         {% if not url %}
             {% static 'img/no-image.jpg' %}
         {% else %}
             {{ url }}
         {% endif %}
         " alt="photo">
+        </a>
+    </div>
+{% endif %}
+
+{% if read_only %}
+    {% if value %}
+        <input type="text" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} hidden>
+        <a href="{{ url }}" target="_blank" download>{{ value }}</a>
+    {% else %}
+        <i>Unknown</i>
     {% endif %}
+{% else %}
     <div style="position: relative" class="inputfile">
         <label for="file">
             <span>{% if value != None %} {{ value }}{% endif %}</span>
