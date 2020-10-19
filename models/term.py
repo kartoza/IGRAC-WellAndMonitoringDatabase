@@ -51,6 +51,17 @@ class TermMeasurementParameter(_Term):
         db_table = 'term_measurement_parameter'
 
 
+class TermMeasurementParameterGroup(_Term):
+    """ List of parameter for measurement."""
+    parameters = models.ManyToManyField(
+        TermMeasurementParameter,
+        null=True, blank=True
+    )
+
+    class Meta(Sortable.Meta):
+        db_table = 'term_measurement_parameter_group'
+
+
 class TermGroundwaterUse(_Term):
     """ List of groundwater use."""
 

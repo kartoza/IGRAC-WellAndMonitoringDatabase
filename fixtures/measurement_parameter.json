@@ -1,0 +1,20 @@
+{
+  "Water depth [from the ground surface]": {
+    "description": "",
+    "groups": [
+      "Level Measurement"
+    ]
+  },
+  "Water depth [from the top of the well]": {
+    "description": "",
+    "groups": [
+      "Level Measurement"
+    ]
+  },
+  "Water level elevation a.m.s.l.": {
+    "description": "",
+    "groups": [
+      "Level Measurement"
+    ]
+  }
+}

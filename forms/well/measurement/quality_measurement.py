@@ -1,6 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
+from gwml2.models.term import TermMeasurementParameterGroup
 from gwml2.models.well import WellQualityMeasurement
 
 
@@ -16,6 +17,14 @@ class WellQualityMeasurementForm(forms.ModelForm):
         widgets = {
             'value': QuantityInput(unit_group='length')
         }
+
+    def __init__(self, *args, **kwargs):
+        super(WellQualityMeasurementForm, self).__init__(*args, **kwargs)
+        try:
+            self.fields['parameter'].queryset = TermMeasurementParameterGroup.objects.get(
+                name='Quality Measurement').parameters.all()
+        except TermMeasurementParameterGroup.DoesNotExist:
+            pass
 
     @staticmethod
     def make_from_data(instance, data, files):

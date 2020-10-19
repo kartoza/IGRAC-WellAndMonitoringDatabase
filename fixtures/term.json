@@ -49,6 +49,11 @@
     "Water depth [from the top of the well]",
     "Water level elevation a.m.s.l."
   ],
+  "TermMeasurementParameterGroup": [
+    "Level Measurement",
+    "Quality Measurement",
+    "Yield Measurement"
+  ],
   "TermReferenceElevationType": [
     "Top of Borehole",
     "Ground Surface Level ASL"

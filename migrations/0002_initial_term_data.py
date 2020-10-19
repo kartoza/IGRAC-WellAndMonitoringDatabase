@@ -60,6 +60,26 @@ def import_data(apps, schema_editor):
                 }
             )
 
+    # measurement fixture
+    fixture_file = os.path.join(
+        DJANGO_ROOT, 'gwml2', 'fixtures', 'measurement_parameter.json')
+    with open(fixture_file) as json_file:
+        data = json.load(json_file)
+        Measurement = apps.get_model(app_name, "TermMeasurementParameter")
+        MeasurementGroup = apps.get_model(app_name, "TermMeasurementParameterGroup")
+        for measurement_name, value in data.items():
+            measurement, created = Measurement.objects.using(db_alias).get_or_create(
+                name=measurement_name,
+                defaults={
+                    'description': value['description'] if 'description' in value else None
+                }
+            )
+            for group_name in value['groups']:
+                group, created = MeasurementGroup.objects.using(db_alias).get_or_create(
+                    name=group_name
+                )
+                group.parameters.add(measurement)
+
 
 class Migration(migrations.Migration):
     atomic = False
