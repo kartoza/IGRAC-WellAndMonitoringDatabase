@@ -651,32 +651,6 @@ table td div.error::after {
     max-width: 1000px;
 }
 
-/* additional */
-@media screen and (max-width: 1730px) {
-    input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
-    input[name="diameter_value"], input[name="quality_value"], input[name="value_value"] {
-        max-width: 60px;
-    }
-
-    input[name="stratigraphic_unit"] {
-        max-width: 40px;
-    }
-}
-
-@media screen and (max-width: 1430px) {
-    input[name="material"] {
-        max-width: 80px;
-    }
-
-    textarea[name="description"] {
-        max-width: 120px;
-    }
-
-    select[name="parameter"] {
-        max-width: 240px;
-    }
-}
-
 .well-chart-row:before {
     display: table;
 }
@@ -755,4 +729,60 @@ table td div.error::after {
     left: 50%;
     transform: translate(-50%, -50%);
     color: #24619d;
+}
+
+/* additional */
+.quantity-input {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.quantity-input input {
+    height: 31px !important;
+}
+
+input[name="depth_value"] {
+    max-width: 60px;
+}
+
+@media screen and (max-width: 1730px) {
+    input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
+    input[name="diameter_value"], input[name="quality_value"], input[name="value_value"], input[name="total_depth_value"] {
+        max-width: 60px;
+    }
+
+    input[name="stratigraphic_unit"] {
+        max-width: 40px;
+    }
+}
+
+@media screen and (max-width: 1430px) {
+    input[name="material"] {
+        max-width: 80px;
+    }
+
+    textarea[name="description"] {
+        max-width: 120px;
+    }
+
+    select[name="parameter"] {
+        max-width: 240px;
+    }
+
+    .map-wrapper {
+        padding-left: 30px;
+    }
+}
+
+/* update */
+.select2-container .select2-selection--single {
+    height: 31px !important;
+}
+
+.select2, .select-2 {
+    height: 31px;
+}
+
+.select2-container {
+    vertical-align: bottom !important;
 }

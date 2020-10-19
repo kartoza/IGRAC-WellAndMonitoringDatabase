@@ -1,0 +1,25 @@
+@font-face {
+    font-family: 'Nimbus Sans';
+    src: url('NimbusSanL-Bol.eot');
+    src: local('Nimbus Sans Bold'), local('NimbusSanL-Bol'),
+        url('NimbusSanL-Bol.eot?#iefix') format('embedded-opentype'),
+        url('NimbusSanL-Bol.woff2') format('woff2'),
+        url('NimbusSanL-Bol.woff') format('woff'),
+        url('NimbusSanL-Bol.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'Nimbus Sans';
+    src: url('NimbusSanL-Reg.eot');
+    src: local('Nimbus Sans Regular'), local('NimbusSanL-Reg'),
+        url('NimbusSanL-Reg.eot?#iefix') format('embedded-opentype'),
+        url('NimbusSanL-Reg.woff2') format('woff2'),
+        url('NimbusSanL-Reg.woff') format('woff'),
+        url('NimbusSanL-Reg.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
