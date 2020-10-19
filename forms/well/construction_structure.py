@@ -1,18 +1,18 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
-from gwml2.models.construction import Casing
+from gwml2.models.construction import ConstructionStructure
 
 
-class CasingForm(forms.ModelForm):
+class ConstructionStructureForm(forms.ModelForm):
     """
-    Form for Casing.
+    Form for ConstructionStructure.
     """
     id_ = forms.CharField(required=False)
 
     class Meta:
-        model = Casing
-        fields = ('id_', 'reference_elevation', 'top_depth', 'bottom_depth',
+        model = ConstructionStructure
+        fields = ('id_', 'type', 'reference_elevation', 'top_depth', 'bottom_depth',
                   'diameter', 'material', 'description')
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),
@@ -35,7 +35,7 @@ class CasingForm(forms.ModelForm):
         :return: Form
         :rtype: CasingForm
         """
-        return CasingForm(data, files, instance=instance)
+        return ConstructionStructureForm(data, files, instance=instance)
 
     @staticmethod
     def make_from_instance(instance):
@@ -48,4 +48,4 @@ class CasingForm(forms.ModelForm):
         """
         data = model_to_dict(instance)
         data['id_'] = instance.id
-        return CasingForm(initial=data, instance=instance)
+        return ConstructionStructureForm(initial=data, instance=instance)

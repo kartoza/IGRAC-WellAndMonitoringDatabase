@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
-from gwml2.models.reference_elevation import ReferenceElevation, ReferenceElevationType
-from gwml2.models.term import TermDrillingMethod
+from gwml2.models.reference_elevation import ReferenceElevation
+from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
 
 
 class Drilling(models.Model):
@@ -49,7 +49,7 @@ class StratigraphicLog(models.Model):
 
     # Log information
     reference_elevation = models.ForeignKey(
-        ReferenceElevationType, on_delete=models.SET_NULL,
+        TermReferenceElevationType, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     top_depth = models.OneToOneField(

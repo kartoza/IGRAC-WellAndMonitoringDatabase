@@ -1,17 +1,7 @@
 from django.contrib.gis.db import models
-from adminsortable.models import Sortable
 
 from gwml2.models.general import Quantity
-from gwml2.models.term import _Term
-
-
-class ReferenceElevationType(_Term):
-    """
-    The type of reference for elevation
-    """
-
-    class Meta(Sortable.Meta):
-        db_table = 'reference_elevation_type'
+from gwml2.models.term import TermReferenceElevationType
 
 
 class ReferenceElevation(models.Model):
@@ -25,7 +15,7 @@ class ReferenceElevation(models.Model):
         null=True, blank=True
     )
     reference = models.ForeignKey(
-        ReferenceElevationType, on_delete=models.SET_NULL,
+        TermReferenceElevationType, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     description = models.TextField(

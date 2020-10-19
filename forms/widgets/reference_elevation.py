@@ -1,5 +1,6 @@
 from gwml2.models.general import Quantity, Unit
-from gwml2.models.reference_elevation import ReferenceElevation, ReferenceElevationType
+from gwml2.models.reference_elevation import ReferenceElevation
+from gwml2.models.term import TermReferenceElevationType
 from gwml2.forms.widgets.quantity import QuantityInput
 
 
@@ -26,7 +27,7 @@ class ReferenceElevationInput(QuantityInput):
 
         # create choices
         reference_choices = []
-        for reference in ReferenceElevationType.objects.all():
+        for reference in TermReferenceElevationType.objects.all():
             reference_choices.append({
                 'id': reference.id,
                 'name': reference.name

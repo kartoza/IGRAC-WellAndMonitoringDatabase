@@ -1,17 +1,13 @@
 from django.contrib import admin
-from gwml2.models.construction import Construction, Casing, Screen
+from gwml2.models.construction import Construction, ConstructionStructure
 
 
-class CasingInline(admin.TabularInline):
-    model = Casing
-
-
-class ScreenInline(admin.TabularInline):
-    model = Screen
+class ConstructionStructureInline(admin.TabularInline):
+    model = ConstructionStructure
 
 
 class ConstructionAdmin(admin.ModelAdmin):
-    inlines = [CasingInline, ScreenInline]
+    inlines = [ConstructionStructureInline]
 
 
 admin.site.register(Construction, ConstructionAdmin)

@@ -49,8 +49,13 @@
     "Water depth [from the top of the well]",
     "Water level elevation a.m.s.l."
   ],
-  "ReferenceElevationType": [
+  "TermReferenceElevationType": [
     "Top of Borehole",
     "Ground Surface Level ASL"
+  ],
+  "TermConstructionStructureType": [
+    "Casing",
+    "Screen",
+    "Open Interval"
   ]
 }

@@ -70,3 +70,19 @@ class TermConfinement(_Term):
 
     class Meta(Sortable.Meta):
         db_table = 'term_confinement'
+
+
+class TermReferenceElevationType(_Term):
+    """ The type of reference for elevation
+    """
+
+    class Meta(Sortable.Meta):
+        db_table = 'term_reference_elevation_type'
+
+
+class TermConstructionStructureType(_Term):
+    """ The type of construction structure
+    """
+
+    class Meta(Sortable.Meta):
+        db_table = 'term_construction_structure_type'
