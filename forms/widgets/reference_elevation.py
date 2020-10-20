@@ -60,7 +60,7 @@ class ReferenceElevationInput(QuantityInput):
 
                 # reference
                 if data['{}_reference'.format(name)]:
-                    elevation.reference = ReferenceElevationType.objects.get(
+                    elevation.reference = TermReferenceElevationType.objects.get(
                         id=data['{}_reference'.format(name)]
                     )
                 elevation.value = quantity
