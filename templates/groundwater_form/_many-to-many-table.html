@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% load gwml2_forms %}
 <div id="{{ id }}_table">
-    <div class="table-wrapper">
+    <div class="table-wrapper" data-fetchurl="{% relation_list_url well theform %}" disabled>
         <table>
             <tr>
                 {% for field in theform %}
@@ -17,18 +17,6 @@
                     <th>Action</th>
                 {% endif %}
             </tr>
-            {% for data in thedata %}
-                <tr>
-                    {% for field in data %}
-                        <td>{{ field }}</td>
-                    {% endfor %}
-                    {% if delete and not read_only %}
-                        <td data-url="{% delete_url well data.instance %}" onclick="deleteRelation(this)">
-                            <img class="icon-svg delete" src="{% static 'gwml2/svg/delete.svg' %}"/>
-                        </td>
-                    {% endif %}
-                </tr>
-            {% endfor %}
         </table>
     </div>
     <template>

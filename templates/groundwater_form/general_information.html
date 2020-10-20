@@ -38,7 +38,7 @@
             {% field_as_row form.address %}
         </table>
     </div>
-    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document thedata=documents help_text='Relevant documents or images can be added here.' delete='yes' %}
+    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document help_text='Relevant documents or images can be added here.' delete='yes' %}
 </div>
 <script>
     submitFunctions['general_information'] = function () {

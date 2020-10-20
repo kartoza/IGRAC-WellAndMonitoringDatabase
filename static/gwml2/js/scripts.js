@@ -104,3 +104,26 @@ function chartTableToggle(elm, dataID) {
         $(`#${dataID}_chart`).hide();
     }
 }
+
+function makeReadOnly() {
+    if (readOnly) {
+        $('#form input[type=file]').closest('.inputfile').addClass('disabled')
+        $('#form input, textarea').replaceWith(function () {
+            const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
+            return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${$(this).val()}</span>`;
+        });
+        $('#form select').replaceWith(function () {
+            const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
+            let value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
+            if (value === '---------') {
+                value = ''
+            }
+            return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
+        });
+    }
+}
+
+String.prototype.replaceAll = function (search, replacement) {
+    let target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+}

@@ -60,11 +60,14 @@ class Well(GeneralInformation):
         if relation_model_name == 'WellDocument':
             return self.welldocument_set
         elif relation_model_name == 'WaterStrike':
-            return self.drilling.waterstrike_set
+            if self.drilling:
+                return self.drilling.waterstrike_set
         elif relation_model_name == 'StratigraphicLog':
-            return self.drilling.stratigraphiclog_set
+            if self.drilling:
+                return self.drilling.stratigraphiclog_set
         elif relation_model_name == 'ConstructionStructure':
-            return self.construction.constructionstructure_set
+            if self.construction:
+                return self.construction.constructionstructure_set
         elif relation_model_name == 'WellLevelMeasurement':
             return self.welllevelmeasurement_set
         elif relation_model_name == 'WellQualityMeasurement':

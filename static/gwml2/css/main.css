@@ -455,6 +455,10 @@ input[type="checkbox"] {
     overflow-y: scroll;
 }
 
+.many-to-many label, .many-to-many .helptext {
+    display: none;
+}
+
 .chart-table-toggle {
     color: white;
     border-radius: 2px;
@@ -752,15 +756,13 @@ input[name="depth_value"] {
     max-width: 60px;
 }
 
-@media screen and (max-width: 1730px) {
-    input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
-    input[name="diameter_value"], input[name="quality_value"], input[name="value_value"], input[name="total_depth_value"] {
-        max-width: 60px;
-    }
+input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
+input[name="diameter_value"], input[name="quality_value"], input[name="value_value"], input[name="total_depth_value"] {
+    max-width: 60px;
+}
 
-    input[name="stratigraphic_unit"] {
-        max-width: 40px;
-    }
+input[name="stratigraphic_unit"] {
+    max-width: 60px;
 }
 
 @media screen and (max-width: 1430px) {

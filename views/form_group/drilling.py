@@ -16,21 +16,12 @@ class DrillingGetForms(FormGroupGet):
         :return: dictionary of forms
         :rtype: dict
         """
-        water_strikes = []
-        stratigraphic_logs = []
-        if self.well.drilling:
-            for obj in self.well.drilling.waterstrike_set.all():
-                water_strikes.append(WaterStrikeForm.make_from_instance(obj))
-            for obj in self.well.drilling.stratigraphiclog_set.all():
-                stratigraphic_logs.append(StratigraphicLogForm.make_from_instance(obj))
         return {
             # drilling
             'drilling': DrillingForm.make_from_instance(
                 self.well.drilling),
             'water_strike': WaterStrikeForm(),
-            'water_strikes': water_strikes,
             'stratigraphic_log': StratigraphicLogForm(),
-            'stratigraphic_logs': stratigraphic_logs
         }
 
 

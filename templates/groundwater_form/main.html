@@ -18,6 +18,11 @@
         let submitFunctions = {};
         let submitFunctionsManyToMany = {};
         let mainData = {};
+        {% if read_only %}
+            const readOnly = true;
+        {% else %}
+            const readOnly = false;
+        {% endif %}
     </script>
 {% endblock %}
 
@@ -172,19 +177,7 @@
     <script>
         $(document).ready(function () {
             {% if read_only %}
-                $('#form input[type=file]').closest('.inputfile').addClass('disabled')
-                $('#form input, textarea').replaceWith(function () {
-                    const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
-                    return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${$(this).val()}</span>`;
-                });
-                $('#form select').replaceWith(function () {
-                    const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
-                    let value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
-                    if (value === '---------') {
-                        value = ''
-                    }
-                    return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
-                });
+                makeReadOnly();
             {% else %}
                 $(".select-2").select2({
                     tags: true

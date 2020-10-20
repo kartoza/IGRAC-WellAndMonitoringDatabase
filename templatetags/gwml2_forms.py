@@ -39,6 +39,15 @@ def field_as_row(field, id='', unit='', help_text=''):
 
 
 @register.simple_tag
+def relation_list_url(well, theform):
+    return reverse('well-relation-list', kwargs={
+        'id': well.id,
+        'model': theform.instance.__class__.__name__
+
+    })
+
+
+@register.simple_tag
 def delete_url(well, instance):
     return reverse('well-relation-delete', kwargs={
         'id': well.id,
