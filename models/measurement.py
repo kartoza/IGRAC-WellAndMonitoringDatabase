@@ -1,6 +1,6 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
-from gwml2.models.term import TermMeasurementParameter
+from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 
 
 class Measurement(models.Model):

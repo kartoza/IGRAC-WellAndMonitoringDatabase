@@ -11,12 +11,8 @@ class LevelMeasurementGetForms(FormGroupGet):
         :return: dictionary of forms
         :rtype: dict
         """
-        measurements = []
-        for measurement in self.well.welllevelmeasurement_set.all():
-            measurements.append(WellLevelMeasurementForm.make_from_instance(measurement))
         return {
             'level_measurement': WellLevelMeasurementForm(),  # manytomany form
-            'level_measurements': measurements,  # manytomany data
         }
 
 

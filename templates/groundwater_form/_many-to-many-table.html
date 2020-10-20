@@ -2,38 +2,31 @@
 {% load staticfiles %}
 {% load gwml2_forms %}
 <div id="{{ id }}_table">
-    <table>
-        <tr>
-            {% for field in theform %}
-                <th>
-                    {{ field.label }}
-                    {% if field.help_text %}
-                        <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ field.help_text }}"></i>
-                    {% endif %}
-                </th>
-            {% endfor %}
-            {% if delete and not read_only %}
-                <th>Action</th>
-            {% endif %}
-        </tr>
-        {% for data in thedata %}
+    <div class="table-wrapper" data-fetchurl="{% relation_list_url well theform %}" disabled>
+        <table>
             <tr>
-                {% for field in data %}
-                    <td>{{ field }}</td>
+                {% for field in theform %}
+                    <th>
+                        {{ field.label }}
+                        {% if field.help_text %}
+                            <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ field.help_text }}"></i>
+                        {% endif %}
+                    </th>
                 {% endfor %}
                 {% if delete and not read_only %}
-                    <td data-url="{% delete_url well data.instance %}" onclick="deleteRelation(this)">
-                        <img class="icon-svg delete" src="{% static 'gwml2/svg/delete.svg' %}"/>
-                    </td>
+                    <th>Action</th>
                 {% endif %}
             </tr>
-        {% endfor %}
-    </table>
+        </table>
+    </div>
     <template>
         <tr>
             {% for field in theform %}
                 <td>{{ field }}</td>
             {% endfor %}
+            <td>
+                <div></div>
+            </td>
         </tr>
     </template>
     {% if not read_only %}
