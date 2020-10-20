@@ -17,6 +17,7 @@
         let chartFunctions = {};
         let submitFunctions = {};
         let submitFunctionsManyToMany = {};
+        let parameters = {{ parameters|safe }};
         let mainData = {};
         {% if read_only %}
             const readOnly = true;

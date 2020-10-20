@@ -26,6 +26,18 @@ function deleteRelation(elm) {
     }
 }
 
+function parameterChanged($inputParameter, $inputUnit) {
+    let units = parameters[$inputParameter.val()] || [];
+    $inputUnit.find('option').each(function (index) {
+        if (units.includes($(this).attr('value'))) {
+            $(this).show();
+        } else {
+            $(this).hide();
+            $(this).removeAttr('selected');
+        }
+    });
+}
+
 /** add new row, and put data if presented **/
 function addNewRow($table, template, data) {
     $table.append(template.content.cloneNode(true));
@@ -36,17 +48,37 @@ function addNewRow($table, template, data) {
         formatTime: 'H:i',
         format: 'Y-m-d H:i',
     });
+
+    // parameters
+    let $inputParameter = $table.find('tr').last().find('select[name="parameter"]');
+    if ($inputParameter.length > 0) {
+        let $inputUnit = $table.find('tr').last().find('select[name="value_unit"]');
+        $inputParameter.change(function () {
+            parameterChanged($inputParameter, $inputUnit);
+        });
+        $inputParameter.trigger('change')
+    }
 }
 
 function addRowData($table, html) {
     $table.append(html);
 
-    let $inputTime = $table.find('tr').last().find('input[name ="time"]');
+    let $inputTime = $table.find('tr').last().find('input[name="time"]');
     $inputTime.attr('autocomplete', 'off');
     $inputTime.datetimepicker({
         formatTime: 'H:i',
         format: 'Y-m-d H:i',
     });
+
+    // parameters
+    let $inputParameter = $table.find('tr').last().find('select[name="parameter"]');
+    if ($inputParameter.length > 0) {
+        let $inputUnit = $table.find('tr').last().find('select[name="value_unit"]');
+        $inputParameter.change(function () {
+            parameterChanged($inputParameter, $inputUnit);
+        });
+        $inputParameter.trigger('change')
+    }
 }
 
 $(document).ready(function () {
