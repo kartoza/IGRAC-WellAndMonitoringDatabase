@@ -742,27 +742,25 @@ table td div.error::after {
 }
 
 input[name="depth_value"] {
-    max-width: 60px;
+    max-width: 50px;
 }
 
-@media screen and (max-width: 1730px) {
-    input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
-    input[name="diameter_value"], input[name="quality_value"], input[name="value_value"], input[name="total_depth_value"] {
-        max-width: 60px;
-    }
+input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
+input[name="diameter_value"], input[name="quality_value"], input[name="value_value"], input[name="total_depth_value"] {
+    max-width: 50px;
+}
 
-    input[name="stratigraphic_unit"] {
-        max-width: 40px;
-    }
+input[name="stratigraphic_unit"] {
+    max-width: 80px;
+}
+
+.many-to-many textarea[name="description"] {
+    max-width: 120px;
 }
 
 @media screen and (max-width: 1430px) {
     input[name="material"] {
         max-width: 80px;
-    }
-
-    textarea[name="description"] {
-        max-width: 120px;
     }
 
     select[name="parameter"] {
