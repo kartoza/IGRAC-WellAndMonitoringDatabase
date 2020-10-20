@@ -46,3 +46,8 @@ def delete_url(well, instance):
         'model_id': instance.id
 
     })
+
+
+@register.simple_tag
+def get_model_name(theform):
+    return theform.instance.__class__.__name__

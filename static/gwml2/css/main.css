@@ -448,6 +448,13 @@ input[type="checkbox"] {
     padding: 14px 18px;
 }
 
+.many-to-many .table-wrapper {
+    width: 100%;
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
 .chart-table-toggle {
     color: white;
     border-radius: 2px;

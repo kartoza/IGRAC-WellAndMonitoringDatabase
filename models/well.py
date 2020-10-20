@@ -54,6 +54,25 @@ class Well(GeneralInformation):
         db_table = 'well'
         ordering = ['original_id']
 
+    def relation_queryset(self, relation_model_name):
+        """ Return queryset of relation of model
+        """
+        if relation_model_name == 'WellDocument':
+            return self.welldocument_set
+        elif relation_model_name == 'WaterStrike':
+            return self.drilling.waterstrike_set
+        elif relation_model_name == 'StratigraphicLog':
+            return self.drilling.stratigraphiclog_set
+        elif relation_model_name == 'ConstructionStructure':
+            return self.construction.constructionstructure_set
+        elif relation_model_name == 'WellLevelMeasurement':
+            return self.welllevelmeasurement_set
+        elif relation_model_name == 'WellQualityMeasurement':
+            return self.wellqualitymeasurement_set
+        elif relation_model_name == 'WellYieldMeasurement':
+            return self.wellyieldmeasurement_set
+        return None
+
 
 # documents
 class WellDocument(Document):
