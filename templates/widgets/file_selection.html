@@ -21,7 +21,19 @@
         <input type="text" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} hidden>
         <a href="{{ url }}" target="_blank" download>{{ value }}</a>
     {% else %}
-        <i>Unknown</i>
+        <div style="position: relative" class="inputfile">
+            <label for="file">
+                <span>{% if value != None %} {{ value }}{% endif %}</span>
+                <strong>Choose a file</strong>
+            </label>
+            <input
+                    type="file"
+                    name="{{ widget.name }}"
+                    id="{{ widget.attrs.id }}"
+                    onchange="fileSelectionChanged(this)"
+                    {% include "django/forms/widgets/attrs.html" %}
+            >
+        </div>
     {% endif %}
 {% else %}
     <div style="position: relative" class="inputfile">
