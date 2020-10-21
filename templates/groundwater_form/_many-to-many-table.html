@@ -4,19 +4,22 @@
 <div id="{{ id }}_table">
     <div class="table-wrapper" data-fetchurl="{% relation_list_url well theform %}" disabled>
         <table>
-            <tr>
-                {% for field in theform %}
-                    <th>
-                        {{ field.label }}
-                        {% if field.help_text %}
-                            <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ field.help_text }}"></i>
-                        {% endif %}
-                    </th>
-                {% endfor %}
-                {% if delete and not read_only %}
-                    <th>Action</th>
-                {% endif %}
-            </tr>
+            <thead>
+            {% for field in theform %}
+                <th>
+                    {{ field.label }}
+                    {% if field.help_text %}
+                        <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ field.help_text }}"></i>
+                    {% endif %}
+                </th>
+            {% endfor %}
+            {% if delete and not read_only %}
+                <th>Action</th>
+            {% endif %}
+            </thead>
+            <tbody>
+        
+            </tbody>
         </table>
     </div>
     <template>

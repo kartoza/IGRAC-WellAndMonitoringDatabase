@@ -61,7 +61,7 @@ body {
 .page-header {
     border-bottom: none;
     margin: 0 !important;
-    padding: 20px 35px;
+    padding: 7px 35px;
     color: #24619d;
     font-size: 20px;
     background: #F6F6F6;
@@ -147,7 +147,7 @@ h2.section-title {
 .navigation {
     left: 0;
     width: 280px;
-    top: 83px;
+    top: 57px;
     padding-bottom: 60px;
 }
 
@@ -445,7 +445,7 @@ input[type="checkbox"] {
 
 .many-to-many td, .many-to-many th {
     border: 1px solid #ebebeb;
-    padding: 14px 18px;
+    padding: 10px 10px;
 }
 
 .many-to-many .table-wrapper {
@@ -767,6 +767,7 @@ input[name="stratigraphic_unit"] {
 
 .many-to-many textarea[name="description"] {
     max-width: 120px;
+    max-height: 30px;
 }
 
 @media screen and (max-width: 1430px) {
@@ -795,3 +796,12 @@ input[name="stratigraphic_unit"] {
 .select2-container {
     vertical-align: bottom !important;
 }
+
+
+.table-wrapper th {
+    position: sticky;
+    background: white;
+    z-index: 999;
+    top: -1px;
+}
+

@@ -83,7 +83,7 @@ function addRowData($table, html) {
 
 $(document).ready(function () {
     $('.add-new-many-to-many').click(function () {
-        let $table = $(this).closest('.many-to-many').find('table');
+        let $table = $(this).closest('.many-to-many').find('table tbody');
         let template = $(this).closest('.many-to-many').find('template')[0];
         addNewRow($table, template)
     })
