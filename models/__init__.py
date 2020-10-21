@@ -10,5 +10,8 @@ from gwml2.models.term import *
 from gwml2.models.term_measurement_parameter import *
 from gwml2.models.well import *
 
+# management
+from gwml2.models.well_management.organisation import *
+
 # for signals models
 from gwml2.signals import *
