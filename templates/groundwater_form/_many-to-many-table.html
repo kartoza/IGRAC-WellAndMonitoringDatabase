@@ -23,7 +23,7 @@
         </table>
     </div>
     <template>
-        <tr>
+        <tr class="updated">
             {% for field in theform %}
                 <td>{{ field }}</td>
             {% endfor %}
@@ -42,7 +42,7 @@
     {# accessing many to many data is through submitFunctionsManyToMany by id#}
     submitFunctionsManyToMany['{{ id }}'] = function () {
         let data = [];
-        $('#{{ id }}_table tr').each(function (index) {
+        $('#{{ id }}_table tr.updated').each(function (index) {
 
             {# skip if it is header #}
             let values = $(this).find('td');

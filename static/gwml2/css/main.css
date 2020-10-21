@@ -459,6 +459,10 @@ input[type="checkbox"] {
     display: none;
 }
 
+.many-to-many tr.updated {
+    background: rgba(67, 183, 0, 0.1);
+}
+
 .chart-table-toggle {
     color: white;
     border-radius: 2px;

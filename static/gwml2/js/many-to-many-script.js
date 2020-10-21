@@ -38,11 +38,8 @@ function parameterChanged($inputParameter, $inputUnit) {
     });
 }
 
-/** add new row, and put data if presented **/
-function addNewRow($table, template, data) {
-    $table.append(template.content.cloneNode(true));
-
-    let $inputTime = $table.find('tr').last().find('input[name ="time"]');
+function initRowData($row) {
+    let $inputTime = $row.find('input[name="time"]');
     $inputTime.attr('autocomplete', 'off');
     $inputTime.datetimepicker({
         formatTime: 'H:i',
@@ -50,37 +47,35 @@ function addNewRow($table, template, data) {
     });
 
     // parameters
-    let $inputParameter = $table.find('tr').last().find('select[name="parameter"]');
+    let $inputParameter = $row.find('select[name="parameter"]');
     if ($inputParameter.length > 0) {
-        let $inputUnit = $table.find('tr').last().find('select[name="value_unit"]');
+        let $inputUnit = $row.find('select[name="value_unit"]');
         $inputParameter.change(function () {
             parameterChanged($inputParameter, $inputUnit);
         });
         $inputParameter.trigger('change')
     }
+    $row.find('input,select').change(function () {
+        $row.addClass('updated')
+    });
+}
+
+/** add new row, and put data if presented **/
+function addNewRow($table, template) {
+    let $tbody = $table.find('tbody');
+    let $wrapper = $table.closest('.table-wrapper')
+    $tbody.prepend(template.content.cloneNode(true));
+    let $row = $tbody.find('tr').first();
+    initRowData($row)
+    $wrapper.scrollTop(0)
 }
 
 function addRowData($table, html) {
-    $table.append(html);
-
-    let $inputTime = $table.find('tr').last().find('input[name="time"]');
-    $inputTime.attr('autocomplete', 'off');
-    $inputTime.datetimepicker({
-        formatTime: 'H:i',
-        format: 'Y-m-d H:i',
-    });
-
-    // parameters
-    let $inputParameter = $table.find('tr').last().find('select[name="parameter"]');
-    if ($inputParameter.length > 0) {
-        let $inputUnit = $table.find('tr').last().find('select[name="value_unit"]');
-        $inputParameter.change(function () {
-            parameterChanged($inputParameter, $inputUnit);
-        });
-        $inputParameter.trigger('change')
-    }
+    let $tbody = $table.find('tbody');
+    $tbody.append(html);
+    let $row = $tbody.find('tr').last();
+    initRowData($row)
 }
-
 
 function fetchManyToMany($element, set) {
     let $wrapper = $element;
@@ -121,7 +116,7 @@ function fetchManyToMany($element, set) {
 
 $(document).ready(function () {
     $('.add-new-many-to-many').click(function () {
-        let $table = $(this).closest('.many-to-many').find('table tbody');
+        let $table = $(this).closest('.many-to-many').find('table');
         let template = $(this).closest('.many-to-many').find('template')[0];
         addNewRow($table, template)
     })
