@@ -468,7 +468,16 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 
-.chart-table-toggle:hover {
+.many-to-many .fa-arrows-alt {
+    color: white;
+    border-radius: 2px;
+    background: #aaa;
+    margin-left: 5px;
+    padding: 2px 2px;
+    cursor: pointer;
+}
+
+.chart-table-toggle:hover, .many-to-many .fa-arrows-alt:hover {
     opacity: 0.6;
 }
 
@@ -805,3 +814,18 @@ input[name="stratigraphic_unit"] {
     top: -1px;
 }
 
+/* if full screen */
+.many-to-many.fullscreen {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    background: white;
+    padding: 20px;
+}
+
+.many-to-many.fullscreen .table-wrapper {
+    max-height: 80%;
+}

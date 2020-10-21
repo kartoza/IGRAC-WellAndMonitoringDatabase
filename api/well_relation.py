@@ -45,7 +45,8 @@ class WellRelationListView(View):
                 })
         return JsonResponse({
             'data': output,
-            'set': set + 1
+            'set': set + 1,
+            'end': len(output) < STEP
         })
 
 

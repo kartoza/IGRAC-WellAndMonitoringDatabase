@@ -8,6 +8,9 @@
                onclick="chartTableToggle(this,'{{ id }}')"
             ></i>
         {% endif %}
+        <i class="fa fa fa-arrows-alt" aria-hidden="true"
+           onclick="toggleFullScreen(this)"
+        ></i>
     </h4>
     {% include "groundwater_form/_many-to-many-table.html" %}
     {% if use_chart %}

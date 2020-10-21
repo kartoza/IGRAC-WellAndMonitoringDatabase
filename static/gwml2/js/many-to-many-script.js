@@ -81,6 +81,44 @@ function addRowData($table, html) {
     }
 }
 
+
+function fetchManyToMany($element, set) {
+    let $wrapper = $element;
+    let $table = $element.find('table');
+    $wrapper.attr('disabled', true);
+    return $.ajax({
+        url: $element.data('fetchurl'),
+        dataType: 'json',
+        data: {
+            set: set
+        },
+        beforeSend: function (xhrObj) {
+        },
+        success: function (data, textStatus, request) {
+            $.each(data['data'], function (index, value) {
+                let lastColumn =
+                    `<td data-url="${value['delete_url']}" onclick="deleteRelation(this)">
+                        <img class="icon-svg delete" src="/static/gwml2/svg/delete.svg"/>
+                     </td>`;
+                if (readOnly) {
+                    lastColumn = '';
+                }
+                addRowData(
+                    $table,
+                    '<tr>' + value['html'].replaceAll('p>', 'td>') + lastColumn + '</tr>')
+            });
+            makeReadOnly();
+            $wrapper.data('set', data['set']);
+            if (!data['end']) {
+                $wrapper.attr('disabled', false);
+            }
+        },
+        error: function (error, textStatus, request) {
+            $wrapper.attr('disabled', false);
+        }
+    });
+}
+
 $(document).ready(function () {
     $('.add-new-many-to-many').click(function () {
         let $table = $(this).closest('.many-to-many').find('table tbody');
@@ -88,44 +126,9 @@ $(document).ready(function () {
         addNewRow($table, template)
     })
 
-    function fetchManyToMany($element, set) {
-        let $wrapper = $element;
-        let $table = $element.find('table');
-        return $.ajax({
-            url: $element.data('fetchurl'),
-            dataType: 'json',
-            data: {
-                set: set
-            },
-            beforeSend: function (xhrObj) {
-            },
-            success: function (data, textStatus, request) {
-                $.each(data['data'], function (index, value) {
-                    let lastColumn =
-                        `<td data-url="${value['delete_url']}" onclick="deleteRelation(this)">
-                        <img class="icon-svg delete" src="/static/gwml2/svg/delete.svg"/>
-                     </td>`;
-                    if (readOnly) {
-                        lastColumn = '';
-                    }
-                    addRowData(
-                        $table,
-                        '<tr>' + value['html'].replaceAll('p>', 'td>') + lastColumn + '</tr>')
-                });
-                makeReadOnly();
-                $wrapper.data('set', data['set']);
-                $wrapper.prop('disabled', false);
-            },
-            error: function (error, textStatus, request) {
-                console.log(error)
-            }
-        });
-    }
-
     $('.table-wrapper').on('scroll', function () {
         if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
-            if (!$(this).prop('disabled')) {
-                $(this).prop('disabled', true);
+            if (!$(this).attr('disabled')) {
                 const set = $(this).data('set');
                 fetchManyToMany($(this), set)
             }
@@ -134,5 +137,14 @@ $(document).ready(function () {
     $('.table-wrapper').each(function () {
         fetchManyToMany($(this), 1)
     });
+})
 
-}) 
+function toggleFullScreen(element) {
+    let $manyToMany = $(element).closest('.many-to-many');
+    $manyToMany.toggleClass('fullscreen');
+    if ($manyToMany.hasClass('fullscreen')) {
+        let $wrapper = $manyToMany.find('.table-wrapper');
+        const set = $wrapper.data('set');
+        fetchManyToMany($wrapper, set)
+    }
+}
