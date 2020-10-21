@@ -1,16 +1,12 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
 from gwml2.models.reference_elevation import ReferenceElevation
-from gwml2.models.term import TermDrillingMethod
+from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
 
 
 class Drilling(models.Model):
     """ Drilling
     """
-    reference_elevation = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
     total_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -30,6 +26,9 @@ class Drilling(models.Model):
         null=True,
         blank=True,
         help_text="Explain why the drilling was not successful.")
+    year_of_drilling = models.PositiveIntegerField(
+        null=True,
+        blank=True)
 
     class Meta:
         db_table = 'drilling'
@@ -49,6 +48,10 @@ class StratigraphicLog(models.Model):
     )
 
     # Log information
+    reference_elevation = models.ForeignKey(
+        TermReferenceElevationType, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
     top_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -80,7 +83,7 @@ class WaterStrike(models.Model):
 
     # information
     depth = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
+        ReferenceElevation, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     description = models.TextField(

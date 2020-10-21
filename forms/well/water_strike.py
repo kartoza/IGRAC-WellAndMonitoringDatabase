@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.models import model_to_dict
-from gwml2.forms.widgets.quantity import QuantityInput
+from gwml2.forms.widgets.reference_elevation import ReferenceElevationInput
 from gwml2.models.drilling import WaterStrike
 
 
@@ -14,7 +14,7 @@ class WaterStrikeForm(forms.ModelForm):
         model = WaterStrike
         fields = ('id_', 'depth', 'description')
         widgets = {
-            'depth': QuantityInput(unit_group='length')
+            'depth': ReferenceElevationInput(unit_group='length')
         }
 
     @staticmethod

@@ -17,6 +17,12 @@ class FileSelectionInput(forms.widgets.FileInput):
         if value:
             context['value'] = os.path.basename(value.name)
             context['url'] = value.url
+            filename, file_extension = os.path.splitext(value.url)
+            context['file_type'] = 'image' if file_extension in ['.jpg', '.jpeg', '.png'] else 'file'
+        else:
+            context['value'] = ''
+            context['url'] = ''
+            context['file_type'] = ''
         context['read_only'] = self.read_only
         context['preview'] = self.preview
         return context

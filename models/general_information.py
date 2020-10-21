@@ -18,10 +18,17 @@ class GeneralInformation(models.Model):
         verbose_name="location",
         help_text="Location of the feature."
     )
-    elevation = models.OneToOneField(
+    ground_surface_elevation = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='Elevation of the groundwater point above the sea level.'
+        help_text='Ground Surface Elevation Above Sea Level.',
+        related_name='ground_surface_elevation'
+    )
+    top_borehole_elevation = models.OneToOneField(
+        Quantity, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        help_text='Elevation of Top of Borehole Above Sea Level.',
+        related_name='top_borehole_elevation'
     )
 
     # location information

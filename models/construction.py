@@ -1,15 +1,12 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
-from gwml2.models.reference_elevation import ReferenceElevation
+from gwml2.models.term import (
+    TermConstructionStructureType, TermReferenceElevationType)
 
 
 class Construction(models.Model):
     """ Construction
     """
-    reference_elevation = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
     pump_installer = models.CharField(
         null=True, blank=True, max_length=512,
         help_text="Name of the company or person who installed the pump."
@@ -24,10 +21,20 @@ class Construction(models.Model):
         db_table = 'construction'
 
 
-class _CasingAndScreen(models.Model):
-    """ Abstract model for Casing and Screen """
+class ConstructionStructure(models.Model):
+    """
+    Structure of construction
+    """
     construction = models.ForeignKey(
         Construction, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    type = models.ForeignKey(
+        TermConstructionStructureType, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    reference_elevation = models.ForeignKey(
+        TermReferenceElevationType, on_delete=models.SET_NULL,
         null=True, blank=True
     )
 
@@ -39,57 +46,22 @@ class _CasingAndScreen(models.Model):
         null=True,
         blank=True)
 
-    class Meta:
-        abstract = True
-
-
-class Casing(_CasingAndScreen):
-    """
-    8.1.3 Casing
-    Collection of linings of the borehole.
-    """
-
+    # position
     top_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='casing_top_depth'
+        related_name='structure_top_depth'
     )
     bottom_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='casing_bottom_depth'
+        related_name='structure_bottom_depth'
     )
     diameter = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='casing_diameter'
+        related_name='structure_diameter'
     )
 
     class Meta:
-        db_table = 'construction_casing'
-
-
-class Screen(_CasingAndScreen):
-    """
-    8.1.12 Screen
-    Collection of components of the water pump screen.
-    """
-
-    top_depth = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='screening_top_depth'
-    )
-    bottom_depth = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='screening_bottom_depth'
-    )
-    diameter = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='screening_diameter'
-    )
-
-    class Meta:
-        db_table = 'construction_screen'
+        db_table = 'construction_structure'

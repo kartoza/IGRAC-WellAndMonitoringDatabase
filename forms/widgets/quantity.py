@@ -7,14 +7,16 @@ class QuantityInput(forms.widgets.Input):
     template_name = 'widgets/quantity.html'
     input_type = 'text'
     unit_group = None
+    unit_required = True
 
-    def __init__(self, unit_group=None, attrs=None):
+    def __init__(self, unit_group=None, unit_required=True, attrs=None):
         super().__init__(attrs)
         try:
             if unit_group:
                 self.unit_group = UnitGroup.objects.get(name=unit_group)
         except ProgrammingError:
             pass
+        self.unit_required = unit_required
 
     def get_context(self, name, value, attrs):
         context = super(QuantityInput, self).get_context(name, value, attrs)
@@ -39,6 +41,7 @@ class QuantityInput(forms.widgets.Input):
                 'html': unit.html if unit.html else unit.name,
             })
         context['unit_choices'] = unit_choices
+        context['unit_required'] = self.unit_required
         return context
 
     def value_from_datadict(self, data, files, name):

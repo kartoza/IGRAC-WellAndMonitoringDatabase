@@ -41,7 +41,7 @@ body {
     padding-top: 50px;
     padding-bottom: 20px;
     height: 100%;
-    margin-top: 0!important;
+    margin-top: 0 !important;
 }
 
 .wrapper {
@@ -61,7 +61,7 @@ body {
 .page-header {
     border-bottom: none;
     margin: 0 !important;
-    padding: 20px 35px;
+    padding: 7px 35px;
     color: #24619d;
     font-size: 20px;
     background: #F6F6F6;
@@ -147,7 +147,7 @@ h2.section-title {
 .navigation {
     left: 0;
     width: 280px;
-    top: 83px;
+    top: 57px;
     padding-bottom: 60px;
 }
 
@@ -374,8 +374,18 @@ select {
     padding: 8px 0;
 }
 
+.quantity-input .select2, .quantity-input .select-2 {
+    margin-left: -6px;
+    border-bottom-left-radius: 0;
+    border-top-left-radius: 0;
+}
+
 .select2 {
-    height: 32px;
+    margin-top: -2px !important;
+}
+
+.select2, .select-2 {
+    height: 30px;
 }
 
 .select2-container--default .select2-selection--single {
@@ -435,7 +445,18 @@ input[type="checkbox"] {
 
 .many-to-many td, .many-to-many th {
     border: 1px solid #ebebeb;
-    padding: 14px 18px;
+    padding: 10px 10px;
+}
+
+.many-to-many .table-wrapper {
+    width: 100%;
+    max-height: 300px;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+.many-to-many label, .many-to-many .helptext {
+    display: none;
 }
 
 .chart-table-toggle {
@@ -640,3 +661,147 @@ table td div.error::after {
 .measurement-chart {
     max-width: 1000px;
 }
+
+.well-chart-row:before {
+    display: table;
+}
+
+.well-chart-row {
+    padding-top: 10px;
+    min-height: 600px;
+    padding-bottom: 25px;
+}
+
+.column-25 {
+    width: 25%;
+    float: left;
+}
+
+.column-75 {
+    width: 75%;
+    float: left;
+}
+
+.column-50 {
+    width: 50%;
+    float: left;
+    padding: 15px;
+}
+
+.height-100 {
+    height: 150px;
+}
+
+.well-table-container {
+    height: 430px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.07);
+    max-width: 750px;
+}
+
+.well-table-container tbody td:first-child {
+    width: 50%;
+}
+
+.well-table-container .table-description {
+    clear: both;
+}
+
+.title {
+    color: #24619d;
+    width: 50%;
+}
+
+.well-table-container td {
+    border: 1px solid #ebebeb;
+    padding: 10px 18px;
+    color: #333333;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.table-description {
+    padding: 20px;
+    line-height: 1.4;
+    clear: both;
+}
+
+.well-info {
+    line-height: 200px;
+    height: 100%;
+    position: relative;
+}
+
+.well-info p {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #24619d;
+}
+
+/* additional */
+.quantity-input {
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.quantity-input input {
+    height: 31px !important;
+}
+
+input[name="depth_value"] {
+    max-width: 50px;
+}
+
+input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
+input[name="diameter_value"], input[name="quality_value"], input[name="value_value"], input[name="total_depth_value"] {
+    max-width: 60px;
+}
+
+input[name="stratigraphic_unit"] {
+    max-width: 80px;
+}
+
+.many-to-many textarea[name="description"] {
+    max-width: 120px;
+    max-height: 30px;
+}
+
+@media screen and (max-width: 1430px) {
+    input[name="material"] {
+        max-width: 80px;
+    }
+
+    select[name="parameter"] {
+        max-width: 240px;
+    }
+
+    .map-wrapper {
+        padding-left: 30px;
+    }
+}
+
+/* update */
+.select2-container .select2-selection--single {
+    height: 31px !important;
+}
+
+.select2, .select-2 {
+    height: 31px;
+}
+
+.select2-container {
+    vertical-align: bottom !important;
+}
+
+
+.table-wrapper th {
+    position: sticky;
+    background: white;
+    z-index: 999;
+    top: -1px;
+}
+

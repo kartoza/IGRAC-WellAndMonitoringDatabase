@@ -14,6 +14,7 @@
             </tr>
             {% field_as_row form.original_id %}
             {% field_as_row form.name %}
+            {% field_as_row form.status %}
             {% field_as_row form.feature_type %}
             {% field_as_row form.purpose %}
             {% field_as_row form.photo %}
@@ -31,12 +32,13 @@
             </tr>
             {% field_as_row form.latitude '°' %}
             {% field_as_row form.longitude '°' %}
-            {% field_as_row form.elevation 'a.s.l.' %}
+            {% field_as_row form.ground_surface_elevation 'a.s.l.' %}
+            {% field_as_row form.top_borehole_elevation 'a.s.l.' %}
             {% field_as_row form.country %}
             {% field_as_row form.address %}
         </table>
     </div>
-    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document thedata=documents help_text='Relevant documents or images can be added here.' delete='yes' %}
+    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document help_text='Relevant documents or images can be added here.' delete='yes' %}
 </div>
 <script>
     submitFunctions['general_information'] = function () {

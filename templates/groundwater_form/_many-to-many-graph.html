@@ -14,7 +14,7 @@
                     }
                     data[parameter].push({
                         t: new Date($(this).find('*[name ="time"]').val()),
-                        y: $(this).find('*[name ="quality_value"]').val(),
+                        y: $(this).find('*[name ="value_value"]').val(),
                         methodology: $(this).find('*[name ="methodology"]').val()
                     })
                 } else {
@@ -24,7 +24,7 @@
                     }
                     data[parameter].push({
                         t: new Date($(this).find('*[name ="time"]').text()),
-                        y: $(this).find('*[name ="quality_value"]').text(),
+                        y: $(this).find('*[name ="value_value"]').text(),
                         methodology: $(this).find('*[name ="methodology"]').text()
                     })
                 }

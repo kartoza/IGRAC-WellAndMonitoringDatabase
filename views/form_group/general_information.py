@@ -14,15 +14,11 @@ class GeneralInformationGetForms(FormGroupGet):
         :return: dictionary of forms
         :rtype: dict
         """
-        documents = []
-        for document in self.well.welldocument_set.all():
-            documents.append(DocumentForm.make_from_instance(document))
         return {
             # general_information
             'general_information': GeneralInformationForm.make_from_instance(
                 self.well),
             'document': DocumentForm(),  # manytomany form
-            'documents': documents,  # manytomany data
         }
 
 

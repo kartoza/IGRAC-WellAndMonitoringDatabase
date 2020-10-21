@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from braces.views import StaffuserRequiredMixin
 from django.views.generic.base import View
+from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
 from gwml2.views.form_group.general_information import (
     GeneralInformationGetForms, GeneralInformationCreateForm
@@ -50,6 +51,9 @@ class WellView(View):
         context = {
             'read_only': self.read_only,
             'well': well,
+            'parameters': {
+                measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
+            }
         }
         context.update(GeneralInformationGetForms(well).get())
         context.update(GeologyGetForms(well).get())

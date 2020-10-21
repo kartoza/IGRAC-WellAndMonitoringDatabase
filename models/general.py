@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from adminsortable.models import Sortable
 from gwml2.models.term import _Term
 
 
@@ -26,8 +27,7 @@ class Unit(_Term):
         null=True, blank=True
     )
 
-    class Meta:
-        ordering = ('name',)
+    class Meta(Sortable.Meta):
         db_table = 'unit'
 
 
@@ -38,8 +38,7 @@ class UnitGroup(_Term):
         null=True, blank=True
     )
 
-    class Meta:
-        ordering = ('name',)
+    class Meta(Sortable.Meta):
         db_table = 'unit_group'
 
 
@@ -52,7 +51,10 @@ class Quantity(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return '{} ({})'.format(self.value, self.unit)
+        if self.unit:
+            return '{} ({})'.format(self.value, self.unit)
+        else:
+            return '{}'.format(self.value)
 
     class Meta:
         db_table = 'quantity'

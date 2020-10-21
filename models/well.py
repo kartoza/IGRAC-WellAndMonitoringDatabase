@@ -7,30 +7,7 @@ from gwml2.models.construction import Construction
 from gwml2.models.measurement import Measurement
 from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
-from gwml2.models.term import TermWellPurpose
-from gwml2.models.reference_elevation import ReferenceElevation
-
-
-# Monitoring data
-class WellGroundwaterLevel(models.Model):
-    """ Groundwater level of well"""
-    reference_elevation = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
-
-    class Meta:
-        db_table = 'well_groundwater_level'
-
-
-class WellGroundwaterLevelMeasurement(Measurement):
-    groundwater_level = models.ForeignKey(
-        WellGroundwaterLevel, on_delete=models.CASCADE,
-    )
-
-    class Meta:
-        db_table = 'well_groundwater_level_measurement'
-        ordering = ('-time',)
+from gwml2.models.term import TermWellPurpose, TermWellStatus
 
 
 class Well(GeneralInformation):
@@ -43,6 +20,10 @@ class Well(GeneralInformation):
         help_text='As recorded in the original database.')
     purpose = models.ForeignKey(
         TermWellPurpose, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    status = models.ForeignKey(
+        TermWellStatus, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     drilling = models.OneToOneField(
@@ -65,10 +46,6 @@ class Well(GeneralInformation):
         HydrogeologyParameter, on_delete=models.SET_NULL,
         null=True, blank=True
     )
-    groundwater_level = models.OneToOneField(
-        WellGroundwaterLevel, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
 
     def __str__(self):
         return self.original_id
@@ -76,6 +53,28 @@ class Well(GeneralInformation):
     class Meta:
         db_table = 'well'
         ordering = ['original_id']
+
+    def relation_queryset(self, relation_model_name):
+        """ Return queryset of relation of model
+        """
+        if relation_model_name == 'WellDocument':
+            return self.welldocument_set
+        elif relation_model_name == 'WaterStrike':
+            if self.drilling:
+                return self.drilling.waterstrike_set
+        elif relation_model_name == 'StratigraphicLog':
+            if self.drilling:
+                return self.drilling.stratigraphiclog_set
+        elif relation_model_name == 'ConstructionStructure':
+            if self.construction:
+                return self.construction.constructionstructure_set
+        elif relation_model_name == 'WellLevelMeasurement':
+            return self.welllevelmeasurement_set
+        elif relation_model_name == 'WellQualityMeasurement':
+            return self.wellqualitymeasurement_set
+        elif relation_model_name == 'WellYieldMeasurement':
+            return self.wellyieldmeasurement_set
+        return None
 
 
 # documents
@@ -89,6 +88,16 @@ class WellDocument(Document):
 
 
 # Monitoring data
+class WellLevelMeasurement(Measurement):
+    well = models.ForeignKey(
+        Well, on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        db_table = 'well_level_measurement'
+        ordering = ('-time',)
+
+
 class WellQualityMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,
