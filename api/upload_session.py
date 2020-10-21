@@ -1,7 +1,7 @@
 from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from igrac.models.upload_session import UploadSession
+from gwml2.models.upload_session import UploadSession
 
 
 class UploadSessionApiView(APIView):
