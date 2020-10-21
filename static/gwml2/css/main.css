@@ -39,7 +39,7 @@ body {
 
 #wrap {
     padding-top: 50px;
-    padding-bottom: 20px;
+    padding-bottom: 35px;
     height: 100%;
     margin-top: 0 !important;
 }
@@ -74,7 +74,7 @@ body {
 
 .form, .navigation {
     height: 100%;
-    padding-bottom: 82px;
+    padding-bottom: 41px;
     position: absolute;
     /*! top: 82px; */
 }
@@ -109,8 +109,6 @@ form input {
 }
 
 .singlepage {
-    margin-bottom: 20px;
-    padding-bottom: 40px;
     padding-top: 50px;
     padding-left: 50px;
     padding-right: 50px;
