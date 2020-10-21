@@ -4,6 +4,8 @@
 from django.conf.urls import url
 from django.urls import include
 from gwml2.api.upload_progress import get_progress_upload
+from gwml2.api.task_progress import TaskProgress
+from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.views.groundwater_form import WellView, WellFormView
 from gwml2.views.well_uploader import WellUploadView
@@ -31,5 +33,11 @@ urlpatterns = [
     url(r'^progress-upload',
         view=get_progress_upload,
         name='progress_upload'),
+    url(r'^task/(?P<task_id>.+)/progress/',
+        view=TaskProgress.as_view(),
+        name='task_progress'),
+    url(r'^well/download/',
+        view=WellDownloader.as_view(),
+        name='well_download'),
     url(r'^well/(?P<id>\d+)/', include(well_urls)),
 ]

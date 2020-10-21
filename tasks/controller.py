@@ -6,10 +6,15 @@ logger = get_task_logger(__name__)
 
 class State(object):
     PROGRESS = 'PROGRESS'
+    FINISH = 'FINISH'
 
 
-def update_progress(process_percent):
+def update_progress(process_percent, data={}):
+    data.update({
+        'process_percent': process_percent
+    })
     current_task.update_state(
-        state=State.PROGRESS,
-        meta={'process_percent': process_percent})
+        state=State.FINISH if process_percent == 100 else State.PROGRESS,
+        meta=data
+    )
     logger.debug('Progress {}%'.format(process_percent))

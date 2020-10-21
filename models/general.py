@@ -51,7 +51,10 @@ class Quantity(models.Model):
     value = models.FloatField()
 
     def __str__(self):
-        return '{} ({})'.format(self.value, self.unit)
+        if self.unit:
+            return '{} ({})'.format(self.value, self.unit)
+        else:
+            return '{}'.format(self.value)
 
     class Meta:
         db_table = 'quantity'
