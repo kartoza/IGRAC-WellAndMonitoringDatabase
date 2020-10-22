@@ -493,19 +493,6 @@ input[type="checkbox"] {
     height: 20px;
 }
 
-.add-new-many-to-many {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    text-align: right;
-    color: #24619d;
-    font-weight: bold;
-}
-
-.add-new-many-to-many:before {
-    content: '+ ';
-}
-
 .fa-question-circle-o {
     cursor: pointer;
     opacity: 0.6;
@@ -830,4 +817,21 @@ input[name="stratigraphic_unit"] {
 
 .many-to-many.fullscreen .table-wrapper {
     max-height: 80%;
+}
+
+.additional-button-table {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: #24619d;
+    font-weight: bold;
+}
+
+.additional-button-table div {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+.add-new-many-to-many:before, .add-new-many-to-many-csv:before {
+    content: '+ ';
 }

@@ -145,3 +145,19 @@ const stringToColour = function (str) {
 const feetToMeter = function (value) {
     return Math.round(parseFloat(value) / 3.281)
 }
+
+function parseCSV(data) {
+    let parsedata = [];
+    let lines = data.split("\n");
+    let headers = lines[0].split(",")
+    for (let i = 1; i < lines.length - 1; i++) {
+        let columns = lines[i].split(",");
+        let columnData = {}
+        for (let j = 0; j < columns.length; j++) {
+            columnData[headers[j]] = columns[j]
+        }
+        parsedata.push(columnData)
+    }
+    console.log(parsedata)
+    return parsedata;
+}
