@@ -3,6 +3,10 @@ function deleteRelation(elm) {
      *
      * @type {boolean}
      */
+    if (!$(elm).data('url')) {
+        $(elm).closest('tr').remove()
+        return;
+    }
     var r = confirm("Are you sure want to delete this?");
     if (r === true) {
         $.ajax({

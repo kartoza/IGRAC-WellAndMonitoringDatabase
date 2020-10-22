@@ -27,8 +27,8 @@
             {% for field in theform %}
                 <td>{{ field }}</td>
             {% endfor %}
-            <td>
-                <div></div>
+            <td onclick="deleteRelation(this)">
+                <img class="icon-svg delete" src="/static/gwml2/svg/delete.svg"/>
             </td>
         </tr>
     </template>
