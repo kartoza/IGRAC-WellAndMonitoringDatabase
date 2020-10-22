@@ -1,0 +1,45 @@
+{
+  "m": {
+    "description": "Meters",
+    "groups": [
+      "length"
+    ]
+  },
+  "ft": {
+    "description": "Feet",
+    "groups": [
+      "length"
+    ]
+  },
+  "m2/day": {
+    "description": "Cubic meter per day",
+    "html": "m&sup2;/day",
+    "groups": [
+      "flow rate"
+    ]
+  },
+  "m3/day": {
+    "html": "m&sup3;/day",
+    "groups": [
+      "flow rate"
+    ]
+  },
+  "m3/h": {
+    "html": "m&sup3;/h",
+    "groups": [
+      "flow rate"
+    ]
+  },
+  "m3/min": {
+    "html": "m&sup3;/min",
+    "groups": [
+      "flow rate"
+    ]
+  },
+  "%": {
+    "description": "Percent",
+    "groups": [
+      "Percentage"
+    ]
+  }
+}

@@ -1,13 +1,17 @@
-from gwml2.models.contact_information import *
-from gwml2.models.gw_unit_properties import *
-from gwml2.models.gw_management_area import *
-from gwml2.models.flow import *
-from gwml2.models.geometry import *
-from gwml2.models.monitoring_site import *
-from gwml2.models.universal import *
-from gwml2.models.hydrogeo_void import *
-from gwml2.models.hydrogeological_unit import *
-from gwml2.models.observations_measurements import *
-from gwml2.models.fluid_body import *
+from gwml2.models.construction import *
+from gwml2.models.drilling import *
+from gwml2.models.general import *
+from gwml2.models.general_information import *
+from gwml2.models.geology import *
+from gwml2.models.hydrogeology import *
+from gwml2.models.management import *
+from gwml2.models.measurement import *
+from gwml2.models.term import *
+from gwml2.models.term_measurement_parameter import *
 from gwml2.models.well import *
-from gwml2.models.well_construction import *
+
+# management
+from gwml2.models.well_management.organisation import *
+
+# for signals models
+from gwml2.signals import *

@@ -1,0 +1,19 @@
+<div id="{{ id }}" class="many-to-many">
+    <h4>{{ title }}
+        {% if help_text %}
+            <i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{{ help_text }}"></i>
+        {% endif %}
+        {% if use_chart %}
+            <i class="fa fa-line-chart chart-table-toggle" aria-hidden="true"
+               onclick="chartTableToggle(this,'{{ id }}')"
+            ></i>
+        {% endif %}
+        <i class="fa fa fa-arrows-alt" aria-hidden="true"
+           onclick="toggleFullScreen(this)"
+        ></i>
+    </h4>
+    {% include "groundwater_form/_many-to-many-table.html" %}
+    {% if use_chart %}
+        {% include "groundwater_form/_many-to-many-graph.html" %}
+    {% endif %}
+</div>

@@ -1,0 +1,66 @@
+{
+  "TermAquiferType": [
+    "Carbonate-rock",
+    "Igneous and metamorphic",
+    "Other - specify",
+    "Sand and gravel",
+    "Sandstone",
+    "Sandstone and carbonate-rock"
+  ],
+  "TermConfinement": [
+    "Confined",
+    "Semi-confined",
+    "Unconfined"
+  ],
+  "TermDrillingMethod": [
+    "Auger drilling",
+    "Cable tool drilling",
+    "Down-the-hole drilling",
+    "Drilled (specific method unknown)",
+    "Hand-dug",
+    "Rotary drilling"
+  ],
+  "TermFeatureType": [
+    "Borehole",
+    "Hand-dug well",
+    "Other - specify",
+    "Spring"
+  ],
+  "TermGroundwaterUse": [
+    "Domestic",
+    "Industrial",
+    "Irrigation",
+    "Livestock",
+    "Services (e.g. tourism)"
+  ],
+  "TermWellPurpose": [
+    "Drainage",
+    "Geothermal energy",
+    "Injection (Managed Aquifer Recharge)",
+    "Observation / monitoring",
+    "Production"
+  ],
+  "TermWellStatus": [
+    "Active",
+    "Dry"
+  ],
+  "TermMeasurementParameter": [
+    "Water depth [from the ground surface]",
+    "Water depth [from the top of the well]",
+    "Water level elevation a.m.s.l."
+  ],
+  "TermMeasurementParameterGroup": [
+    "Level Measurement",
+    "Quality Measurement",
+    "Yield Measurement"
+  ],
+  "TermReferenceElevationType": [
+    "Top of Borehole",
+    "Ground Surface Level ASL"
+  ],
+  "TermConstructionStructureType": [
+    "Casing",
+    "Screen",
+    "Open Interval"
+  ]
+}

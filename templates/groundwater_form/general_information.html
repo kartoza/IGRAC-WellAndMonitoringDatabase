@@ -1,0 +1,133 @@
+{% load gwml2_forms %}
+{# leaflet #}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+<div id="general_information" class="page-section">
+    <h2 class="section-title">General information</h2>
+    <div id="general_information_data" style="width: 100%">
+        <table style="width: 100%">
+            <tr>
+                <td><h4>Identification</h4></td>
+            </tr>
+            {% field_as_row form.original_id %}
+            {% field_as_row form.name %}
+            {% field_as_row form.status %}
+            {% field_as_row form.feature_type %}
+            {% field_as_row form.purpose %}
+            {% field_as_row form.photo %}
+            {% field_as_row form.description %}
+            <tr>
+                <td>
+                    <br><br>
+                    <h4>Information</h4>
+                </td>
+                <td></td>
+                <td class="map-wrapper">
+                    <div id="map-location">
+                    </div>
+                </td>
+            </tr>
+            {% field_as_row form.latitude '°' %}
+            {% field_as_row form.longitude '°' %}
+            {% field_as_row form.ground_surface_elevation 'a.s.l.' %}
+            {% field_as_row form.top_borehole_elevation 'a.s.l.' %}
+            {% field_as_row form.country %}
+            {% field_as_row form.address %}
+        </table>
+    </div>
+    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document help_text='Relevant documents or images can be added here.' delete='yes' %}
+</div>
+<script>
+    submitFunctions['general_information'] = function () {
+        let data = {}
+        $('#general_information_data').find('input,textarea,select').each(
+            function () {
+                const key = $(this).attr('name');
+                let value = $(this).val()
+                if ($(this).attr('type') === 'checkbox') {
+                    value = $(this).is(":checked")
+                }
+                data[key] = value
+            });
+
+        {# get the picture file name #}
+        let picture = $('#general_information #id_photo').get(0).files[0]
+        if (picture) {
+            data['photo'] = picture.name
+        }
+        return data
+    }
+    submitFunctions['documents'] = function () {
+        return submitFunctionsManyToMany['documents']()
+    }
+
+    {# leaflet #}
+    let map = L.map(
+        'map-location'
+    ).setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    {# Draw Control#}
+    let draggable = true;
+    {% if read_only %}
+        draggable = false;
+    {% endif %}
+    let layers = new L.FeatureGroup();
+    map.addLayer(layers);
+    map.addControl(new L.Control.Draw({
+        draw: {
+            marker: true,
+            polyline: false,
+            circle: false,
+            rectangle: false,
+            polygon: false,
+            circlemarker: false
+        },
+        edit: false
+    }));
+
+    {# Draw Event #}
+    const $lat = $('#id_latitude');
+    const $lng = $('#id_longitude');
+    let onDrag = function (e) {
+        const latLng = e.target.getLatLng()
+        $lat.val(latLng.lat)
+        $lng.val(latLng.lng)
+    }
+    map.on('draw:created', function (e) {
+        layers.clearLayers();
+        var marker = new L.Marker(e.layer.getLatLng(), {draggable: draggable});
+        marker.on('dragend', onDrag);
+        layers.addLayer(marker)
+
+        {# setup the input #}
+        const latLng = e.layer.getLatLng()
+        $lat.val(latLng.lat)
+        $lng.val(latLng.lng)
+    });
+
+    $('#id_latitude, #id_longitude').change(function () {
+        const latLng = {
+            lat: $lat.val(),
+            lng: $lng.val()
+        }
+        if (latLng.lat && latLng.lng) {
+            let marker = layers.getLayers()[0];
+            if (!layers.getLayers()[0]) {
+                marker = new L.Marker(latLng, {draggable: draggable});
+                marker.on('dragend', onDrag);
+                layers.addLayer(marker)
+            }
+            marker.setLatLng(latLng);
+            map.setView(latLng, 8);
+        }
+    })
+    $('#id_latitude, #id_longitude').trigger('change')
+    $('#id_photo').attr('accept', 'image/x-png,image/gif,image/jpeg')
+
+</script>

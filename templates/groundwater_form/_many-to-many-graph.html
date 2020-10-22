@@ -1,0 +1,85 @@
+<div id="{{ id }}_chart" class="chart measurement-chart">
+</div>
+<script>
+    chartFunctions['{{ id }}'] = function () {
+        $('#{{ id }}_chart').html('<i class="loading">loading</i>');
+        let data = {};
+        $('#{{ id }}_table table tr').each(function (index) {
+            if (index > 0) {
+                const $parameterInput = $(this).find('*[name ="parameter"]');
+                if ($parameterInput.is('select')) {
+                    const parameter = $(this).find('*[name ="parameter"] option:selected').text()
+                    if (!data[parameter]) {
+                        data[parameter] = []
+                    }
+                    data[parameter].push({
+                        t: new Date($(this).find('*[name ="time"]').val()),
+                        y: $(this).find('*[name ="value_value"]').val(),
+                        methodology: $(this).find('*[name ="methodology"]').val()
+                    })
+                } else {
+                    const parameter = $(this).find('*[name ="parameter"]').text()
+                    if (!data[parameter]) {
+                        data[parameter] = []
+                    }
+                    data[parameter].push({
+                        t: new Date($(this).find('*[name ="time"]').text()),
+                        y: $(this).find('*[name ="value_value"]').text(),
+                        methodology: $(this).find('*[name ="methodology"]').text()
+                    })
+                }
+            }
+        });
+        console.log(data)
+
+        {# create chart #}
+        $('#{{ id }}_chart').html('<canvas id="{{ id }}_chart_canvas"></canvas>');
+        var ctx = document.getElementById("{{ id }}_chart_canvas").getContext("2d");
+        let dataset = [];
+        let idx = 0;
+        $.each(data, function (key, value) {
+            dataset.push({
+                label: key,
+                data: value,
+                backgroundColor: chartColors[idx],
+                borderColor: chartColors[idx],
+                borderWidth: 1,
+                fill: false,
+                lineTension: 0
+            })
+            idx += 1;
+        });
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: dataset
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        type: 'time'
+                    }]
+                },
+                tooltips: {
+                    mode: 'point',
+                    intersect: true,
+                    callbacks: {
+                        label: function (tooltipItem, allData) {
+                            let label = allData.datasets[tooltipItem.datasetIndex].label || '';
+                            let data = allData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                            if (label) {
+                                label += ' : ';
+                            }
+                            label += tooltipItem.yLabel;
+                            if (data.methodology) {
+                                label += ', methodology :' + data.methodology;
+                            }
+                            return ' ' + label;
+                        }
+                    }
+                }
+            },
+        });
+
+    }
+</script>

@@ -1,0 +1,51 @@
+{% load gwml2_forms %}
+<div id="hydrogeology" class="page-section">
+    <h2 class="section-title">Hydrogeology</h2>
+    <div class="section">
+        <table>
+            <tr>
+                <td><h4>Aquifer</h4></td>
+            </tr>
+            {% field_as_row form.aquifer_name %}
+            {% field_as_row form.aquifer_material %}
+            {% field_as_row form.aquifer_type %}
+            {% field_as_row form.aquifer_thickness %}
+            {% field_as_row form.confinement %}
+            {% field_as_row form.degree_of_confinement %}
+            <tr>
+                <td>
+                    <br><br>
+                    <h4>Hydraulic properties</h4>
+                </td>
+            </tr>
+            {% field_as_row pumping_test.porosity %}
+            {% field_as_row pumping_test.hydraulic_conductivity %}
+            {% field_as_row pumping_test.transmissivity %}
+            {% field_as_row pumping_test.specific_storage %}
+            {% field_as_row pumping_test.specific_capacity %}
+            {% field_as_row pumping_test.storativity %}
+            {% field_as_row pumping_test.test_type %}
+            </tr>
+        </table>
+    </div>
+</div>
+<script>
+    submitFunctions['hydrogeology'] = function () {
+        let data = {
+            pumping_test: {}
+        };
+        {% for field in form %}
+            data['{{ field.name }}'] = $('#hydrogeology #{{ field.id_for_label }}').val();
+            data['{{ field.name }}_id'] = $('#hydrogeology #{{ field.id_for_label }}_id').val();
+            data['{{ field.name }}_value'] = $('#hydrogeology #{{ field.id_for_label }}_value').val();
+            data['{{ field.name }}_unit'] = $('#hydrogeology #{{ field.id_for_label }}_unit').val();
+        {% endfor %}
+        {% for field in pumping_test %}
+            data['pumping_test']['{{ field.name }}'] = $('#hydrogeology #{{ field.id_for_label }}').val();
+            data['pumping_test']['{{ field.name }}_id'] = $('#hydrogeology #{{ field.id_for_label }}_id').val();
+            data['pumping_test']['{{ field.name }}_value'] = $('#hydrogeology #{{ field.id_for_label }}_value').val();
+            data['pumping_test']['{{ field.name }}_unit'] = $('#hydrogeology #{{ field.id_for_label }}_unit').val();
+        {% endfor %}
+        return data
+    }
+</script>

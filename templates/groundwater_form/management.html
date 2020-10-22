@@ -1,0 +1,57 @@
+{% load gwml2_forms %}
+<div id="management" class="page-section">
+    <h2 class="section-title">Management</h2>
+    <div class="section">
+        <table>
+            <tr>
+                <td><h4>Organisation</h4></td>
+            </tr>
+            {% field_as_row form.manager %}
+            {% field_as_row form.description %}
+            <tr>
+                <td>
+                    <br><br>
+                    <h4>Production</h4>
+                </td>
+            </tr>
+            {% field_as_row form.groundwater_use %}
+            {% field_as_row form.number_of_users %}
+            </tr>
+            <tr>
+                <td>
+                    <br><br>
+                    <h4>License</h4>
+                </td>
+            </tr>
+            {% field_as_row license.number %}
+            {% field_as_row license.valid_from %}
+            {% field_as_row license.valid_until %}
+            {% field_as_row license.description %}
+        </table>
+    </div>
+</div>
+
+<script>
+    $('#management #id_valid_from').attr('autocomplete', 'off')
+    $('#management #id_valid_until').attr('autocomplete', 'off')
+    submitFunctions['management'] = function () {
+        let data = {
+            license: {}
+        }
+        {% for field in form %}
+            data['{{ field.name }}'] = $('#management #{{ field.id_for_label }}').val()
+        {% endfor %}
+        {% for field in license %}
+            data['license']['{{ field.name }}'] = $('#management #{{ field.id_for_label }}').val()
+        {% endfor %}
+        return data
+    }
+    $(document).ready(function () {
+        $('#management #id_valid_from').datepicker({
+            dateFormat: 'yy-mm-dd',
+        });
+        $('#management #id_valid_until').datepicker({
+            dateFormat: 'yy-mm-dd',
+        });
+    })
+</script>

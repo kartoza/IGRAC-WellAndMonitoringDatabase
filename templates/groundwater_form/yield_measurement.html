@@ -1,0 +1,12 @@
+{% load gwml2_forms %}
+<div id="yield-measurement" class="page-section">
+    <h2 class="section-title">Yield measurement</h2>
+    {% include "groundwater_form/_many-to-many.html" with id='yield_measurement' title='Measurement' theform=yield_measurement help_text='' use_chart=True delete='yes' %}
+</div>
+<script>
+    submitFunctions['yield_measurement'] = function () {
+        return {
+            measurements: submitFunctionsManyToMany['yield_measurement']()
+        };
+    }
+</script>

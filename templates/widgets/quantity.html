@@ -1,0 +1,29 @@
+<div class="quantity-input">
+    <input
+            type="{{ widget.type }}"
+            name="{{ widget.name }}_id"
+            {% if id != None %} value="{{ id }}" {% endif %}
+            id="{{ widget.attrs.id }}_id"
+            hidden
+    />
+    <input
+            type="{{ widget.type }}"
+            name="{{ widget.name }}_value"
+            {% if value != None %} value="{{ value }}" {% endif %}
+            id="{{ widget.attrs.id }}_value"
+            placeholder=""
+            {% include "django/forms/widgets/attrs.html" %}
+    />
+    <select id="{{ widget.attrs.id }}_unit" name="{{ widget.name }}_unit"
+            data-value="{% if unit %}{{ unit }}{% else %}None{% endif %}"
+            class="select-2">
+        {% if not unit_required %}
+            <option value=""></option>
+        {% endif %}
+        {% for choice in unit_choices %}
+            <option value="{{ choice.name }}"
+                    {% if unit == choice.id %} selected {% endif %}
+            >{{ choice.html |safe }}</option>
+        {% endfor %}
+    </select>
+</div>

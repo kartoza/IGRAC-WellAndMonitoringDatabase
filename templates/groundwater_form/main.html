@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block page_title %}
+    <h1>Well form.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'gwml2/font/stylesheet.css' %}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script>
+        let chartFunctions = {};
+        let submitFunctions = {};
+        let submitFunctionsManyToMany = {};
+        let parameters = {{ parameters|safe }};
+        let mainData = {};
+        {% if read_only %}
+            const readOnly = true;
+        {% else %}
+            const readOnly = false;
+        {% endif %}
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="wrapper">
+        <div class="inner-wrapper">
+            <div class="page-header">
+                <h5>Groundwater Point Form</h5>
+            </div>
+            <div class="form">
+                <form method="POST" id="form" enctype="multipart/form-data">
+                    <div class="form-title">
+                        <span>General Information</span>
+                        {% if not read_only %}
+                            <button id="form-submit" class="pull-right" type="submit">Submit</button>
+                        {% elif user.is_staff %}
+                            <a id="form-submit" class="pull-right" href="{% url 'well_form' well.id %}">
+                                Go to form
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% csrf_token %}
+                    <div class="singlepage">
+                        {# GENERAL INFORMATION #}
+                        {% include "groundwater_form/general_information.html" with form=general_information %}
+                        {# DRILLING AND CONSTRUCTION #}
+                        {% include "groundwater_form/drilling_and_construction.html" %}
+                        {# HYDROGEOLOGY #}
+                        {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
+                        {# MANAGEMENT #}
+                        {% include "groundwater_form/management.html" with form=management %}
+                        {# MONITORING DATA #}
+                        {% include "groundwater_form/level_measurement.html" %}
+                        {% include "groundwater_form/quality_measurement.html" %}
+                        {% include "groundwater_form/yield_measurement.html" %}
+                    </div>
+                </form>
+            </div>
+            <div class="navigation">
+                <div class="inner-navigation">
+                    <ul class="nav">
+                        <li class="nav active">
+                            <a data-toggle="tab" href="#general_information">
+                                {% include "svg/general.html" %} <span>General Information</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li class="nav">
+                            <a data-toggle="tab" href="#drilling-and-construction">
+                                {% include "svg/drilling.html" %} <span>Drilling and Construction</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li class="nav">
+                            <a data-toggle="tab" href="#hydrogeology">
+                                {% include "svg/hydrogeology.html" %} <span>Hydrogeology </span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li class="nav">
+                            <a data-toggle="tab" href="#management">
+                                {% include "svg/management.html" %} <span>Management</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a>
+                                {% include "svg/monitoring.html" %} Monitoring Data <span class="abstract-nav"></span>
+                            </a>
+                            <ul class="nav sub-nav">
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#level-measurement">
+                                        <span>Groundwater Level</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#quality-measurement">
+                                        <span>Groundwater Quality</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                                <li class="nav">
+                                    <a data-toggle="tab" href="#yield-measurement">
+                                        <span>Yield / Abstraction </span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $('#form').validate({
+            errorElement: 'div',
+            invalidHandler: function (event, validator) {
+                $('.navigation a').removeClass('error')
+                if (validator.invalid) {
+                    setTimeout(function () {
+                        $('div.error:visible').each(function () {
+                            $("a[href$='#" + $(this).closest('.page-section').attr('id') + "']").addClass('error')
+                        })
+                    }, 100);
+                }
+            },
+            submitHandler: function (form, event) {
+                $('.navigation a').removeClass('error')
+                event.preventDefault();
+                let data = {}
+                $.each(submitFunctions, function (form, value) {
+                    data[form] = value();
+                });
+                var formData = new FormData();
+                $('input[type="file"]').each(function () {
+                    let file = $(this).get(0).files[0];
+                    if (file) {
+                        formData.append(file.name, file);
+                    }
+                });
+                formData.append('data', JSON.stringify(data));
+                $.ajax({
+                    url: window.location,
+                    type: "POST",
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function (xhr, settings) {
+                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", $(this).find('*[name=csrfmiddlewaretoken]').val());
+                        }
+                    },
+                    success: function (data) {
+                        location.reload();
+                    },
+                    error: function (error) {
+                        alert(error['responseText'])
+                    },
+                    data: formData
+                });
+            }
+        });
+    </script>
+{% endblock %}
+
+{% block extra_script %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.js"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="{% static 'gwml2/js/scripts.js' %}"></script>
+    <script src="{% static 'gwml2/js/many-to-many-script.js' %}"></script>
+
+    <script>
+        $(document).ready(function () {
+            {% if read_only %}
+                makeReadOnly();
+            {% else %}
+                $(".select-2").select2({
+                    tags: true
+                });
+            {% endif %}
+        });
+    </script>
+{% endblock extra_script %}

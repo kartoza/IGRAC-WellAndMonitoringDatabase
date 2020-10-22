@@ -45,7 +45,9 @@ class GWML2Router(object):
         Make sure the auth and contenttypes apps only appear in the
         'auth_db' database.
         """
-        if app_label == self.app_label:
+        if app_label in self.app_label:
+            return db == GWML2DATABASE
+        elif app_label == self.app_label:
             return db == GWML2DATABASE
         else:
             return db == DEFAULT_DATABASE
