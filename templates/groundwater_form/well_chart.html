@@ -136,7 +136,7 @@
             <table>
                 <tr>
                     <td width="30%">Top depth</td>
-                     <td><%= stratigraphy.actual_top %> <%= stratigraphy.actual_top_depth_unit %>
+                    <td><%= stratigraphy.actual_top %> <%= stratigraphy.actual_top_depth_unit %>
                         (<%= stratigraphy.translated_top %> <%= stratigraphy.translated_top_depth_unit %>)
                     </td>
                 </tr>
@@ -153,7 +153,10 @@
                 <% if (stratigraphy.data) { %>
                 <tr>
                     <td>Material</td>
-                    <td><div style="height: 10px; width: 10px; opacity: 0.5; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div><%= stratigraphy.data.material %></td>
+                    <td>
+                        <div style="height: 10px; width: 10px; opacity: 0.5; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
+                        <%= stratigraphy.data.material %>
+                    </td>
                 </tr>
                 <tr>
                     <td>Stratigraphy Unit</td>
@@ -185,25 +188,7 @@
 <script type="text/javascript" src="{% static 'js/underscore-1.11.0/underscore-min.js' %}"></script>
 <script>
 
-    const stringToColour = function (str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        let colour = '#';
-        for (let i = 0; i < 2; i++) {
-            let value = (hash >> (i * 8)) & 0xFF;
-            colour += ('00' + value.toString(16)).substr(-2);
-        }
-        colour += '00'
-        return colour;
-    }
-
-    const feetToMeter = function (value) {
-        return Math.round(parseFloat(value) / 3.281)
-    }
-
-    const getData = function () {
+    const getWellChartData = function () {
         // Get chart data
         let ground_surface_elevation = $('#id_ground_surface_elevation_value').val();
         let ground_surface_elevation_unit = $('#id_ground_surface_elevation_unit').val();
@@ -219,16 +204,16 @@
             top_borehole_elevation = feetToMeter(top_borehole_elevation)
         }
 
-        let stratigraphicLogData = $('#stratigraphic_log_table .table-wrapper tr:has(td)').map(function(i, v) {
+        let stratigraphicLogData = $('#stratigraphic_log_table .table-wrapper tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
-            let top =  parseFloat(`${$td.eq(2).find('[name^="top_depth_value"]').val()}`);
+            let top = parseFloat(`${$td.eq(2).find('[name^="top_depth_value"]').val()}`);
             let bottom = parseFloat(`${$td.eq(3).find('[name^="bottom_depth_value"]').val()}`);
             let top_depth_unit = `${$td.eq(2).find('[name^="top_depth_unit"]').val()}`;
             let bottom_depth_unit = `${$td.eq(3).find('[name^="bottom_depth_unit"]').val()}`;
             let actual_top = top;
             let actual_bottom = bottom;
             let reference_elevation = `${$td.eq(1).find('[name^="reference_elevation"]').find('option:selected').text()}`;
-            let actual_top_depth_unit =  top_depth_unit;
+            let actual_top_depth_unit = top_depth_unit;
             let actual_bottom_depth_unit = bottom_depth_unit;
             if (top_depth_unit === 'ft') {
                 top = feetToMeter(top);
@@ -264,17 +249,17 @@
             }
         }).get();
 
-        let constructionData = $('#structure_table tr:has(td)').map(function(i, v) {
+        let constructionData = $('#structure_table tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
             let type = `${$td.eq(1).find('[name^="type"]').find('option:selected').text()}`;
             let reference_elevation = `${$td.eq(2).find('[name^="reference_elevation"]').find('option:selected').text()}`;
-            let top =  parseFloat(`${$td.eq(3).find('[name^="top_depth_value"]').val()}`);
+            let top = parseFloat(`${$td.eq(3).find('[name^="top_depth_value"]').val()}`);
             let bottom = parseFloat(`${$td.eq(4).find('[name^="bottom_depth_value"]').val()}`);
             let actual_top = top;
             let actual_bottom = bottom;
             let top_depth_unit = `${$td.eq(3).find('[name^="top_depth_unit"]').val()}`;
             let bottom_depth_unit = `${$td.eq(4).find('[name^="bottom_depth_unit"]').val()}`;
-            let actual_top_depth_unit =  top_depth_unit;
+            let actual_top_depth_unit = top_depth_unit;
             let actual_bottom_depth_unit = bottom_depth_unit;
             if (top_depth_unit === 'ft') {
                 top = feetToMeter(top);
@@ -313,12 +298,12 @@
             }
         }).get();
 
-        stratigraphicLogData.sort((a,b) => (a.translated_top > b.translated_top) ? 1 : ((b.translated_top > a.translated_top) ? -1 : 0));
+        stratigraphicLogData.sort((a, b) => (a.translated_top > b.translated_top) ? 1 : ((b.translated_top > a.translated_top) ? -1 : 0));
 
         // CONSTRUCTION DATA
         const constructionPatterns = [];
         const stratigraphicColors = [];
-        constructionData.sort((a,b) => (a.top > b.top) ? 1 : ((b.top > a.top) ? -1 : 0));
+        constructionData.sort((a, b) => (a.top > b.top) ? 1 : ((b.top > a.top) ? -1 : 0));
         constructionData.forEach((_constructionData, index) => {
             if (_constructionData['type'] === 'Screen') {
                 constructionPatterns.push('pattern');
@@ -343,6 +328,7 @@
         if (top_borehole_elevation) {
             topBoreholeChart = top_borehole_elevation * -1;
         }
+        $('#well-chart-container').html('')
         if (stratigraphicLogData.length > 0 || constructionData.length > 0) {
             createWellChart(chartData, 'well-chart-container', 'well-table-container', topBoreholeChart);
         } else {
@@ -350,12 +336,9 @@
         }
     }
 
-    $(function () {
-        setTimeout(function () {
-            // Wait for the data
-            getData()
-        }, 1 * 1000);
-    });
+    function wellChart() {
+        getWellChartData()
+    }
 
     /**
      * Render chart with chartData to a div with id of chartId

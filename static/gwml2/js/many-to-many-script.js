@@ -55,7 +55,7 @@ function initRowData($row) {
         });
         $inputParameter.trigger('change')
     }
-    $row.find('input,select').change(function () {
+    $row.find('input,select,textarea').change(function () {
         $row.addClass('updated')
     });
 }
@@ -79,6 +79,7 @@ function addRowData($table, html) {
 
 function fetchManyToMany($element, set) {
     let $wrapper = $element;
+    let $manyToMany = $element.closest('.many-to-many');
     let $table = $element.find('table');
     $wrapper.attr('disabled', true);
     return $.ajax({
@@ -106,6 +107,12 @@ function fetchManyToMany($element, set) {
             $wrapper.data('set', data['set']);
             if (!data['end']) {
                 $wrapper.attr('disabled', false);
+            }
+
+            // render well chart
+            if ($manyToMany.attr('id') === 'stratigraphic_log' || $manyToMany.attr('id') === 'structure') {
+                console.log('render')
+                wellChart()
             }
         },
         error: function (error, textStatus, request) {
