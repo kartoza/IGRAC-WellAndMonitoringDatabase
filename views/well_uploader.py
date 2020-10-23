@@ -11,7 +11,7 @@ from braces.views import StaffuserRequiredMixin
 
 from gwml2.forms import CsvWellForm
 from gwml2.tasks import well_from_excel
-from igrac.models.upload_session import UploadSession
+from gwml2.models.upload_session import UploadSession
 
 
 class WellUploadView(StaffuserRequiredMixin, FormView):
@@ -82,8 +82,8 @@ class WellUploadView(StaffuserRequiredMixin, FormView):
 
         if form.is_valid():
             upload_session = UploadSession.objects.create(
-                category='well',
-                uploader=request.user,
+                organisation=form.cleaned_data['organisation'],
+                category='well_upload',
                 upload_file=gw_well_file
             )
 

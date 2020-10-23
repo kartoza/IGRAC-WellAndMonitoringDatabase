@@ -81,13 +81,13 @@
                 <div class="well well-sm" style="border: 2px solid {% if past_upload_session.is_canceled %} #ca3232 {% else %} #48b14f {% endif %}">
                     <div class="container-fluid row" style="padding-top: 10px;">
                         <div class="col-xs-2">
-                            <p>Uploader</p>
+                            <p>Organisation</p>
                             <p>Uploaded at</p>
                             <p>Status</p>
                             <p>Notes</p>
                         </div>
                         <div class="col-xs-10">
-                            <p>: {{ past_upload_session.uploader }}</p>
+                            <p>: {{ past_upload_session.organisation }}</p>
                             <p>: {{ past_upload_session.uploaded_at }}</p>
                             <p>: {% if past_upload_session.is_canceled %}Canceled{% else %}Processed{% endif %}</p>
                             <p>: {{ past_upload_session.status }}</p>
@@ -104,7 +104,7 @@
             let uploadProgress = 0;
             {% if upload_session %}
                 let upload_session_uuid = '{{ upload_session.token }}';
-                let url = '/upload-session/' + upload_session_uuid;
+                let url = '/groundwater/upload-session/' + upload_session_uuid;
                 let progressInterval = setInterval(function () {
                     $.ajax({
                         url: url,
@@ -122,7 +122,7 @@
                             }
                         }
                     });
-                }, 200)
+                }, 1000)
             {% endif %}
         })
     </script>

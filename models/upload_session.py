@@ -3,21 +3,19 @@
 
 """
 import uuid
-from django.conf import settings
 from datetime import datetime
 from django.db import models
+from gwml2.models.well_management.organisation import Organisation
 
 
 class UploadSession(models.Model):
     """Upload session model
     """
-
-    uploader = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        models.SET_NULL,
-        related_name='upload_session_uploader',
-        blank=True,
+    organisation = models.ForeignKey(
+        Organisation,
+        on_delete=models.SET_NULL,
         null=True,
+        blank=True
     )
 
     token = models.UUIDField(

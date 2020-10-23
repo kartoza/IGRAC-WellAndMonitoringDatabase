@@ -6,8 +6,9 @@ from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 from gwml2.models.general import Quantity, Unit, Country
 from gwml2.models.well import Well
-from gwml2.models.term import TermWellPurpose, TermFeatureType
-from igrac.models.upload_session import UploadSession
+from gwml2.models.term import TermWellPurpose, TermFeatureType, TermReferenceElevationType
+from gwml2.models.upload_session import UploadSession
+from gwml2.models.reference_elevation import ReferenceElevation
 
 logger = get_task_logger(__name__)
 
@@ -26,8 +27,12 @@ ADDRESS = 11
 DESCRIPTION = 12
 
 
-def validate_well_records(records):
+def validate_well_records(organisation, records):
     """ Validate well records
+
+       :param organisation: Organisation of the uploader
+       :type organisation: Organisation
+
        :param records: list of Well records from excel
        :type records: list
 
@@ -36,7 +41,11 @@ def validate_well_records(records):
     """
     # Check if ids are all unique
     for record in records:
-        if Well.objects.filter(original_id=record[ID]).exists():
+        record_id = '{org}-{id}'.format(
+            org=organisation.name,
+            id=record[ID]
+        )
+        if Well.objects.filter(original_id=record_id).exists():
             return False, 'One of the ID is not unique : {}'.format(
                 record[ID]
             )
@@ -60,6 +69,8 @@ def well_from_excel(self, upload_session_token):
     logger.debug('----- Begin processing excel -------')
 
     well_location_file = upload_session.upload_file
+    organisation = upload_session.organisation
+
     location_records = []
     if well_location_file:
         well_location_file.seek(0)
@@ -81,7 +92,8 @@ def well_from_excel(self, upload_session_token):
     item = 0
 
     if location_records:
-        validated, message = validate_well_records(location_records)
+        validated, message = validate_well_records(
+            organisation, location_records)
         if not validated:
             upload_session.update_progress(
                 finished=True,
@@ -92,11 +104,15 @@ def well_from_excel(self, upload_session_token):
 
         for record in location_records:
             item += 1
+            record_id = '{org}-{id}'.format(
+                org=organisation.name,
+                id=record[ID]
+            )
 
             # update the percentage of progress
             process_percent = (item / total_records) * 100
             upload_session.update_progress(
-                status='Processing {}'.format(record[ID]),
+                status='Processing {}'.format(record_id),
                 progress=int(process_percent)
             )
 
@@ -133,9 +149,28 @@ def well_from_excel(self, upload_session_token):
                     Unit.objects.get_or_create(
                         name=record[GROUND_ELEVATION_UNIT])
                 )
-                additional_fields['elevation'] = Quantity.objects.create(
+                ground_surface_elevation = Quantity.objects.create(
                     value=record[GROUND_ELEVATION_NUMBER],
                     unit=elevation_unit
+                )
+                additional_fields['ground_surface_elevation'] = (
+                    ground_surface_elevation
+                )
+
+            if (
+                record[TOP_CASING_ELEVATION_UNIT] and
+                record[TOP_CASING_ELEVATION_NUMBER]
+            ):
+                top_casing_elevation_unit, _ = (
+                    Unit.objects.get_or_create(
+                        name=record[TOP_CASING_ELEVATION_UNIT])
+                )
+                top_casing_elevation_quantity = Quantity.objects.create(
+                    value=record[TOP_CASING_ELEVATION_NUMBER],
+                    unit=top_casing_elevation_unit
+                )
+                additional_fields['top_borehole_elevation'] = (
+                    top_casing_elevation_quantity
                 )
 
             try:
@@ -144,7 +179,7 @@ def well_from_excel(self, upload_session_token):
                 pass
 
             Well.objects.get_or_create(
-                original_id=record[ID],
+                original_id=record_id,
                 location=point,
                 address=record[ADDRESS],
                 **additional_fields
