@@ -1,10 +1,12 @@
 import uuid
 import os
+import shutil
+import zipfile
 
 from django.conf import settings
 from django.http import JsonResponse
-from collections import OrderedDict
-from pyexcel_xlsx import save_data
+from shutil import copyfile
+from openpyxl import load_workbook
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -16,6 +18,11 @@ logger = get_task_logger(__name__)
 
 @shared_task(bind=True, queue='update')
 def download_well(self, filters=None):
+    DJANGO_ROOT = os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        ))
+
     logger.debug('----- begin download  -------')
     if filters:
         # TODO :
@@ -26,117 +33,110 @@ def download_well(self, filters=None):
     total_records = wells.count()
     logger.debug('Found {} wells'.format(total_records))
 
-    # headers
-    informations = [
-        [
-            'Original ID', 'Status', 'Feature Type', 'Purpose', 'Description',
-            'Latitude', 'Longitude', 'Ground surface elevation', 'Top borehole elevation', 'Country', 'Address',  # Information
-        ]
-    ]
-    drilling_construction = [
-        [
-            'Total Depth', 'Drilling Method', 'Driller', 'Successful', 'Cause of failure ', 'Year of drilling',  # Drilling
-            'Pump Construction', 'Pump Description'  # Construction
-        ]
-    ]
-    hydrogeology = [
-        [
-            'Aquifer name', 'Aquifer material', 'Aquifer type', 'Aquifer thickness', 'Confinement', 'Degree of confinement',  # Aquifer
-            'Porosity', 'Hydraulic conductivity', 'Transmissivity', 'Specific storage', 'Specific capacity', 'Storativity', 'Test type'  # Hydraulic properties
-        ]
-    ]
-    management = [
-        [
-            'Manager / Owner', 'Management Description',
-            'Groundwater use', 'Number of people served',  # Production
-            'Number', 'Valid from', 'Valid until', 'License Description'  # License
-        ]
-    ]
+    # save it to media
+    unique_id = uuid.uuid4()
+    folder = os.path.join(
+        settings.MEDIA_ROOT, 'gwml2', 'download', str(unique_id)
+    )
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    # create file
+    wells_filename = 'wells.xlsx'
+    wells_file = os.path.join(folder, wells_filename)
+    monitoring_filename = 'monitoring_data.xlsx'
+    monitoring_file = os.path.join(folder, monitoring_filename)
+
+    # copy template to actual folder
+    copyfile(
+        os.path.join(
+            DJANGO_ROOT, 'gwml2', 'fixtures', 'download_template', wells_filename),
+        wells_file)
+    copyfile(
+        os.path.join(
+            DJANGO_ROOT, 'gwml2', 'fixtures', 'download_template', monitoring_filename),
+        monitoring_file)
+
+    # open sheet
+    well_book = load_workbook(wells_file)
+    well_sheet = well_book.active
+
+    monitor_book = load_workbook(monitoring_file)
+    level_measurement_sheet = monitor_book['Level Measurement']
+    quality_measurement_sheet = monitor_book['Quality Measurement']
+    yield_measurement_sheet = monitor_book['Yield Measurement']
+
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
         update_progress(process_percent)
 
         # append data
-        informations.append([
+        well_sheet.append([
             well.original_id,
-            well.status.__str__() if well.status else '',
+            well.name,
             well.feature_type.__str__() if well.feature_type else '',
             well.purpose.__str__() if well.purpose else '',
-            well.description,
-
-            # information
             well.location.y,
             well.location.x,
-            well.ground_surface_elevation.__str__() if well.ground_surface_elevation else '',
-            well.top_borehole_elevation.__str__() if well.top_borehole_elevation else '',
+            well.ground_surface_elevation.value if well.ground_surface_elevation else '',
+            well.ground_surface_elevation.unit.name if well.ground_surface_elevation else '',
+            well.top_borehole_elevation.value if well.top_borehole_elevation else '',
+            well.top_borehole_elevation.unit.name if well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
             well.country.__str__() if well.country else '',
             well.address,
+            well.description,
         ])
 
-        drilling_construction.append([
-            well.drilling.total_depth.__str__() if well.drilling and well.drilling.total_depth else '',
-            well.drilling.drilling_method.__str__() if well.drilling and well.drilling.drilling_method else '',
-            well.drilling.driller if well.drilling else '',
-            well.drilling.successful if well.drilling else '',
-            well.drilling.cause_of_failure if well.drilling else '',
-            well.drilling.year_of_drilling if well.drilling else '',
+        # level
+        for measurement in well.welllevelmeasurement_set.all():
+            level_measurement_sheet.append([
+                well.original_id,
+                well.country.__str__() if well.country else '',
+                measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
+                measurement.parameter.__str__() if measurement.parameter else '',
+                measurement.value.value if measurement.value else '',
+                measurement.value.unit.name if measurement.value and measurement.value.unit else '',
+                measurement.methodology
+            ])
 
-            # pump
-            well.construction.pump_installer if well.construction else '',
-            well.construction.pump_description if well.construction else '',
-        ])
+        # quality
+        for measurement in well.wellqualitymeasurement_set.all():
+            quality_measurement_sheet.append([
+                well.original_id,
+                well.country.__str__() if well.country else '',
+                measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
+                measurement.parameter.__str__() if measurement.parameter else '',
+                measurement.value.value if measurement.value else '',
+                measurement.value.unit.name if measurement.value and measurement.value.unit else '',
+                measurement.methodology
+            ])
+        # yield
+        for measurement in well.wellyieldmeasurement_set.all():
+            yield_measurement_sheet.append([
+                well.original_id,
+                well.country.__str__() if well.country else '',
+                measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
+                measurement.parameter.__str__() if measurement.parameter else '',
+                measurement.value.value if measurement.value else '',
+                measurement.value.unit.name if measurement.value and measurement.value.unit else '',
+                measurement.methodology
+            ])
 
-        hydrogeology.append([
-            # Aquifer
-            well.hydrogeology_parameter.aquifer_name if well.hydrogeology_parameter else '',
-            well.hydrogeology_parameter.aquifer_material if well.hydrogeology_parameter else '',
-            well.hydrogeology_parameter.aquifer_type.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_type else '',
-            well.hydrogeology_parameter.aquifer_thickness.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_thickness else '',
-            well.hydrogeology_parameter.confinement.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.confinement else '',
-            well.hydrogeology_parameter.degree_of_confinement if well.hydrogeology_parameter else '',
+    well_book.save(wells_file)
+    monitor_book.save(monitoring_file)
 
-            # Hydraulic properties
-            well.hydrogeology_parameter.pumping_test.porosity if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test else '',
-            well.hydrogeology_parameter.pumping_test.hydraulic_conductivity.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.hydraulic_conductivity else '',
-            well.hydrogeology_parameter.pumping_test.transmissivity.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.transmissivity else '',
-            well.hydrogeology_parameter.pumping_test.specific_storage.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_storage else '',
-            well.hydrogeology_parameter.pumping_test.specific_capacity.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_capacity else '',
-            well.hydrogeology_parameter.pumping_test.storativity if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test else '',
-            well.hydrogeology_parameter.pumping_test.test_type if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test else '',
-        ])
+    # zipping files
+    zip_filename = '{}.zip'.format(str(unique_id))
+    zip_file = os.path.join(
+        settings.MEDIA_ROOT, 'gwml2', 'download', zip_filename
+    )
+    zip_file = zipfile.ZipFile(zip_file, 'w')
+    zip_file.write(wells_file, wells_filename, compress_type=zipfile.ZIP_DEFLATED)
+    zip_file.write(monitoring_file, monitoring_filename, compress_type=zipfile.ZIP_DEFLATED)
+    zip_file.close()
+    shutil.rmtree(folder)
 
-        management.append([
-            well.management.manager if well.management else '',
-            well.management.groundwater_use.__str__() if well.management and well.management.groundwater_use else '',
-            well.management.description if well.management else '',
-            well.management.number_of_users if well.management else '',
-
-            # license
-            well.management.license.number if well.management and well.management.license else '',
-            well.management.license.valid_from.strftime('%Y-%m-%d') if well.management and well.management.license and well.management.license.valid_from else '',
-            well.management.license.valid_until.strftime('%Y-%m-%d') if well.management and well.management.license and well.management.license.valid_until else '',
-            well.management.license.description if well.management and well.management.license else '',
-
-        ])
-
-    data = OrderedDict()
-    data.update({"Information": informations})
-    data.update({"Drilling and Construction": drilling_construction})
-    data.update({"Hydrogeology": hydrogeology})
-    data.update({"Management": management})
-
-    # save it to media
-    MEDIA_ROOT = settings.MEDIA_ROOT
-    folder = os.path.join(MEDIA_ROOT, 'gwml2', 'download')
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    filename = '{}.xlsx'.format(str(uuid.uuid4()))
-    file = os.path.join(folder, filename)
-    save_data(file, data)
-
-    MEDIA_URL = settings.MEDIA_URL
-    url = os.path.join(MEDIA_URL, 'gwml2', 'download', filename)
-
+    url = os.path.join(settings.MEDIA_URL, 'gwml2', 'download', zip_filename)
     update_progress(100, {
         'url': url
     })
