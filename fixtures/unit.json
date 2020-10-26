@@ -11,27 +11,23 @@
       "length"
     ]
   },
-  "m2/day": {
+  "m²/day": {
     "description": "Cubic meter per day",
-    "html": "m&sup2;/day",
     "groups": [
       "flow rate"
     ]
   },
-  "m3/day": {
-    "html": "m&sup3;/day",
+  "m³/day": {
     "groups": [
       "flow rate"
     ]
   },
-  "m3/h": {
-    "html": "m&sup3;/h",
+  "m³/h": {
     "groups": [
       "flow rate"
     ]
   },
-  "m3/min": {
-    "html": "m&sup3;/min",
+  "m³/min": {
     "groups": [
       "flow rate"
     ]
@@ -41,5 +37,63 @@
     "groups": [
       "Percentage"
     ]
+  },
+  "S/m": {
+    "description": "siemens/metre",
+    "groups": []
+  },
+  "μS/cm": {
+    "description": "micro Siemens/centimetres",
+    "groups": []
+  },
+  "°C": {
+    "description": "Celcius",
+    "groups": [
+      "Temperature"
+    ]
+  },
+  "°F": {
+    "description": "Fahrenheit",
+    "groups": [
+      "Temperature"
+    ]
+  },
+  "°K": {
+    "description": "Kelvin",
+    "groups": [
+      "Temperature"
+    ]
+  },
+  "mg/L": {
+    "description": "Milligrams per litre",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "ng/L": {
+    "description": "Nanogram per litre",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "μg/L": {
+    "description": "Microgram per litre",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "ppm": {
+    "description": "Parts per million",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "cfu per mL": {
+    "description": "Colony forming unit per mL",
+    "groups": []
+  },
+  "cfu per 100 ml": {
+    "description": "Colony forming unit per 100 mL",
+    "groups": []
   }
 }

@@ -14,7 +14,7 @@ class QuantityInput(forms.widgets.Input):
         try:
             if unit_group:
                 self.unit_group = UnitGroup.objects.get(name=unit_group)
-        except ProgrammingError:
+        except (ProgrammingError, UnitGroup.DoesNotExist):
             pass
         self.unit_required = unit_required
 
@@ -26,7 +26,7 @@ class QuantityInput(forms.widgets.Input):
         if value:
             quantity = Quantity.objects.get(id=value)
             context['value'] = '%s' % quantity.value
-            context['unit'] = quantity.unit.id
+            context['unit'] = quantity.unit.id if quantity.unit else ''
         else:
             context['value'] = ''
             context['unit'] = ''

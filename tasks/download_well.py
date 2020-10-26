@@ -120,9 +120,9 @@ def download_well(self, filters=None):
             for water_strike in well.drilling.waterstrike_set.all():
                 water_strike_sheet.append([
                     well.original_id,
-                    water_strike.depth.value.value,
-                    water_strike.depth.value.unit.__str__() if water_strike.depth.value.unit else '',
-                    water_strike.depth.reference.__str__() if water_strike.depth.reference else ''
+                    water_strike.depth.value.value if water_strike.depth and water_strike.depth.value else '',
+                    water_strike.depth.value.unit.__str__() if water_strike.depth and water_strike.depth.value and water_strike.depth.value.unit else '',
+                    water_strike.depth.reference.__str__() if water_strike.depth and water_strike.depth.reference else ''
                 ])
 
             # stratigraphic
@@ -205,7 +205,6 @@ def download_well(self, filters=None):
         for measurement in well.welllevelmeasurement_set.all():
             level_measurement_sheet.append([
                 well.original_id,
-                well.country.__str__() if well.country else '',
                 measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
                 measurement.parameter.__str__() if measurement.parameter else '',
                 measurement.value.value if measurement.value else '',
@@ -217,7 +216,6 @@ def download_well(self, filters=None):
         for measurement in well.wellqualitymeasurement_set.all():
             quality_measurement_sheet.append([
                 well.original_id,
-                well.country.__str__() if well.country else '',
                 measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
                 measurement.parameter.__str__() if measurement.parameter else '',
                 measurement.value.value if measurement.value else '',
@@ -228,7 +226,6 @@ def download_well(self, filters=None):
         for measurement in well.wellyieldmeasurement_set.all():
             yield_measurement_sheet.append([
                 well.original_id,
-                well.country.__str__() if well.country else '',
                 measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
                 measurement.parameter.__str__() if measurement.parameter else '',
                 measurement.value.value if measurement.value else '',

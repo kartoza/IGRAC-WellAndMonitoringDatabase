@@ -15,6 +15,8 @@ openpyxl==3.0.5
 pyexcel_xls
 pyexcel_xlsx
 
+Run `python manage.py update_fixtures` to run all fixtures
+
 # Database
 the groundwater will be added into your "default" database. <br>
 if you want to add it into new database, please prepare:
