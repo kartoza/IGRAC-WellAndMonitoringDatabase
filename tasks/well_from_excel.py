@@ -7,16 +7,15 @@ from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 from gwml2.models.general import Quantity, Unit, Country
 from gwml2.models.well import Well, WellLevelMeasurement
-from gwml2.models.term import TermWellPurpose, TermFeatureType, TermReferenceElevationType
+from gwml2.models.term import TermWellPurpose, TermWellStatus, TermFeatureType, TermReferenceElevationType
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.upload_session import UploadSession
-from gwml2.models.reference_elevation import ReferenceElevation
 
 logger = get_task_logger(__name__)
 
 ID = 0
 NAME = 1
-STATUS_TYPE = 2
+STATUS = 2
 FEATURE_TYPE = 3
 PURPOSE = 4
 LAT = 5
@@ -103,6 +102,14 @@ def test_celery(self):
     logger.debug('Upload session does not exists')
 
 
+def getRecordByIndex(record, INDEX):
+    """ Return record by index """
+    try:
+        return record[INDEX]
+    except IndexError:
+        return None
+
+
 def _processing_well_descriptor_file(upload_session):
     logger.debug('----- Begin processing excel -------')
 
@@ -142,9 +149,25 @@ def _processing_well_descriptor_file(upload_session):
 
         for record in location_records:
             item += 1
+
+            _id = getRecordByIndex(record, ID)
+            _lon = getRecordByIndex(record, LON)
+            _lat = getRecordByIndex(record, LAT)
+            _country = getRecordByIndex(record, COUNTRY)
+            _status = getRecordByIndex(record, STATUS)
+            _purpose = getRecordByIndex(record, PURPOSE)
+            _feature_type = getRecordByIndex(record, FEATURE_TYPE)
+            _ground_elevation_unit = getRecordByIndex(record, GROUND_ELEVATION_UNIT)
+            _ground_elevation_number = getRecordByIndex(record, GROUND_ELEVATION_NUMBER)
+            _top_casing_elevation_unit = getRecordByIndex(record, TOP_CASING_ELEVATION_UNIT)
+            _top_casing_elevation_number = getRecordByIndex(record, TOP_CASING_ELEVATION_NUMBER)
+            _description = getRecordByIndex(record, DESCRIPTION)
+            _address = getRecordByIndex(record, ADDRESS)
+
+
             record_id = '{org}-{id}'.format(
                 org=organisation.name,
-                id=record[ID]
+                id=_id
             )
 
             # update the percentage of progress
@@ -154,41 +177,47 @@ def _processing_well_descriptor_file(upload_session):
                 progress=int(process_percent)
             )
 
-            point = Point(x=record[LON], y=record[LAT], srid=4326)
+            point = Point(x=_lon, y=_lat, srid=4326)
 
             additional_fields = {}
 
-            if record[COUNTRY]:
+            if _country:
                 additional_fields['country'], _ = (
                     Country.objects.get_or_create(
-                        code=record[COUNTRY]
+                        code=_country
                     )
                 )
 
-            if record[PURPOSE]:
+            if _status:
+                additional_fields['status'], _ = (
+                    TermWellStatus.objects.get_or_create(
+                        name=_status
+                    )
+                )
+            if _purpose:
                 additional_fields['purpose'], _ = (
                     TermWellPurpose.objects.get_or_create(
-                        name=record[PURPOSE]
+                        name=_purpose
                     )
                 )
 
-            if record[FEATURE_TYPE]:
+            if _feature_type:
                 additional_fields['feature_type'], _ = (
                     TermFeatureType.objects.get_or_create(
-                        name=record[FEATURE_TYPE]
+                        name=_feature_type
                     )
                 )
 
             if (
-                record[GROUND_ELEVATION_UNIT] and
-                record[GROUND_ELEVATION_NUMBER]
+                    _ground_elevation_unit and
+                    _ground_elevation_number
             ):
                 elevation_unit, _ = (
                     Unit.objects.get_or_create(
-                        name=record[GROUND_ELEVATION_UNIT])
+                        name=_ground_elevation_unit)
                 )
                 ground_surface_elevation = Quantity.objects.create(
-                    value=record[GROUND_ELEVATION_NUMBER],
+                    value=_ground_elevation_number,
                     unit=elevation_unit
                 )
                 additional_fields['ground_surface_elevation'] = (
@@ -196,15 +225,15 @@ def _processing_well_descriptor_file(upload_session):
                 )
 
             if (
-                record[TOP_CASING_ELEVATION_UNIT] and
-                record[TOP_CASING_ELEVATION_NUMBER]
+                    _top_casing_elevation_unit and
+                    _top_casing_elevation_number
             ):
                 top_casing_elevation_unit, _ = (
                     Unit.objects.get_or_create(
-                        name=record[TOP_CASING_ELEVATION_UNIT])
+                        name=_top_casing_elevation_unit)
                 )
                 top_casing_elevation_quantity = Quantity.objects.create(
-                    value=record[TOP_CASING_ELEVATION_NUMBER],
+                    value=_top_casing_elevation_number,
                     unit=top_casing_elevation_unit
                 )
                 additional_fields['top_borehole_elevation'] = (
@@ -212,14 +241,14 @@ def _processing_well_descriptor_file(upload_session):
                 )
 
             try:
-                additional_fields['description'] = record[DESCRIPTION]
+                additional_fields['description'] = _description
             except IndexError:
                 pass
 
             Well.objects.get_or_create(
                 original_id=record_id,
                 location=point,
-                address=record[ADDRESS],
+                address=_address,
                 **additional_fields
             )
 
@@ -269,9 +298,17 @@ def _processing_well_monitoring_file(upload_session):
 
         for record in records:
             item += 1
+
+            _id = getRecordByIndex(record, ID)
+            _monitoring_date_and_time = getRecordByIndex(record, MONITORING_DATE_AND_TIME)
+            _monitoring_parameter = getRecordByIndex(record, MONITORING_PARAMETER)
+            _monitoring_value = getRecordByIndex(record, MONITORING_VALUE)
+            _monitoring_unit = getRecordByIndex(record, MONITORING_UNIT)
+            _monitoring_method = getRecordByIndex(record, MONITORING_METHOD)
+
             record_id = '{org}-{id}'.format(
                 org=organisation.name,
-                id=record[ID]
+                id=_id
             )
 
             # update the percentage of progress
@@ -288,12 +325,12 @@ def _processing_well_monitoring_file(upload_session):
 
             # -- Date and time ('%Y-%m-%d %H:%M:%S') e.g '2020-10-20 14:00:00'
             date_and_time = datetime.datetime.strptime(
-                record[MONITORING_DATE_AND_TIME],
+                _monitoring_date_and_time,
                 '%Y-%m-%d %H:%M:%S'
             )
 
             # -- Parameter
-            parameter = record[MONITORING_PARAMETER]
+            parameter = _monitoring_parameter
             measurement_parameter, _ = (
                 TermMeasurementParameter.objects.get_or_create(
                     name=parameter
@@ -301,8 +338,8 @@ def _processing_well_monitoring_file(upload_session):
             )
 
             # -- Value & Unit
-            value = record[MONITORING_VALUE]
-            unit = record[MONITORING_UNIT]
+            value = _monitoring_value
+            unit = _monitoring_unit
             if value and unit:
                 measurement_unit, _ = (
                     Unit.objects.get_or_create(
@@ -315,7 +352,7 @@ def _processing_well_monitoring_file(upload_session):
                 )
 
             # -- Method
-            method = record[MONITORING_METHOD]
+            method = _monitoring_method
             if method:
                 additional_fields['methodology'] = method
 
@@ -343,15 +380,14 @@ def _processing_well_monitoring_file(upload_session):
         finished=True,
         progress=100,
         status=(
-               'Added {added} monitoring data'.format(
-                   added=added)
+            'Added {added} monitoring data'.format(
+                added=added)
         )
     )
 
-    
+
 @shared_task(bind=True, queue='update')
 def well_from_excel(self, upload_session_token):
-
     try:
         upload_session = UploadSession.objects.get(token=upload_session_token)
     except UploadSession.DoesNotExist:

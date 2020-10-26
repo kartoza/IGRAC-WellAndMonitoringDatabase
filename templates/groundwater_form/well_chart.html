@@ -316,8 +316,6 @@
                 }
             }
         }).get();
-        console.log(stratigraphicLogData)
-        console.log(constructionData)
         stratigraphicLogData.sort((a, b) => (a.translated_top > b.translated_top) ? 1 : ((b.translated_top > a.translated_top) ? -1 : 0));
 
         // CONSTRUCTION DATA
