@@ -79,13 +79,23 @@ class WellUploadView(StaffuserRequiredMixin, FormView):
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         gw_well_file = request.FILES.get('gw_well_file')
+        gw_monitoring_file = request.FILES.get('gw_well_monitoring_file')
 
         if form.is_valid():
-            upload_session = UploadSession.objects.create(
-                organisation=form.cleaned_data['organisation'],
-                category='well_upload',
-                upload_file=gw_well_file
-            )
+            if gw_well_file:
+                upload_session = UploadSession.objects.create(
+                    organisation=form.cleaned_data['organisation'],
+                    category='well_upload',
+                    upload_file=gw_well_file
+                )
+            elif gw_monitoring_file:
+                upload_session = UploadSession.objects.create(
+                    organisation=form.cleaned_data['organisation'],
+                    category='well_monitoring_upload',
+                    upload_file=gw_monitoring_file
+                )
+            else:
+                return self.form_invalid(form)
 
             well_from_excel.delay(upload_session.token)
             return self.form_valid(form)

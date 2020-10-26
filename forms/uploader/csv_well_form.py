@@ -16,5 +16,11 @@ class CsvWellForm(forms.Form):
     gw_well_file = forms.FileField(
         label="Well Descriptors:",
         widget=forms.FileInput(attrs={'class': 'form-control'}),
-        required=True
+        required=False
+    )
+
+    gw_well_monitoring_file = forms.FileField(
+        label="Well Monitoring:",
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        required=False
     )
