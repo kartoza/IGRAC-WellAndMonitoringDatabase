@@ -20,65 +20,149 @@
         .form-group p:hover {
             box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);
         }
+
+        .tab-pane {
+            padding: 40px;
+            border-bottom: 1px solid rgb(221, 221, 221);
+            border-left: 1px solid rgb(221, 221, 221);
+            border-right: 1px solid rgb(221, 221, 221);
+        }
     </style>
 
     <div class="container">
         <div class="page-header">
-            <h2>Upload Well Excel File.</h2>
+            <h2>Well Upload Form</h2>
         </div>
         <div class="row">
-            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-                <form action="" method="post" name="file" enctype="multipart/form-data" class="form-horizontal">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <div class="col-md-8">
-                            {{ form.as_p }}
+            {% if upload_session %}
+                <div class="container">
+                    <h2>Upload progress {{ upload_session_file_name }}</h2>
+                    <div class="progress">
+                        <div id="upload-progress"
+                             class="progress-bar progress-bar-success"
+                             role="progressbar" aria-valuenow="0"
+                             aria-valuemin="0" aria-valuemax="100"
+                             style="width:0%">
+                            0%
                         </div>
                     </div>
-                    <div class="row form-group">
-                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12" style="margin-top: 20px">
-                            <a href="{% url "well_upload_view" %}" class="btn btn-danger pull-left" onClick="$(form)[0].reset();" style="margin-right: 10px">Clear </a>
-                            <button class="btn btn-primary pull-left"><span class="glyphicon glyphicon-upload" style="margin-right:5px;" type="file"></span>Upload</button>
-                        </div>
+                    <div id="upload-progress-status"
+                         class="alert alert-warning" role="alert">
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    {% if task_id %}
-        <div class="container" style="margin-top: 25px">
-            <h2>Upload progress {{ task_id }}</h2>
-            <div class="progress">
-                <div id="upload-progress" class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width:0%">
-                    0%
                 </div>
-            </div>
+            {% else %}
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <form action="" method="post" name="file"
+                          enctype="multipart/form-data"
+                          class="form-horizontal">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                {{ form.as_p }}
+                            </div>
+                        </div>
+
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="home-tab"
+                                   data-toggle="tab" href="#well-descriptor" role="tab"
+                                   aria-controls="home" aria-selected="true">Well Descriptors</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="profile-tab"
+                                   data-toggle="tab"
+                                   href="#well-monitoring" role="tab"
+                                   aria-controls="profile"
+                                   aria-selected="false">Well Monitoring</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="myTabContent">
+                            <div class="tab-pane fade" id="well-descriptor"
+                                 role="tabpanel" aria-labelledby="home-tab">
+                            </div>
+                            <div class="tab-pane fade" id="well-monitoring"
+                                 role="tabpanel"
+                                 aria-labelledby="profile-tab">
+                            </div>
+                        </div>
+
+                        <div class="row form-group">
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12"
+                                 style="margin-top: 20px">
+                                <a href="{% url "well_upload_view" %}"
+                                   class="btn btn-danger pull-left"
+                                   onClick="$(form)[0].reset();"
+                                   style="margin-right: 10px">Clear </a>
+                                <button class="btn btn-primary pull-left"><span
+                                        class="glyphicon glyphicon-upload"
+                                        style="margin-right:5px;"
+                                        type="file"></span>Upload
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+
+
+            {% endif %}
+
         </div>
-    {% endif %}
+
+        {% if past_upload_sessions %}
+            <h5>Past Upload Sessions</h5>
+            <div style="height: 20px"></div>
+            {% for past_upload_session in past_upload_sessions %}
+                <div class="well well-sm" style="border: 2px solid {% if past_upload_session.is_canceled %} #ca3232 {% else %} #48b14f {% endif %}">
+                    <div class="container-fluid row" style="padding-top: 10px;">
+                        <div class="col-xs-2">
+                            <p>Organisation</p>
+                            <p>Uploaded at</p>
+                            <p>Status</p>
+                            <p>Notes</p>
+                        </div>
+                        <div class="col-xs-10">
+                            <p>: {{ past_upload_session.organisation }}</p>
+                            <p>: {{ past_upload_session.uploaded_at }}</p>
+                            <p>: {% if past_upload_session.is_canceled %}Canceled{% else %}Processed{% endif %}</p>
+                            <p>: {{ past_upload_session.status }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
 
     <script src="{% static "lib/js/jquery.js" %}"></script>
     <script>
         $(document).ready(function () {
+
+            $('#id_gw_well_file').parent().appendTo('#well-descriptor');
+            $('#id_gw_well_monitoring_file').parent().appendTo('#well-monitoring');
+            $('#myTab a[href="#well-descriptor"]').tab('show')
+
             let uploadProgress = 0;
-            {% if task_id %}
-                let task_id = '{{ task_id }}';
+            {% if upload_session %}
+                let upload_session_uuid = '{{ upload_session.token }}';
+                let url = '/groundwater/upload-session/' + upload_session_uuid;
                 let progressInterval = setInterval(function () {
                     $.ajax({
-                        url: '{% url "progress_upload" %}?task_id=' + task_id,
+                        url: url,
                         type: "GET",
                         success: function (data) {
-                            uploadProgress = data.process_percent
-
+                            uploadProgress = data.progress
                             $('#upload-progress').css('width', uploadProgress + '%').html(
                                 uploadProgress.toFixed(1) + '%'
                             );
-                            if (uploadProgress >= 100) {
-                                clearInterval(progressInterval);
+                            if (data.status) {
+                                $('#upload-progress-status').html(data.status);
+                            }
+                            if (uploadProgress >= 100 || data['is_processed'] || data['is_canceled']) {
+                                location.reload();
                             }
                         }
                     });
-                }, 200)
+                }, 1000)
             {% endif %}
         })
     </script>

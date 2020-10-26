@@ -2,6 +2,7 @@ from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import reverse
 from django.views.generic import FormView
@@ -10,6 +11,7 @@ from braces.views import StaffuserRequiredMixin
 
 from gwml2.forms import CsvWellForm
 from gwml2.tasks import well_from_excel
+from gwml2.models.upload_session import UploadSession
 
 
 class WellUploadView(StaffuserRequiredMixin, FormView):
@@ -41,10 +43,21 @@ class WellUploadView(StaffuserRequiredMixin, FormView):
 
         context = super(
             WellUploadView, self).get_context_data(**kwargs)
-        try:
-            context['task_id'] = self.request.session['task_id']
-        except KeyError:
-            context['task_id'] = None
+        upload_sessions = UploadSession.objects.filter(
+            is_canceled=False,
+            is_processed=False
+        )
+        if upload_sessions.count() > 0:
+            upload_session = upload_sessions[0]
+            context['upload_session'] = upload_session
+            context['upload_session_file_name'] = (
+                upload_session.upload_file.name.split('/')[1]
+            )
+        past_upload_sessions = UploadSession.objects.filter(
+            Q(is_canceled=True) |
+            Q(is_processed=True)
+        )
+        context['past_upload_sessions'] = past_upload_sessions[:5]
         return context
 
     def get_form_kwargs(self):
@@ -57,7 +70,6 @@ class WellUploadView(StaffuserRequiredMixin, FormView):
         kwargs = super(WellUploadView, self).get_form_kwargs()
         return kwargs
 
-    @transaction.atomic()
     def post(self, request, *args, **kwargs):
         """Get form instance from upload.
 
@@ -66,32 +78,26 @@ class WellUploadView(StaffuserRequiredMixin, FormView):
         """
         form_class = self.get_form_class()
         form = self.get_form(form_class)
-        gw_location_file = request.FILES.get('gw_location_file')
-        gw_level_file = request.FILES.get('gw_level_file')
-        location_records = None
-        level_records = None
+        gw_well_file = request.FILES.get('gw_well_file')
+        gw_monitoring_file = request.FILES.get('gw_well_monitoring_file')
 
         if form.is_valid():
-            if gw_location_file:
-                gw_location_file.seek(0)
-                if str(gw_location_file).split('.')[-1] == "xls":
-                    sheet = xls_get(gw_location_file, column_limit=4)
-                elif str(gw_location_file).split('.')[-1] == "xlsx":
-                    sheet = xlsx_get(gw_location_file, column_limit=4)
-                sheetname = next(iter(sheet))
-                location_records = sheet[sheetname]
+            if gw_well_file:
+                upload_session = UploadSession.objects.create(
+                    organisation=form.cleaned_data['organisation'],
+                    category='well_upload',
+                    upload_file=gw_well_file
+                )
+            elif gw_monitoring_file:
+                upload_session = UploadSession.objects.create(
+                    organisation=form.cleaned_data['organisation'],
+                    category='well_monitoring_upload',
+                    upload_file=gw_monitoring_file
+                )
+            else:
+                return self.form_invalid(form)
 
-            if gw_level_file:
-                gw_level_file.seek(0)
-                if str(gw_level_file).split('.')[-1] == "xls":
-                    sheet = xls_get(gw_level_file, column_limit=4)
-                elif str(gw_level_file).split('.')[-1] == "xlsx":
-                    sheet = xlsx_get(gw_level_file, column_limit=4)
-                sheetname = next(iter(sheet))
-                level_records = sheet[sheetname]
-
-            job = well_from_excel.delay(location_records, level_records)
-            request.session['task_id'] = job.id
+            well_from_excel.delay(upload_session.token)
             return self.form_valid(form)
 
         else:
