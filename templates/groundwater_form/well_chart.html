@@ -187,32 +187,45 @@
         src="{% static 'js/chroma.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/underscore-1.11.0/underscore-min.js' %}"></script>
 <script>
-
+    const valElmt = function ($element) {
+        if ($element.is('select')) {
+            return $element.find('option:selected').text()
+        } else if ($element.is('input')) {
+            return $element.val()
+        } else {
+            return $element.text()
+        }
+    }
     const getWellChartData = function () {
         // Get chart data
-        let ground_surface_elevation = $('#id_ground_surface_elevation_value').val();
-        let ground_surface_elevation_unit = $('#id_ground_surface_elevation_unit').val();
+        let ground_surface_elevation = valElmt($('*[name^="ground_surface_elevation_value"]'));
+        let ground_surface_elevation_unit = valElmt($('*[name^="ground_surface_elevation_unit"]'));
 
         if (ground_surface_elevation_unit === 'ft') {
             ground_surface_elevation = feetToMeter(ground_surface_elevation)
         }
 
-        let top_borehole_elevation = $('#id_top_borehole_elevation_value').val();
-        let top_borehole_elevation_unit = $('#id_top_borehole_elevation_unit').val();
+        let top_borehole_elevation = valElmt($('*[name^="top_borehole_elevation_value"]'));
+        let top_borehole_elevation_unit = valElmt($('*[name^="top_borehole_elevation_unit"]'));
 
         if (top_borehole_elevation_unit === 'ft') {
             top_borehole_elevation = feetToMeter(top_borehole_elevation)
         }
+        let totalDepth = valElmt($('*[name^="total_depth_value"]'))
+        let totalDepthUnit = valElmt($('*[name^="total_depth_unit"]'))
+        if (totalDepthUnit === 'ft') {
+            totalDepth = feetToMeter(totalDepth)
+        }
 
         let stratigraphicLogData = $('#stratigraphic_log_table .table-wrapper tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
-            let top = parseFloat(`${$td.eq(2).find('[name^="top_depth_value"]').val()}`);
-            let bottom = parseFloat(`${$td.eq(3).find('[name^="bottom_depth_value"]').val()}`);
-            let top_depth_unit = `${$td.eq(2).find('[name^="top_depth_unit"]').val()}`;
-            let bottom_depth_unit = `${$td.eq(3).find('[name^="bottom_depth_unit"]').val()}`;
+            let top = parseFloat(`${valElmt($td.eq(2).find('[name^="top_depth_value"]'))}`);
+            let bottom = parseFloat(`${valElmt($td.eq(3).find('[name^="bottom_depth_value"]'))}`);
+            let top_depth_unit = `${valElmt($td.eq(2).find('[name^="top_depth_unit"]'))}`;
+            let bottom_depth_unit = `${valElmt($td.eq(3).find('[name^="bottom_depth_unit"]'))}`;
             let actual_top = top;
             let actual_bottom = bottom;
-            let reference_elevation = `${$td.eq(1).find('[name^="reference_elevation"]').find('option:selected').text()}`;
+            let reference_elevation = `${valElmt($td.eq(1).find('[name^="reference_elevation"]'))}`;
             let actual_top_depth_unit = top_depth_unit;
             let actual_bottom_depth_unit = bottom_depth_unit;
             if (top_depth_unit === 'ft') {
@@ -224,11 +237,14 @@
                 bottom_depth_unit = 'm';
             }
             if (reference_elevation === 'Top of Borehole') {
-                bottom -= top_borehole_elevation;
-                top -= top_borehole_elevation;
+                bottom = top_borehole_elevation - bottom;
+                top = top_borehole_elevation - top;
+            } else if (reference_elevation === 'Ground Surface Level ASL') {
+                bottom = ground_surface_elevation - bottom;
+                top = ground_surface_elevation - top;
             }
             return {
-                id: parseInt(`${$td.eq(0).find('[name^="id_"]').val()}`),
+                id: parseInt(`${valElmt($td.eq(0).find('[name^="id_"]'))}`),
                 top: top,
                 bottom: bottom,
                 top_depth_unit: top_depth_unit,
@@ -243,22 +259,22 @@
                 translated_top_depth_unit: top_depth_unit,
                 translated_bottom_depth_unit: bottom_depth_unit,
                 data: {
-                    material: `${$td.eq(4).find('[name^="material"]').val()}`,
-                    unit: `${$td.eq(5).find('[name^="stratigraphic_unit"]').val()}`,
+                    material: `${valElmt($td.eq(4).find('[name^="material"]'))}`,
+                    unit: `${valElmt($td.eq(5).find('[name^="stratigraphic_unit"]'))}`,
                 }
             }
         }).get();
 
         let constructionData = $('#structure_table tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
-            let type = `${$td.eq(1).find('[name^="type"]').find('option:selected').text()}`;
-            let reference_elevation = `${$td.eq(2).find('[name^="reference_elevation"]').find('option:selected').text()}`;
-            let top = parseFloat(`${$td.eq(3).find('[name^="top_depth_value"]').val()}`);
-            let bottom = parseFloat(`${$td.eq(4).find('[name^="bottom_depth_value"]').val()}`);
+            let type = `${valElmt($td.eq(1).find('[name^="type"]'))}`;
+            let reference_elevation = `${valElmt($td.eq(2).find('[name^="reference_elevation"]'))}`;
+            let top = parseFloat(`${valElmt($td.eq(3).find('[name^="top_depth_value"]'))}`);
+            let bottom = parseFloat(`${valElmt($td.eq(4).find('[name^="bottom_depth_value"]'))}`);
             let actual_top = top;
             let actual_bottom = bottom;
-            let top_depth_unit = `${$td.eq(3).find('[name^="top_depth_unit"]').val()}`;
-            let bottom_depth_unit = `${$td.eq(4).find('[name^="bottom_depth_unit"]').val()}`;
+            let top_depth_unit = `${valElmt($td.eq(3).find('[name^="top_depth_unit"]'))}`;
+            let bottom_depth_unit = `${valElmt($td.eq(4).find('[name^="bottom_depth_unit"]'))}`;
             let actual_top_depth_unit = top_depth_unit;
             let actual_bottom_depth_unit = bottom_depth_unit;
             if (top_depth_unit === 'ft') {
@@ -270,11 +286,14 @@
                 bottom_depth_unit = 'm';
             }
             if (reference_elevation === 'Top of Borehole') {
-                bottom -= top_borehole_elevation;
-                top -= top_borehole_elevation;
+                bottom = top_borehole_elevation - bottom;
+                top = top_borehole_elevation - top;
+            } else if (reference_elevation === 'Ground Surface Level ASL') {
+                bottom = ground_surface_elevation - bottom;
+                top = ground_surface_elevation - top;
             }
             return {
-                id: parseInt(`${$td.eq(0).find('[name^="id_"]').val()}`),
+                id: parseInt(`${valElmt($td.eq(0).find('[name^="id_"]'))}`),
                 top: top,
                 bottom: bottom,
                 type: type,
@@ -291,13 +310,14 @@
                 translated_bottom_depth_unit: bottom_depth_unit,
                 data: {
                     'type': type,
-                    'diameter': `${$td.eq(5).find('[name^="diameter"]').val()}`,
-                    'material': `${$td.eq(6).find('[name^="material"]').val()}`,
-                    'description': `${$td.eq(7).find('[name^="description"]').val()}`,
+                    'diameter': `${valElmt($td.eq(5).find('[name^="diameter"]'))}`,
+                    'material': `${valElmt($td.eq(6).find('[name^="material"]'))}`,
+                    'description': `${valElmt($td.eq(7).find('[name^="description"]'))}`,
                 }
             }
         }).get();
-
+        console.log(stratigraphicLogData)
+        console.log(constructionData)
         stratigraphicLogData.sort((a, b) => (a.translated_top > b.translated_top) ? 1 : ((b.translated_top > a.translated_top) ? -1 : 0));
 
         // CONSTRUCTION DATA

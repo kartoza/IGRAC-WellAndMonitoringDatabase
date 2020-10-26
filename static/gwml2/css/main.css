@@ -79,15 +79,25 @@ body {
     /*! top: 82px; */
 }
 
-.form {
+.leaflet-control {
+    display: none;
+}
+
+#overlay-loading {
     width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: white;
+    z-index: 999;
 }
 
 .form {
+    width: 100%;
     padding-left: 280px;
     font-size: 14px;
     background: #f8f8f8;
-    /*! position: relative; */
 }
 
 form {
