@@ -164,7 +164,6 @@ def _processing_well_descriptor_file(upload_session):
             _description = getRecordByIndex(record, DESCRIPTION)
             _address = getRecordByIndex(record, ADDRESS)
 
-
             record_id = '{org}-{id}'.format(
                 org=organisation.name,
                 id=_id
@@ -325,7 +324,7 @@ def _processing_well_monitoring_file(upload_session):
 
             # -- Date and time ('%Y-%m-%d %H:%M:%S') e.g '2020-10-20 14:00:00'
             date_and_time = datetime.datetime.strptime(
-                _monitoring_date_and_time,
+                str(_monitoring_date_and_time).split('.')[0],
                 '%Y-%m-%d %H:%M:%S'
             )
 
