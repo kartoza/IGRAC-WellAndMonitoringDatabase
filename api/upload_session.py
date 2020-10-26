@@ -1,10 +1,9 @@
-from django.http import Http404
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.http import JsonResponse, Http404
+from django.views.generic.base import View
 from gwml2.models.upload_session import UploadSession
 
 
-class UploadSessionApiView(APIView):
+class UploadSessionApiView(View):
     """
     Return status of the upload session
     """
@@ -16,7 +15,7 @@ class UploadSessionApiView(APIView):
             )
         except UploadSession.DoesNotExist:
             raise Http404('No session found')
-        return Response({
+        return JsonResponse({
             'token': session.token,
             'progress': session.progress,
             'is_processed': session.is_processed,
