@@ -16,17 +16,18 @@ logger = get_task_logger(__name__)
 
 ID = 0
 NAME = 1
-FEATURE_TYPE = 2
-PURPOSE = 3
-LAT = 4
-LON = 5
-GROUND_ELEVATION_NUMBER = 6
-GROUND_ELEVATION_UNIT = 7
-TOP_CASING_ELEVATION_NUMBER = 8
-TOP_CASING_ELEVATION_UNIT = 9
-COUNTRY = 10
-ADDRESS = 11
-DESCRIPTION = 12
+STATUS_TYPE = 2
+FEATURE_TYPE = 3
+PURPOSE = 4
+LAT = 5
+LON = 6
+GROUND_ELEVATION_NUMBER = 7
+GROUND_ELEVATION_UNIT = 8
+TOP_CASING_ELEVATION_NUMBER = 9
+TOP_CASING_ELEVATION_UNIT = 10
+COUNTRY = 11
+ADDRESS = 12
+DESCRIPTION = 13
 
 MONITORING_ID = 0
 MONITORING_DATE_AND_TIME = 1
@@ -113,9 +114,9 @@ def _processing_well_descriptor_file(upload_session):
         well_location_file.seek(0)
         sheet = None
         if str(well_location_file).split('.')[-1] == 'xls':
-            sheet = xls_get(well_location_file, column_limit=15)
+            sheet = xls_get(well_location_file, column_limit=20)
         elif str(well_location_file).split('.')[-1] == 'xlsx':
-            sheet = xlsx_get(well_location_file, column_limit=15)
+            sheet = xlsx_get(well_location_file, column_limit=20)
         if sheet:
             sheet_name = next(iter(sheet))
             location_records = sheet[sheet_name]
