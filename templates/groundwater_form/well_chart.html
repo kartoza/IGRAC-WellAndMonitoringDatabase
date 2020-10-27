@@ -217,7 +217,11 @@
             totalDepth = feetToMeter(totalDepth)
         }
 
-        top_borehole_elevation -= ground_surface_elevation;
+        if (top_borehole_elevation) {
+            top_borehole_elevation -= ground_surface_elevation;
+        } else {
+            top_borehole_elevation = 0
+        }
 
         let stratigraphicLogData = $('#stratigraphic_log_table .table-wrapper tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
