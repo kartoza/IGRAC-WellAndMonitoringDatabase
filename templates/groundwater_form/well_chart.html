@@ -208,6 +208,12 @@
             totalDepth = feetToMeter(totalDepth)
         }
 
+        if (top_borehole_elevation) {
+            top_borehole_elevation -= ground_surface_elevation;
+        } else {
+            top_borehole_elevation = 0
+        }
+
         let stratigraphicLogData = $('#stratigraphic_log_table .table-wrapper tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
             let top = parseFloat(`${valElmt($td.eq(2).find('[name^="top_depth_value"]'))}`);
@@ -228,11 +234,11 @@
                 bottom_depth_unit = 'm';
             }
             if (reference_elevation === 'Top of Borehole') {
-                bottom = top_borehole_elevation - bottom;
-                top = top_borehole_elevation - top;
+                bottom = bottom - top_borehole_elevation;
+                top = top - top_borehole_elevation;
             } else if (reference_elevation === 'Ground Surface Level ASL') {
-                bottom = ground_surface_elevation - bottom;
-                top = ground_surface_elevation - top;
+                bottom = bottom;
+                top = top;
             }
             return {
                 id: parseInt(`${valElmt($td.eq(0).find('[name^="id_"]'))}`),
@@ -277,11 +283,11 @@
                 bottom_depth_unit = 'm';
             }
             if (reference_elevation === 'Top of Borehole') {
-                bottom = top_borehole_elevation - bottom;
-                top = top_borehole_elevation - top;
+                bottom = bottom - top_borehole_elevation;
+                top = top - top_borehole_elevation;
             } else if (reference_elevation === 'Ground Surface Level ASL') {
-                bottom = ground_surface_elevation - bottom;
-                top = ground_surface_elevation - top;
+                bottom = bottom;
+                top = top;
             }
             return {
                 id: parseInt(`${valElmt($td.eq(0).find('[name^="id_"]'))}`),
