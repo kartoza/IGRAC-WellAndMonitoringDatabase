@@ -61,5 +61,8 @@ class DocumentForm(forms.ModelForm):
         data['time'] = instance.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')
         filename, file_extension = os.path.splitext(instance.file.url)
         data['file_type'] = file_extension.replace('.', '')
-        data['file_size'] = convert_size(os.path.getsize(instance.file.path))
+        if os.path.exists(instance.file.path):
+            data['file_size'] = convert_size(os.path.getsize(instance.file.path))
+        else:
+            data['file_size'] = 'not found'
         return DocumentForm(initial=data, instance=instance)
