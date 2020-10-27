@@ -387,6 +387,11 @@ select {
     padding: 8px 0;
 }
 
+.read-only .many-to-many .input-data {
+    min-height: 0;
+    padding: 0;
+}
+
 .quantity-input .select2, .quantity-input .select-2 {
     margin-left: -6px;
     border-bottom-left-radius: 0;

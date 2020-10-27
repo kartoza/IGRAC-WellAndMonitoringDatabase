@@ -45,7 +45,7 @@
             <div class="page-header">
                 <h5>Groundwater Point Form</h5>
             </div>
-            <div class="form">
+            <div class="form {% if read_only %}read-only{% endif %}">
                 <form method="POST" id="form" enctype="multipart/form-data">
                     <div id="overlay-loading"></div>
                     <div class="form-title">
