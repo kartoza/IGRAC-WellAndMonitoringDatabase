@@ -305,6 +305,11 @@ h2.section-title {
     opacity: 0.7;
 }
 
+#form-submit:disabled {
+    cursor: progress;
+    opacity: 0.7;
+}
+
 .map-wrapper {
     position: relative;
     width: 50%;

@@ -129,6 +129,7 @@
             submitHandler: function (form, event) {
                 $('.navigation a').removeClass('error')
                 event.preventDefault();
+                $('#form-submit').attr("disabled", true);
                 let data = {}
                 $.each(submitFunctions, function (form, value) {
                     data[form] = value();
