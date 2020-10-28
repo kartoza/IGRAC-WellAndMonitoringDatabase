@@ -2,6 +2,7 @@ import json
 from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from braces.views import StaffuserRequiredMixin
 from django.views.generic.base import View
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
@@ -45,9 +46,7 @@ class FormNotValid(Exception):
 class WellView(View):
     read_only = True
 
-    def get(self, request, id, *args, **kwargs):
-        well = get_object_or_404(Well, id=id)
-
+    def get_context(self, well):
         context = {
             'read_only': self.read_only,
             'well': well,
@@ -64,6 +63,12 @@ class WellView(View):
         context.update(YieldMeasurementGetForms(well).get())
         context.update(QualityMeasurementGetForms(well).get())
         context.update(LevelMeasurementGetForms(well).get())
+        return context
+
+    def get(self, request, id, *args, **kwargs):
+        well = get_object_or_404(Well, id=id)
+
+        context = self.get_context(well)
         return render(
             request, 'groundwater_form/main.html',
             context
@@ -84,36 +89,67 @@ class WellFormView(StaffuserRequiredMixin, WellView):
             raise FormNotValid(json.dumps(form.errors))
         return form
 
+    def create_data(self, well, data):
+        general_information = GeneralInformationCreateForm(well, data, self.request.FILES)
+        geology = GeologyCreateForm(well, data, self.request.FILES)
+        drilling = DrillingCreateForm(well, data, self.request.FILES)
+        construction = ConstructionCreateForm(well, data, self.request.FILES)
+        hydrogeology = HydrogeologyCreateForm(well, data, self.request.FILES)
+        management = ManagementCreateForm(well, data, self.request.FILES)
+        yield_measurement = YieldMeasurementCreateForm(well, data, self.request.FILES)
+        quality_measurement = QualityMeasurementCreateForm(well, data, self.request.FILES)
+        level_measurement = LevelMeasurementCreateForm(well, data, self.request.FILES)
+
+        # -----------------------------------------
+        # save all forms
+        # -----------------------------------------
+        geology.save()
+        construction.save()
+        drilling.save()
+        management.save()
+        hydrogeology.save()
+        yield_measurement.save()
+        quality_measurement.save()
+        level_measurement.save()
+        general_information.save()
+
     def post(self, request, id, *args, **kwargs):
         data = json.loads(request.POST['data'])
         well = get_object_or_404(Well, id=id)
 
         try:
-            general_information = GeneralInformationCreateForm(well, data, self.request.FILES)
-            geology = GeologyCreateForm(well, data, self.request.FILES)
-            drilling = DrillingCreateForm(well, data, self.request.FILES)
-            construction = ConstructionCreateForm(well, data, self.request.FILES)
-            hydrogeology = HydrogeologyCreateForm(well, data, self.request.FILES)
-            management = ManagementCreateForm(well, data, self.request.FILES)
-            yield_measurement = YieldMeasurementCreateForm(well, data, self.request.FILES)
-            quality_measurement = QualityMeasurementCreateForm(well, data, self.request.FILES)
-            level_measurement = LevelMeasurementCreateForm(well, data, self.request.FILES)
-
-            # -----------------------------------------
-            # save all forms
-            # -----------------------------------------
-            geology.save()
-            construction.save()
-            drilling.save()
-            management.save()
-            hydrogeology.save()
-            yield_measurement.save()
-            quality_measurement.save()
-            level_measurement.save()
-            general_information.save()
+            self.create_data(well, data)
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
         except (ValueError, FormNotValid) as e:
             return HttpResponseBadRequest('{}'.format(e))
 
-        return HttpResponse('OK')
+        return HttpResponse(reverse('well_form', kwargs={'id': well.id}))
+
+
+class WellFormCreateView(WellFormView):
+    read_only = False
+
+    def get(self, request, *args, **kwargs):
+        well = Well()
+
+        context = self.get_context(well)
+        return render(
+            request, 'groundwater_form/main.html',
+            context
+        )
+
+    def post(self, request, *args, **kwargs):
+        data = json.loads(request.POST['data'])
+        general_information = GeneralInformationCreateForm(Well(), data, self.request.FILES)
+        general_information.save()
+        well = general_information.form.instance
+
+        try:
+            self.create_data(well, data)
+        except KeyError as e:
+            return HttpResponseBadRequest('{} is needed'.format(e))
+        except (ValueError, FormNotValid) as e:
+            return HttpResponseBadRequest('{}'.format(e))
+
+        return HttpResponse(reverse('well_form', kwargs={'id': well.id}))

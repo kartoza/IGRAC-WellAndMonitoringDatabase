@@ -166,7 +166,7 @@
                         }
                     },
                     success: function (data) {
-                        location.reload();
+                        window.location.href = data;
                     },
                     error: function (error) {
                         alert(error['responseText'])
