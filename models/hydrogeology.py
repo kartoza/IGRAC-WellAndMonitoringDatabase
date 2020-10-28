@@ -1,4 +1,6 @@
 from django.contrib.gis.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from gwml2.models.general import Quantity
 from gwml2.models.term import TermAquiferType, TermConfinement
 
@@ -49,6 +51,18 @@ class PumpingTest(models.Model):
         db_table = 'pumping_test'
 
 
+@receiver(post_delete, sender=PumpingTest)
+def delete_pumpingtest(sender, instance, **kwargs):
+    if instance.specific_capacity:
+        instance.specific_capacity.delete()
+    if instance.hydraulic_conductivity:
+        instance.hydraulic_conductivity.delete()
+    if instance.transmissivity:
+        instance.transmissivity.delete()
+    if instance.specific_storage:
+        instance.specific_storage.delete()
+
+
 class HydrogeologyParameter(models.Model):
     """ Model for hydrogeology parameter
     """
@@ -81,3 +95,11 @@ class HydrogeologyParameter(models.Model):
 
     class Meta:
         db_table = 'hydrogeology_parameter'
+
+
+@receiver(post_delete, sender=HydrogeologyParameter)
+def delete_hydrogeologyparameter(sender, instance, **kwargs):
+    if instance.aquifer_thickness:
+        instance.aquifer_thickness.delete()
+    if instance.pumping_test:
+        instance.pumping_test.delete()

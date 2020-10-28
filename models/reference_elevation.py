@@ -1,4 +1,6 @@
 from django.contrib.gis.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from gwml2.models.general import Quantity
 from gwml2.models.term import TermReferenceElevationType
@@ -27,3 +29,9 @@ class ReferenceElevation(models.Model):
 
     class Meta:
         db_table = 'reference_elevation'
+
+
+@receiver(post_delete, sender=ReferenceElevation)
+def delete_referenceelevation(sender, instance, **kwargs):
+    if instance.value:
+        instance.value.delete()

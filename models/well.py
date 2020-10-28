@@ -1,4 +1,6 @@
 from django.contrib.gis.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from gwml2.models.document import Document
 from gwml2.models.general_information import GeneralInformation
 from gwml2.models.geology import Geology
@@ -77,6 +79,24 @@ class Well(GeneralInformation):
         return None
 
 
+@receiver(post_delete, sender=Well)
+def delete_well(sender, instance, **kwargs):
+    if instance.drilling:
+        instance.drilling.delete()
+    if instance.geology:
+        instance.geology.delete()
+    if instance.construction:
+        instance.construction.delete()
+    if instance.management:
+        instance.management.delete()
+    if instance.hydrogeology_parameter:
+        instance.hydrogeology_parameter.delete()
+    if instance.ground_surface_elevation:
+        instance.ground_surface_elevation.delete()
+    if instance.top_borehole_elevation:
+        instance.top_borehole_elevation.delete()
+
+
 # documents
 class WellDocument(Document):
     well = models.ForeignKey(
@@ -98,6 +118,12 @@ class WellLevelMeasurement(Measurement):
         ordering = ('-time',)
 
 
+@receiver(post_delete, sender=WellLevelMeasurement)
+def delete_welllevelmeasurement(sender, instance, **kwargs):
+    if instance.value:
+        instance.value.delete()
+
+
 class WellQualityMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,
@@ -108,6 +134,12 @@ class WellQualityMeasurement(Measurement):
         ordering = ('-time',)
 
 
+@receiver(post_delete, sender=WellQualityMeasurement)
+def delete_wellqualitymeasurement(sender, instance, **kwargs):
+    if instance.value:
+        instance.value.delete()
+
+
 class WellYieldMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,
@@ -116,3 +148,9 @@ class WellYieldMeasurement(Measurement):
     class Meta:
         db_table = 'well_yield_measurement'
         ordering = ('-time',)
+
+
+@receiver(post_delete, sender=WellYieldMeasurement)
+def delete_wellyieldmeasurement(sender, instance, **kwargs):
+    if instance.value:
+        instance.value.delete()

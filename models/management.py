@@ -1,5 +1,7 @@
 from django.contrib.gis.db import models
 from django.core.validators import MinValueValidator
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from gwml2.models.term import TermGroundwaterUse
 
 
@@ -61,3 +63,9 @@ class Management(models.Model):
 
     class Meta:
         db_table = 'management'
+
+
+@receiver(post_delete, sender=Management)
+def delete_management(sender, instance, **kwargs):
+    if instance.license:
+        instance.license.delete()

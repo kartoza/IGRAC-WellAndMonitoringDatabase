@@ -1,4 +1,6 @@
 from django.contrib.gis.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from gwml2.models.general import Quantity
 from gwml2.models.reference_elevation import ReferenceElevation
 from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
@@ -32,6 +34,12 @@ class Drilling(models.Model):
 
     class Meta:
         db_table = 'drilling'
+
+
+@receiver(post_delete, sender=Drilling)
+def delete_drilling(sender, instance, **kwargs):
+    if instance.total_depth:
+        instance.total_depth.delete()
 
 
 class StratigraphicLog(models.Model):
@@ -73,11 +81,19 @@ class StratigraphicLog(models.Model):
         db_table = 'drilling_stratigraphic_log'
 
 
+@receiver(post_delete, sender=StratigraphicLog)
+def delete_stratigraphiclog(sender, instance, **kwargs):
+    if instance.top_depth:
+        instance.top_depth.delete()
+    if instance.bottom_depth:
+        instance.bottom_depth.delete()
+
+
 class WaterStrike(models.Model):
     """ Water strike
     """
     drilling = models.ForeignKey(
-        Drilling, on_delete=models.SET_NULL,
+        Drilling, on_delete=models.CASCADE,
         null=True, blank=True
     )
 
@@ -92,3 +108,9 @@ class WaterStrike(models.Model):
 
     class Meta:
         db_table = 'drilling_water_strike'
+
+
+@receiver(post_delete, sender=WaterStrike)
+def delete_waterstrike(sender, instance, **kwargs):
+    if instance.depth:
+        instance.depth.delete()
