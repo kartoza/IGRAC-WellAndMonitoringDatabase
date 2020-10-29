@@ -1,4 +1,3 @@
-import uuid
 import os
 import shutil
 import zipfile
@@ -8,7 +7,7 @@ from django.http import JsonResponse
 from shutil import copyfile
 from openpyxl import load_workbook
 
-from celery import shared_task
+from celery import shared_task, current_task
 from celery.utils.log import get_task_logger
 from gwml2.models.well import Well
 from gwml2.tasks.controller import update_progress
@@ -34,7 +33,7 @@ def download_well(self, filters=None):
     logger.debug('Found {} wells'.format(total_records))
 
     # save it to media
-    unique_id = uuid.uuid4()
+    unique_id = self.request.id
     folder = os.path.join(
         settings.MEDIA_ROOT, 'gwml2', 'download', str(unique_id)
     )
@@ -94,7 +93,7 @@ def download_well(self, filters=None):
             well.location.y,
             well.location.x,
             well.ground_surface_elevation.value if well.ground_surface_elevation else '',
-            well.ground_surface_elevation.unit.name if well.ground_surface_elevation else '',
+            well.ground_surface_elevation.unit.name if well.ground_surface_elevation and well.ground_surface_elevation.unit else '',
             well.top_borehole_elevation.value if well.top_borehole_elevation else '',
             well.top_borehole_elevation.unit.name if well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
             well.country.__str__() if well.country else '',
