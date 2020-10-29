@@ -5,13 +5,9 @@ from gwml2.models.term import TermFeatureType
 
 class GeneralInformation(models.Model):
     """ Abstract model for General Information """
-    name = models.CharField(
-        null=True, blank=True, max_length=512
-    )
-    feature_type = models.ForeignKey(
-        TermFeatureType, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
+    original_id = models.CharField(
+        unique=True, max_length=256,
+        help_text='As recorded in the original database.')
 
     # geometry information
     location = models.PointField(
@@ -29,6 +25,14 @@ class GeneralInformation(models.Model):
         null=True, blank=True,
         help_text='Elevation of Top of Borehole Above Sea Level.',
         related_name='top_borehole_elevation'
+    )
+
+    name = models.CharField(
+        null=True, blank=True, max_length=512
+    )
+    feature_type = models.ForeignKey(
+        TermFeatureType, on_delete=models.SET_NULL,
+        null=True, blank=True
     )
 
     # location information

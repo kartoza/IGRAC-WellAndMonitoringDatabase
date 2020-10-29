@@ -3,8 +3,8 @@ from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from braces.views import StaffuserRequiredMixin
 from django.views.generic.base import View
+from gwml2.mixin import ViewWellFormMixin, EditWellFormMixin
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
 from gwml2.views.form_group.general_information import (
@@ -43,7 +43,7 @@ class FormNotValid(Exception):
         self.errors = error
 
 
-class WellView(View):
+class WellView(ViewWellFormMixin, View):
     read_only = True
 
     def get_context(self, well):
@@ -75,7 +75,7 @@ class WellView(View):
         )
 
 
-class WellFormView(StaffuserRequiredMixin, WellView):
+class WellFormView(EditWellFormMixin, WellView):
     read_only = False
 
     def make_form(self, instance, form, data):
