@@ -9,10 +9,60 @@ from openpyxl import load_workbook
 
 from celery import shared_task, current_task
 from celery.utils.log import get_task_logger
+from gwml2.models.general import Country
 from gwml2.models.well import Well
 from gwml2.tasks.controller import update_progress
 
 logger = get_task_logger(__name__)
+
+
+def filter_wells_to_download(filters):
+    wells = Well.objects.all()
+
+    # feature_type filter
+    feature_type_data = filters.get('feature_type', None)
+    if feature_type_data:
+        value = feature_type_data.get('value', '')
+        operator = feature_type_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(feature_type__name__contains=value)
+            elif operator == '=':
+                wells = wells.filter(feature_type__name=value)
+
+    # original_id filter
+    original_id_data = filters.get('original_id', None)
+    if original_id_data:
+        value = original_id_data.get('value', '')
+        operator = original_id_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(original_id__contains=value)
+            elif operator == '=':
+                wells = wells.filter(original_id=value)
+
+    # name filter
+    name_data = filters.get('name', None)
+    if name_data:
+        value = name_data.get('value', '')
+        operator = name_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(name__contains=value)
+            elif operator == '=':
+                wells = wells.filter(name=value)
+
+    # country filter
+    country_data = filters.get('country', None)
+    if country_data:
+        value = country_data.get('value', '')
+        operator = country_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(country__name__contains=value)
+            elif operator == '=':
+                wells = wells.filter(country__name=value)
+    return wells
 
 
 @shared_task(bind=True, queue='update')
@@ -24,9 +74,7 @@ def download_well(self, filters=None):
 
     logger.debug('----- begin download  -------')
     if filters:
-        # TODO :
-        #  implement filters
-        wells = Well.objects.filter()
+        wells = filter_wells_to_download(filters)
     else:
         wells = Well.objects.all()
     total_records = wells.count()
