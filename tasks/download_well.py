@@ -1,5 +1,7 @@
+import json
 import os
 import shutil
+import time
 import zipfile
 
 from django.conf import settings
@@ -7,17 +9,18 @@ from django.http import JsonResponse
 from shutil import copyfile
 from openpyxl import load_workbook
 
-from celery import shared_task, current_task
+from celery import shared_task
 from celery.utils.log import get_task_logger
-from gwml2.models.general import Country
+from gwml2.models.download_session import DownloadSession
 from gwml2.models.well import Well
-from gwml2.tasks.controller import update_progress
 
 logger = get_task_logger(__name__)
 
 
 def filter_wells_to_download(filters):
     wells = Well.objects.all()
+    if not filters:
+        return wells
 
     # feature_type filter
     feature_type_data = filters.get('feature_type', None)
@@ -66,22 +69,21 @@ def filter_wells_to_download(filters):
 
 
 @shared_task(bind=True, queue='update')
-def download_well(self, filters=None):
+def download_well(self, download_session_id, filters=None):
     DJANGO_ROOT = os.path.dirname(
         os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
         ))
 
+    download_session = DownloadSession.objects.get(id=download_session_id)
+
     logger.debug('----- begin download  -------')
-    if filters:
-        wells = filter_wells_to_download(filters)
-    else:
-        wells = Well.objects.all()
+    wells = filter_wells_to_download(filters)
     total_records = wells.count()
     logger.debug('Found {} wells'.format(total_records))
 
     # save it to media
-    unique_id = self.request.id
+    unique_id = download_session.token
     folder = os.path.join(
         settings.MEDIA_ROOT, 'gwml2', 'download', str(unique_id)
     )
@@ -126,10 +128,10 @@ def download_well(self, filters=None):
     level_measurement_sheet = monitor_book['Level Measurement']
     quality_measurement_sheet = monitor_book['Quality Measurement']
     yield_measurement_sheet = monitor_book['Yield Measurement']
-
+    time.sleep(2.4)
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
-        update_progress(process_percent)
+        download_session.update_progress(process_percent)
 
         # General Information
         general_information_sheet.append([
@@ -297,7 +299,5 @@ def download_well(self, filters=None):
     shutil.rmtree(folder)
 
     url = os.path.join(settings.MEDIA_URL, 'gwml2', 'download', zip_filename)
-    update_progress(100, {
-        'url': url
-    })
+    download_session.update_progress(100, json.dumps({'url': url}))
     return JsonResponse({'status': 'success'})

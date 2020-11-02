@@ -1,4 +1,5 @@
 from gwml2.admin.construction import *
+from gwml2.admin.download_session import *
 from gwml2.admin.drilling import *
 from gwml2.admin.general import *
 from gwml2.admin.geology import *

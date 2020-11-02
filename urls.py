@@ -10,6 +10,7 @@ from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.well_uploader import WellUploadView
 from gwml2.api.upload_session import UploadSessionApiView
+from gwml2.api.download_session import DownloadSessionApiView
 
 well_relation = [
     url(r'^delete',
@@ -53,4 +54,9 @@ urlpatterns = [
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
         view=UploadSessionApiView.as_view(),
         name='upload_session_progress'),
+    url(r'^download-session/'
+        r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
+        r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
+        view=DownloadSessionApiView.as_view(),
+        name='download_session_progress'),
 ]

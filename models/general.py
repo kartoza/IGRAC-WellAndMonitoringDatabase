@@ -16,6 +16,8 @@ class Country(models.Model):
         return self.name
 
     class Meta:
+        verbose_name_plural = 'Countries'
+        verbose_name = 'Country'
         ordering = ('name',)
         db_table = 'country'
 
@@ -57,4 +59,6 @@ class Quantity(models.Model):
             return '{}'.format(self.value)
 
     class Meta:
+        verbose_name_plural = 'Quantities'
+        verbose_name = 'Quantity'
         db_table = 'quantity'
