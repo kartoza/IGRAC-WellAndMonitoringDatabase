@@ -1,6 +1,7 @@
-import uuid
+import json
 import os
 import shutil
+import time
 import zipfile
 
 from django.conf import settings
@@ -10,31 +11,79 @@ from openpyxl import load_workbook
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
+from gwml2.models.download_session import DownloadSession
 from gwml2.models.well import Well
-from gwml2.tasks.controller import update_progress
 
 logger = get_task_logger(__name__)
 
 
+def filter_wells_to_download(filters):
+    wells = Well.objects.all()
+    if not filters:
+        return wells
+
+    # feature_type filter
+    feature_type_data = filters.get('feature_type', None)
+    if feature_type_data:
+        value = feature_type_data.get('value', '')
+        operator = feature_type_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(feature_type__name__contains=value)
+            elif operator == '=':
+                wells = wells.filter(feature_type__name=value)
+
+    # original_id filter
+    original_id_data = filters.get('original_id', None)
+    if original_id_data:
+        value = original_id_data.get('value', '')
+        operator = original_id_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(original_id__contains=value)
+            elif operator == '=':
+                wells = wells.filter(original_id=value)
+
+    # name filter
+    name_data = filters.get('name', None)
+    if name_data:
+        value = name_data.get('value', '')
+        operator = name_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(name__contains=value)
+            elif operator == '=':
+                wells = wells.filter(name=value)
+
+    # country filter
+    country_data = filters.get('country', None)
+    if country_data:
+        value = country_data.get('value', '')
+        operator = country_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(country__name__contains=value)
+            elif operator == '=':
+                wells = wells.filter(country__name=value)
+    return wells
+
+
 @shared_task(bind=True, queue='update')
-def download_well(self, filters=None):
+def download_well(self, download_session_id, filters=None):
     DJANGO_ROOT = os.path.dirname(
         os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
         ))
 
+    download_session = DownloadSession.objects.get(id=download_session_id)
+
     logger.debug('----- begin download  -------')
-    if filters:
-        # TODO :
-        #  implement filters
-        wells = Well.objects.filter()
-    else:
-        wells = Well.objects.all()
+    wells = filter_wells_to_download(filters)
     total_records = wells.count()
     logger.debug('Found {} wells'.format(total_records))
 
     # save it to media
-    unique_id = uuid.uuid4()
+    unique_id = download_session.token
     folder = os.path.join(
         settings.MEDIA_ROOT, 'gwml2', 'download', str(unique_id)
     )
@@ -79,10 +128,10 @@ def download_well(self, filters=None):
     level_measurement_sheet = monitor_book['Level Measurement']
     quality_measurement_sheet = monitor_book['Quality Measurement']
     yield_measurement_sheet = monitor_book['Yield Measurement']
-
+    time.sleep(2.4)
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
-        update_progress(process_percent)
+        download_session.update_progress(process_percent)
 
         # General Information
         general_information_sheet.append([
@@ -94,7 +143,7 @@ def download_well(self, filters=None):
             well.location.y,
             well.location.x,
             well.ground_surface_elevation.value if well.ground_surface_elevation else '',
-            well.ground_surface_elevation.unit.name if well.ground_surface_elevation else '',
+            well.ground_surface_elevation.unit.name if well.ground_surface_elevation and well.ground_surface_elevation.unit else '',
             well.top_borehole_elevation.value if well.top_borehole_elevation else '',
             well.top_borehole_elevation.unit.name if well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
             well.country.__str__() if well.country else '',
@@ -250,7 +299,5 @@ def download_well(self, filters=None):
     shutil.rmtree(folder)
 
     url = os.path.join(settings.MEDIA_URL, 'gwml2', 'download', zip_filename)
-    update_progress(100, {
-        'url': url
-    })
+    download_session.update_progress(100, json.dumps({'url': url}))
     return JsonResponse({'status': 'success'})
