@@ -120,7 +120,7 @@ class Well(GeneralInformation):
         else:
             if user.is_staff:
                 return True
-            return user.id in self.organisation.editors
+            return user.id in self.organisation.editors or user.id in self.organisation.admins
 
 
 @receiver(post_delete, sender=Well)

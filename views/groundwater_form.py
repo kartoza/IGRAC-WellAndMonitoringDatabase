@@ -59,7 +59,7 @@ class WellView(ViewWellFormMixin, View):
         context.update(DrillingGetForms(well).get())
         context.update(ConstructionGetForms(well).get())
         context.update(HydrogeologyGetForms(well).get())
-        context.update(ManagementGetForms(well).get())
+        context.update(ManagementGetForms(well).get_form(self.request.user))
         context.update(YieldMeasurementGetForms(well).get())
         context.update(QualityMeasurementGetForms(well).get())
         context.update(LevelMeasurementGetForms(well).get())

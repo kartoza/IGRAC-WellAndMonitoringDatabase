@@ -4,6 +4,7 @@ import shutil
 import time
 import zipfile
 
+from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.http import JsonResponse
 from shutil import copyfile
@@ -15,6 +16,8 @@ from gwml2.models.download_session import DownloadSession
 from gwml2.models.well import Well
 
 logger = get_task_logger(__name__)
+
+User = get_user_model()
 
 
 def filter_wells_to_download(filters):
@@ -69,13 +72,14 @@ def filter_wells_to_download(filters):
 
 
 @shared_task(bind=True, queue='update')
-def download_well(self, download_session_id, filters=None):
+def download_well(self, user_id, download_session_id, filters=None):
     DJANGO_ROOT = os.path.dirname(
         os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
         ))
 
     download_session = DownloadSession.objects.get(id=download_session_id)
+    user = User.objects.get(id=user_id)
 
     logger.debug('----- begin download  -------')
     wells = filter_wells_to_download(filters)
@@ -133,6 +137,10 @@ def download_well(self, download_session_id, filters=None):
         process_percent = (index / total_records) * 100
         download_session.update_progress(process_percent)
 
+        # check if user has view permission
+        if not well.view_permission(user):
+            continue
+
         # General Information
         general_information_sheet.append([
             well.original_id,
@@ -146,7 +154,7 @@ def download_well(self, download_session_id, filters=None):
             well.ground_surface_elevation.unit.name if well.ground_surface_elevation and well.ground_surface_elevation.unit else '',
             well.top_borehole_elevation.value if well.top_borehole_elevation else '',
             well.top_borehole_elevation.unit.name if well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
-            well.country.__str__() if well.country else '',
+            well.country.code if well.country else '',
             well.address,
             well.description,
         ])

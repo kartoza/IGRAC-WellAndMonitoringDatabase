@@ -29,6 +29,9 @@ class Unit(_Term):
         null=True, blank=True
     )
 
+    def __str__(self):
+        return self.html if self.html else self.name
+
     class Meta(Sortable.Meta):
         db_table = 'unit'
 
