@@ -49,6 +49,7 @@ class WellView(ViewWellFormMixin, View):
     def get_context(self, well):
         context = {
             'read_only': self.read_only,
+            'is_admin': well.organisation.is_admin(self.request.user),
             'well': well,
             'parameters': {
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()

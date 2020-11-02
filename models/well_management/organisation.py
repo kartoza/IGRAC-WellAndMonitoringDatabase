@@ -16,3 +16,7 @@ class Organisation(_Term):
 
     class Meta(Sortable.Meta):
         db_table = 'organisation'
+
+    def is_admin(self, user):
+        """ return if admin """
+        return user.is_staff or user.id in self.admins

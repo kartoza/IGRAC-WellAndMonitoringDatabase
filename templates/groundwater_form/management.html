@@ -1,4 +1,19 @@
 {% load gwml2_forms %}
+<style>
+    #id_organisation_input {
+        width: auto;
+    }
+
+    #id_organisation_input select {
+        width: fit-content;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    #id_organisation_input a {
+        font-size: 20px;
+    }
+</style>
 <div id="management" class="page-section">
     <h2 class="section-title">Management</h2>
     <div class="section">
@@ -6,7 +21,17 @@
             <tr>
                 <td><h4>Organisation</h4></td>
             </tr>
-            {% field_as_row form.organisation %}
+            <tr class="input-column">
+                <td>{{ form.organisation.label }}</td>
+                <td>
+                    <div id="id_organisation_input" class="input">
+                        {{ form.organisation }}
+                        {% if is_admin and  well.organisation %}
+                            <a href="{% url 'organisation_form' well.organisation.id %}"><i class="fa fa-pencil-square" aria-hidden="true"></i></a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
             {% field_as_row form.manager %}
             {% field_as_row form.description %}
             <tr>
