@@ -21,8 +21,10 @@ class ManagementForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         organisation = kwargs.get('organisation', None)
-        if organisation:
+        try:
             del kwargs['organisation']
+        except KeyError:
+            pass
         forms.ModelForm.__init__(self, *args, **kwargs)
         self.fields['organisation'].queryset = organisation
 
