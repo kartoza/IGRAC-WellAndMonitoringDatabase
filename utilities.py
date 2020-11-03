@@ -13,6 +13,16 @@ def convert_size(size_bytes):
     return "%s %s" % (s, size_name[i])
 
 
+def get_organisations_as_viewer(user):
+    """ return organisation of user as viewer"""
+    if user.is_staff:
+        return Organisation.objects.all().order_by('id')
+    else:
+        return Organisation.objects.filter(
+            Q(editors__contains=[user.id]) | Q(admins__contains=[user.id]) | Q(viewers__contains=[user.id])
+        ).order_by('id')
+
+
 def get_organisations(user):
     """ return organisation of user """
     if user.is_staff:

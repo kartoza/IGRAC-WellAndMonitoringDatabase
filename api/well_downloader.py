@@ -7,6 +7,7 @@ from django.utils.decorators import method_decorator
 from braces.views import LoginRequiredMixin
 from gwml2.tasks.download_well import download_well
 from gwml2.models.download_session import DownloadSession
+from gwml2.utilities import get_organisations_as_viewer
 
 
 class WellDownloader(LoginRequiredMixin, View):
@@ -19,8 +20,9 @@ class WellDownloader(LoginRequiredMixin, View):
         Download a well as file
         """
         filters = {}
+        orgs = list(get_organisations_as_viewer(self.request.user).values_list('id', flat=True))
         filters.update({
-            'user': request.user.username
+            'organisation': orgs
         })
 
         try:
@@ -45,8 +47,9 @@ class WellDownloader(LoginRequiredMixin, View):
         Download a well as file
         """
         filters = json.loads(request.body)
+        orgs = list(get_organisations_as_viewer(self.request.user).values_list('id', flat=True))
         filters.update({
-            'user': request.user.username
+            'organisation': orgs
         })
 
         try:
