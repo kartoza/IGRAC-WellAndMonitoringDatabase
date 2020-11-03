@@ -3,8 +3,8 @@ from django.forms import ModelForm
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
-from braces.views import StaffuserRequiredMixin
 from django.views.generic.base import View
+from gwml2.mixin import ViewWellFormMixin, EditWellFormMixin
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
 from gwml2.views.form_group.general_information import (
@@ -43,12 +43,13 @@ class FormNotValid(Exception):
         self.errors = error
 
 
-class WellView(View):
+class WellView(ViewWellFormMixin, View):
     read_only = True
 
     def get_context(self, well):
         context = {
             'read_only': self.read_only,
+            'is_admin': well.organisation.is_admin(self.request.user),
             'well': well,
             'parameters': {
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
@@ -59,7 +60,7 @@ class WellView(View):
         context.update(DrillingGetForms(well).get())
         context.update(ConstructionGetForms(well).get())
         context.update(HydrogeologyGetForms(well).get())
-        context.update(ManagementGetForms(well).get())
+        context.update(ManagementGetForms(well).get_form(self.request.user))
         context.update(YieldMeasurementGetForms(well).get())
         context.update(QualityMeasurementGetForms(well).get())
         context.update(LevelMeasurementGetForms(well).get())
@@ -75,7 +76,7 @@ class WellView(View):
         )
 
 
-class WellFormView(StaffuserRequiredMixin, WellView):
+class WellFormView(EditWellFormMixin, WellView):
     read_only = False
 
     def make_form(self, instance, form, data):

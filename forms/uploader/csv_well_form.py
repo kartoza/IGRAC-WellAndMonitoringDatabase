@@ -1,5 +1,4 @@
 from django import forms
-from gwml2.models.well_management.organisation import Organisation
 
 
 class CsvWellForm(forms.Form):
@@ -7,7 +6,7 @@ class CsvWellForm(forms.Form):
     Form to upload CSV file.
     """
     organisation = forms.ModelChoiceField(
-        queryset=Organisation.objects.all(),
+        queryset=None,
         label='Organisation',
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
@@ -24,3 +23,7 @@ class CsvWellForm(forms.Form):
         widget=forms.FileInput(attrs={'class': 'form-control'}),
         required=False
     )
+
+    def __init__(self, organisation, *args, **kwargs):
+        forms.Form.__init__(self, *args, **kwargs)
+        self.fields['organisation'].queryset = organisation

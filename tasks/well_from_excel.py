@@ -149,107 +149,138 @@ def _processing_well_descriptor_file(upload_session):
 
         for record in location_records:
             item += 1
+            process_percent = (item / total_records) * 100
 
+            # update the percentage of progress
             _id = getRecordByIndex(record, ID)
-            _lon = getRecordByIndex(record, LON)
-            _lat = getRecordByIndex(record, LAT)
-            _country = getRecordByIndex(record, COUNTRY)
-            _status = getRecordByIndex(record, STATUS)
-            _purpose = getRecordByIndex(record, PURPOSE)
-            _feature_type = getRecordByIndex(record, FEATURE_TYPE)
-            _ground_elevation_unit = getRecordByIndex(record, GROUND_ELEVATION_UNIT)
-            _ground_elevation_number = getRecordByIndex(record, GROUND_ELEVATION_NUMBER)
-            _top_casing_elevation_unit = getRecordByIndex(record, TOP_CASING_ELEVATION_UNIT)
-            _top_casing_elevation_number = getRecordByIndex(record, TOP_CASING_ELEVATION_NUMBER)
-            _description = getRecordByIndex(record, DESCRIPTION)
-            _address = getRecordByIndex(record, ADDRESS)
-
             record_id = '{org}-{id}'.format(
                 org=organisation.name,
                 id=_id
             )
-
-            # update the percentage of progress
-            process_percent = (item / total_records) * 100
             upload_session.update_progress(
                 status='Processing well : {}'.format(record_id),
                 progress=int(process_percent)
             )
-
-            point = Point(x=_lon, y=_lat, srid=4326)
-
-            additional_fields = {}
-
-            if _country:
-                additional_fields['country'], _ = (
-                    Country.objects.get_or_create(
-                        code=_country
-                    )
-                )
-
-            if _status:
-                additional_fields['status'], _ = (
-                    TermWellStatus.objects.get_or_create(
-                        name=_status
-                    )
-                )
-            if _purpose:
-                additional_fields['purpose'], _ = (
-                    TermWellPurpose.objects.get_or_create(
-                        name=_purpose
-                    )
-                )
-
-            if _feature_type:
-                additional_fields['feature_type'], _ = (
-                    TermFeatureType.objects.get_or_create(
-                        name=_feature_type
-                    )
-                )
-
-            if (
-                    _ground_elevation_unit and
-                    _ground_elevation_number
-            ):
-                elevation_unit, _ = (
-                    Unit.objects.get_or_create(
-                        name=_ground_elevation_unit)
-                )
-                ground_surface_elevation = Quantity.objects.create(
-                    value=_ground_elevation_number,
-                    unit=elevation_unit
-                )
-                additional_fields['ground_surface_elevation'] = (
-                    ground_surface_elevation
-                )
-
-            if (
-                    _top_casing_elevation_unit and
-                    _top_casing_elevation_number
-            ):
-                top_casing_elevation_unit, _ = (
-                    Unit.objects.get_or_create(
-                        name=_top_casing_elevation_unit)
-                )
-                top_casing_elevation_quantity = Quantity.objects.create(
-                    value=_top_casing_elevation_number,
-                    unit=top_casing_elevation_unit
-                )
-                additional_fields['top_borehole_elevation'] = (
-                    top_casing_elevation_quantity
-                )
-
             try:
-                additional_fields['description'] = _description
-            except IndexError:
-                pass
 
-            Well.objects.get_or_create(
-                original_id=record_id,
-                location=point,
-                address=_address,
-                **additional_fields
-            )
+                _lon = getRecordByIndex(record, LON)
+                _lat = getRecordByIndex(record, LAT)
+                _country = getRecordByIndex(record, COUNTRY)
+                _status = getRecordByIndex(record, STATUS)
+                _purpose = getRecordByIndex(record, PURPOSE)
+                _feature_type = getRecordByIndex(record, FEATURE_TYPE)
+                _ground_elevation_unit = getRecordByIndex(record, GROUND_ELEVATION_UNIT)
+                _ground_elevation_number = getRecordByIndex(record, GROUND_ELEVATION_NUMBER)
+                _top_casing_elevation_unit = getRecordByIndex(record, TOP_CASING_ELEVATION_UNIT)
+                _top_casing_elevation_number = getRecordByIndex(record, TOP_CASING_ELEVATION_NUMBER)
+                _description = getRecordByIndex(record, DESCRIPTION)
+                _address = getRecordByIndex(record, ADDRESS)
+
+                point = Point(x=_lon, y=_lat, srid=4326)
+
+                additional_fields = {}
+
+                if _country:
+                    additional_fields['country'] = (
+                        Country.objects.get(
+                            code=_country
+                        )
+                    )
+
+                if _status:
+                    additional_fields['status'] = (
+                        TermWellStatus.objects.get(
+                            name=_status
+                        )
+                    )
+                if _purpose:
+                    additional_fields['purpose'] = (
+                        TermWellPurpose.objects.get(
+                            name=_purpose
+                        )
+                    )
+
+                if _feature_type:
+                    additional_fields['feature_type'] = (
+                        TermFeatureType.objects.get(
+                            name=_feature_type
+                        )
+                    )
+
+                if (
+                        _ground_elevation_unit and
+                        _ground_elevation_number
+                ):
+                    elevation_unit = (
+                        Unit.objects.get(
+                            name=_ground_elevation_unit.lower().strip())
+                    )
+                    ground_surface_elevation = Quantity.objects.create(
+                        value=_ground_elevation_number,
+                        unit=elevation_unit
+                    )
+                    additional_fields['ground_surface_elevation'] = (
+                        ground_surface_elevation
+                    )
+
+                if (
+                        _top_casing_elevation_unit and
+                        _top_casing_elevation_number
+                ):
+                    top_casing_elevation_unit = (
+                        Unit.objects.get(
+                            name=_top_casing_elevation_unit.lower().strip())
+                    )
+                    top_casing_elevation_quantity = Quantity.objects.create(
+                        value=_top_casing_elevation_number,
+                        unit=top_casing_elevation_unit
+                    )
+                    additional_fields['top_borehole_elevation'] = (
+                        top_casing_elevation_quantity
+                    )
+
+                try:
+                    additional_fields['description'] = _description
+                except IndexError:
+                    pass
+
+                Well.objects.get_or_create(
+                    original_id=_id,
+                    organisation=organisation,
+                    location=point,
+                    address=_address,
+                    **additional_fields
+                )
+            except Country.DoesNotExist:
+                upload_session.update_progress(
+                    finished=True, progress=0,
+                    status='Country does not found for {}'.format(record_id)
+                )
+                return message
+            except TermWellStatus.DoesNotExist:
+                upload_session.update_progress(
+                    finished=True, progress=0,
+                    status='Well status does not found for {}'.format(record_id),
+                )
+                return message
+            except TermWellPurpose.DoesNotExist:
+                upload_session.update_progress(
+                    finished=True, progress=0,
+                    status='Well purpose does not found for {}'.format(record_id)
+                )
+                return message
+            except TermFeatureType.DoesNotExist:
+                upload_session.update_progress(
+                    finished=True, progress=0,
+                    status='Feature type does not found for {}'.format(record_id)
+                )
+                return message
+            except Unit.DoesNotExist:
+                upload_session.update_progress(
+                    finished=True, progress=0,
+                    status='Unit does not found for {}'.format(record_id)
+                )
+                return message
 
     upload_session.update_progress(
         finished=True,
@@ -330,8 +361,8 @@ def _processing_well_monitoring_file(upload_session):
 
             # -- Parameter
             parameter = _monitoring_parameter
-            measurement_parameter, _ = (
-                TermMeasurementParameter.objects.get_or_create(
+            measurement_parameter = (
+                TermMeasurementParameter.objects.get(
                     name=parameter
                 )
             )
@@ -340,9 +371,9 @@ def _processing_well_monitoring_file(upload_session):
             value = _monitoring_value
             unit = _monitoring_unit
             if value and unit:
-                measurement_unit, _ = (
-                    Unit.objects.get_or_create(
-                        name=unit
+                measurement_unit = (
+                    Unit.objects.get(
+                        name=unit.lower().strip()
                     )
                 )
                 additional_fields['value'] = Quantity.objects.create(

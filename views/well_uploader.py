@@ -1,20 +1,18 @@
-from pyexcel_xls import get_data as xls_get
-from pyexcel_xlsx import get_data as xlsx_get
-
-from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import reverse
 from django.views.generic import FormView
 
-from braces.views import StaffuserRequiredMixin
+from braces.views import LoginRequiredMixin
 
 from gwml2.forms import CsvWellForm
 from gwml2.tasks import well_from_excel
 from gwml2.models.upload_session import UploadSession
+from gwml2.models.well_management.organisation import Organisation
+from gwml2.utilities import get_organisations
 
 
-class WellUploadView(StaffuserRequiredMixin, FormView):
+class WellUploadView(LoginRequiredMixin, FormView):
     """ Upload excel well view.
     """
 
@@ -68,6 +66,7 @@ class WellUploadView(StaffuserRequiredMixin, FormView):
         """
 
         kwargs = super(WellUploadView, self).get_form_kwargs()
+        kwargs['organisation'] = get_organisations(self.request.user)
         return kwargs
 
     def post(self, request, *args, **kwargs):

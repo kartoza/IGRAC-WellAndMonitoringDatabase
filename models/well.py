@@ -1,4 +1,8 @@
 from django.contrib.gis.db import models
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from gwml2.models.document import Document
@@ -10,6 +14,7 @@ from gwml2.models.measurement import Measurement
 from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.term import TermWellPurpose, TermWellStatus
+from gwml2.models.well_management.organisation import Organisation
 
 
 class Well(GeneralInformation):
@@ -17,9 +22,6 @@ class Well(GeneralInformation):
     7.6.38 GW_Well
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after
     IGH1397)."""
-    original_id = models.CharField(
-        unique=True, max_length=256,
-        help_text='As recorded in the original database.')
     purpose = models.ForeignKey(
         TermWellPurpose, on_delete=models.SET_NULL,
         null=True, blank=True
@@ -46,6 +48,12 @@ class Well(GeneralInformation):
     )
     hydrogeology_parameter = models.OneToOneField(
         HydrogeologyParameter, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+
+    # this is for management
+    organisation = models.ForeignKey(
+        Organisation, on_delete=models.SET_NULL,
         null=True, blank=True
     )
 
@@ -77,6 +85,42 @@ class Well(GeneralInformation):
         elif relation_model_name == 'WellYieldMeasurement':
             return self.wellyieldmeasurement_set
         return None
+
+    def view_permission(self, user):
+        """ Return view permission from user id
+
+        :param user: user to be checked
+        :type user: User
+
+        :return: permission
+        :rtype: bool
+        """
+        if not self.organisation:
+            return True
+        if not user:
+            return False
+        else:
+            if user.is_staff:
+                return True
+            return user.id in self.organisation.viewers
+
+    def editor_permission(self, user):
+        """ Return editor permission from user id
+
+        :param user: user to be checked
+        :type user: User
+
+        :return: permission
+        :rtype: bool
+        """
+        if not self.organisation:
+            return True
+        if not user:
+            return False
+        else:
+            if user.is_staff:
+                return True
+            return user.id in self.organisation.editors or user.id in self.organisation.admins
 
 
 @receiver(post_delete, sender=Well)

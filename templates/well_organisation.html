@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block page_title %}
+    <h1>Organisation form.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}"/>
+
+    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/jquery.init.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'admin/js/SelectBox.js' %}"></script>
+    <script type="text/javascript" src="{% static 'admin/js/SelectFilter2.js' %}"></script>
+    <style>
+        .org-form {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        td {
+            padding-bottom: 20px;
+        }
+
+        th {
+            padding-top: 5px;
+            vertical-align: top;
+        }
+
+        button {
+            width: 100%;
+        }
+
+        .col-md-8 {
+            width: 100%;
+        }
+
+        .selector h2 {
+            margin: 0;
+            height: 40px;
+            padding-top: 10px;
+        }
+
+        .org-form form input, .org-form form textarea, .org-form form select {
+            border: 1px solid #aaa;
+            font-size: 14px;
+            padding: 5px;
+        }
+
+        .filtered {
+            padding: 10px !important;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <form method="POST" class="org-form post-form">{% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <button type="submit" class="save btn btn-primary">Save</button>
+    </form>
+{% endblock %}
+
+{% block extra_script %}
+
+{% endblock extra_script %}
