@@ -2,15 +2,20 @@ import json
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import View
 from django.utils.decorators import method_decorator
-from braces.views import LoginRequiredMixin
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
 from gwml2.tasks.download_well import download_well
 from gwml2.models.download_session import DownloadSession
 from gwml2.utilities import get_organisations_as_viewer
 
 
-class WellDownloader(LoginRequiredMixin, View):
+class WellDownloader(APIView):
+    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    permission_classes = [IsAuthenticated]
+
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(WellDownloader, self).dispatch(request, *args, **kwargs)
@@ -46,7 +51,7 @@ class WellDownloader(LoginRequiredMixin, View):
         """
         Download a well as file
         """
-        filters = json.loads(request.body)
+        filters = request.data.copy()
         orgs = list(get_organisations_as_viewer(self.request.user).values_list('id', flat=True))
         filters.update({
             'organisation': orgs
