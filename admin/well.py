@@ -8,7 +8,8 @@ from gwml2.models.well import (
 
 
 class WellAdmin(admin.ModelAdmin):
-    list_display = ('original_id', 'edit')
+    list_display = ('original_id', 'organisation', 'edit')
+    list_filter = ('organisation',)
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])
