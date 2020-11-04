@@ -8,7 +8,7 @@ from gwml2.api.task_progress import TaskProgress
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
-from gwml2.views.organisation import OrganisationFormView
+from gwml2.views.organisation import OrganisationFormView, OrganisationListView
 from gwml2.views.well_uploader import WellUploadView
 from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.download_session import DownloadSessionApiView
@@ -42,7 +42,10 @@ well_url = [
 organisation_url = [
     url(r'^(?P<pk>\d+)/edit',
         view=OrganisationFormView.as_view(),
-        name='organisation_form')
+        name='organisation_form'),
+    url(r'^',
+        view=OrganisationListView.as_view(),
+        name='organisation_list')
 ]
 
 urlpatterns = [

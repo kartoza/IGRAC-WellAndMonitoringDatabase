@@ -1,7 +1,7 @@
 from gwml2.forms import ManagementForm, LicenseForm
 from gwml2.models.management import Management, License
 from gwml2.views.form_group.form_group import FormGroupGet, FormGroupCreate
-from gwml2.utilities import get_organisations
+from gwml2.utilities import get_organisations_as_editor
 
 
 class ManagementGetForms(FormGroupGet):
@@ -15,7 +15,7 @@ class ManagementGetForms(FormGroupGet):
         return {
             'management': ManagementForm.make_from_instance(
                 self.well.management,
-                organisation=get_organisations(user)),
+                organisation=get_organisations_as_editor(user)),
             'license': LicenseForm.make_from_instance(
                 self.well.management.license if self.well.management else None),
         }

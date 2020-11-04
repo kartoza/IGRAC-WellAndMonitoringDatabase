@@ -8,8 +8,7 @@ from braces.views import LoginRequiredMixin
 from gwml2.forms import CsvWellForm
 from gwml2.tasks import well_from_excel
 from gwml2.models.upload_session import UploadSession
-from gwml2.models.well_management.organisation import Organisation
-from gwml2.utilities import get_organisations
+from gwml2.utilities import get_organisations_as_editor
 
 
 class WellUploadView(LoginRequiredMixin, FormView):
@@ -66,7 +65,7 @@ class WellUploadView(LoginRequiredMixin, FormView):
         """
 
         kwargs = super(WellUploadView, self).get_form_kwargs()
-        kwargs['organisation'] = get_organisations(self.request.user)
+        kwargs['organisation'] = get_organisations_as_editor(self.request.user)
         return kwargs
 
     def post(self, request, *args, **kwargs):

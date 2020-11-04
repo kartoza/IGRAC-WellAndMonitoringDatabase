@@ -23,7 +23,15 @@ def get_organisations_as_viewer(user):
         ).order_by('id')
 
 
-def get_organisations(user):
+def get_organisations_as_admin(user):
+    """ return organisation of user as viewer"""
+    if user.is_staff:
+        return Organisation.objects.all().order_by('id')
+    else:
+        return Organisation.objects.filter(admins__contains=[user.id]).order_by('id')
+
+
+def get_organisations_as_editor(user):
     """ return organisation of user """
     if user.is_staff:
         return Organisation.objects.all()
@@ -34,4 +42,4 @@ def get_organisations(user):
 
 def allow_to_edit_well(user):
     """ is the user allowed to edit """
-    return get_organisations(user).count()
+    return get_organisations_as_editor(user).count()
