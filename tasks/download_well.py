@@ -32,9 +32,9 @@ def filter_wells_to_download(filters):
         operator = feature_type_data.get('operator', '')
         if value and operator:
             if operator == 'ilike':
-                wells = wells.filter(feature_type__name__contains=value)
+                wells = wells.filter(feature_type__name__icontains=value)
             elif operator == '=':
-                wells = wells.filter(feature_type__name=value)
+                wells = wells.filter(feature_type__name__iexact=value)
 
     # original_id filter
     original_id_data = filters.get('original_id', None)
@@ -43,9 +43,9 @@ def filter_wells_to_download(filters):
         operator = original_id_data.get('operator', '')
         if value and operator:
             if operator == 'ilike':
-                wells = wells.filter(original_id__contains=value)
+                wells = wells.filter(original_id__icontains=value)
             elif operator == '=':
-                wells = wells.filter(original_id=value)
+                wells = wells.filter(original_id__iexact=value)
 
     # name filter
     name_data = filters.get('name', None)
@@ -54,9 +54,9 @@ def filter_wells_to_download(filters):
         operator = name_data.get('operator', '')
         if value and operator:
             if operator == 'ilike':
-                wells = wells.filter(name__contains=value)
+                wells = wells.filter(name__icontains=value)
             elif operator == '=':
-                wells = wells.filter(name=value)
+                wells = wells.filter(name__iexact__iexact=value)
 
     # country filter
     country_data = filters.get('country', None)
@@ -65,9 +65,9 @@ def filter_wells_to_download(filters):
         operator = country_data.get('operator', '')
         if value and operator:
             if operator == 'ilike':
-                wells = wells.filter(country__name__contains=value)
+                wells = wells.filter(country__name__icontains=value)
             elif operator == '=':
-                wells = wells.filter(country__name=value)
+                wells = wells.filter(country__name__iexact=value)
     return wells
 
 

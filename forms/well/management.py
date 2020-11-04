@@ -10,7 +10,7 @@ class ManagementForm(forms.ModelForm):
     """
     organisation = forms.ModelChoiceField(
         queryset=None,
-        label='Organisation',
+        label='Name',
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
