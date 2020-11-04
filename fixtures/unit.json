@@ -1,12 +1,12 @@
 {
-  "meter": {
+  "m": {
     "html": "m",
     "description": "Meters",
     "groups": [
       "length"
     ]
   },
-  "feet": {
+  "ft": {
     "html": "ft",
     "description": "Feet",
     "groups": [

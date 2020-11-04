@@ -162,7 +162,8 @@ def download_well(self, user_id, download_session_id, filters=None):
         # drilling and construction
         drilling_and_construction_sheet.append([
             well.original_id,
-            well.drilling.total_depth if well.drilling else '',
+            well.geology.total_depth.value if well.geology and well.geology.total_depth else '',
+            well.geology.total_depth.unit.__str__() if well.geology and well.geology.total_depth and well.geology.total_depth.unit else '',
             well.drilling.drilling_method.__str__() if well.drilling and well.drilling.drilling_method else '',
             well.drilling.driller if well.drilling else '',
             well.drilling.successful if well.drilling else '',

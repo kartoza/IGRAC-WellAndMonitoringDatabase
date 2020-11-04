@@ -9,11 +9,6 @@ from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
 class Drilling(models.Model):
     """ Drilling
     """
-    total_depth = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        help_text='Total depth of stratigraphic'
-    )
     drilling_method = models.ForeignKey(
         TermDrillingMethod, on_delete=models.SET_NULL,
         null=True, blank=True
