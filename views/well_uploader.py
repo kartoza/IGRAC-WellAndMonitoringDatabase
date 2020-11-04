@@ -42,7 +42,8 @@ class WellUploadView(LoginRequiredMixin, FormView):
             WellUploadView, self).get_context_data(**kwargs)
         upload_sessions = UploadSession.objects.filter(
             is_canceled=False,
-            is_processed=False
+            is_processed=False,
+            uploader=self.request.user.id
         )
         if upload_sessions.count() > 0:
             upload_session = upload_sessions[0]
@@ -53,6 +54,8 @@ class WellUploadView(LoginRequiredMixin, FormView):
         past_upload_sessions = UploadSession.objects.filter(
             Q(is_canceled=True) |
             Q(is_processed=True)
+        ).filter(
+            uploader=self.request.user.id
         )
         context['past_upload_sessions'] = past_upload_sessions[:5]
         return context
@@ -84,13 +87,15 @@ class WellUploadView(LoginRequiredMixin, FormView):
                 upload_session = UploadSession.objects.create(
                     organisation=form.cleaned_data['organisation'],
                     category='well_upload',
-                    upload_file=gw_well_file
+                    upload_file=gw_well_file,
+                    uploader=request.user.id
                 )
             elif gw_monitoring_file:
                 upload_session = UploadSession.objects.create(
                     organisation=form.cleaned_data['organisation'],
                     category='well_monitoring_upload',
-                    upload_file=gw_monitoring_file
+                    upload_file=gw_monitoring_file,
+                    uploader=request.user.id
                 )
             else:
                 return self.form_invalid(form)

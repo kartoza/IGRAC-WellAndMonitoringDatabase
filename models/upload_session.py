@@ -2,6 +2,7 @@
 """Upload session model definition.
 
 """
+import ntpath
 import uuid
 from datetime import datetime
 from django.db import models
@@ -24,6 +25,11 @@ class UploadSession(models.Model):
         null=True
     )
 
+    uploader = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
     uploaded_at = models.DateTimeField(
         default=datetime.now
     )
@@ -44,7 +50,7 @@ class UploadSession(models.Model):
     )
 
     upload_file = models.FileField(
-        upload_to='upload-file/',
+        upload_to='gwml2/upload/',
         null=True
     )
 
@@ -66,7 +72,11 @@ class UploadSession(models.Model):
     def __str__(self):
         return str(self.token)
 
-    def update_progress(self, finished = False, status = '', progress = 0):
+    def filename(self):
+        """ return filename """
+        return ntpath.basename(self.upload_file.name)
+
+    def update_progress(self, finished=False, status='', progress=0):
         """Update progress for current upload session
 
         :param finished: Whether the session is finished or not

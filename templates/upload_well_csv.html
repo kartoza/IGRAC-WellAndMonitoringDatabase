@@ -116,12 +116,14 @@
                 <div class="well well-sm" style="border: 2px solid {% if past_upload_session.is_canceled %} #ca3232 {% else %} #48b14f {% endif %}">
                     <div class="container-fluid row" style="padding-top: 10px;">
                         <div class="col-xs-2">
+                            <p>Filename</p>
                             <p>Organisation</p>
                             <p>Uploaded at</p>
                             <p>Status</p>
                             <p>Notes</p>
                         </div>
                         <div class="col-xs-10">
+                            <p>: {{ past_upload_session.filename }}</p>
                             <p>: {{ past_upload_session.organisation }}</p>
                             <p>: {{ past_upload_session.uploaded_at }}</p>
                             <p>: {% if past_upload_session.is_canceled %}Canceled{% else %}Processed{% endif %}</p>

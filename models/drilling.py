@@ -31,12 +31,6 @@ class Drilling(models.Model):
         db_table = 'drilling'
 
 
-@receiver(post_delete, sender=Drilling)
-def delete_drilling(sender, instance, **kwargs):
-    if instance.total_depth:
-        instance.total_depth.delete()
-
-
 class StratigraphicLog(models.Model):
     """
     8.1.9 GW_stratigraphicLog
