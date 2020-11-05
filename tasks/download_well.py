@@ -105,15 +105,15 @@ def download_well(self, user_id, download_session_id, filters=None):
     # copy template to actual folder
     copyfile(
         os.path.join(
-            DJANGO_ROOT, 'gwml2', 'fixtures', 'download_template', wells_filename),
+            DJANGO_ROOT, 'gwml2', 'static', 'download_template', wells_filename),
         wells_file)
     copyfile(
         os.path.join(
-            DJANGO_ROOT, 'gwml2', 'fixtures', 'download_template', drilling_and_construction_filename),
+            DJANGO_ROOT, 'gwml2', 'static', 'download_template', drilling_and_construction_filename),
         drilling_and_construction_file)
     copyfile(
         os.path.join(
-            DJANGO_ROOT, 'gwml2', 'fixtures', 'download_template', monitoring_filename),
+            DJANGO_ROOT, 'gwml2', 'static', 'download_template', monitoring_filename),
         monitoring_file)
 
     # open sheet

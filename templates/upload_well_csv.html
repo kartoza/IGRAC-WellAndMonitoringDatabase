@@ -27,6 +27,16 @@
             border-left: 1px solid rgb(221, 221, 221);
             border-right: 1px solid rgb(221, 221, 221);
         }
+
+        .template-indicator {
+            margin-top: 20px;
+            font-style: italic;
+            color: grey;
+        }
+
+        .template-indicator a {
+            font-weight: 700;
+        }
     </style>
 
     <div class="container">
@@ -79,10 +89,12 @@
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade" id="well-descriptor"
                                  role="tabpanel" aria-labelledby="home-tab">
+                                <div class="template-indicator">file template can be download in <a href="{% static 'download_template/wells.xlsx' %}">here</a></div>
                             </div>
                             <div class="tab-pane fade" id="well-monitoring"
                                  role="tabpanel"
                                  aria-labelledby="profile-tab">
+                                <div class="template-indicator">file template can be download in <a href="{% static 'download_template/monitoring_data.xlsx' %}">here</a></div>
                             </div>
                         </div>
 
@@ -139,8 +151,8 @@
     <script>
         $(document).ready(function () {
 
-            $('#id_gw_well_file').parent().appendTo('#well-descriptor');
-            $('#id_gw_well_monitoring_file').parent().appendTo('#well-monitoring');
+            $('#id_gw_well_file').parent().prependTo('#well-descriptor');
+            $('#id_gw_well_monitoring_file').parent().prependTo('#well-monitoring');
             $('#myTab a[href="#well-descriptor"]').tab('show')
 
             let uploadProgress = 0;
