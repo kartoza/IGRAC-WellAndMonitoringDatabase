@@ -2,7 +2,6 @@
 import requests
 import re
 import os
-import json
 import time
 import calendar
 import csv
@@ -10,6 +9,8 @@ from datetime import datetime
 from shutil import copyfile
 from openpyxl import load_workbook
 from geopy.geocoders import Nominatim
+
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 CODE = 'code'
@@ -43,7 +44,6 @@ DJANGO_ROOT = os.path.dirname(
 
 
 class Command(BaseCommand):
-
     ggmn_station_url = 'https://ggmn.lizard.net/api/v3/groundwaterstations/'
     ggmn_timeseries_url = 'https://ggmn.lizard.net/api/v3/timeseries/'
     well_ids = []
@@ -86,7 +86,6 @@ class Command(BaseCommand):
                 self.countries_code[
                     row[1].strip().replace('"', '')
                 ] = row[2].strip().replace('"', '')
-
 
     def fetch_wells(self, well_template_output_path, page=1):
         """
@@ -134,24 +133,26 @@ class Command(BaseCommand):
                                 time_series_data['name']:
                                     time_series_data['uuid']
                             })
-
-            row_data = [
-                ground_station[CODE], # ID
-                ground_station[NAME], # NAME
-                ground_station[STATUS].capitalize(), # Status
-                '', # Feature Type
-                '', # Purpose
-                lat, # Lat
-                lon, # Lon
-                ground_station[SURFACE_LEVEL], # Ground surface elevation value
-                'm', # Ground surface elevation unit
-                '','', # Elevation of the top of the casing ( unknown )
-                self.countries_code[
-                    location.raw['address']['country_code'].upper()],
-                '', # Address
-                '' # Description
-            ]
-            ws.append(row_data)
+            try:
+                row_data = [
+                    ground_station[CODE],  # ID
+                    ground_station[NAME],  # NAME
+                    ground_station[STATUS].capitalize(),  # Status
+                    '',  # Feature Type
+                    '',  # Purpose
+                    lat,  # Lat
+                    lon,  # Lon
+                    ground_station[SURFACE_LEVEL],  # Ground surface elevation value
+                    'm',  # Ground surface elevation unit
+                    '', '',  # Elevation of the top of the casing ( unknown )
+                    self.countries_code[
+                        location.raw['address']['country_code'].upper()],
+                    '',  # Address
+                    ''  # Description
+                ]
+                ws.append(row_data)
+            except KeyError:
+                pass
         wb.save(well_template_output_path)
         if 'next' in ground_stations:
             next_url = ground_stations['next']
@@ -166,7 +167,7 @@ class Command(BaseCommand):
         """
         Fetch monitoring data for wells
         """
-        today_timestamp = int(time.mktime(datetime.today().timetuple())*1000)
+        today_timestamp = int(time.mktime(datetime.today().timetuple()) * 1000)
 
         if not self.well_data:
             return
@@ -212,12 +213,12 @@ class Command(BaseCommand):
                     for result in results:
                         events = result['events']
                         for event in events:
-                            timestamp = int(event['timestamp']/1000)
+                            timestamp = int(event['timestamp'] / 1000)
                             date_object = datetime.fromtimestamp(timestamp)
                             row_data = [
                                 well_code,  # ID
-                                date_object.strftime('%Y-%m-%d %H:%M'), # Date and time
-                                PARAMETER[time_series_name], # Parameter
+                                date_object.strftime('%Y-%m-%d %H:%M'),  # Date and time
+                                PARAMETER[time_series_name],  # Parameter
                                 event['value'],  # Value
                                 'm',  # Unit
                                 '',  # Method
@@ -225,7 +226,6 @@ class Command(BaseCommand):
                             ws.append(row_data)
 
         wb.save(template_output_path)
-
 
     def handle(self, *args, **options):
         """Implementation for command.
@@ -237,9 +237,9 @@ class Command(BaseCommand):
         self.max_page = int(options.get('max_page'))
 
         print('# Fetching Wells ')
-        well_template_path =  os.path.join(
-            DJANGO_ROOT,
-            'fixtures', 'download_template',
+        well_template_path = os.path.join(
+            settings.STATIC_ROOT,
+            'download_template',
             WELL_TEMPLATE_FILE
         )
         well_template_output_name = '{file}_{time}.xlsx'.format(
@@ -259,8 +259,8 @@ class Command(BaseCommand):
 
         print('# Fetching Monitoring data')
         well_monitoring_template_path = os.path.join(
-            DJANGO_ROOT,
-            'fixtures', 'download_template',
+            settings.STATIC_ROOT,
+            'download_template',
             WELL_MONITORING_FILE
         )
         well_monitoring_template_output_name = '{file}_{time}.xlsx'.format(

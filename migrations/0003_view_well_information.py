@@ -10,14 +10,13 @@ class Migration(migrations.Migration):
 
     sql = """
        CREATE VIEW well_information AS
-select w.id,
-       w.id                                                           as "ggis_id",
+select 
+       w.id,
        w.original_id                                                  as "original_id",
        w.name                                                         as "name",
        c.name                                                         as "country",
        type.name                                                      as "feature_type",
        hydro.aquifer_name                                             as "aquifer_name",
-       concat('<a href="/groundwater/well/', w.id, '/edit">edit</a>') as "editor",
        w.location
 From well as w
        LEFT JOIN country c on w.country_id = c.id
