@@ -523,6 +523,10 @@ input[type="checkbox"] {
 }
 
 /* tooltip of error */
+.tooltip {
+    position: fixed;
+}
+
 table td div.error {
     background: white;
     border: 1px solid #ff5e5e;
