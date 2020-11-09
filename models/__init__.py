@@ -12,6 +12,7 @@ from gwml2.models.well import *
 
 # management
 from gwml2.models.well_management.organisation import *
+from gwml2.models.well_management.user import *
 
 # for signals models
 from gwml2.signals import *
