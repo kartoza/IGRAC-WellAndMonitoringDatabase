@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
                c.name                       as "country",
                type.name                    as "feature_type",
                admins || editors || viewers as "users",
+               concat('<a href="/groundwater/well/', w.id, '">detail</a>') as detail,
                w.location
         from well as w
             LEFT JOIN organisation org on w.organisation_id = org.id
