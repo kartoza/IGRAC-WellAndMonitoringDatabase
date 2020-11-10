@@ -4,6 +4,7 @@
 from django.conf.urls import url
 from django.urls import include
 from gwml2.api.upload_progress import get_progress_upload
+from gwml2.api.user import UserUUIDAPI
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
@@ -48,6 +49,12 @@ organisation_url = [
         name='organisation_list')
 ]
 
+user_url = [
+    url(r'^uuid/',
+        view=UserUUIDAPI.as_view(),
+        name='user_uuid')
+]
+
 urlpatterns = [
     url(r'^well-upload',
         view=WellUploadView.as_view(),
@@ -59,6 +66,7 @@ urlpatterns = [
         view=TaskProgress.as_view(),
         name='task_progress'),
     url(r'^well/', include(well_url)),
+    url(r'^user/', include(user_url)),
     url(r'^organisation/', include(organisation_url)),
     url(r'^upload-session/'
         r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
