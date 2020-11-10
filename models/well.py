@@ -102,7 +102,7 @@ class Well(GeneralInformation):
         else:
             if user.is_staff:
                 return True
-            return user.id in self.organisation.viewers
+            return user.id in self.organisation.viewers or user.id in self.organisation.editors or user.id in self.organisation.admins
 
     def editor_permission(self, user):
         """ Return editor permission from user id
