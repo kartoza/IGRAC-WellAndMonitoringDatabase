@@ -67,6 +67,7 @@ class StratigraphicLog(models.Model):
     )
 
     class Meta:
+        ordering = ('top_depth__value',)
         db_table = 'drilling_stratigraphic_log'
 
 

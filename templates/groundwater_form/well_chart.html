@@ -510,7 +510,9 @@
                 'topCasing': topCasing,
                 'patterns': chartData['constructionPatterns'],
             }, (event, chartContext, config) => {
+                const $tableDiv = $(`#${tableContainerId}`);
                 if (!event) {
+                    $tableDiv.html(`<div class="well-info"><p>Please hover over the chart on the left</p></div>`);
                     return true;
                 }
                 let seriesIndex = config['seriesIndex'];

@@ -66,6 +66,7 @@ class ConstructionStructure(models.Model):
     )
 
     class Meta:
+        ordering = ('top_depth__value',)
         db_table = 'construction_structure'
 
 
