@@ -2,9 +2,11 @@
 """Download session model definition.
 
 """
+import os
 import uuid
 from datetime import datetime
 from django.db import models
+from django.dispatch import receiver
 
 
 class DownloadSession(models.Model):
@@ -34,6 +36,11 @@ class DownloadSession(models.Model):
         null=True
     )
 
+    file = models.FileField(
+        blank=True,
+        null=True
+    )
+
     # noinspection PyClassicStyleClass
     class Meta:
         """Meta class for project."""
@@ -57,3 +64,12 @@ class DownloadSession(models.Model):
         self.progress = progress
         self.notes = notes
         self.save()
+
+
+@receiver(models.signals.post_delete, sender=DownloadSession)
+def download_session_deleted(sender, instance, **kwargs):
+    """
+    """
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)

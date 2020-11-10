@@ -308,5 +308,6 @@ def download_well(self, user_id, download_session_id, filters=None):
     shutil.rmtree(folder)
 
     url = os.path.join(settings.MEDIA_URL, 'gwml2', 'download', zip_filename)
+    download_session.file.name = os.path.join('gwml2', 'download', zip_filename)
     download_session.update_progress(100, json.dumps({'url': url}))
     return JsonResponse({'status': 'success'})

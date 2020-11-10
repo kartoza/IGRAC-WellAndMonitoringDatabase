@@ -52,11 +52,7 @@ def validate_monitoring_records(organisation, records):
     row = 2
     for record in records:
         row += 1
-        record_id = '{org}-{id}'.format(
-            org=organisation.name,
-            id=record[ID]
-        )
-        if not Well.objects.filter(original_id=record_id).exists():
+        if not Well.objects.filter(original_id=record[ID], organisation__name=organisation.name).exists():
             return (
                 False, 'One of the IDs does not exist : '
                        '{id}, row {row}'.format(
@@ -83,11 +79,7 @@ def validate_well_records(organisation, records):
     row = 2
     for record in records:
         row += 1
-        record_id = '{org}-{id}'.format(
-            org=organisation.name,
-            id=record[ID]
-        )
-        if Well.objects.filter(original_id=record_id).exists():
+        if Well.objects.filter(original_id=record[ID], organisation__name=organisation.name).exists():
             return (
                 False, 'One of the IDs is not unique : {id}, row {row}'.format(
                     id=record[ID],
@@ -351,7 +343,9 @@ def _processing_well_monitoring_file(upload_session):
             additional_fields = {}
 
             # -- Well
-            well = Well.objects.get(original_id=record_id)
+            well = Well.objects.get(
+                original_id=record[ID],
+                organisation__name=organisation.name)
 
             # -- Date and time ('%Y-%m-%d %H:%M:%S') e.g '2020-10-20 14:00:00'
             date_and_time = datetime.datetime.strptime(
