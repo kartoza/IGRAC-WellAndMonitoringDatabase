@@ -166,7 +166,7 @@ def download_well(self, user_id, download_session_id, filters=None):
             well.geology.total_depth.unit.__str__() if well.geology and well.geology.total_depth and well.geology.total_depth.unit else '',
             well.drilling.drilling_method.__str__() if well.drilling and well.drilling.drilling_method else '',
             well.drilling.driller if well.drilling else '',
-            ('Yes' if well.drilling.successful else 'No') if well.drilling else '',
+            ('Yes' if well.drilling.successful else 'No') if well.drilling and well.drilling.successful is not None else '',
             well.drilling.cause_of_failure if well.drilling else '',
             well.drilling.year_of_drilling if well.drilling else '',
             well.construction.pump_installer if well.construction else '',
