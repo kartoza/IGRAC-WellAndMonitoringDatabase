@@ -7,7 +7,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('gwml2', '0010_auto_20201104_0923'),
+        ('gwml2', '0011_downloadsession_file'),
     ]
 
     operations = [
