@@ -28,20 +28,27 @@ class ManagementCreateForm(FormGroupCreate):
     def create(self):
         """ create form from data
         """
-        self.form = self._make_form(
-            self.well.management if self.well.management else Management(),
-            ManagementForm, self.data['management'])
-        self.license_form = self._make_form(
-            self.form.instance.license if self.form.instance.license else License(),
-            LicenseForm, self.data['management']['license']
-        )
+        if self.data.get('management', None):
+            self.form = self._make_form(
+                self.well.management if self.well.management else Management(),
+                ManagementForm, self.data['management'])
+            if self.data['management'].get('license', None):
+                self.license_form = self._make_form(
+                    self.form.instance.license if self.form.instance.license else License(),
+                    LicenseForm, self.data['management']['license']
+                )
 
     def save(self):
         """ save all available data """
-        self.license_form.save()
-        self.form.instance.license = self.license_form.instance
-        self.form.save()
-        self.well.management = self.form.instance
-        org = self.form.cleaned_data.get('organisation', None)
-        if org:
-            self.well.organisation = org
+        if self.license_form:
+            self.license_form.save()
+        if self.form:
+            if self.license_form:
+                self.form.instance.license = self.license_form.instance
+            self.form.save()
+            self.well.management = self.form.instance
+
+            # safe the organisation
+            org = self.form.cleaned_data.get('organisation', None)
+            if org:
+                self.well.organisation = org

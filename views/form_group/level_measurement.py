@@ -25,17 +25,18 @@ class LevelMeasurementCreateForm(FormGroupCreate):
         """ create form from data
         """
         self.measurements = []
-        for measurement in self.data['level_measurement']:
-            if not measurement['time']:
-                return
-            obj = WellLevelMeasurement.objects.get(
-                id=measurement['id_']) if measurement['id_'] else WellLevelMeasurement()
+        if self.data.get('level_measurement',None):
+            for measurement in self.data['level_measurement']:
+                if not measurement['time']:
+                    return
+                obj = WellLevelMeasurement.objects.get(
+                    id=measurement['id']) if measurement['id'] else WellLevelMeasurement()
 
-            self.measurements.append(
-                self._make_form(
-                    obj, WellLevelMeasurementForm, measurement
+                self.measurements.append(
+                    self._make_form(
+                        obj, WellLevelMeasurementForm, measurement
+                    )
                 )
-            )
 
     def save(self):
         """ save all available data """

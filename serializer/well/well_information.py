@@ -6,6 +6,7 @@ from gwml2.serializer.well.construction import ConstructionSerializer
 from gwml2.serializer.well.drilling import DrillingSerializer
 from gwml2.serializer.well.geology import GeologySerializer
 from gwml2.serializer.well.hydrogeology import HydrogeologyParameterSerializer
+from gwml2.serializer.well.management import ManagementSerializer
 from gwml2.serializer.well.measurement import (
     WellLevelMeasurementSerializer, WellQualityMeasurementSerializer, WellYieldMeasurementSerializer)
 
@@ -53,6 +54,7 @@ class WellLikeFormSerializer(WellSerializer, serializers.ModelSerializer):
     drilling = serializers.SerializerMethodField()
     construction = serializers.SerializerMethodField()
     hydrogeology = serializers.SerializerMethodField()
+    management = serializers.SerializerMethodField()
 
     level_measurement = serializers.SerializerMethodField()
     quality_measurement = serializers.SerializerMethodField()
@@ -93,6 +95,13 @@ class WellLikeFormSerializer(WellSerializer, serializers.ModelSerializer):
         """
         return HydrogeologyParameterSerializer(obj.hydrogeology_parameter).data
 
+    def get_management(self, obj):
+        """ Return management of well
+        :param obj:
+        :type obj: Well
+        """
+        return ManagementSerializer(obj.management).data
+
     def get_level_measurement(self, obj):
         """ Return level_measurement of well
         :param obj:
@@ -117,4 +126,4 @@ class WellLikeFormSerializer(WellSerializer, serializers.ModelSerializer):
     class Meta:
         model = Well
         fields = ['general_information', 'geology', 'drilling', 'construction', 'hydrogeology',
-                  'level_measurement', 'quality_measurement', 'yield_measurement']
+                  'level_measurement', 'quality_measurement', 'yield_measurement', 'management']

@@ -25,10 +25,10 @@ class LicenseSerializer(WellSerializer, serializers.ModelSerializer):
 
 
 class ManagementSerializer(WellSerializer, serializers.ModelSerializer):
-    pumping_test = serializers.SerializerMethodField()
+    license = serializers.SerializerMethodField()
 
-    def get_pumping_test(self, obj):
-        """ Return water strike list
+    def get_license(self, obj):
+        """ Return license list
         :param obj:
         :type obj: Management
         """
@@ -36,4 +36,4 @@ class ManagementSerializer(WellSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Management
-        fields = ['organisation', 'manager', 'description', 'groundwater_use', 'number_of_users']
+        fields = ['manager', 'description', 'groundwater_use', 'number_of_users', 'license']

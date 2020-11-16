@@ -25,17 +25,18 @@ class YieldMeasurementCreateForm(FormGroupCreate):
         """
 
         self.measurements = []
-        for measurement in self.data['yield_measurement']:
-            if not measurement['time']:
-                return
-            obj = WellYieldMeasurement.objects.get(
-                id=measurement['id_']) if measurement['id_'] else WellYieldMeasurement()
+        if self.data.get('yield_measurement', None):
+            for measurement in self.data['yield_measurement']:
+                if not measurement['time']:
+                    return
+                obj = WellYieldMeasurement.objects.get(
+                    id=measurement['id']) if measurement['id'] else WellYieldMeasurement()
 
-            self.measurements.append(
-                self._make_form(
-                    obj, WellYieldMeasurementForm, measurement
+                self.measurements.append(
+                    self._make_form(
+                        obj, WellYieldMeasurementForm, measurement
+                    )
                 )
-            )
 
     def save(self):
         """ save all available data """

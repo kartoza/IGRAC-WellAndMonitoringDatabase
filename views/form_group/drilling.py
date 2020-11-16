@@ -4,7 +4,6 @@ from gwml2.forms import (
 from gwml2.models.drilling import (
     Drilling, StratigraphicLog, WaterStrike
 )
-from gwml2.models.reference_elevation import ReferenceElevation
 from gwml2.views.form_group.form_group import FormGroupGet, FormGroupCreate
 
 
@@ -36,33 +35,36 @@ class DrillingCreateForm(FormGroupCreate):
         self.stratigraphic_log = []
         self.water_strike = []
 
-        self.form = self._make_form(
-            self.well.drilling if self.well.drilling else Drilling(),
-            DrillingForm, self.data['drilling'])
+        if self.data.get('drilling', None):
+            self.form = self._make_form(
+                self.well.drilling if self.well.drilling else Drilling(),
+                DrillingForm, self.data['drilling'])
 
-        for log in self.data['drilling']['stratigraphic_log']:
-            obj = StratigraphicLog.objects.get(
-                id=log['id_']) if log['id_'] else StratigraphicLog()
+            if self.data['drilling'].get('stratigraphic_log', None):
+                for log in self.data['drilling']['stratigraphic_log']:
+                    obj = StratigraphicLog.objects.get(
+                        id=log['id']) if log['id'] else StratigraphicLog()
 
-            self.stratigraphic_log.append(
-                self._make_form(
-                    obj, StratigraphicLogForm, log))
+                    self.stratigraphic_log.append(
+                        self._make_form(
+                            obj, StratigraphicLogForm, log))
+            if self.data['drilling'].get('water_strike'):
+                for water_strike in self.data['drilling']['water_strike']:
+                    obj = WaterStrike.objects.get(
+                        id=water_strike['id']) if water_strike['id'] else WaterStrike()
 
-        for water_strike in self.data['drilling']['water_strike']:
-            obj = WaterStrike.objects.get(
-                id=water_strike['id_']) if water_strike['id_'] else WaterStrike()
-
-            self.water_strike.append(
-                self._make_form(
-                    obj, WaterStrikeForm, water_strike))
+                    self.water_strike.append(
+                        self._make_form(
+                            obj, WaterStrikeForm, water_strike))
 
     def save(self):
         """ save all available data """
-        self.form.save()
-        for water_strike in self.water_strike:
-            water_strike.instance.drilling = self.form.instance
-            water_strike.save()
-        for log in self.stratigraphic_log:
-            log.instance.drilling = self.form.instance
-            log.save()
-        self.well.drilling = self.form.instance
+        if self.form:
+            self.form.save()
+            for water_strike in self.water_strike:
+                water_strike.instance.drilling = self.form.instance
+                water_strike.save()
+            for log in self.stratigraphic_log:
+                log.instance.drilling = self.form.instance
+                log.save()
+            self.well.drilling = self.form.instance

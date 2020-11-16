@@ -1,5 +1,5 @@
 import json
-from django.forms import ModelForm
+from django.db import transaction
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -75,19 +75,38 @@ class WellView(ViewWellFormMixin, View):
         )
 
 
-class WellFormView(EditWellFormMixin, WellView):
-    read_only = False
+class WellEditing(object):
+    """ Contains function to create/edit well"""
 
-    def create_data(self, well, data):
-        general_information = GeneralInformationCreateForm(well, data, self.request.FILES)
-        geology = GeologyCreateForm(well, data, self.request.FILES)
-        drilling = DrillingCreateForm(well, data, self.request.FILES)
-        construction = ConstructionCreateForm(well, data, self.request.FILES)
-        hydrogeology = HydrogeologyCreateForm(well, data, self.request.FILES)
-        management = ManagementCreateForm(well, data, self.request.FILES)
-        yield_measurement = YieldMeasurementCreateForm(well, data, self.request.FILES)
-        quality_measurement = QualityMeasurementCreateForm(well, data, self.request.FILES)
-        level_measurement = LevelMeasurementCreateForm(well, data, self.request.FILES)
+    @transaction.atomic
+    def edit_well(self, well, data, FILES):
+        """ Edit well with data and FILES
+
+        :param well: well that will be edited
+        :type well: Well
+
+        :param data: data that will be inserted
+        :type data: dict
+
+        :param FILES: files to be inserted
+        :type FILES: dict
+        """
+
+        # create new well if well is not provided
+        if not well:
+            general_information = GeneralInformationCreateForm(Well(), data, FILES)
+            general_information.save()
+            well = general_information.form.instance
+
+        general_information = GeneralInformationCreateForm(well, data, FILES)
+        geology = GeologyCreateForm(well, data, FILES)
+        drilling = DrillingCreateForm(well, data, FILES)
+        construction = ConstructionCreateForm(well, data, FILES)
+        hydrogeology = HydrogeologyCreateForm(well, data, FILES)
+        management = ManagementCreateForm(well, data, FILES)
+        yield_measurement = YieldMeasurementCreateForm(well, data, FILES)
+        quality_measurement = QualityMeasurementCreateForm(well, data, FILES)
+        level_measurement = LevelMeasurementCreateForm(well, data, FILES)
 
         # -----------------------------------------
         # save all forms
@@ -102,15 +121,21 @@ class WellFormView(EditWellFormMixin, WellView):
         level_measurement.save()
         general_information.save()
 
+        return well
+
+
+class WellFormView(WellEditing, EditWellFormMixin, WellView):
+    read_only = False
+
     def post(self, request, id, *args, **kwargs):
         data = json.loads(request.POST['data'])
         well = get_object_or_404(Well, id=id)
 
         try:
-            self.create_data(well, data)
+            self.edit_well(well, data, self.request.FILES)
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
-        except (ValueError, FormNotValid) as e:
+        except (ValueError, FormNotValid, Exception) as e:
             return HttpResponseBadRequest('{}'.format(e))
 
         return HttpResponse(reverse('well_form', kwargs={'id': well.id}))
@@ -130,15 +155,12 @@ class WellFormCreateView(WellFormView):
 
     def post(self, request, *args, **kwargs):
         data = json.loads(request.POST['data'])
-        general_information = GeneralInformationCreateForm(Well(), data, self.request.FILES)
-        general_information.save()
-        well = general_information.form.instance
 
         try:
-            self.create_data(well, data)
+            well = self.edit_well(None, data, self.request.FILES)
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
-        except (ValueError, FormNotValid) as e:
+        except (ValueError, FormNotValid, Exception) as e:
             return HttpResponseBadRequest('{}'.format(e))
 
         return HttpResponse(reverse('well_form', kwargs={'id': well.id}))

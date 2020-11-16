@@ -8,15 +8,17 @@ class StratigraphicLogForm(forms.ModelForm):
     """
     Form of geology log of well.
     """
-    id_ = forms.CharField(required=False)
+    id = forms.CharField(required=False)
 
     class Meta:
         model = StratigraphicLog
-        fields = ('id_', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
+        fields = ('id', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),
             'bottom_depth': QuantityInput(unit_group='length'),
         }
+
+    field_order = ('id', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -46,5 +48,5 @@ class StratigraphicLogForm(forms.ModelForm):
         :rtype: StratigraphicLogForm
         """
         data = model_to_dict(instance)
-        data['id_'] = instance.id
+        data['id'] = instance.id
         return StratigraphicLogForm(initial=data, instance=instance)

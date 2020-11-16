@@ -6,7 +6,7 @@ from gwml2.serializer.general import WellSerializer
 class ConstructionStructureSerializer(WellSerializer, serializers.ModelSerializer):
     class Meta:
         model = ConstructionStructure
-        fields = ['type', 'reference_elevation', 'material', 'description']
+        fields = ['id', 'type', 'reference_elevation', 'material', 'description']
 
     def to_representation(self, instance):
         """ Custom representation on the result

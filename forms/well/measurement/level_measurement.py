@@ -9,14 +9,16 @@ class WellLevelMeasurementForm(forms.ModelForm):
     """
     Form of WellLevelMeasurement of well.
     """
-    id_ = forms.CharField(required=False)
+    id = forms.CharField(required=False)
 
     class Meta:
         model = WellLevelMeasurement
-        fields = ('id_', 'time', 'parameter', 'methodology', 'value')
+        fields = ('id', 'time', 'parameter', 'methodology', 'value')
         widgets = {
             'value': QuantityInput(unit_required=False)
         }
+
+    field_order = ('id', 'time', 'parameter', 'methodology', 'value')
 
     def __init__(self, *args, **kwargs):
         super(WellLevelMeasurementForm, self).__init__(*args, **kwargs)
@@ -54,5 +56,5 @@ class WellLevelMeasurementForm(forms.ModelForm):
         :rtype: WellLevelMeasurementForm
         """
         data = model_to_dict(instance)
-        data['id_'] = instance.id
+        data['id'] = instance.id
         return WellLevelMeasurementForm(initial=data, instance=instance)

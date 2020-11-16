@@ -4,9 +4,17 @@ from gwml2.serializer.general import WellSerializer
 
 
 class MeasurementSerializer(WellSerializer, serializers.ModelSerializer):
+    time = serializers.SerializerMethodField()
+
+    def get_time(self, obj):
+        if obj.time:
+            return obj.time.strftime('%Y-%m-%d %H:%M:%S')
+        else:
+            return ''
+
     class Meta:
         abstract = True
-        fields = ['id_', 'time', 'parameter', 'methodology']
+        fields = ['id', 'time', 'parameter', 'methodology']
 
     def to_representation(self, instance):
         """ Custom representation on the result

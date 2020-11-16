@@ -8,17 +8,20 @@ class ConstructionStructureForm(forms.ModelForm):
     """
     Form for ConstructionStructure.
     """
-    id_ = forms.CharField(required=False)
+    id = forms.CharField(required=False)
 
     class Meta:
         model = ConstructionStructure
-        fields = ('id_', 'type', 'reference_elevation', 'top_depth', 'bottom_depth',
+        fields = ('id', 'type', 'reference_elevation', 'top_depth', 'bottom_depth',
                   'diameter', 'material', 'description')
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),
             'bottom_depth': QuantityInput(unit_group='length'),
             'diameter': QuantityInput(unit_group='length'),
         }
+
+    field_order = ('id', 'type', 'reference_elevation', 'top_depth', 'bottom_depth',
+                   'diameter', 'material', 'description')
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -47,5 +50,5 @@ class ConstructionStructureForm(forms.ModelForm):
         :rtype: CasingForm
         """
         data = model_to_dict(instance)
-        data['id_'] = instance.id
+        data['id'] = instance.id
         return ConstructionStructureForm(initial=data, instance=instance)

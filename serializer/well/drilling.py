@@ -21,7 +21,7 @@ class WaterStrikeSerializer(WellSerializer, serializers.ModelSerializer):
 class StratigraphicLogSerializer(WellSerializer, serializers.ModelSerializer):
     class Meta:
         model = StratigraphicLog
-        fields = ['reference_elevation', 'material', 'stratigraphic_unit']
+        fields = ['id', 'reference_elevation', 'material', 'stratigraphic_unit']
 
     def to_representation(self, instance):
         """ Custom representation on the result

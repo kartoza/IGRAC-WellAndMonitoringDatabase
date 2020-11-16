@@ -8,14 +8,16 @@ class WaterStrikeForm(forms.ModelForm):
     """
     Form for WaterStrike.
     """
-    id_ = forms.CharField(required=False)
+    id = forms.CharField(required=False)
 
     class Meta:
         model = WaterStrike
-        fields = ('id_', 'depth', 'description')
+        fields = ('id', 'depth', 'description')
         widgets = {
             'depth': ReferenceElevationInput(unit_group='length')
         }
+
+    field_order = ('id', 'depth', 'description')
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -44,5 +46,5 @@ class WaterStrikeForm(forms.ModelForm):
         :rtype: WaterStrikeForm
         """
         data = model_to_dict(instance)
-        data['id_'] = instance.id
+        data['id'] = instance.id
         return WaterStrikeForm(initial=data, instance=instance)

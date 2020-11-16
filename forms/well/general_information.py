@@ -43,7 +43,7 @@ class GeneralInformationForm(forms.ModelForm):
             x=float(data['longitude']), y=float(data['latitude']), srid=4326)
 
         # check the files
-        if data['photo']:
+        if data.get('photo', None):
             files = {
                 'photo': files[data['photo']]
             }

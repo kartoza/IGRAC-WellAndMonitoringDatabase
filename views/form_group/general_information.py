@@ -33,15 +33,16 @@ class GeneralInformationCreateForm(FormGroupCreate):
         self.form = self._make_form(
             self.well, GeneralInformationForm,
             self.data['general_information'])
-        for document in self.data['documents']:
-            well_doc = WellDocument.objects.get(
-                id=document['id_doc']) if document['id_doc'] else WellDocument()
-            if not well_doc.well_id:
-                well_doc.well = self.well
+        if self.data.get('documents', None):
+            for document in self.data['documents']:
+                well_doc = WellDocument.objects.get(
+                    id=document['id_doc']) if document['id_doc'] else WellDocument()
+                if not well_doc.well_id:
+                    well_doc.well = self.well
 
-            self.documents.append(
-                self._make_form(well_doc, DocumentForm, document)
-            )
+                self.documents.append(
+                    self._make_form(well_doc, DocumentForm, document)
+                )
 
     def save(self):
         """ save all available data """
