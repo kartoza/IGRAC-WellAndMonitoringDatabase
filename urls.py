@@ -7,6 +7,7 @@ from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.authentication import TokenAuth
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.user import UserUUIDAPI
+from gwml2.api.well import WellDetailAPI
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
@@ -56,6 +57,12 @@ user_url = [
         name='user_uuid')
 ]
 
+api_url = [
+    url(r'^well/(?P<id>\d+)/',
+        view=WellDetailAPI.as_view(),
+        name='well_detail_api'),
+]
+
 urlpatterns = [
     url(r'^token-auth',
         view=TokenAuth.as_view(),
@@ -69,6 +76,7 @@ urlpatterns = [
     url(r'^task/(?P<task_id>.+)/progress/',
         view=TaskProgress.as_view(),
         name='task_progress'),
+    url(r'^api/', include(api_url)),
     url(r'^well/', include(well_url)),
     url(r'^user/', include(user_url)),
     url(r'^organisation/', include(organisation_url)),

@@ -1,12 +1,10 @@
 {% load gwml2_forms %}
 <div id="quality-measurement" class="page-section">
     <h2 class="section-title">Quality measurement</h2>
-    {% include "groundwater_form/_many-to-many.html" with id='quality_measurement' title='Measurement' theform=quality_measurement help_text='' use_chart=True delete='yes' csv_add_new='yes'%}
+    {% include "groundwater_form/_many-to-many.html" with id='quality_measurement' title='Measurement' theform=quality_measurement help_text='' use_chart=True delete='yes' csv_add_new='yes' %}
 </div>
 <script>
     submitFunctions['quality_measurement'] = function () {
-        return {
-            measurements: submitFunctionsManyToMany['quality_measurement']()
-        };
+        return submitFunctionsManyToMany['quality_measurement']()
     }
 </script>

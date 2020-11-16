@@ -78,17 +78,6 @@ class WellView(ViewWellFormMixin, View):
 class WellFormView(EditWellFormMixin, WellView):
     read_only = False
 
-    def make_form(self, instance, form, data):
-        """ make form from data
-
-        :rtype: ModelForm
-        """
-        form = form.make_from_data(
-            instance, data, self.request.FILES)
-        if not form.is_valid():
-            raise FormNotValid(json.dumps(form.errors))
-        return form
-
     def create_data(self, well, data):
         general_information = GeneralInformationCreateForm(well, data, self.request.FILES)
         geology = GeologyCreateForm(well, data, self.request.FILES)

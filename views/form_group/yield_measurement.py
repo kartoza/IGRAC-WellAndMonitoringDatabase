@@ -25,7 +25,7 @@ class YieldMeasurementCreateForm(FormGroupCreate):
         """
 
         self.measurements = []
-        for measurement in self.data['yield_measurement']['measurements']:
+        for measurement in self.data['yield_measurement']:
             if not measurement['time']:
                 return
             obj = WellYieldMeasurement.objects.get(

@@ -53,13 +53,13 @@ class GeneralInformationForm(forms.ModelForm):
         return GeneralInformationForm(data, files, instance=instance)
 
     @staticmethod
-    def make_from_instance(instance):
-        """ Create form from instance
+    def dict_from_instance(instance):
+        """ Create json from instance
         :param instance: well object
         :type instance: Well
 
-        :return: Form
-        :rtype: GeneralInformationForm
+        :return: the dict
+        :rtype: dict
         """
         data = model_to_dict(instance)
         data['id'] = instance.id
@@ -69,4 +69,17 @@ class GeneralInformationForm(forms.ModelForm):
         else:
             data['latitude'] = None
             data['longitude'] = None
-        return GeneralInformationForm(initial=data)
+        return data
+
+    @staticmethod
+    def make_from_instance(instance):
+        """ Create form from instance
+        :param instance: well object
+        :type instance: Well
+
+        :return: Form
+        :rtype: GeneralInformationForm
+        """
+        return GeneralInformationForm(
+            initial=GeneralInformationForm.dict_from_instance(instance)
+        )

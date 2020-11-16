@@ -5,8 +5,6 @@
 </div>
 <script>
     submitFunctions['yield_measurement'] = function () {
-        return {
-            measurements: submitFunctionsManyToMany['yield_measurement']()
-        };
+        return submitFunctionsManyToMany['yield_measurement']();
     }
 </script>

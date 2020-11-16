@@ -5,9 +5,7 @@
 </div>
 <script>
     submitFunctions['level_measurement'] = function () {
-        let data = {
-            measurements: submitFunctionsManyToMany['level_measurement']()
-        };
+        let data = submitFunctionsManyToMany['level_measurement']();
         return data
     }
 </script>

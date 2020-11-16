@@ -25,7 +25,7 @@ class LevelMeasurementCreateForm(FormGroupCreate):
         """ create form from data
         """
         self.measurements = []
-        for measurement in self.data['level_measurement']['measurements']:
+        for measurement in self.data['level_measurement']:
             if not measurement['time']:
                 return
             obj = WellLevelMeasurement.objects.get(

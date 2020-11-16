@@ -2,8 +2,8 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.http import HttpResponse, Http404
-from gwml2.models.well_management.user import UserUUID
 from gwml2.authentication import GWMLTokenAthentication
+from gwml2.models.well_management.user import UserUUID
 
 
 class UserUUIDAPI(APIView):
