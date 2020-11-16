@@ -4,8 +4,9 @@
 from django.conf.urls import url
 from django.urls import include
 from gwml2.api.upload_progress import get_progress_upload
-from gwml2.api.user import UserUUIDAPI
+from gwml2.api.authentication import TokenAuth
 from gwml2.api.task_progress import TaskProgress
+from gwml2.api.user import UserUUIDAPI
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
@@ -56,6 +57,9 @@ user_url = [
 ]
 
 urlpatterns = [
+    url(r'^token-auth',
+        view=TokenAuth.as_view(),
+        name='gwml2-token-aut'),
     url(r'^well-upload',
         view=WellUploadView.as_view(),
         name='well_upload_view'),

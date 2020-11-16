@@ -3,10 +3,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.http import HttpResponse, Http404
 from gwml2.models.well_management.user import UserUUID
+from gwml2.authentication import GWMLTokenAthentication
 
 
 class UserUUIDAPI(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, GWMLTokenAthentication]
     permission_classes = [IsAuthenticated]
     """
     Return status of the upload session
