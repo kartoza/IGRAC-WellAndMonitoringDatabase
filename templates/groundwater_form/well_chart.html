@@ -88,7 +88,7 @@
         <h3>Well information</h3>
         <div id="well-table-container" class="well-table-container" style="max-width: 100% !important;">
             <div class="well-info">
-                <p>Please hover over the chart on the left</p>
+                <p>Please hover mouse over the chart</p>
             </div>
         </div>
     </div>
@@ -187,6 +187,13 @@
         src="{% static 'js/chroma.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/underscore-1.11.0/underscore-min.js' %}"></script>
 <script>
+
+    // Last selected bar in the chart
+    let lastSelectedBar = null;
+    let lastSelectedColor = '';
+    let lastSelectedPatternStroke = '';
+    let selectedColorHighlight = 'rgba(219, 186, 0, 0.6)';
+
     const getWellChartData = function () {
         // Get chart data
         let ground_surface_elevation = valElmt($('*[name^="ground_surface_elevation_value"]'));
@@ -461,7 +468,7 @@
                 constructionOpacities.push('1');
             } else {
                 constructionColors.push('#c8c8c8');
-                constructionOpacities.push('0.6');
+                constructionOpacities.push('0.8');
             }
         })
 
@@ -512,7 +519,7 @@
             }, (event, chartContext, config) => {
                 const $tableDiv = $(`#${tableContainerId}`);
                 if (!event) {
-                    $tableDiv.html(`<div class="well-info"><p>Please hover over the chart on the left</p></div>`);
+                    $tableDiv.html(`<div class="well-info"><p>Please hover mouse over the chart</p></div>`);
                     return true;
                 }
                 let seriesIndex = config['seriesIndex'];
@@ -520,6 +527,10 @@
                     seriesIndex += -1;
                 }
                 const constructionData = chartData['construction'][seriesIndex];
+                if (typeof constructionData === 'undefined') {
+                    $tableDiv.html(`<div class="well-info"><p>Please hover mouse over the chart</p></div>`);
+                    return true;
+                }
                 chartData['stratigraphy'].some((stratigraphyData, index) => {
                     if (constructionData['translated_bottom'] <= stratigraphyData['translated_bottom']) {
                         renderTable(tableContainerId, constructionData, stratigraphyData);
@@ -562,8 +573,11 @@
         let chartOptions = {
             series: chartSeriesData,
             stroke: {
-                width: 1,
+                width: 2,
                 colors: ['#fff']
+            },
+            animations: {
+                enabled: false
             },
             chart: {
                 type: 'bar',
@@ -573,12 +587,54 @@
                 events: {
                     dataPointMouseEnter: function (event, chartContext, config) {
                         if (callback) {
+                            chartContext['seriesIndex'] = config['seriesIndex'];
                             callback(event, chartContext, config);
+                        }
+                    },
+                    click: function (event, chartContext, config) {
+                        if (callback) {
+                            if (lastSelectedBar) {
+                                lastSelectedBar.setAttribute('stroke', '#ffffff');
+                                lastSelectedBar.setAttribute('fill', lastSelectedColor);
+                                if (lastSelectedColor.includes('Pattern')) {
+                                    let pattern = lastSelectedColor.replace('url(','').replace(')', '');
+                                    pattern = $(pattern).children()[0];
+                                    pattern.setAttribute('stroke', lastSelectedPatternStroke);
+                                }
+                            }
+                            if (!chartContext['selectedSeriesIndex']) {
+                                chartContext['selectedSeriesIndex'] = chartContext['seriesIndex'];
+                            } else {
+                                if (chartContext['selectedSeriesIndex'] === chartContext['seriesIndex']) {
+                                    chartContext['selectedSeriesIndex'] = null;
+                                    lastSelectedBar = null;
+                                    return
+                                } else {
+                                    chartContext['selectedSeriesIndex'] = chartContext['seriesIndex'];
+                                }
+                            }
+                            lastSelectedBar = event.target;
+                            lastSelectedColor = event.target.getAttribute('fill');
+                            event.target.setAttribute('stroke', '#dbba00')
+                            if (lastSelectedColor.includes('Pattern')) {
+                                let pattern = lastSelectedColor.replace('url(','').replace(')', '');
+                                pattern = $(pattern).children()[0];
+                                lastSelectedPatternStroke = pattern.getAttribute('stroke');
+                                pattern.setAttribute('stroke', selectedColorHighlight);
+                            } else {
+                                event.target.setAttribute('fill', selectedColorHighlight);
+                            }
                         }
                     },
                     dataPointMouseLeave: function (event, chartContext, config) {
                         if (callback) {
-                            callback(null);
+                            if (chartContext['selectedSeriesIndex']) {
+                                const _config = config;
+                                _config['seriesIndex'] = chartContext['selectedSeriesIndex'];
+                                callback(event, chartContext, _config);
+                            } else {
+                                callback(null);
+                            }
                         }
                     },
                     mounted: function (chartContext, config) {
@@ -649,11 +705,25 @@
             },
             dataLabels: {
                 enabled: false
+            },
+            states: {
+                hover: {
+                    filter: {
+                        type: center ? 'lighten' : 'none',
+                    }
+                },
+                active: {
+                     filter: {
+                        type: center ? 'lighten' : 'none',
+                        value: 0.10,
+                    }
+                }
             }
         };
 
         let chart = new ApexCharts(document.querySelector(chartContainerId), chartOptions);
         chart.render();
+        return chart;
     }
 
 </script>
