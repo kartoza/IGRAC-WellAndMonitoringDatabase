@@ -864,3 +864,17 @@ input[name="stratigraphic_unit"] {
 .add-new-many-to-many:before, .add-new-many-to-many-csv:before {
     content: '+ ';
 }
+
+#id_original_id, #id_name, #id_status, #id_feature_type,
+#id_purpose, #id_description, #id_latitude, #id_longitude,
+#id_address, #id_country, #id_total_depth_value, #id_drilling_method, #id_driller,
+#id_successful, #id_year_of_drilling, #id_pump_installer, #id_pump_description,
+#id_aquifer_name, #id_aquifer_material, #id_aquifer_type,
+#id_aquifer_thickness_value, #id_confinement, #id_degree_of_confinement,
+#id_porosity, #id_hydraulic_conductivity_value, #id_transmissivity_value,
+#id_specific_storage_value, #id_specific_capacity_value, #id_storativity,
+#id_test_type, #id_organisation, #id_manager, #id_description, #id_groundwater_use,
+#id_number_of_users, #id_valid_from, #id_valid_until, #id_ground_surface_elevation_value,
+#id_top_borehole_elevation_value {
+    width: 279px;
+}
