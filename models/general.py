@@ -57,7 +57,7 @@ class Quantity(models.Model):
 
     def __str__(self):
         if self.unit:
-            return '{} ({})'.format(self.value, self.unit)
+            return '{} {}'.format(self.value, self.unit)
         else:
             return '{}'.format(self.value)
 

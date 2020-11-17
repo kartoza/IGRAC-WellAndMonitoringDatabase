@@ -9,8 +9,9 @@ from rest_framework.views import APIView
 from gwml2.authentication import GWMLTokenAthentication
 from gwml2.mixin import ViewWellFormMixin
 from gwml2.models.well import Well
-from gwml2.serializer.well.well_information import WellLikeFormSerializer
+from gwml2.serializer.well.well_information import WellLikeFormSerializer, WellMinimizedSerializer
 from gwml2.views.groundwater_form import WellEditing, FormNotValid
+from gwml2.utilities import get_organisations_as_viewer
 
 
 class WellDetailAPI(APIView, ViewWellFormMixin, WellEditing):
@@ -47,3 +48,17 @@ class WellDetailAPI(APIView, ViewWellFormMixin, WellEditing):
             )
         else:
             return HttpResponseForbidden('')
+
+
+class WellListMinimizedAPI(APIView, ViewWellFormMixin, WellEditing):
+    authentication_classes = [SessionAuthentication, BasicAuthentication, GWMLTokenAthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Return Well list in json
+        """
+        organsations = get_organisations_as_viewer(request.user)
+        return Response(
+            WellMinimizedSerializer(Well.objects.filter(organisation__in=organsations), many=True).data
+        )

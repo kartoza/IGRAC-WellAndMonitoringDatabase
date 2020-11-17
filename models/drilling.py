@@ -71,8 +71,6 @@ class StratigraphicLog(models.Model):
         db_table = 'drilling_stratigraphic_log'
 
 
-
-
 class WaterStrike(models.Model):
     """ Water strike
     """
