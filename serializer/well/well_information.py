@@ -20,21 +20,25 @@ class GeneralInformationSerializer(WellSerializer, serializers.ModelSerializer):
         :param obj:
         :type obj: Well
         """
-        data = GeneralInformationForm.dict_from_instance(obj)
-        return data['latitude']
+        if obj.location:
+            return round(obj.location.y, 7)
+        else:
+            return None
 
     def get_longitude(self, obj):
         """ Return longitude of well
         :param obj:
         :type obj: Well
         """
-        data = GeneralInformationForm.dict_from_instance(obj)
-        return data['longitude']
+        if obj.location:
+            return round(obj.location.x, 7)
+        else:
+            return None
 
     class Meta:
         model = Well
         fields = [
-            'original_id', 'name', 'status', 'feature_type',
+            'original_id', 'organisation', 'name', 'status', 'feature_type',
             'purpose', 'description', 'latitude', 'longitude', 'country', 'address']
 
     def to_representation(self, instance):

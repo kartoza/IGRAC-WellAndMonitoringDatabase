@@ -4,6 +4,7 @@ from django.forms.models import model_to_dict
 from gwml2.forms.widgets.file_selection import FileSelectionInput
 from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.well import Well
+from gwml2.models.well_management.organisation import Organisation
 
 
 class GeneralInformationForm(forms.ModelForm):
@@ -17,12 +18,21 @@ class GeneralInformationForm(forms.ModelForm):
 
     class Meta:
         model = Well
-        fields = ('original_id', 'location', 'name', 'feature_type', 'purpose', 'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
+        fields = ('original_id', 'organisation', 'location', 'name', 'feature_type', 'purpose', 'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
         widgets = {
             'ground_surface_elevation': QuantityInput(unit_group='length'),
             'top_borehole_elevation': QuantityInput(unit_group='length'),
             'photo': FileSelectionInput(preview=True),
         }
+
+    def __init__(self, *args, **kwargs):
+        organisation = kwargs.get('organisation', None)
+        try:
+            del kwargs['organisation']
+        except KeyError:
+            pass
+        forms.ModelForm.__init__(self, *args, **kwargs)
+        self.fields['organisation'].queryset = organisation
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -50,16 +60,16 @@ class GeneralInformationForm(forms.ModelForm):
         else:
             files = {}
 
-        return GeneralInformationForm(data, files, instance=instance)
+        return GeneralInformationForm(data, files, instance=instance, organisation=Organisation.objects.all())
 
     @staticmethod
-    def dict_from_instance(instance):
-        """ Create json from instance
+    def make_from_instance(instance, organisation):
+        """ Create form from instance
         :param instance: well object
         :type instance: Well
 
-        :return: the dict
-        :rtype: dict
+        :return: Form
+        :rtype: GeneralInformationForm
         """
         data = model_to_dict(instance)
         data['id'] = instance.id
@@ -69,17 +79,6 @@ class GeneralInformationForm(forms.ModelForm):
         else:
             data['latitude'] = None
             data['longitude'] = None
-        return data
-
-    @staticmethod
-    def make_from_instance(instance):
-        """ Create form from instance
-        :param instance: well object
-        :type instance: Well
-
-        :return: Form
-        :rtype: GeneralInformationForm
-        """
         return GeneralInformationForm(
-            initial=GeneralInformationForm.dict_from_instance(instance)
+            initial=data, organisation=organisation
         )

@@ -54,12 +54,12 @@ class WellView(ViewWellFormMixin, View):
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
             }
         }
-        context.update(GeneralInformationGetForms(well).get())
+        context.update(GeneralInformationGetForms(well).get_form(self.request.user))
         context.update(GeologyGetForms(well).get())
         context.update(DrillingGetForms(well).get())
         context.update(ConstructionGetForms(well).get())
         context.update(HydrogeologyGetForms(well).get())
-        context.update(ManagementGetForms(well).get_form(self.request.user))
+        context.update(ManagementGetForms(well).get())
         context.update(YieldMeasurementGetForms(well).get())
         context.update(QualityMeasurementGetForms(well).get())
         context.update(LevelMeasurementGetForms(well).get())
