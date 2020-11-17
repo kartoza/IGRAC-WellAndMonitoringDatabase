@@ -1,4 +1,4 @@
-import json
+from datetime import datetime
 from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -58,7 +58,16 @@ class WellListMinimizedAPI(APIView, ViewWellFormMixin, WellEditing):
         """
         Return Well list in json
         """
-        organsations = get_organisations_as_viewer(request.user)
+        organisations = get_organisations_as_viewer(request.user)
+        wells = Well.objects.filter(organisation__in=organisations)
+        if request.GET.get('from', None):
+            wells = wells.filter(time_updated__gte=datetime.fromtimestamp(
+                int(request.GET.get('from')))
+            )
+        if request.GET.get('to', None):
+            wells = wells.filter(time_updated__lte=datetime.fromtimestamp(
+                int(request.GET.get('to')))
+            )
         return Response(
-            WellMinimizedSerializer(Well.objects.filter(organisation__in=organsations), many=True).data
+            WellMinimizedSerializer(wells, many=True).data
         )
