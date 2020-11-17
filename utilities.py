@@ -43,3 +43,24 @@ def get_organisations_as_editor(user):
 def allow_to_edit_well(user):
     """ is the user allowed to edit """
     return get_organisations_as_editor(user).count()
+
+
+class temp_disconnect_signal(object):
+    """ Temporarily disconnect a model from a signal """
+
+    def __init__(self, signal, receiver, sender):
+        self.signal = signal
+        self.receiver = receiver
+        self.sender = sender
+
+    def __enter__(self):
+        self.signal.disconnect(
+            receiver=self.receiver,
+            sender=self.sender
+        )
+
+    def __exit__(self, type, value, traceback):
+        self.signal.connect(
+            receiver=self.receiver,
+            sender=self.sender
+        )

@@ -50,19 +50,6 @@ class PumpingTest(models.Model):
     class Meta:
         db_table = 'pumping_test'
 
-
-@receiver(post_delete, sender=PumpingTest)
-def delete_pumpingtest(sender, instance, **kwargs):
-    if instance.specific_capacity:
-        instance.specific_capacity.delete()
-    if instance.hydraulic_conductivity:
-        instance.hydraulic_conductivity.delete()
-    if instance.transmissivity:
-        instance.transmissivity.delete()
-    if instance.specific_storage:
-        instance.specific_storage.delete()
-
-
 class HydrogeologyParameter(models.Model):
     """ Model for hydrogeology parameter
     """
@@ -95,11 +82,3 @@ class HydrogeologyParameter(models.Model):
 
     class Meta:
         db_table = 'hydrogeology_parameter'
-
-
-@receiver(post_delete, sender=HydrogeologyParameter)
-def delete_hydrogeologyparameter(sender, instance, **kwargs):
-    if instance.aquifer_thickness:
-        instance.aquifer_thickness.delete()
-    if instance.pumping_test:
-        instance.pumping_test.delete()

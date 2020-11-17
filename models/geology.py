@@ -18,9 +18,3 @@ class Geology(models.Model):
 
     class Meta:
         db_table = 'geology'
-
-
-@receiver(post_delete, sender=Geology)
-def delete_geology(sender, instance, **kwargs):
-    if instance.total_depth:
-        instance.total_depth.delete()

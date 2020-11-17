@@ -1,6 +1,4 @@
 from django.contrib.gis.db import models
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from gwml2.models.general import Quantity
 from gwml2.models.term import (
     TermConstructionStructureType, TermReferenceElevationType)
@@ -68,13 +66,3 @@ class ConstructionStructure(models.Model):
     class Meta:
         ordering = ('top_depth__value',)
         db_table = 'construction_structure'
-
-
-@receiver(post_delete, sender=ConstructionStructure)
-def delete_structure(sender, instance, **kwargs):
-    if instance.top_depth:
-        instance.top_depth.delete()
-    if instance.bottom_depth:
-        instance.bottom_depth.delete()
-    if instance.diameter:
-        instance.diameter.delete()

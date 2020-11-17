@@ -71,12 +71,6 @@ class StratigraphicLog(models.Model):
         db_table = 'drilling_stratigraphic_log'
 
 
-@receiver(post_delete, sender=StratigraphicLog)
-def delete_stratigraphiclog(sender, instance, **kwargs):
-    if instance.top_depth:
-        instance.top_depth.delete()
-    if instance.bottom_depth:
-        instance.bottom_depth.delete()
 
 
 class WaterStrike(models.Model):
@@ -98,9 +92,3 @@ class WaterStrike(models.Model):
 
     class Meta:
         db_table = 'drilling_water_strike'
-
-
-@receiver(post_delete, sender=WaterStrike)
-def delete_waterstrike(sender, instance, **kwargs):
-    if instance.depth:
-        instance.depth.delete()

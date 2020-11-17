@@ -1,10 +1,10 @@
+from datetime import datetime
 from django.contrib.gis.db import models
 from django.contrib.auth import get_user_model
+from django.db.models.signals import post_save
 
 User = get_user_model()
 
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from gwml2.models.document import Document
 from gwml2.models.general_information import GeneralInformation
 from gwml2.models.geology import Geology
@@ -15,6 +15,7 @@ from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
+from gwml2.utilities import temp_disconnect_signal
 
 
 class Well(GeneralInformation):
@@ -57,12 +58,30 @@ class Well(GeneralInformation):
         null=True, blank=True
     )
 
+    time_updated = models.DateTimeField(
+        default=datetime.now
+    )
+
     def __str__(self):
         return self.original_id
 
     class Meta:
         db_table = 'well'
         ordering = ['original_id']
+
+    def updated(self):
+        """ update time updated when well updated """
+        from gwml2.signals.well import update_well
+        with temp_disconnect_signal(
+                signal=post_save,
+                receiver=update_well,
+                sender=Well
+        ):
+            self.time_updated = datetime.now()
+            try:
+                self.save()
+            except ValueError:
+                pass
 
     def relation_queryset(self, relation_model_name):
         """ Return queryset of relation of model
@@ -123,24 +142,6 @@ class Well(GeneralInformation):
             return user.id in self.organisation.editors or user.id in self.organisation.admins
 
 
-@receiver(post_delete, sender=Well)
-def delete_well(sender, instance, **kwargs):
-    if instance.drilling:
-        instance.drilling.delete()
-    if instance.geology:
-        instance.geology.delete()
-    if instance.construction:
-        instance.construction.delete()
-    if instance.management:
-        instance.management.delete()
-    if instance.hydrogeology_parameter:
-        instance.hydrogeology_parameter.delete()
-    if instance.ground_surface_elevation:
-        instance.ground_surface_elevation.delete()
-    if instance.top_borehole_elevation:
-        instance.top_borehole_elevation.delete()
-
-
 # documents
 class WellDocument(Document):
     well = models.ForeignKey(
@@ -162,12 +163,6 @@ class WellLevelMeasurement(Measurement):
         ordering = ('-time',)
 
 
-@receiver(post_delete, sender=WellLevelMeasurement)
-def delete_welllevelmeasurement(sender, instance, **kwargs):
-    if instance.value:
-        instance.value.delete()
-
-
 class WellQualityMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,
@@ -178,12 +173,6 @@ class WellQualityMeasurement(Measurement):
         ordering = ('-time',)
 
 
-@receiver(post_delete, sender=WellQualityMeasurement)
-def delete_wellqualitymeasurement(sender, instance, **kwargs):
-    if instance.value:
-        instance.value.delete()
-
-
 class WellYieldMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,
@@ -192,9 +181,3 @@ class WellYieldMeasurement(Measurement):
     class Meta:
         db_table = 'well_yield_measurement'
         ordering = ('-time',)
-
-
-@receiver(post_delete, sender=WellYieldMeasurement)
-def delete_wellyieldmeasurement(sender, instance, **kwargs):
-    if instance.value:
-        instance.value.delete()

@@ -53,7 +53,7 @@ class Management(models.Model):
         verbose_name='Number of people served',
         help_text='Indicate how many people use the groundwater.'
     )
-    license = models.ForeignKey(
+    license = models.OneToOneField(
         License, on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -64,8 +64,3 @@ class Management(models.Model):
     class Meta:
         db_table = 'management'
 
-
-@receiver(post_delete, sender=Management)
-def delete_management(sender, instance, **kwargs):
-    if instance.license:
-        instance.license.delete()
