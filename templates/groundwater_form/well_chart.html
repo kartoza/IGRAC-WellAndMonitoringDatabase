@@ -191,6 +191,7 @@
     // Last selected bar in the chart
     let lastSelectedBar = null;
     let lastSelectedColor = '';
+    let lastSelectedPatternStroke = '';
     let selectedColorHighlight = 'rgba(219, 186, 0, 0.6)';
 
     const getWellChartData = function () {
@@ -572,7 +573,7 @@
         let chartOptions = {
             series: chartSeriesData,
             stroke: {
-                width: 1,
+                width: 2,
                 colors: ['#fff']
             },
             animations: {
@@ -595,6 +596,11 @@
                             if (lastSelectedBar) {
                                 lastSelectedBar.setAttribute('stroke', '#ffffff');
                                 lastSelectedBar.setAttribute('fill', lastSelectedColor);
+                                if (lastSelectedColor.includes('Pattern')) {
+                                    let pattern = lastSelectedColor.replace('url(','').replace(')', '');
+                                    pattern = $(pattern).children()[0];
+                                    pattern.setAttribute('stroke', lastSelectedPatternStroke);
+                                }
                             }
                             if (!chartContext['selectedSeriesIndex']) {
                                 chartContext['selectedSeriesIndex'] = chartContext['seriesIndex'];
@@ -610,7 +616,14 @@
                             lastSelectedBar = event.target;
                             lastSelectedColor = event.target.getAttribute('fill');
                             event.target.setAttribute('stroke', '#dbba00')
-                            event.target.setAttribute('fill', selectedColorHighlight)
+                            if (lastSelectedColor.includes('Pattern')) {
+                                let pattern = lastSelectedColor.replace('url(','').replace(')', '');
+                                pattern = $(pattern).children()[0];
+                                lastSelectedPatternStroke = pattern.getAttribute('stroke');
+                                pattern.setAttribute('stroke', selectedColorHighlight);
+                            } else {
+                                event.target.setAttribute('fill', selectedColorHighlight);
+                            }
                         }
                     },
                     dataPointMouseLeave: function (event, chartContext, config) {
@@ -710,6 +723,7 @@
 
         let chart = new ApexCharts(document.querySelector(chartContainerId), chartOptions);
         chart.render();
+        return chart;
     }
 
 </script>
