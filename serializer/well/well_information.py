@@ -166,6 +166,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         :type instance: Well
         """
         result = super(WellMinimizedSerializer, self).to_representation(instance)
+        result['id'] = instance.original_id  # Original ID
         result['loc'] = [  # location
             round(instance.location.y, 7), round(instance.location.x, 7)
         ]
