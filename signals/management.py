@@ -12,7 +12,7 @@ def license_changed(sender, instance, **kwargs):
     """
     try:
         instance.management.well.updated()
-    except (License.DoesNotExist, Well.DoesNotExist):
+    except (Management.DoesNotExist, Well.DoesNotExist):
         pass
 
 

@@ -8,7 +8,8 @@ const chartColors = [
     "rgb(201, 203, 207)"
 ]
 $('li.nav').click(function () {
-    $('.nav li').removeClass('active')
+    $('.nav').removeClass('active')
+    $(this).closest('ul').closest('li').find('div.nav').addClass("active")
     $('.form-title span').html($(this).find('span').text())
 })
 
@@ -18,6 +19,10 @@ function fileSelectionChanged(element) {
         fileName = $(element).val().split('\\').pop();
     }
     $(element).closest('div').find('span').html(fileName)
+}
+
+function getBottom($el, $wrapper) {
+    return $el.position().top + $el.outerHeight(true) - $wrapper.outerHeight()
 }
 
 $(document).ready(function () {
@@ -38,58 +43,61 @@ $(document).ready(function () {
         readURL(this);
     });
 
+    // SCROLL EVENT
     // Cache selectors
+    let $singleContent = $('#single-content');
+    let $singlePage = $('.singlepage');
+    const $scrollItems = $('.page-section');
     var lastId,
         topMenu = $(".inner-navigation"),
         //topMenuHeight = topMenu.outerHeight()+15,
         // All list items
-        menuItems = topMenu.find("a"),
-        // Anchors corresponding to menu items
-        scrollItems = menuItems.map(function () {
-            var item = $($(this).attr("href"));
-            if (item.length) {
-                return item;
-            }
-        });
-
+        menuItems = topMenu.find("a");
     // Bind click handler to menu items
     // so we can get a fancy scroll animation
+    let scrollOnClick = false;
     menuItems.click(function (e) {
+        scrollOnClick = true;
         $('.form-title span').html($(this).find('span').text());
-
         var href = $(this).attr("href"),
-            offsetTop = href === "#" ? 0 : $(href).position().top + $('.singlepage').scrollTop() - 40;
-        $('.singlepage').stop().animate({
+            offsetTop = href === "#" ? 0 : $(href).position().top + $singlePage.scrollTop();
+        $singlePage.stop().animate({
             scrollTop: offsetTop
-        }, 300);
+        }, 300, function () {
+            scrollOnClick = false;
+        });
         e.preventDefault();
     });
-
+    $singlePage.bind('mousewheel', function (e) {
+        scrollOnClick = false;
+    });
     // Bind to scroll
-    $('.singlepage').scroll(function () {
+    $singlePage.scroll(function () {
+        if (scrollOnClick) {
+            return;
+        }
         // Get container scroll position
-        var fromTop = $(this).position().top + 60;
+        let top = $singleContent.position().top;
 
-        // Get id of current scroll item
-        var cur = scrollItems.map(function () {
-            var cur = scrollItems.map(function () {
-                if ($(this).position().top < fromTop)
-                    return this;
-            });
-            // Get the id of the current element
-            cur = cur[cur.length - 1];
-            var id = cur && cur.length ? cur[0].id : "";
-
-            if (lastId !== id) {
-                lastId = id;
-                // Set/remove active class
-                menuItems
-                    .parent().removeClass("active")
-                    .end().filter("[href='#" + id + "']").parent().addClass("active");
-                $('.form-title span').html(menuItems.filter("[href='#" + id + "']").find('span').text());
-
+        // check element based on position
+        let $element = null;
+        $($scrollItems.get().reverse()).each(function (index) {
+            if ($(this).position().top <= 0) {
+                $element = $(this);
+                return false;
             }
         });
+        let id = $element.attr('id');
+        if (lastId !== id) {
+            lastId = id;
+            // Set/remove active class
+            $('.nav').removeClass("active");
+            let activateButton = menuItems.filter("[href='#" + id + "']").parent();
+            activateButton.closest('ul').closest('li').find('div.nav').addClass("active")
+            activateButton.addClass("active");
+            // $('.form-title span').html(menuItems.filter("[href='#" + id + "']").find('span').text());
+
+        }
     });
 })
 

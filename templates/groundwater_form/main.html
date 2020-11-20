@@ -42,14 +42,11 @@
 {% block body %}
     <div class="wrapper">
         <div class="inner-wrapper">
-            <div class="page-header">
-                <h5>Groundwater Point Form</h5>
-            </div>
             <div class="form {% if read_only %}read-only{% endif %}">
                 <form method="POST" id="form" enctype="multipart/form-data">
                     <div id="overlay-loading"></div>
                     <div class="form-title">
-                        <span>General Information</span>
+                        {# <span>General Information</span> #}
                         {% if not read_only %}
                             <button id="form-submit" class="pull-right" type="submit">Submit</button>
                         {% elif user.is_staff %}
@@ -60,22 +57,28 @@
                     </div>
                     {% csrf_token %}
                     <div class="singlepage">
-                        {# GENERAL INFORMATION #}
-                        {% include "groundwater_form/general_information.html" with form=general_information %}
-                        {# DRILLING AND CONSTRUCTION #}
-                        {% include "groundwater_form/drilling_and_construction.html" %}
-                        {# HYDROGEOLOGY #}
-                        {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
-                        {# MANAGEMENT #}
-                        {% include "groundwater_form/management.html" with form=management %}
-                        {# MONITORING DATA #}
-                        {% include "groundwater_form/level_measurement.html" %}
-                        {% include "groundwater_form/quality_measurement.html" %}
-                        {% include "groundwater_form/yield_measurement.html" %}
+                        <div id="single-content">
+                            {# GENERAL INFORMATION #}
+                            {% include "groundwater_form/general_information.html" with form=general_information %}
+                            {# DRILLING AND CONSTRUCTION #}
+                            {% include "groundwater_form/drilling_and_construction.html" %}
+                            {# HYDROGEOLOGY #}
+                            {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
+                            {# MANAGEMENT #}
+                            {% include "groundwater_form/management.html" with form=management %}
+                            {# MONITORING DATA #}
+                            {% include "groundwater_form/level_measurement.html" %}
+                            {% include "groundwater_form/quality_measurement.html" %}
+                            {% include "groundwater_form/yield_measurement.html" %}
+                            <div style="color: white">a</div>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="navigation">
+                <div class="page-header">
+                    <h5>Groundwater Point Form</h5>
+                </div>
                 <div class="inner-navigation">
                     <ul class="nav">
                         <li class="nav active">
@@ -99,9 +102,11 @@
                             </a>
                         </li>
                         <li>
-                            <a>
-                                {% include "svg/monitoring.html" %} Monitoring Data <span class="abstract-nav"></span>
-                            </a>
+                            <div class="nav">
+                                <a>
+                                    {% include "svg/monitoring.html" %} Monitoring Data <span class="abstract-nav"></span>
+                                </a>
+                            </div>
                             <ul class="nav sub-nav">
                                 <li class="nav">
                                     <a data-toggle="tab" href="#level-measurement">

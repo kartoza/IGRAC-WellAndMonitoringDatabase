@@ -8,6 +8,12 @@ class DrillingForm(forms.ModelForm):
     Form for Drilling.
     """
 
+    def __init__(self, *args, **kwargs):
+        super(DrillingForm, self).__init__(*args, **kwargs)
+        self.fields['year_of_drilling'].label = 'Construction year'
+        self.fields['drilling_method'].label = 'Excavation method'
+        self.fields['driller'].label = 'Contractor'
+
     class Meta:
         model = Drilling
         fields = ('drilling_method', 'driller', 'successful', 'cause_of_failure', 'year_of_drilling')

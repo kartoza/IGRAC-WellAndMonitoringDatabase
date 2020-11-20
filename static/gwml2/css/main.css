@@ -10,12 +10,16 @@ body {
     width: 100%;
 }
 
-.navbar {
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 
-    /*shadow*/
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none;
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
 }
 
 .footer-wrapper {
@@ -47,6 +51,7 @@ body {
 .wrapper {
     position: absolute;
     top: 0;
+    padding-top: 2px;
     left: 0;
     height: 100%;
     width: 100%;
@@ -61,22 +66,15 @@ body {
 .page-header {
     border-bottom: none;
     margin: 0 !important;
-    padding: 7px 35px;
+    padding: 20px 35px;
     color: #24619d;
-    font-size: 20px;
-    background: #F6F6F6;
-
-    /*shadow*/
-    -webkit-box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.23);
-    -moz-box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.23);
-    box-shadow: inset 0px 0px 8px 0px rgba(0, 0, 0, 0.23);
+    font-size: 17px;
+    background: white;
 }
 
 .form, .navigation {
     height: 100%;
-    padding-bottom: 41px;
     position: absolute;
-    /*! top: 82px; */
 }
 
 .leaflet-control {
@@ -100,17 +98,16 @@ body {
     background: #f8f8f8;
 }
 
-form {
+#form {
     height: 100%;
-    padding-bottom: 20px;
     position: relative;
 }
 
-form input {
+#form input {
     padding: 6px;
 }
 
-form input.error {
+#form input.error {
     border: 1px solid #ff5e5e !important;
 }
 
@@ -123,7 +120,6 @@ form input.error {
 }
 
 .singlepage {
-    padding-top: 50px;
     padding-left: 50px;
     padding-right: 50px;
     height: 100%;
@@ -159,8 +155,7 @@ h2.section-title {
 .navigation {
     left: 0;
     width: 280px;
-    top: 57px;
-    padding-bottom: 60px;
+    top: 0;
 }
 
 .navigation img {
@@ -179,10 +174,6 @@ h2.section-title {
     background: #24619d;
 }
 
-.navigation .sub-nav {
-    border: 1px solid #174a7e;
-}
-
 .navigation .sub-nav li {
     background: #1b5289;
     padding-left: 20px;
@@ -191,7 +182,6 @@ h2.section-title {
 .navigation li.nav {
     cursor: pointer;
 }
-
 
 .navigation a, .form-title span {
     padding: 18px 15px !important;
@@ -214,29 +204,29 @@ h2.section-title {
     display: inline-block;
 }
 
-.navigation li.nav a:hover {
+.navigation .nav a:hover {
     opacity: 0.6;
 }
 
-.navigation li.active {
+.navigation .nav.active {
     border-left: 4px solid #F48020;
     background: #17497b;
 }
 
-.navigation li.active a {
+.navigation .active a {
     padding-left: 21px !important;
     color: #F48020;
 }
 
-.navigation li.active a:hover {
+.navigation .active a:hover {
     opacity: 1;
 }
 
-.navigation li .icon-svg .active {
+.navigation .icon-svg .active {
     display: none;
 }
 
-.navigation li.active .icon-svg .active {
+.navigation .active .icon-svg .active {
     display: block;
 }
 
@@ -278,12 +268,12 @@ h2.section-title {
 .form-title {
     color: #24619d;
     font-weight: 600;
-    background: #fff;
     position: absolute;
     z-index: 1001;
-    width: 100%;
-    /*! padding-right: 280px; */
     box-sizing: border-box;
+    top: 21px;
+    right: 29px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .abstract-nav::after {
@@ -297,8 +287,6 @@ h2.section-title {
 
 #form-submit {
     padding: 10px 30px;
-    margin-top: 8px;
-    margin-right: 20px;
     color: white;
     background: #F48020;
     border: none;
@@ -326,7 +314,7 @@ h2.section-title {
 }
 
 h3 {
-    font-size: 24px;
+    font-size: 20px;
     margin-bottom: 30px;
 }
 
@@ -352,6 +340,7 @@ table td {
 }
 
 #general_information_data {
+    padding-top: 11px;
     min-height: 850px;
 }
 
@@ -784,7 +773,7 @@ input[name="depth_value"] {
 }
 
 input[name="top_depth_value"], input[name="bottom_depth_value"], input[name="bottom_depth_value"],
-input[name="diameter_value"], input[name="quality_value"], input[name="value_value"], input[name="total_depth_value"] {
+input[name="diameter_value"], input[name="quality_value"], input[name="value_value"] {
     max-width: 60px;
 }
 
@@ -865,16 +854,26 @@ input[name="stratigraphic_unit"] {
     content: '+ ';
 }
 
-#id_original_id, #id_name, #id_status, #id_feature_type,
-#id_purpose, #id_description, #id_latitude, #id_longitude,
-#id_address, #id_country, #id_total_depth_value, #id_drilling_method, #id_driller,
-#id_successful, #id_year_of_drilling, #id_pump_installer, #id_pump_description,
-#id_aquifer_name, #id_aquifer_material, #id_aquifer_type,
-#id_aquifer_thickness_value, #id_confinement, #id_degree_of_confinement,
-#id_porosity, #id_hydraulic_conductivity_value, #id_transmissivity_value,
-#id_specific_storage_value, #id_specific_capacity_value, #id_storativity,
-#id_test_type, #id_organisation, #id_manager, #id_description, #id_groundwater_use,
-#id_number_of_users, #id_valid_from, #id_valid_until, #id_ground_surface_elevation_value,
-#id_top_borehole_elevation_value {
+.input {
     width: 279px;
+}
+
+.input input, .input select, .input textarea {
+    width: 100%;
+}
+
+.quantity-input {
+    width: 100%;
+}
+
+.quantity-input input {
+    width: 60%;
+}
+
+.quantity-input .select2 {
+    width: 40% !important;
+}
+
+.table-wrapper .quantity-input {
+    width: auto !important;
 }

@@ -56,7 +56,17 @@
             options: {
                 scales: {
                     xAxes: [{
-                        type: 'time'
+                        type: 'time',
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
                     }]
                 },
                 tooltips: {

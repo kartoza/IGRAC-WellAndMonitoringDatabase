@@ -1,42 +1,34 @@
 {% load gwml2_forms %}
 <div id="drilling-and-construction" class="page-section">
     <h2 class="section-title">Drilling and construction</h2>
-    <div id="geology" class="section">
-        <table>
-            {% field_as_row geology.total_depth %}
-        </table>
-    </div>
-    <div id="drilling" class="subsection" style="border-top: 1px solid #ddd; padding-top: 30px">
+    <div id="drilling">
         <h3>
-            Drilling
+            For wells and boreholes
         </h3>
         <div id="drilling-data" class="section drilling">
             <table>
+                {% field_as_row geology.total_depth id='geology' %}
+                {% field_as_row drilling.year_of_drilling %}
                 {% field_as_row drilling.drilling_method %}
                 {% field_as_row drilling.driller %}
                 {% field_as_row drilling.successful %}
                 {% field_as_row drilling.cause_of_failure id='failed-explanation' %}
-                {% field_as_row drilling.year_of_drilling %}
             </table>
         </div>
 
         <br><br>
-        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike help_text='' delete='yes' %}
         {% include "groundwater_form/well_chart.html" %}
+        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike help_text='' delete='yes' %}
         {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title='Stratigraphic Log' theform=stratigraphic_log help_text='' delete='yes' %}
+        {% include "groundwater_form/_many-to-many.html" with id='structure' title='Design' theform=structure thedata=structures help_text='' delete='yes' %}
     </div>
-    <div id="construction" class="subsection" style="border-top: 1px solid #ddd; margin-top: 50px; padding-top: 30px">
-        <h3>
-            Construction
-        </h3>
+    <div id="construction">
         <div id="construction-data" class="section">
-            <h4>Pump (For Production well)</h4>
             <table>
                 {% field_as_row construction.pump_installer %}
                 {% field_as_row construction.pump_description %}
             </table>
         </div>
-        {% include "groundwater_form/_many-to-many.html" with id='structure' title='Structures' theform=structure thedata=structures help_text='' delete='yes' %}
     </div>
 </div>
 <script>
