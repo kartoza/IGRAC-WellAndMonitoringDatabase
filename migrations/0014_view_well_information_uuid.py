@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('gwml2', '0012_useruuid'),
+        ('gwml2', '0013_view_well_information'),
     ]
 
     sql = """

@@ -8,7 +8,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('gwml2', '0013_view_well_information_uuid'),
+        ('gwml2', '0014_view_well_information_uuid'),
     ]
 
     operations = [
