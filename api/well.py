@@ -39,8 +39,8 @@ class WellDetailAPI(APIView, ViewWellFormMixin, WellEditing):
         if well.editor_permission(request.user):
             try:
                 well = self.edit_well(well, data, self.request.FILES)
-            # except KeyError as e:
-            #     return HttpResponseBadRequest('{} is needed'.format(e))
+            except KeyError as e:
+                return HttpResponseBadRequest('{} is needed'.format(e))
             except (ValueError, FormNotValid) as e:
                 return HttpResponseBadRequest('{}'.format(e))
             return Response(
@@ -61,11 +61,11 @@ class WellListMinimizedAPI(APIView, ViewWellFormMixin, WellEditing):
         organisations = get_organisations_as_viewer(request.user)
         wells = Well.objects.filter(organisation__in=organisations)
         if request.GET.get('from', None):
-            wells = wells.filter(time_updated__gte=datetime.fromtimestamp(
+            wells = wells.filter(last_edited_at__gte=datetime.fromtimestamp(
                 int(request.GET.get('from')))
             )
         if request.GET.get('to', None):
-            wells = wells.filter(time_updated__lte=datetime.fromtimestamp(
+            wells = wells.filter(last_edited_at__lte=datetime.fromtimestamp(
                 int(request.GET.get('to')))
             )
         return Response(

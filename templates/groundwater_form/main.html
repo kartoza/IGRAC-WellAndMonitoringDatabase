@@ -70,6 +70,7 @@
                             {% include "groundwater_form/level_measurement.html" %}
                             {% include "groundwater_form/quality_measurement.html" %}
                             {% include "groundwater_form/yield_measurement.html" %}
+                            {% include "groundwater_form/well_metadata.html" with form=well_metadata %}
                             <div style="color: white">a</div>
                         </div>
                     </div>
@@ -124,6 +125,11 @@
                                     </a>
                                 </li>
                             </ul>
+                        </li>
+                        <li class="nav">
+                            <a data-toggle="tab" href="#well_metadata">
+                                {% include "svg/management.html" %} <span>Well Metadata</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
                         </li>
                     </ul>
                 </div>

@@ -1,0 +1,74 @@
+<div id="{{ widget.attrs.id }}" class="multivalue">
+    <input class="ui-autocomplete-input" autocomplete="off" placeholder="search">
+    <input class="multivalue-input" name="{{ widget.name }}" style="display: none" value="{{ value }}">
+    <div class="multivalue-selection">
+        {% for select in selected %}
+            <div>{{ select.label }} <span data-id="{{ select.id }}">x</span></div>
+        {% endfor %}</div>
+</div>
+<script>
+    $("#{{ widget.attrs.id }} .ui-autocomplete-input").autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: "{{ url }}",
+                dataType: "json",
+                data: {
+                    q: request.term
+                },
+                success: function (data) {
+                    let selection = $('#{{ widget.attrs.id }} .multivalue-input').val() ? $('#{{ widget.attrs.id }} .multivalue-input').val().split(',') : [];
+                    data = data.filter(function (result) {
+                        return !selection.includes('' + result.id);
+                    });
+                    if (data.length === 0) {
+                        response([
+                            {
+                                label: 'No matches found'
+                            }
+                        ]);
+                    } else {
+                        response(data);
+                    }
+                },
+                error: function (request, error) {
+                    console.log(error)
+                },
+            });
+        },
+        minLength: 2,
+        select: function (event, ui) {
+            if (ui.item.id) {
+                {# select it #}
+                let selection = $('#{{ widget.attrs.id }} .multivalue-input').val() ? $('#{{ widget.attrs.id }} .multivalue-input').val().split(',') : [];
+                selection.push(ui.item.id)
+                $('#{{ widget.attrs.id }} .multivalue-input').val(selection.join(','));
+                $('#{{ widget.attrs.id }} .multivalue-selection').append(`<div>${ui.item.label} <span data-id="${ui.item.id}">x</span></div>`);
+                $('#{{ widget.attrs.id }} .multivalue-selection span').click(function () {
+                    const id = $(this).data('id');
+                    $(this).closest('div').remove();
+                    let selected = $('#{{ widget.attrs.id }} .multivalue-input').val() ? $('#{{ widget.attrs.id }} .multivalue-input').val().split(',') : []
+                    selected = selected.filter(function (result) {
+                        return '' + id !== result;
+                    });
+                    $('#{{ widget.attrs.id }} .multivalue-input').val(selected.join(','));
+                })
+            }
+            return false;
+        },
+        open: function () {
+            $(this).removeClass("ui-corner-all").addClass("ui-corner-top");
+        },
+        close: function () {
+            $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
+        }
+    });
+    $('#{{ widget.attrs.id }} .multivalue-selection span').click(function () {
+        const id = $(this).data('id');
+        $(this).closest('div').remove();
+        let selected = $('#{{ widget.attrs.id }} .multivalue-input').val() ? $('#{{ widget.attrs.id }} .multivalue-input').val().split(',') : []
+        selected = selected.filter(function (result) {
+            return '' + id !== result;
+        });
+        $('#{{ widget.attrs.id }} .multivalue-input').val(selected.join(','));
+    })
+</script>

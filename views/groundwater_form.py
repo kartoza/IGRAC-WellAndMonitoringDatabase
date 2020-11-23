@@ -35,6 +35,9 @@ from gwml2.views.form_group.quality_measurement import (
 from gwml2.views.form_group.level_measurement import (
     LevelMeasurementGetForms, LevelMeasurementCreateForm
 )
+from gwml2.views.form_group.well_metadata import (
+    WellMetadataGetForms, WellMetadataCreateForm
+)
 
 
 class FormNotValid(Exception):
@@ -54,7 +57,7 @@ class WellView(ViewWellFormMixin, View):
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
             }
         }
-        context.update(GeneralInformationGetForms(well).get_form(self.request.user))
+        context.update(GeneralInformationGetForms(well).get())
         context.update(GeologyGetForms(well).get())
         context.update(DrillingGetForms(well).get())
         context.update(ConstructionGetForms(well).get())
@@ -63,6 +66,7 @@ class WellView(ViewWellFormMixin, View):
         context.update(YieldMeasurementGetForms(well).get())
         context.update(QualityMeasurementGetForms(well).get())
         context.update(LevelMeasurementGetForms(well).get())
+        context.update(WellMetadataGetForms(well).get_form(self.request.user))
         return context
 
     def get(self, request, id, *args, **kwargs):
@@ -79,7 +83,7 @@ class WellEditing(object):
     """ Contains function to create/edit well"""
 
     @transaction.atomic
-    def edit_well(self, well, data, FILES):
+    def edit_well(self, well, data, FILES, user):
         """ Edit well with data and FILES
 
         :param well: well that will be edited
@@ -90,14 +94,20 @@ class WellEditing(object):
 
         :param FILES: files to be inserted
         :type FILES: dict
+
+        :param user: user that edit the well
+        :type user: User
         """
 
         # create new well if well is not provided
         if not well:
+            well.created_by = user.id
             general_information = GeneralInformationCreateForm(Well(), data, FILES)
             general_information.save()
             well = general_information.form.instance
 
+        well.last_edited_by = user.id
+        well.save()
         general_information = GeneralInformationCreateForm(well, data, FILES)
         geology = GeologyCreateForm(well, data, FILES)
         drilling = DrillingCreateForm(well, data, FILES)
@@ -107,6 +117,7 @@ class WellEditing(object):
         yield_measurement = YieldMeasurementCreateForm(well, data, FILES)
         quality_measurement = QualityMeasurementCreateForm(well, data, FILES)
         level_measurement = LevelMeasurementCreateForm(well, data, FILES)
+        well_metadata = WellMetadataCreateForm(well, data, FILES)
 
         # -----------------------------------------
         # save all forms
@@ -120,6 +131,7 @@ class WellEditing(object):
         quality_measurement.save()
         level_measurement.save()
         general_information.save()
+        well_metadata.save()
 
         return well
 
@@ -132,7 +144,7 @@ class WellFormView(WellEditing, EditWellFormMixin, WellView):
         well = get_object_or_404(Well, id=id)
 
         try:
-            self.edit_well(well, data, self.request.FILES)
+            self.edit_well(well, data, self.request.FILES, request.user)
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
         except (ValueError, FormNotValid, Exception) as e:
@@ -157,7 +169,7 @@ class WellFormCreateView(WellFormView):
         data = json.loads(request.POST['data'])
 
         try:
-            well = self.edit_well(None, data, self.request.FILES)
+            well = self.edit_well(None, data, self.request.FILES, request.user)
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
         except (ValueError, FormNotValid, Exception) as e:

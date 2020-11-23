@@ -3,14 +3,13 @@ from gwml2.forms import (
     DocumentForm,
 )
 from gwml2.models.well import WellDocument
-from gwml2.utilities import get_organisations_as_editor
 from gwml2.views.form_group.form_group import FormGroupGet, FormGroupCreate
 
 
 class GeneralInformationGetForms(FormGroupGet):
     """ Collection form for general information section """
 
-    def get_form(self, user):
+    def get(self):
         """ return forms in dictionary
         :return: dictionary of forms
         :rtype: dict
@@ -18,8 +17,7 @@ class GeneralInformationGetForms(FormGroupGet):
         return {
             # general_information
             'general_information': GeneralInformationForm.make_from_instance(
-                self.well,
-                organisation=get_organisations_as_editor(user)),
+                self.well),
             'document': DocumentForm(),  # manytomany form
         }
 

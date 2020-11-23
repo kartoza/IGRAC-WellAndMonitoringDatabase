@@ -9,12 +9,13 @@ from gwml2.api.task_progress import TaskProgress
 from gwml2.api.user import UserUUIDAPI
 from gwml2.api.well import WellDetailAPI, WellListMinimizedAPI
 from gwml2.api.well_downloader import WellDownloader
+from gwml2.api.upload_session import UploadSessionApiView
+from gwml2.api.download_session import DownloadSessionApiView
+from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.organisation import OrganisationFormView, OrganisationListView
 from gwml2.views.well_uploader import WellUploadView
-from gwml2.api.upload_session import UploadSessionApiView
-from gwml2.api.download_session import DownloadSessionApiView
 
 well_relation = [
     url(r'^delete',
@@ -64,6 +65,9 @@ api_url = [
     url(r'^well/minimized',
         view=WellListMinimizedAPI.as_view(),
         name='well_list_minimized_api'),
+    url(r'^organisation/autocomplete',
+        view=OrganisationAutocompleteAPI.as_view(),
+        name='organisation_autocomplete'),
 ]
 
 urlpatterns = [

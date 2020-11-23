@@ -158,7 +158,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         """ return value of term """
         return value.name if value else ''
 
-    def get_length_to_meter(self, value):
+    def get_quantity(self, value):
         """ return value of quantity """
         return value.__str__() if value else ''
 
@@ -180,7 +180,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         result['loc'] = [  # location
             round(instance.location.y, 7), round(instance.location.x, 7)
         ]
-        result['dt'] = int(instance.time_updated.timestamp())  # Time updated
+        result['dt'] = int(instance.last_edited_at.timestamp())  # Time updated
         result['org'] = self.term_val(instance.organisation)  # Organisation
         result['st'] = self.term_val(instance.status)  # Status
         result['ft'] = self.term_val(instance.feature_type)  # Feature type

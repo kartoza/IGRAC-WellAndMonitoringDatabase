@@ -264,7 +264,7 @@ def download_well(self, user_id, download_session_id, filters=None):
         for measurement in well.welllevelmeasurement_set.all():
             level_measurement_sheet.append([
                 well.original_id,
-                measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
+                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
                 measurement.parameter.__str__() if measurement.parameter else '',
                 measurement.value.value if measurement.value else '',
                 measurement.value.unit.name if measurement.value and measurement.value.unit else '',
@@ -275,7 +275,7 @@ def download_well(self, user_id, download_session_id, filters=None):
         for measurement in well.wellqualitymeasurement_set.all():
             quality_measurement_sheet.append([
                 well.original_id,
-                measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
+                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
                 measurement.parameter.__str__() if measurement.parameter else '',
                 measurement.value.value if measurement.value else '',
                 measurement.value.unit.name if measurement.value and measurement.value.unit else '',
@@ -285,7 +285,7 @@ def download_well(self, user_id, download_session_id, filters=None):
         for measurement in well.wellyieldmeasurement_set.all():
             yield_measurement_sheet.append([
                 well.original_id,
-                measurement.time.strftime('%Y-%m-%d %H:%M:%S'),
+                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
                 measurement.parameter.__str__() if measurement.parameter else '',
                 measurement.value.value if measurement.value else '',
                 measurement.value.unit.name if measurement.value and measurement.value.unit else '',
