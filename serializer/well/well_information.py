@@ -8,6 +8,7 @@ from gwml2.serializer.well.hydrogeology import HydrogeologyParameterSerializer
 from gwml2.serializer.well.management import ManagementSerializer
 from gwml2.serializer.well.measurement import (
     WellLevelMeasurementSerializer, WellQualityMeasurementSerializer, WellYieldMeasurementSerializer)
+from gwml2.models.general import Quantity
 
 
 class GeneralInformationSerializer(WellSerializer, serializers.ModelSerializer):
@@ -157,9 +158,18 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         """ return value of term """
         return value.name if value else ''
 
-    def get_quantity(self, value):
+    def get_length_to_meter(self, value):
         """ return value of quantity """
         return value.__str__() if value else ''
+
+    def get_length_to_meter(self, value):
+        """ return value of quantity of lenght to meter
+        :type value: Quantity
+        """
+        if not value:
+            return ''
+        else:
+            return value.convert('m')
 
     def to_representation(self, instance):
         """ Custom representation on the result
@@ -176,15 +186,15 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         result['ft'] = self.term_val(instance.feature_type)  # Feature type
         result['p'] = self.term_val(instance.purpose)  # Purpose
         result['dsc'] = self.get_val(instance.description)  # description
-        result['gse'] = self.get_quantity(  # Ground_surface_elevation
+        result['gse'] = self.get_length_to_meter(  # Ground_surface_elevation
             instance.ground_surface_elevation)
-        result['tbe'] = self.get_quantity(  # Top_borehole_elevation
+        result['tbe'] = self.get_length_to_meter(  # Top_borehole_elevation
             instance.top_borehole_elevation)
         result['c'] = self.term_val(instance.country)  # Country
         result['adr'] = self.get_val(instance.address)  # Address
 
         # Drilling
-        result['dtd'] = self.get_quantity(  # Total depth
+        result['dtd'] = self.get_length_to_meter(  # Total depth
             instance.geology.total_depth) if instance.geology else ''
         result['ddm'] = self.term_val(  # Drilling : Drilling method
             instance.drilling.drilling_method) if instance.drilling else ''
@@ -205,7 +215,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
                     'id': water_strike.id,  # id
                     'ref': self.term_val(  # reference
                         water_strike.depth.reference) if water_strike.depth else '',
-                    'd': self.get_quantity(  # depth
+                    'd': self.get_length_to_meter(  # depth
                         water_strike.depth.value) if water_strike.depth else '',
                     'dsc': self.get_val(water_strike.description)  # description
                 })
@@ -217,9 +227,9 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
                     'id': log.id,  # id
                     'ref': self.term_val(  # reference
                         log.reference_elevation),
-                    'td': self.get_quantity(  # top depth
+                    'td': self.get_length_to_meter(  # top depth
                         log.top_depth),
-                    'bd': self.get_quantity(  # bottom depth
+                    'bd': self.get_length_to_meter(  # bottom depth
                         log.bottom_depth),
                     'm': self.get_val(  # Material
                         log.material),
@@ -243,11 +253,11 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
                         log.type),
                     'ref': self.term_val(  # reference
                         log.reference_elevation),
-                    'td': self.get_quantity(  # top depth
+                    'td': self.get_length_to_meter(  # top depth
                         log.top_depth),
-                    'bd': self.get_quantity(  # bottom depth
+                    'bd': self.get_length_to_meter(  # bottom depth
                         log.bottom_depth),
-                    'dia': self.get_quantity(  # diameter
+                    'dia': self.get_length_to_meter(  # diameter
                         log.diameter),
                     'm': self.get_val(  # Material
                         log.material),
@@ -262,7 +272,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
             instance.hydrogeology_parameter.aquifer_material) if instance.hydrogeology_parameter else ''
         result['at'] = self.term_val(  # Hydrogeology : Aquifer type
             instance.hydrogeology_parameter.aquifer_type) if instance.hydrogeology_parameter else ''
-        result['atn'] = self.get_quantity(  # Hydrogeology : Aquifer thickness
+        result['atn'] = self.get_length_to_meter(  # Hydrogeology : Aquifer thickness
             instance.hydrogeology_parameter.aquifer_thickness) if instance.hydrogeology_parameter else ''
         result['ac'] = self.term_val(  # Hydrogeology : Confinement
             instance.hydrogeology_parameter.confinement) if instance.hydrogeology_parameter else ''
@@ -273,16 +283,16 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         result['hp'] = self.get_val(  # Hydraulic properties : Porosity
             instance.hydrogeology_parameter.pumping_test.porosity) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['hc'] = self.get_quantity(  # Hydraulic properties : Hydraulic conductivity
+        result['hc'] = self.get_length_to_meter(  # Hydraulic properties : Hydraulic conductivity
             instance.hydrogeology_parameter.pumping_test.hydraulic_conductivity) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['ht'] = self.get_quantity(  # Hydraulic properties : Transmissivity
+        result['ht'] = self.get_length_to_meter(  # Hydraulic properties : Transmissivity
             instance.hydrogeology_parameter.pumping_test.transmissivity) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['hss'] = self.get_quantity(  # Hydraulic properties : Specific storage
+        result['hss'] = self.get_length_to_meter(  # Hydraulic properties : Specific storage
             instance.hydrogeology_parameter.pumping_test.specific_storage) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['hsc'] = self.get_quantity(  # Hydraulic properties : Specific capacity
+        result['hsc'] = self.get_length_to_meter(  # Hydraulic properties : Specific capacity
             instance.hydrogeology_parameter.pumping_test.specific_capacity) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
         result['hs'] = self.get_val(  # Hydraulic properties : Storativity
@@ -328,7 +338,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
                 'dt': measurement.time.timestamp(),
                 'par': self.term_val(measurement.parameter),
                 'mt': self.get_val(measurement.methodology),
-                'v': self.get_quantity(measurement.value),
+                'v': self.get_length_to_meter(measurement.value),
             })
 
         # Quality Measurement
@@ -339,7 +349,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
                 'dt': measurement.time.timestamp(),
                 'par': self.term_val(measurement.parameter),
                 'mt': self.get_val(measurement.methodology),
-                'v': self.get_quantity(measurement.value),
+                'v': self.get_length_to_meter(measurement.value),
             })
 
         # Yield Measurement
@@ -350,6 +360,6 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
                 'dt': measurement.time.timestamp(),
                 'par': self.term_val(measurement.parameter),
                 'mt': self.get_val(measurement.methodology),
-                'v': self.get_quantity(measurement.value),
+                'v': self.get_length_to_meter(measurement.value),
             })
         return result
