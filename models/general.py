@@ -65,3 +65,12 @@ class Quantity(models.Model):
         verbose_name_plural = 'Quantities'
         verbose_name = 'Quantity'
         db_table = 'quantity'
+
+    def convert(self, to):
+        """ this is converter value from unit into to
+        :param to:
+        :type to: str
+        """
+        if (self.unit.name == 'ft' or self.unit.name == 'ft') and to == 'm':
+            return self.value / 3.281
+        return self.value
