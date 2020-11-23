@@ -4,7 +4,6 @@ from django.forms.models import model_to_dict
 from gwml2.forms.widgets.file_selection import FileSelectionInput
 from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.well import Well
-from gwml2.models.well_management.organisation import Organisation
 
 
 class GeneralInformationForm(forms.ModelForm):
@@ -18,21 +17,12 @@ class GeneralInformationForm(forms.ModelForm):
 
     class Meta:
         model = Well
-        fields = ('original_id', 'organisation', 'location', 'name', 'feature_type', 'purpose', 'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
+        fields = ('original_id', 'location', 'name', 'feature_type', 'purpose', 'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
         widgets = {
             'ground_surface_elevation': QuantityInput(unit_group='length'),
             'top_borehole_elevation': QuantityInput(unit_group='length'),
             'photo': FileSelectionInput(preview=True),
         }
-
-    def __init__(self, *args, **kwargs):
-        organisation = kwargs.get('organisation', None)
-        try:
-            del kwargs['organisation']
-        except KeyError:
-            pass
-        forms.ModelForm.__init__(self, *args, **kwargs)
-        self.fields['organisation'].queryset = organisation
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -60,10 +50,10 @@ class GeneralInformationForm(forms.ModelForm):
         else:
             files = {}
 
-        return GeneralInformationForm(data, files, instance=instance, organisation=Organisation.objects.all())
+        return GeneralInformationForm(data, files, instance=instance)
 
     @staticmethod
-    def make_from_instance(instance, organisation):
+    def make_from_instance(instance):
         """ Create form from instance
         :param instance: well object
         :type instance: Well
@@ -80,5 +70,5 @@ class GeneralInformationForm(forms.ModelForm):
             data['latitude'] = None
             data['longitude'] = None
         return GeneralInformationForm(
-            initial=data, organisation=organisation
+            initial=data
         )

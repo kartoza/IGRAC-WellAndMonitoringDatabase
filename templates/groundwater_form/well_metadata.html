@@ -1,0 +1,30 @@
+{% load gwml2_forms %}
+<div id="well_metadata" class="page-section">
+    <h2 class="section-title">Well Metadata</h2>
+    <div class="section">
+        <table>
+            {% field_as_row form.organisation %}
+            {% field_as_row form.created_by %}
+            {% field_as_row form.created_at %}
+            {% field_as_row form.last_edited_by %}
+            {% field_as_row form.last_edited_at %}
+            {% field_as_row form.affiliate_organisations %}
+        </table>
+    </div>
+</div>
+
+<script>
+    submitFunctions['well_metadata'] = function () {
+        let data = {}
+        $('#well_metadata').find('input:enabled,textarea:enabled,select:enabled').each(
+            function () {
+                const key = $(this).attr('name');
+                let value = $(this).val()
+                if ($(this).attr('type') === 'checkbox') {
+                    value = $(this).is(":checked")
+                }
+                data[key] = value
+            });
+        return data
+    }
+</script>

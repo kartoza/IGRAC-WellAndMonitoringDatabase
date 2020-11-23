@@ -58,8 +58,22 @@ class Well(GeneralInformation):
         null=True, blank=True
     )
 
-    time_updated = models.DateTimeField(
+    # metadata
+    created_at = models.DateTimeField(
         default=datetime.now
+    )
+    created_by = models.IntegerField(
+        null=True, blank=True
+    )
+    last_edited_at = models.DateTimeField(
+        default=datetime.now
+    )
+    last_edited_by = models.IntegerField(
+        null=True, blank=True
+    )
+    affiliate_organisations = models.ManyToManyField(
+        Organisation, null=True, blank=True,
+        related_name='well_affiliate_organisations'
     )
 
     def __str__(self):
@@ -69,6 +83,24 @@ class Well(GeneralInformation):
         db_table = 'well'
         ordering = ['original_id']
 
+    def created_by_username(self):
+        """ Return username of creator """
+        if not self.created_by:
+            return '-'
+        try:
+            return User.objects.get(id=self.created_by).username
+        except User.DoesNotExist:
+            return '-'
+
+    def last_edited_by_username(self):
+        """ Return username of last updater """
+        if not self.last_edited_by:
+            return '-'
+        try:
+            return User.objects.get(id=self.last_edited_by).username
+        except User.DoesNotExist:
+            return '-'
+
     def updated(self):
         """ update time updated when well updated """
         from gwml2.signals.well import update_well
@@ -77,7 +109,7 @@ class Well(GeneralInformation):
                 receiver=update_well,
                 sender=Well
         ):
-            self.time_updated = datetime.now()
+            self.last_edited_at = datetime.now()
             try:
                 self.save()
             except ValueError:
@@ -121,7 +153,13 @@ class Well(GeneralInformation):
         else:
             if user.is_staff:
                 return True
-            return user.id in self.organisation.viewers or user.id in self.organisation.editors or user.id in self.organisation.admins
+            accessible = user.id in self.organisation.viewers or user.id in self.organisation.editors or user.id in self.organisation.admins
+            if not accessible:
+                """ Check from affiliate organisation """
+                for org in self.affiliate_organisations.all():
+                    if user.id in org.viewers or user.id in org.editors or user.id in org.admins:
+                        return True
+            return accessible
 
     def editor_permission(self, user):
         """ Return editor permission from user id

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.html import format_html
 from gwml2.models.well import (
@@ -6,16 +7,26 @@ from gwml2.models.well import (
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
 )
 
+User = get_user_model()
+
 
 class WellAdmin(admin.ModelAdmin):
     list_display = ('original_id', 'organisation', 'edit')
     list_filter = ('organisation',)
+    readonly_fields = ('created_at', 'created_by_user', 'last_edited_at', 'last_edited_by_user')
+    filter_horizontal = ('affiliate_organisations',)
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])
         return format_html(
             '<a href="{}" target="_blank">click here to edit well</a>',
             url)
+
+    def created_by_user(self, obj):
+        return obj.created_by_username()
+
+    def last_edited_by_user(self, obj):
+        return obj.last_edited_by_username()
 
 
 admin.site.register(Well, WellAdmin)

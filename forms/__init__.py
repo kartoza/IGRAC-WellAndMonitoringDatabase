@@ -15,6 +15,7 @@ from gwml2.forms.well.measurement.quality_measurement import WellQualityMeasurem
 from gwml2.forms.well.measurement.yield_measurement import WellYieldMeasurementForm
 from gwml2.forms.well.reference_elevation import ReferenceElevationForm
 from gwml2.forms.well.water_strike import WaterStrikeForm
+from gwml2.forms.well.well_metadata import WellMetadataForm
 
 
 def get_form_from_model(relation_model_name):
