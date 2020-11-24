@@ -6,8 +6,12 @@ from django.views.generic import FormView
 from braces.views import LoginRequiredMixin
 
 from gwml2.forms import CsvWellForm
-from gwml2.tasks import well_from_excel
-from gwml2.models.upload_session import UploadSession
+from gwml2.tasks import well_batch_upload
+from gwml2.models.upload_session import (
+    UploadSession,
+    UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
+    UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
+)
 from gwml2.utilities import get_organisations_as_editor
 
 
@@ -86,21 +90,21 @@ class WellUploadView(LoginRequiredMixin, FormView):
             if gw_well_file:
                 upload_session = UploadSession.objects.create(
                     organisation=form.cleaned_data['organisation'],
-                    category='well_upload',
+                    category=UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
                     upload_file=gw_well_file,
                     uploader=request.user.id
                 )
             elif gw_monitoring_file:
                 upload_session = UploadSession.objects.create(
                     organisation=form.cleaned_data['organisation'],
-                    category='well_monitoring_upload',
+                    category=UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
                     upload_file=gw_monitoring_file,
                     uploader=request.user.id
                 )
             else:
                 return self.form_invalid(form)
 
-            well_from_excel.delay(upload_session.token)
+            well_batch_upload.delay(upload_session.token)
             return self.form_valid(form)
 
         else:
