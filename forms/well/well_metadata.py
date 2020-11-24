@@ -3,10 +3,11 @@ from django.forms.models import model_to_dict
 from django.urls import reverse
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.forms.widgets.multi_value.organisations import MultiOrganisationInput
 
 
-class WellMetadataForm(forms.ModelForm):
+class WellMetadataForm(WellBaseForm):
     """
     Form of metadata of well.
     """
@@ -25,7 +26,7 @@ class WellMetadataForm(forms.ModelForm):
             del kwargs['organisation']
         except KeyError:
             pass
-        forms.ModelForm.__init__(self, *args, **kwargs)
+        super(WellMetadataForm, self).__init__(*args, **kwargs)
         self.fields['organisation'].queryset = organisation
         self.fields['affiliate_organisations'].widget = MultiOrganisationInput(url=reverse('organisation_autocomplete'))
 

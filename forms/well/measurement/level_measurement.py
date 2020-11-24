@@ -1,11 +1,12 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.models.term_measurement_parameter import TermMeasurementParameterGroup
 from gwml2.models.well import WellLevelMeasurement
 
 
-class WellLevelMeasurementForm(forms.ModelForm):
+class WellLevelMeasurementForm(WellBaseForm):
     """
     Form of WellLevelMeasurement of well.
     """

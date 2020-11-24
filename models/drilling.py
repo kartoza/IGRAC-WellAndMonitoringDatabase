@@ -1,6 +1,4 @@
 from django.contrib.gis.db import models
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from gwml2.models.general import Quantity
 from gwml2.models.reference_elevation import ReferenceElevation
 from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType

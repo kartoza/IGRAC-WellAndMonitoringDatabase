@@ -1,12 +1,13 @@
 import os
 from django import forms
 from django.forms.models import model_to_dict
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.forms.widgets.file_selection import FileSelectionInput
 from gwml2.models.well import WellDocument
 from gwml2.utilities import convert_size
 
 
-class DocumentForm(forms.ModelForm):
+class DocumentForm(WellBaseForm):
     """
     Form of document of well.
     """

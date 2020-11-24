@@ -1,9 +1,9 @@
-from django import forms
 from django.forms.models import model_to_dict
 from gwml2.models.management import Management
+from gwml2.forms.well.base import WellBaseForm
 
 
-class ManagementForm(forms.ModelForm):
+class ManagementForm(WellBaseForm):
     """
     Form for management.
     """

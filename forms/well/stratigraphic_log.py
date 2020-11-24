@@ -1,10 +1,11 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.models.drilling import StratigraphicLog
 
 
-class StratigraphicLogForm(forms.ModelForm):
+class StratigraphicLogForm(WellBaseForm):
     """
     Form of geology log of well.
     """

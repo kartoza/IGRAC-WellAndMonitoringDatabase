@@ -1,9 +1,9 @@
-from django import forms
 from django.forms.models import model_to_dict
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.models.management import License
 
 
-class LicenseForm(forms.ModelForm):
+class LicenseForm(WellBaseForm):
     """
     Form for License.
     """
