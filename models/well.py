@@ -112,7 +112,7 @@ class Well(GeneralInformation):
             self.last_edited_at = datetime.now()
             try:
                 self.save()
-            except ValueError:
+            except (ValueError, KeyError):
                 pass
 
     def relation_queryset(self, relation_model_name):
