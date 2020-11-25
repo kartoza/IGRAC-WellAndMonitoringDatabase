@@ -45,7 +45,6 @@ $(document).ready(function () {
 
     // SCROLL EVENT
     // Cache selectors
-    let $singleContent = $('#single-content');
     let $singlePage = $('.singlepage');
     const $scrollItems = $('.page-section');
     var lastId,
@@ -71,13 +70,24 @@ $(document).ready(function () {
     $singlePage.bind('mousewheel', function (e) {
         scrollOnClick = false;
     });
+
+    const turnOnElement = function ($element) {
+        let id = $element.attr('id');
+        if (lastId !== id) {
+            lastId = id;
+            // Set/remove active class
+            $('.nav').removeClass("active");
+            let activateButton = menuItems.filter("[href='#" + id + "']").parent();
+            activateButton.closest('ul').closest('li').find('div.nav').addClass("active")
+            activateButton.addClass("active");
+
+        }
+    }
     // Bind to scroll
     $singlePage.scroll(function () {
         if (scrollOnClick) {
             return;
         }
-        // Get container scroll position
-        let top = $singleContent.position().top;
 
         // check element based on position
         let $element = null;
@@ -87,17 +97,11 @@ $(document).ready(function () {
                 return false;
             }
         });
-        let id = $element.attr('id');
-        if (lastId !== id) {
-            lastId = id;
-            // Set/remove active class
-            $('.nav').removeClass("active");
-            let activateButton = menuItems.filter("[href='#" + id + "']").parent();
-            activateButton.closest('ul').closest('li').find('div.nav').addClass("active")
-            activateButton.addClass("active");
-            // $('.form-title span').html(menuItems.filter("[href='#" + id + "']").find('span').text());
+        turnOnElement($element)
+    });
 
-        }
+    $scrollItems.mouseenter(function (e) {
+        turnOnElement($(this))
     });
 })
 

@@ -204,8 +204,12 @@ h2.section-title {
     display: inline-block;
 }
 
-.navigation .nav a:hover {
+.navigation li.nav a:hover {
     opacity: 0.6;
+}
+
+.navigation .nav a:hover, .navigation .nav a:focus {
+    text-decoration: none;
 }
 
 .navigation .nav.active {
@@ -218,10 +222,6 @@ h2.section-title {
     color: #F48020;
 }
 
-.navigation .active a:hover {
-    opacity: 1;
-}
-
 .navigation .icon-svg .active {
     display: none;
 }
@@ -232,7 +232,10 @@ h2.section-title {
 
 .navigation a:hover, .navigation a:focus {
     background: none !important;
-    color: white;
+}
+
+.navigation .active a:hover {
+    opacity: 1;
 }
 
 .navigation .sub-nav a {
