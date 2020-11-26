@@ -879,25 +879,6 @@ input[name="stratigraphic_unit"] {
     width: 70% !important;
 }
 
-.multivalue .multivalue-selection {
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-.multivalue .multivalue-selection div {
-    padding: 5px;
-    border-radius: 5px;
-    border: 1px solid #aaa;
-    width: auto;
-    float: left;
-    margin-right: 3px;
-}
-
-.multivalue .multivalue-selection div span:hover {
-    opacity: 0.5;
-    cursor: pointer;
-}
-
 .select2-selection:focus {
     outline: none;
 }

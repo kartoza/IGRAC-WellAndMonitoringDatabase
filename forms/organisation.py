@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.urls import reverse
+from gwml2.forms.widgets.multi_value import MultiValueInput
 from gwml2.models.well_management.organisation import Organisation
 
 User = get_user_model()
@@ -36,6 +38,17 @@ class OrganisationForm(forms.ModelForm):
                 id__in=self.instance.viewers)
             self.fields['editor_users'].initial = User.objects.filter(
                 id__in=self.instance.editors)
+
+        # init widget
+        self.fields['admin_users'].widget = MultiValueInput(
+            url=reverse('user_autocomplete'), Model=User
+        )
+        self.fields['viewer_users'].widget = MultiValueInput(
+            url=reverse('user_autocomplete'), Model=User
+        )
+        self.fields['editor_users'].widget = MultiValueInput(
+            url=reverse('user_autocomplete'), Model=User
+        )
 
     def save(self, commit=True):
         instance = super(OrganisationForm, self).save(commit)

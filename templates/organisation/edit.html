@@ -7,23 +7,10 @@
 
 {% block extra_head %}
     <link rel="stylesheet" type="text/css" href="{% static 'admin/css/widgets.css' %}"/>
-
-    <script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/core.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/jquery.init.js' %}"></script>
-
-    {# this is specifically for using grappelli#}
-    <script type="text/javascript" src="{% static 'grappelli/jquery/jquery.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'grappelli/jquery/ui/jquery-ui.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'grappelli/jquery/jquery-migrate-3.0.1.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'lib/js/assets.min.js' %}"></script>
-    <script type="text/javascript" src="{% static 'grappelli/js/grappelli.min.js' %}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     {# end #}
-
-    <script type="text/javascript" src="{% static 'admin/js/SelectBox.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/SelectFilter2.js' %}"></script>
-    <script type="text/javascript" src="{% static 'admin/js/SelectFilter2.js' %}"></script>
     <style>
         .org-form {
             margin-top: 20px;

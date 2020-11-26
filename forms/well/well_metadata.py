@@ -4,7 +4,7 @@ from django.urls import reverse
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.forms.well.base import WellBaseForm
-from gwml2.forms.widgets.multi_value.organisations import MultiOrganisationInput
+from gwml2.forms.widgets.multi_value import MultiValueInput
 
 
 class WellMetadataForm(WellBaseForm):
@@ -28,7 +28,9 @@ class WellMetadataForm(WellBaseForm):
             pass
         super(WellMetadataForm, self).__init__(*args, **kwargs)
         self.fields['organisation'].queryset = organisation
-        self.fields['affiliate_organisations'].widget = MultiOrganisationInput(url=reverse('organisation_autocomplete'))
+        self.fields['affiliate_organisations'].widget = MultiValueInput(
+            url=reverse('organisation_autocomplete'), Model=Organisation
+        )
 
     @staticmethod
     def make_from_data(instance, data, files):

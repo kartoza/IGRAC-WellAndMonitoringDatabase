@@ -1,3 +1,24 @@
+<style>
+    .multivalue .multivalue-selection {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    .multivalue .multivalue-selection div {
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #aaa;
+        width: auto;
+        float: left;
+        margin-right: 3px;
+    }
+
+    .multivalue .multivalue-selection div span:hover {
+        opacity: 0.5;
+        cursor: pointer;
+    }
+</style>
+
 <div id="{{ widget.attrs.id }}" class="multivalue">
     <input class="ui-autocomplete-input" autocomplete="off" placeholder="search">
     <input class="multivalue-input" name="{{ widget.name }}" style="display: none" value="{{ value }}">

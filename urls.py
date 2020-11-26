@@ -12,6 +12,7 @@ from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.download_session import DownloadSessionApiView
 from gwml2.api.organisation import OrganisationAutocompleteAPI
+from gwml2.api.user import UserAutocompleteAPI
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.organisation import OrganisationFormView, OrganisationListView
@@ -65,9 +66,14 @@ api_url = [
     url(r'^well/minimized',
         view=WellListMinimizedAPI.as_view(),
         name='well_list_minimized_api'),
+
+    # autocomplete
     url(r'^organisation/autocomplete',
         view=OrganisationAutocompleteAPI.as_view(),
         name='organisation_autocomplete'),
+    url(r'^user/autocomplete',
+        view=UserAutocompleteAPI.as_view(),
+        name='user_autocomplete'),
 ]
 
 urlpatterns = [
