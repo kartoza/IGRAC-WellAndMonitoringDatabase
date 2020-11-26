@@ -32,12 +32,17 @@ function deleteRelation(elm) {
 
 function parameterChanged($inputParameter, $inputUnit) {
     let units = parameters[$inputParameter.val()] || [];
-    $inputUnit.find('option').each(function (index) {
+    let $option = $inputUnit.find('option');
+    let val = $inputUnit.val()
+    $option.each(function (index) {
         if (units.includes($(this).attr('value'))) {
             $(this).show();
         } else {
             $(this).hide();
             $(this).removeAttr('selected');
+            if (val && val === $(this).attr('value')) {
+                $inputUnit.val('')
+            }
         }
     });
 }
@@ -101,6 +106,7 @@ function initRowData($row) {
         });
         referenceElevationIndicatorUpdate($referenceElevation);
     }
+    ;
 }
 
 /** add new row, and put data if presented **/

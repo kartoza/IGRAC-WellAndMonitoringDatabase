@@ -208,6 +208,9 @@
                 $(".select-2").select2({
                     tags: true
                 });
+                $("select").not(".select-2").select2({
+                    tags: false
+                });
             {% endif %}
             $('.leaflet-control').show()
             $('#overlay-loading').hide()
