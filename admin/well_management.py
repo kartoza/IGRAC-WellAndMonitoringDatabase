@@ -2,13 +2,13 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.models.well_management.user import UserUUID
-from gwml2.forms.organisation import OrganisationForm
+from gwml2.forms.organisation import OrganisationFormAdmin
 
 User = get_user_model()
 
 
 class OrganisationAdmin(admin.ModelAdmin):
-    form = OrganisationForm
+    form = OrganisationFormAdmin
 
 
 def fetch(modeladmin, request, queryset):

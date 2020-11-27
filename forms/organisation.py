@@ -8,7 +8,7 @@ from gwml2.models.well_management.organisation import Organisation
 User = get_user_model()
 
 
-class OrganisationForm(forms.ModelForm):
+class OrganisationFormAdmin(forms.ModelForm):
     admin_users = forms.ModelMultipleChoiceField(
         User.objects.all(),
         widget=FilteredSelectMultiple('admin_users', False),
@@ -39,19 +39,8 @@ class OrganisationForm(forms.ModelForm):
             self.fields['editor_users'].initial = User.objects.filter(
                 id__in=self.instance.editors)
 
-        # init widget
-        self.fields['admin_users'].widget = MultiValueInput(
-            url=reverse('user_autocomplete'), Model=User
-        )
-        self.fields['viewer_users'].widget = MultiValueInput(
-            url=reverse('user_autocomplete'), Model=User
-        )
-        self.fields['editor_users'].widget = MultiValueInput(
-            url=reverse('user_autocomplete'), Model=User
-        )
-
     def save(self, commit=True):
-        instance = super(OrganisationForm, self).save(commit)
+        instance = super(OrganisationFormAdmin, self).save(commit)
         admin_users = self.cleaned_data.get('admin_users', None)
         if admin_users is not None:
             admin_users = admin_users.values_list('id', flat=True)
@@ -66,3 +55,18 @@ class OrganisationForm(forms.ModelForm):
             instance.editors = list(editor_users)
         instance.save()
         return instance
+
+
+class OrganisationForm(OrganisationFormAdmin):
+    def __init__(self, *args, **kwargs):
+        super(OrganisationForm, self).__init__(*args, **kwargs)
+        # init widget
+        self.fields['admin_users'].widget = MultiValueInput(
+            url=reverse('user_autocomplete'), Model=User
+        )
+        self.fields['viewer_users'].widget = MultiValueInput(
+            url=reverse('user_autocomplete'), Model=User
+        )
+        self.fields['editor_users'].widget = MultiValueInput(
+            url=reverse('user_autocomplete'), Model=User
+        )
