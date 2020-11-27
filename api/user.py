@@ -22,6 +22,11 @@ class UserUUIDAPI(APIView):
     def get(self, request, *args):
         try:
             user_uuid = UserUUID.objects.get(user_id=request.user.id)
+            if request.user.is_staff:
+                try:
+                    user_uuid = UserUUID.objects.get(user_id=0)
+                except UserUUID.DoesNotExist:
+                    pass
             return HttpResponse(user_uuid.uuid)
         except UserUUID.DoesNotExist:
             return Http404('UUID does not exist')

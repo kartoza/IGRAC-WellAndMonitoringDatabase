@@ -106,8 +106,6 @@ class WellEditing(object):
             general_information.save()
             well = general_information.form.instance
 
-        well.last_edited_by = user.id
-        well.save()
         general_information = GeneralInformationCreateForm(well, data, FILES)
         geology = GeologyCreateForm(well, data, FILES)
         drilling = DrillingCreateForm(well, data, FILES)
@@ -117,6 +115,12 @@ class WellEditing(object):
         yield_measurement = YieldMeasurementCreateForm(well, data, FILES)
         quality_measurement = QualityMeasurementCreateForm(well, data, FILES)
         level_measurement = LevelMeasurementCreateForm(well, data, FILES)
+
+        if not well.created_by:
+            well.created_by = user.id
+        well.last_edited_by = user.id
+        well.save()
+
         well_metadata = WellMetadataCreateForm(well, data, FILES)
 
         # -----------------------------------------
@@ -143,12 +147,7 @@ class WellFormView(WellEditing, EditWellFormMixin, WellView):
         data = json.loads(request.POST['data'])
         well = get_object_or_404(Well, id=id)
 
-        try:
-            self.edit_well(well, data, self.request.FILES, request.user)
-        except KeyError as e:
-            return HttpResponseBadRequest('{} is needed'.format(e))
-        except (ValueError, FormNotValid, Exception) as e:
-            return HttpResponseBadRequest('{}'.format(e))
+        self.edit_well(well, data, self.request.FILES, request.user)
 
         return HttpResponse(reverse('well_form', kwargs={'id': well.id}))
 
