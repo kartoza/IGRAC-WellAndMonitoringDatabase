@@ -37,8 +37,10 @@ function parameterChanged($inputParameter, $inputUnit) {
     $option.each(function (index) {
         if (units.includes($(this).attr('value'))) {
             $(this).show();
+            $(this).removeAttr('hidden')
         } else {
             $(this).hide();
+            $(this).attr('hidden', 'hidden')
             $(this).removeAttr('selected');
             if (val && val === $(this).attr('value')) {
                 $inputUnit.val('')

@@ -176,7 +176,6 @@ h2.section-title {
 
 .navigation .sub-nav li {
     background: #1b5289;
-    padding-left: 20px;
 }
 
 .navigation li.nav {
@@ -236,14 +235,6 @@ h2.section-title {
 
 .navigation .active a:hover {
     opacity: 1;
-}
-
-.navigation .sub-nav a {
-    padding-left: 40px !important;
-}
-
-.navigation .sub-nav li.active a {
-    padding-left: 30px !important;
 }
 
 .icon-svg {

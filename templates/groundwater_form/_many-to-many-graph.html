@@ -1,94 +1,137 @@
 <div id="{{ id }}_chart" class="chart measurement-chart">
 </div>
 <script>
-    chartFunctions['{{ id }}'] = function () {
-        $('#{{ id }}_chart').html('<i class="loading">loading</i>');
+    chartFunctions['{{ id }}'] = function (parameter_to, unit_to) {
+        {# get top and surface of borehole #}
+        let top_borehole_elevation = null;
+        let top_borehole_elevation_unit = valElmt($('*[name^="top_borehole_elevation_unit"]'));
+        let ground_surface_elevation = null;
+        let ground_surface_elevation_unit = valElmt($('*[name^="ground_surface_elevation_unit"]'));
+
+        let parameters = [];
+        let units = [];
+
+        {# format data #}
         let data = {};
         $('#{{ id }}_table table tr').each(function (index) {
             if (index > 0) {
-                const $parameterInput = $(this).find('*[name ="parameter"]');
-                if ($parameterInput.is('select')) {
-                    const parameter = $(this).find('*[name ="parameter"] option:selected').text()
-                    if (!data[parameter]) {
-                        data[parameter] = []
+                const $units = $(this).find('*[name ="value_unit"] option').not("[hidden=hidden]");
+                const time = $(this).find('*[name ="time"]').val();
+                const methodology = $(this).find('*[name ="methodology"]').val();
+                let value = $(this).find('*[name ="value_value"]').val();
+                let unit = $(this).find('*[name ="value_unit"]').val();
+                let parameter = $(this).find('*[name ="parameter"] option:selected').text();
+
+                if (!parameter_to) {
+                    parameter_to = $($(this).find('*[name ="parameter"] option')[1]).text()
+                }
+                if (!unit_to) {
+                    if (['Water level elevation a.m.s.l.',
+                        'Water depth [from the top of the well]',
+                        'Water depth [from the ground surface]'
+                    ].includes(parameter_to)) {
+                        unit_to = $($units[0]).text()
+                    } else if (parameter === parameter_to) {
+                        unit_to = $($units[0]).text()
                     }
+                }
+                console.log(unit_to)
+                {# check and change parameter #}
+                if (value === undefined) {
+                    return
+                }
+                {# check the unit #}
+                value = unitConvert(unit, unit_to, value);
+                if (top_borehole_elevation === null) {
+                    top_borehole_elevation = unitConvert(
+                        top_borehole_elevation_unit, unit_to, valElmt($('*[name^="top_borehole_elevation_value"]')));
+                    ground_surface_elevation = unitConvert(
+                        ground_surface_elevation_unit, unit_to, valElmt($('*[name^="ground_surface_elevation_value"]')));
+                }
+
+                {# check the parameter of level #}
+                switch (parameter_to) {
+                    case 'Water level elevation a.m.s.l.':
+                        switch (parameter) {
+                            case 'Water depth [from the top of the well]':
+                                value = top_borehole_elevation - value;
+                                break;
+                            case 'Water depth [from the ground surface]':
+                                value = ground_surface_elevation - value;
+                                break;
+                            default:
+                                value = 0 - value;
+                                break;
+                        }
+                        parameter = parameter_to;
+                        break;
+
+                    case 'Water depth [from the ground surface]':
+                        switch (parameter) {
+                            case 'Water depth [from the top of the well]':
+                                value = (top_borehole_elevation - ground_surface_elevation) - value;
+                                break;
+                            case 'Water level elevation a.m.s.l':
+                                value = ground_surface_elevation - value;
+                                break;
+                            default:
+                                value = 0 - value;
+                                break;
+                        }
+                        parameter = parameter_to;
+                        break;
+
+                    case 'Water depth [from the top of the well]':
+                        switch (parameter) {
+                            case 'Water depth [from the ground surface]':
+                                value = 0 - value - (top_borehole_elevation - ground_surface_elevation);
+                                break;
+                            case 'Water level elevation a.m.s.l':
+                                value = top_borehole_elevation - value;
+                                break;
+                            default:
+                                value = 0 - value;
+                                break;
+                        }
+                        parameter = parameter_to;
+                        break;
+                }
+
+                if (!data[parameter]) {
+                    data[parameter] = []
+                }
+                // code block
+                if (parameter === parameter_to) {
                     data[parameter].push({
-                        t: new Date($(this).find('*[name ="time"]').val()),
-                        y: $(this).find('*[name ="value_value"]').val(),
-                        methodology: $(this).find('*[name ="methodology"]').val()
-                    })
-                } else {
-                    const parameter = $(this).find('*[name ="parameter"]').text()
-                    if (!data[parameter]) {
-                        data[parameter] = []
+                        t: new Date(time),
+                        y: value,
+                        methodology: methodology
+                    });
+                    {# get units list #}
+                    if (units.length === 0) {
+                        $units.each(function () {
+                            if ($(this).attr('value')) {
+                                units.push($(this).text());
+                            }
+                        });
                     }
-                    data[parameter].push({
-                        t: new Date($(this).find('*[name ="time"]').text()),
-                        y: $(this).find('*[name ="value_value"]').text(),
-                        methodology: $(this).find('*[name ="methodology"]').text()
-                    })
+                }
+
+                {# get parameters list #}
+                if (parameters.length === 0) {
+                    $(this).find('*[name ="parameter"] option').each(function () {
+                        if ($(this).attr('value')) {
+                            parameters.push($(this).text());
+                        }
+                    });
                 }
             }
         });
 
         {# create chart #}
-        $('#{{ id }}_chart').html('<canvas id="{{ id }}_chart_canvas"></canvas>');
-        var ctx = document.getElementById("{{ id }}_chart_canvas").getContext("2d");
-        let dataset = [];
-        let idx = 0;
-        $.each(data, function (key, value) {
-            dataset.push({
-                label: key,
-                data: value,
-                backgroundColor: chartColors[idx],
-                borderColor: chartColors[idx],
-                borderWidth: 1,
-                fill: false,
-                lineTension: 0
-            })
-            idx += 1;
-        });
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: dataset
-            },
-            options: {
-                scales: {
-                    xAxes: [{
-                        type: 'time',
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Time'
-                        }
-                    }],
-                    yAxes: [{
-                        scaleLabel: {
-                            display: true,
-                            labelString: 'Value'
-                        }
-                    }]
-                },
-                tooltips: {
-                    mode: 'point',
-                    intersect: true,
-                    callbacks: {
-                        label: function (tooltipItem, allData) {
-                            let label = allData.datasets[tooltipItem.datasetIndex].label || '';
-                            let data = allData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                            if (label) {
-                                label += ' : ';
-                            }
-                            label += tooltipItem.yLabel;
-                            if (data.methodology) {
-                                label += ', methodology :' + data.methodology;
-                            }
-                            return ' ' + label;
-                        }
-                    }
-                }
-            },
-        });
-
+        renderMeasurementChart(
+            $('#{{ id }}_chart'), '{{ id }}', data, 'Time',
+            parameter_to, parameters, parameter_to, units, unit_to
+        )
     }
 </script>

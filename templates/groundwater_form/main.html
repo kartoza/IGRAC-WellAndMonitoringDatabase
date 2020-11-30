@@ -111,17 +111,17 @@
                             <ul class="nav sub-nav">
                                 <li class="nav">
                                     <a data-toggle="tab" href="#level-measurement">
-                                        <span>Groundwater Level</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        {% include "svg/measurement-level.html" %} <span>Groundwater Level</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
                                     <a data-toggle="tab" href="#quality-measurement">
-                                        <span>Groundwater Quality</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        {% include "svg/measurement-quality.html" %} <span>Groundwater Quality</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
                                     <a data-toggle="tab" href="#yield-measurement">
-                                        <span>Yield / Abstraction </span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        {% include "svg/measurement-yield.html" %} <span>Yield / Abstraction </span><i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                             </ul>
@@ -197,6 +197,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="{% static 'gwml2/js/measurement-chart.js' %}"></script>
+    <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
     <script src="{% static 'gwml2/js/scripts.js' %}"></script>
     <script src="{% static 'gwml2/js/many-to-many-script.js' %}"></script>
 
