@@ -903,3 +903,85 @@ input[name="stratigraphic_unit"] {
 .select2-container--default .select2-search--dropdown .select2-search__field:focus {
     outline: none;
 }
+
+/*** Update existing style ***/
+
+.page-header {
+    color: #fff;
+    background: #24619d;
+    border-bottom: 1px solid #17497b;
+}
+
+
+/*** Add new ***/
+@media screen and (max-width: 1752px) {
+    /** for the reference elevation tooltip to stay on the same line with the imput, we should wrap it
+    in a span or div and give it min-width: 247px; **/
+    .table-wrapper .quantity-input {
+        width: 100px;
+    }
+
+    .table-wrapper .quantity-input input {
+        width: 50% !important;
+    }
+
+    .table-wrapper .quantity-input .select2, .table-wrapper .quantity-input select {
+        width: 50% !important;
+    }
+}
+
+@media screen and (max-width: 1400px) {
+    #branding {
+        min-width: 45px;
+        padding-left: 0;
+    }
+
+    .nav > li > a {
+        font-size: 14px;
+        padding: 10px 10px;
+    }
+
+    .navigation {
+        width: 60px;
+    }
+
+    .navigation .page-header {
+        display: none;
+    }
+
+    .navigation .nav span {
+        display: none;
+    }
+
+    .navigation a {
+        padding-left: 18px !important;
+    }
+
+    .navigation .active a {
+        padding-left: 16px !important;
+    }
+
+    .form {
+        padding-left: 60px;
+    }
+
+    .singlepage {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+}
+
+@media screen and (max-width: 1164px) {
+    #form input, #form select, #form textarea {
+        font-size: 12px;
+    }
+
+    .many-to-many td, .many-to-many th {
+        padding: 7px 5px;
+    }
+
+    .many-to-many .table-wrapper {
+        overflow-x: scroll;
+    }
+}
+
