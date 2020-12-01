@@ -14,14 +14,17 @@ User = get_user_model()
 
 class UserUUIDAPI(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, GWMLTokenAthentication]
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
     """
     Return status of the upload session
     """
 
     def get(self, request, *args):
         try:
-            user_uuid = UserUUID.objects.get(user_id=request.user.id)
+            user_id = -1
+            if request.user.is_authenticated:
+                user_id = request.user.id
+            user_uuid = UserUUID.objects.get(user_id=user_id)
             if request.user.is_staff:
                 try:
                     user_uuid = UserUUID.objects.get(user_id=0)
@@ -29,7 +32,7 @@ class UserUUIDAPI(APIView):
                     pass
             return HttpResponse(user_uuid.uuid)
         except UserUUID.DoesNotExist:
-            return Http404('UUID does not exist')
+            return HttpResponse('not found')
 
 
 class UserAutocompleteAPI(APIView):
