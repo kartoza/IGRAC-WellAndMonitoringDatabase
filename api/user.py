@@ -1,13 +1,14 @@
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, Http404
+from django.contrib.gis.db.models import Extent
+from django.http import HttpResponse
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from gwml2.authentication import GWMLTokenAthentication
 from gwml2.models.well_management.user import UserUUID
+from gwml2.models.views.well import WellWithUUID
 
 User = get_user_model()
 
@@ -30,9 +31,16 @@ class UserUUIDAPI(APIView):
                     user_uuid = UserUUID.objects.get(user_id=0)
                 except UserUUID.DoesNotExist:
                     pass
-            return HttpResponse(user_uuid.uuid)
+            wells = WellWithUUID.objects.filter(uuid=user_uuid.uuid).aggregate(Extent('location'))
+            return Response({
+                'uuid': user_uuid.uuid,
+                'extent': wells['location__extent']
+            })
         except UserUUID.DoesNotExist:
-            return HttpResponse('not found')
+            return Response({
+                'uuid': 'not found',
+                'extent': None
+            })
 
 
 class UserAutocompleteAPI(APIView):

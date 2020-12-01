@@ -8,6 +8,9 @@ class Migration(migrations.Migration):
         ('gwml2', '0018_formhelptext'),
     ]
 
+    # TODO:
+    #  Always change gwmlw/models/views/well/WellWithUUID.py when this has changed
+
     sql = """
             CREATE VIEW well_with_uuid AS
             select w.id,
