@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models import Extent
-from django.http import HttpResponse
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response

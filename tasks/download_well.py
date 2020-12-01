@@ -25,17 +25,6 @@ def filter_wells_to_download(filters):
     if not filters:
         return wells
 
-    # feature_type filter
-    feature_type_data = filters.get('feature_type', None)
-    if feature_type_data:
-        value = feature_type_data.get('value', '')
-        operator = feature_type_data.get('operator', '')
-        if value and operator:
-            if operator == 'ilike':
-                wells = wells.filter(feature_type__name__icontains=value)
-            elif operator == '=':
-                wells = wells.filter(feature_type__name__iexact=value)
-
     # original_id filter
     original_id_data = filters.get('original_id', None)
     if original_id_data:
@@ -58,6 +47,17 @@ def filter_wells_to_download(filters):
             elif operator == '=':
                 wells = wells.filter(name__iexact__iexact=value)
 
+    # feature_type filter
+    feature_type_data = filters.get('feature_type', None)
+    if feature_type_data:
+        value = feature_type_data.get('value', '')
+        operator = feature_type_data.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(feature_type__name__icontains=value)
+            elif operator == '=':
+                wells = wells.filter(feature_type__name__iexact=value)
+
     # country filter
     country_data = filters.get('country', None)
     if country_data:
@@ -68,6 +68,29 @@ def filter_wells_to_download(filters):
                 wells = wells.filter(country__name__icontains=value)
             elif operator == '=':
                 wells = wells.filter(country__name__iexact=value)
+
+    # aquifer_name filter
+    aquifer_name = filters.get('aquifer_name', None)
+    if aquifer_name:
+        value = aquifer_name.get('value', '')
+        operator = aquifer_name.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(hydrogeology_parameter__aquifer_name__icontains=value)
+            elif operator == '=':
+                wells = wells.filter(hydrogeology_parameter__aquifer_name___iexact=value)
+
+    # aquifer_name filter
+    aquifer_type = filters.get('aquifer_type', None)
+    if aquifer_type:
+        value = aquifer_type.get('value', '')
+        operator = aquifer_type.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(hydrogeology_parameter__aquifer_type__name__icontains=value)
+            elif operator == '=':
+                wells = wells.filter(hydrogeology_parameter__aquifer_type__name___iexact=value)
+
     return wells
 
 

@@ -7,13 +7,14 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
+from gwml2.authentication import GWMLTokenAthentication
 from gwml2.tasks.download_well import download_well
 from gwml2.models.download_session import DownloadSession
 from gwml2.utilities import get_organisations_as_viewer
 
 
 class WellDownloader(APIView):
-    authentication_classes = [SessionAuthentication, BasicAuthentication]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, GWMLTokenAthentication]
     permission_classes = [IsAuthenticated]
 
     @method_decorator(csrf_exempt)
