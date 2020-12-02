@@ -25,7 +25,7 @@ class LevelMeasurementCreateForm(FormGroupCreate):
         """ create form from data
         """
         self.measurements = []
-        if self.data.get('level_measurement',None):
+        if self.data.get('level_measurement', None):
             for measurement in self.data['level_measurement']:
                 if not measurement['time']:
                     return
@@ -42,4 +42,8 @@ class LevelMeasurementCreateForm(FormGroupCreate):
         """ save all available data """
         for measurement in self.measurements:
             measurement.instance.well = self.well
+            if not measurement.instance.created_by:
+                measurement.instance.created_by = self.well.created_by
+            measurement.instance.last_edited_by = self.well.last_edited_by
+            measurement.instance.last_edited_at = self.well.last_edited_at
             measurement.save()

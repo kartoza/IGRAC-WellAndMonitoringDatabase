@@ -1,15 +1,13 @@
 from datetime import datetime
 from django.contrib.gis.db import models
-from django.contrib.auth import get_user_model
 from django.db.models.signals import post_save
-
-User = get_user_model()
 
 from gwml2.models.document import Document
 from gwml2.models.general_information import GeneralInformation
 from gwml2.models.geology import Geology
 from gwml2.models.drilling import Drilling
 from gwml2.models.construction import Construction
+from gwml2.models.general import CreationMetadata
 from gwml2.models.measurement import Measurement
 from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
@@ -18,7 +16,7 @@ from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import temp_disconnect_signal
 
 
-class Well(GeneralInformation):
+class Well(GeneralInformation, CreationMetadata):
     """
     7.6.38 GW_Well
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after
@@ -59,18 +57,6 @@ class Well(GeneralInformation):
     )
 
     # metadata
-    created_at = models.DateTimeField(
-        default=datetime.now
-    )
-    created_by = models.IntegerField(
-        null=True, blank=True
-    )
-    last_edited_at = models.DateTimeField(
-        default=datetime.now
-    )
-    last_edited_by = models.IntegerField(
-        null=True, blank=True
-    )
     affiliate_organisations = models.ManyToManyField(
         Organisation, null=True, blank=True,
         related_name='well_affiliate_organisations'
@@ -82,24 +68,6 @@ class Well(GeneralInformation):
     class Meta:
         db_table = 'well'
         ordering = ['original_id']
-
-    def created_by_username(self):
-        """ Return username of creator """
-        if not self.created_by:
-            return '-'
-        try:
-            return User.objects.get(id=self.created_by).username
-        except User.DoesNotExist:
-            return '-'
-
-    def last_edited_by_username(self):
-        """ Return username of last updater """
-        if not self.last_edited_by:
-            return '-'
-        try:
-            return User.objects.get(id=self.last_edited_by).username
-        except User.DoesNotExist:
-            return '-'
 
     def updated(self):
         """ update time updated when well updated """

@@ -1,9 +1,10 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
+from gwml2.models.general import CreationMetadata
 
 
-class Measurement(models.Model):
+class Measurement(CreationMetadata):
     """ Model to hold measurement data
     """
 

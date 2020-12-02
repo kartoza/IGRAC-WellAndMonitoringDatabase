@@ -108,7 +108,10 @@ function initRowData($row) {
         });
         referenceElevationIndicatorUpdate($referenceElevation);
     }
-    ;
+    let $detailInput = $row.find('input[name="info"]');
+    if ($detailInput.length > 0) {
+        $detailInput.replaceWith(`<i class="fa fa-info-circle" aria-hidden="true" title="${$detailInput.val()}"></i>`)
+    }
 }
 
 /** add new row, and put data if presented **/

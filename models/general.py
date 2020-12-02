@@ -1,6 +1,10 @@
+from datetime import datetime
 from django.contrib.gis.db import models
+from django.contrib.auth import get_user_model
 from adminsortable.models import Sortable
 from gwml2.models.term import _Term
+
+User = get_user_model()
 
 
 class Country(models.Model):
@@ -34,6 +38,43 @@ class Unit(_Term):
 
     class Meta(Sortable.Meta):
         db_table = 'unit'
+
+
+class CreationMetadata(models.Model):
+    """ List of unit."""
+    created_at = models.DateTimeField(
+        default=datetime.now
+    )
+    created_by = models.IntegerField(
+        null=True, blank=True
+    )
+    last_edited_at = models.DateTimeField(
+        default=datetime.now
+    )
+    last_edited_by = models.IntegerField(
+        null=True, blank=True
+    )
+
+    class Meta:
+        abstract = True
+
+    def created_by_username(self):
+        """ Return username of creator """
+        if not self.created_by:
+            return '-'
+        try:
+            return User.objects.get(id=self.created_by).username
+        except User.DoesNotExist:
+            return '-'
+
+    def last_edited_by_username(self):
+        """ Return username of last updater """
+        if not self.last_edited_by:
+            return '-'
+        try:
+            return User.objects.get(id=self.last_edited_by).username
+        except User.DoesNotExist:
+            return '-'
 
 
 class UnitGroup(_Term):
