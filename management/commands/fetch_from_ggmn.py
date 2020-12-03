@@ -114,12 +114,16 @@ class Command(BaseCommand):
             print('#-- Processing well {}'.format(ground_station[CODE]))
             lat = ground_station[GEOMETRY][COORDINATES][1]
             lon = ground_station[GEOMETRY][COORDINATES][0]
-            location = self.locator.reverse(
-                '{lat},{lon}'.format(
-                    lat=lat,
-                    lon=lon
+            print(ground_station)
+            try:
+                location = self.locator.reverse(
+                    '{lat},{lon}'.format(
+                        lat=lat,
+                        lon=lon
+                    )
                 )
-            )
+            except TypeError:
+                continue
 
             # Store well data for fetching monitoring data
             self.well_data[ground_station[CODE]] = []
