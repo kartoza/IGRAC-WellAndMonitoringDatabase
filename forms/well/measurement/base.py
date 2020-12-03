@@ -49,7 +49,7 @@ class BaseMeasurementForm(WellBaseForm):
         return BaseMeasurementForm(data, files, instance=instance)
 
     @staticmethod
-    def make_from_instance(instance):
+    def get_data_from_instance(instance):
         """ Create form from instance
         :return: Form
         :rtype: BaseMeasurementForm
@@ -62,4 +62,4 @@ class BaseMeasurementForm(WellBaseForm):
             'Last Edited by : {}'.format(instance.last_edited_by_username()),
             'Last edited at : {}'.format(instance.last_edited_at.strftime('%Y-%m-%d %H:%M:%S %Z')),
         ])
-        return BaseMeasurementForm(initial=data, instance=instance)
+        return data

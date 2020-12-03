@@ -16,3 +16,14 @@ class WellLevelMeasurementForm(BaseMeasurementForm):
         }
 
     parameter_group = 'Level Measurement'
+
+
+    @staticmethod
+    def make_from_instance(instance):
+        """ Create form from instance
+        :return: Form
+        :rtype: WellLevelMeasurementForm
+        """
+        return WellLevelMeasurementForm(
+            initial=WellLevelMeasurementForm.get_data_from_instance(
+                instance), instance=instance)

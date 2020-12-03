@@ -16,3 +16,13 @@ class WellYieldMeasurementForm(BaseMeasurementForm):
         }
 
     parameter_group = 'Yield Measurement'
+
+    @staticmethod
+    def make_from_instance(instance):
+        """ Create form from instance
+        :return: Form
+        :rtype: WellYieldMeasurementForm
+        """
+        return WellYieldMeasurementForm(
+            initial=WellYieldMeasurementForm.get_data_from_instance(
+                instance), instance=instance)

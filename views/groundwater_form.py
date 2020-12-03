@@ -101,7 +101,6 @@ class WellEditing(object):
 
         # create new well if well is not provided
         if not well:
-            well.created_by = user.id
             general_information = GeneralInformationCreateForm(Well(), data, FILES)
             general_information.save()
             well = general_information.form.instance
