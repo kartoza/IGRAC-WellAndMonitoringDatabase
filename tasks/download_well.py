@@ -58,6 +58,38 @@ def filter_wells_to_download(filters):
             elif operator == '=':
                 wells = wells.filter(feature_type__name__iexact=value)
 
+    # purpose filter
+    purpose = filters.get('purpose', None)
+    if purpose:
+        value = purpose.get('value', '')
+        operator = purpose.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(purpose__name__icontains=value)
+            elif operator == '=':
+                wells = wells.filter(purpose__name__iexact=value)
+    # status filter
+    status = filters.get('status', None)
+    if status:
+        value = status.get('value', '')
+        operator = status.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(status__name__icontains=value)
+            elif operator == '=':
+                wells = wells.filter(status__name__iexact=value)
+
+    # organisation filter
+    organisation = filters.get('organisation', None)
+    if organisation:
+        value = organisation.get('value', '')
+        operator = organisation.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(organisation__name__icontains=value)
+            elif operator == '=':
+                wells = wells.filter(organisation__name__iexact=value)
+
     # country filter
     country_data = filters.get('country', None)
     if country_data:
@@ -90,6 +122,17 @@ def filter_wells_to_download(filters):
                 wells = wells.filter(hydrogeology_parameter__aquifer_type__name__icontains=value)
             elif operator == '=':
                 wells = wells.filter(hydrogeology_parameter__aquifer_type__name___iexact=value)
+
+    # aquifer_name filter
+    manager = filters.get('manager', None)
+    if manager:
+        value = manager.get('value', '')
+        operator = manager.get('operator', '')
+        if value and operator:
+            if operator == 'ilike':
+                wells = wells.filter(management__manager__icontains=value)
+            elif operator == '=':
+                wells = wells.filter(management__manager__iexact=value)
 
     return wells
 

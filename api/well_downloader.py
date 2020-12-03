@@ -28,7 +28,7 @@ class WellDownloader(APIView):
         filters = {}
         orgs = list(get_organisations_as_viewer(self.request.user).values_list('id', flat=True))
         filters.update({
-            'organisation': orgs
+            'organisations': orgs
         })
 
         try:
@@ -55,7 +55,7 @@ class WellDownloader(APIView):
         filters = request.data.copy()
         orgs = list(get_organisations_as_viewer(self.request.user).values_list('id', flat=True))
         filters.update({
-            'organisation': orgs
+            'organisations': orgs
         })
 
         try:

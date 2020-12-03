@@ -13,13 +13,28 @@ class WellWithUUID(models.Model):
     feature_type = models.CharField(
         null=True, blank=True, max_length=512
     )
+    purpose = models.CharField(
+        null=True, blank=True, max_length=512
+    )
+    status = models.CharField(
+        null=True, blank=True, max_length=512
+    )
+    organisation = models.CharField(
+        null=True, blank=True, max_length=512
+    )
     country = models.CharField(
+        null=True, blank=True, max_length=512
+    )
+    year_of_drilling = models.CharField(
         null=True, blank=True, max_length=512
     )
     aquifer_name = models.CharField(
         null=True, blank=True, max_length=512
     )
     aquifer_type = models.CharField(
+        null=True, blank=True, max_length=512
+    )
+    manager = models.CharField(
         null=True, blank=True, max_length=512
     )
     location = models.PointField(
