@@ -22,25 +22,39 @@
                 let unit = $(this).find('*[name ="value_unit"]').val();
                 let parameter = $(this).find('*[name ="parameter"] option:selected').text();
 
-                if (!parameter_to) {
-                    parameter_to = $($(this).find('*[name ="parameter"] option')[1]).text()
-                }
-                if (!unit_to) {
-                    if (['Water level elevation a.m.s.l.',
-                        'Water depth [from the top of the well]',
-                        'Water depth [from the ground surface]'
-                    ].includes(parameter_to)) {
-                        unit_to = $($units[0]).text()
-                    } else if (parameter === parameter_to) {
-                        unit_to = $($units[0]).text()
-                    }
-                }
-                console.log(unit_to)
-                {# check and change parameter #}
+                {# skip if value is empty #}
                 if (value === undefined) {
                     return
                 }
-                {# check the unit #}
+
+                {# if parameter to is empty, assign in as parameter #}
+                if (!parameter_to) {
+                    parameter_to = parameter
+                }
+
+                {# get parameters options #}
+                {# if parameters is empty and it is level measurement #}
+                {# put all parameters as option #}
+                {# otherwise just put current parameter into parameters #}
+                if (parameters.length === 0 && [
+                    'Water level elevation a.m.s.l.',
+                    'Water depth [from the top of the well]',
+                    'Water depth [from the ground surface]'
+                ].includes(parameter)) {
+                    $(this).find('*[name ="parameter"] option').each(function () {
+                        if ($(this).attr('value')) {
+                            parameters.push($(this).text());
+                        }
+                    });
+                }
+                if (parameter && !parameters.includes(parameter)) {
+                    parameters.push(parameter);
+                }
+
+                {# check unit_to if unit is empty#}
+                unit_to = unit_to !== undefined ? unit_to : $($units[0]).text();
+
+                {# check top and ground surfaces #}
                 value = unitConvert(unit, unit_to, value);
                 if (top_borehole_elevation === null) {
                     top_borehole_elevation = unitConvert(
@@ -97,10 +111,10 @@
                         break;
                 }
 
+                {# assign data#}
                 if (!data[parameter]) {
                     data[parameter] = []
                 }
-                // code block
                 if (parameter === parameter_to) {
                     data[parameter].push({
                         t: new Date(time),
@@ -115,15 +129,6 @@
                             }
                         });
                     }
-                }
-
-                {# get parameters list #}
-                if (parameters.length === 0) {
-                    $(this).find('*[name ="parameter"] option').each(function () {
-                        if ($(this).attr('value')) {
-                            parameters.push($(this).text());
-                        }
-                    });
                 }
             }
         });

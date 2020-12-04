@@ -328,6 +328,14 @@ table td {
     padding-bottom: 10px;
 }
 
+.read-only table td {
+    padding-bottom: 0 !important;
+}
+
+.read-only .table-wrapper td {
+    padding-bottom: 10px !important;
+}
+
 .input {
     width: fit-content;
     position: relative;
@@ -855,6 +863,10 @@ input[name="stratigraphic_unit"] {
 .quantity-input .select2,
 .quantity-input select {
     width: 40% !important;
+}
+
+.read-only .table-wrapper .quantity-input {
+    width: auto !important;
 }
 
 .table-wrapper .quantity-input {

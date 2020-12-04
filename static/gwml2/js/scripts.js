@@ -120,11 +120,20 @@ function chartTableToggle(elm, dataID) {
 function makeReadOnly() {
     if (readOnly) {
         $('#form input[type=file]').closest('.inputfile').addClass('disabled')
-        $('#form input, textarea').replaceWith(function () {
+        $('#form input, textarea').not(".read-only").after(function () {
+            if ($(this).hasClass('read-only')) {
+                return ''
+            }
+            $(this).addClass('read-only');
             const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
             return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${$(this).val()}</span>`;
         });
-        $('#form select').replaceWith(function () {
+        $('#form input, textarea').hide();
+        $('#form select').not(".read-only").after(function () {
+            if ($(this).hasClass('read-only')) {
+                return ''
+            }
+            $(this).addClass('read-only');
             const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
             let value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
             if (value === '---------') {
@@ -132,6 +141,7 @@ function makeReadOnly() {
             }
             return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
         });
+        $('#form select').hide();
     }
 }
 
@@ -172,4 +182,18 @@ function parseCSV(data) {
     }
     console.log(parsedata)
     return parsedata;
+}
+
+function sort_unique(arr) {
+    if (arr.length === 0) return arr;
+    arr = arr.sort(function (a, b) {
+        return a * 1 - b * 1;
+    });
+    var ret = [arr[0]];
+    for (var i = 1; i < arr.length; i++) { //Start loop at 1: arr[0] can never be a duplicate
+        if (arr[i - 1] !== arr[i]) {
+            ret.push(arr[i]);
+        }
+    }
+    return ret;
 }
