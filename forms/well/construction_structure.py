@@ -18,7 +18,11 @@ class ConstructionStructureForm(WellBaseForm):
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),
             'bottom_depth': QuantityInput(unit_group='length'),
-            'diameter': QuantityInput(unit_group='length'),
+            'diameter': QuantityInput(
+                unit_group='length',
+                attrs={
+                    'min': 0
+                }),
         }
 
     field_order = ('id', 'type', 'reference_elevation', 'top_depth', 'bottom_depth',

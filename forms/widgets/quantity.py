@@ -5,7 +5,7 @@ from gwml2.models.general import Quantity, Unit, UnitGroup
 
 class QuantityInput(forms.widgets.Input):
     template_name = 'widgets/quantity.html'
-    input_type = 'text'
+    input_type = 'number'
     unit_group = None
     unit_required = True
 

@@ -854,6 +854,7 @@ input[name="stratigraphic_unit"] {
 
 .quantity-input {
     width: 100%;
+    position: relative;
 }
 
 .quantity-input input {

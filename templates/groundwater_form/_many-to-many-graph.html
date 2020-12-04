@@ -4,9 +4,7 @@
     chartFunctions['{{ id }}'] = function (parameter_to, unit_to) {
         {# get top and surface of borehole #}
         let top_borehole_elevation = null;
-        let top_borehole_elevation_unit = valElmt($('*[name^="top_borehole_elevation_unit"]'));
         let ground_surface_elevation = null;
-        let ground_surface_elevation_unit = valElmt($('*[name^="ground_surface_elevation_unit"]'));
 
         let parameters = [];
         let units = [];
@@ -18,14 +16,7 @@
                 const $units = $(this).find('*[name ="value_unit"] option').not("[hidden=hidden]");
                 const time = $(this).find('*[name ="time"]').val();
                 const methodology = $(this).find('*[name ="methodology"]').val();
-                let value = $(this).find('*[name ="value_value"]').val();
-                let unit = $(this).find('*[name ="value_unit"]').val();
                 let parameter = $(this).find('*[name ="parameter"] option:selected').text();
-
-                {# skip if value is empty #}
-                if (value === undefined) {
-                    return
-                }
 
                 {# if parameter to is empty, assign in as parameter #}
                 if (!parameter_to) {
@@ -54,13 +45,17 @@
                 {# check unit_to if unit is empty#}
                 unit_to = unit_to !== undefined ? unit_to : $($units[0]).text();
 
+                let value = getQuantityInputValue($(this).find('.quantity-input'), unit_to);
+
+                {# skip if value is empty #}
+                if (value === undefined) {
+                    return
+                }
                 {# check top and ground surfaces #}
-                value = unitConvert(unit, unit_to, value);
                 if (top_borehole_elevation === null) {
-                    top_borehole_elevation = unitConvert(
-                        top_borehole_elevation_unit, unit_to, valElmt($('*[name^="top_borehole_elevation_value"]')));
-                    ground_surface_elevation = unitConvert(
-                        ground_surface_elevation_unit, unit_to, valElmt($('*[name^="ground_surface_elevation_value"]')));
+                    const wellElevation = getTopGroundSurfaceWell(unit_to)
+                    top_borehole_elevation = wellElevation['top_borehole'];
+                    ground_surface_elevation = wellElevation['ground_surface'];
                 }
 
                 {# check the parameter of level #}

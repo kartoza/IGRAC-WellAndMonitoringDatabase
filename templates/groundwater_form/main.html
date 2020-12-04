@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}">
     <link rel="stylesheet" href="{% static 'gwml2/font/stylesheet.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="{% static 'js/jquery-validate/1.19.2/jquery.validate.js' %}"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <script>
@@ -136,57 +136,7 @@
             </div>
         </div>
     </div>
-    <script>
-        $('#form').validate({
-            errorElement: 'div',
-            invalidHandler: function (event, validator) {
-                $('.navigation a').removeClass('error')
-                if (validator.invalid) {
-                    setTimeout(function () {
-                        $('div.error:visible').each(function () {
-                            $("a[href$='#" + $(this).closest('.page-section').attr('id') + "']").addClass('error')
-                        })
-                    }, 100);
-                }
-            },
-            submitHandler: function (form, event) {
-                $('.navigation a').removeClass('error')
-                event.preventDefault();
-                $('#form-submit').attr("disabled", true);
-                let data = {}
-                $.each(submitFunctions, function (form, value) {
-                    data[form] = value();
-                });
-                var formData = new FormData();
-                $('input[type="file"]').each(function () {
-                    let file = $(this).get(0).files[0];
-                    if (file) {
-                        formData.append(file.name, file);
-                    }
-                });
-                formData.append('data', JSON.stringify(data));
-                $.ajax({
-                    url: window.location,
-                    type: "POST",
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    beforeSend: function (xhr, settings) {
-                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
-                            xhr.setRequestHeader("X-CSRFToken", $(this).find('*[name=csrfmiddlewaretoken]').val());
-                        }
-                    },
-                    success: function (data) {
-                        window.location.href = data;
-                    },
-                    error: function (error) {
-                        alert(error['responseText'])
-                    },
-                    data: formData
-                });
-            }
-        });
-    </script>
+    <script src="{% static 'gwml2/js/form.js' %}"></script>
 {% endblock %}
 
 {% block extra_script %}
@@ -199,6 +149,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <script src="{% static 'gwml2/js/measurement-chart.js' %}"></script>
     <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
+    <script src="{% static 'gwml2/js/utilities.js' %}"></script>
     <script src="{% static 'gwml2/js/scripts.js' %}"></script>
     <script src="{% static 'gwml2/js/many-to-many-script.js' %}"></script>
 

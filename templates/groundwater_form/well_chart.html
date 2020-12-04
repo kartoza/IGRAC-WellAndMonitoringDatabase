@@ -200,6 +200,12 @@
     let lastClickedData = {};
 
     const getWellChartData = function () {
+        {# TODO: #}
+        {#  Please use this#}
+        {#  const wellElevation = getTopGroundSurfaceWell('m') #}
+        {#  top_borehole_elevation = wellElevation['top_borehole']; #}
+        {#  ground_surface_elevation = wellElevation['ground_surface']; #}
+
         // Get chart data
         let ground_surface_elevation = valElmt($('*[name^="ground_surface_elevation_value"]'));
         let ground_surface_elevation_unit = valElmt($('*[name^="ground_surface_elevation_unit"]'));
@@ -394,7 +400,7 @@
             dataContainer[chartKey].setAttribute('stroke', '#ffffff');
             dataContainer[chartKey].setAttribute('fill', dataContainer[chartColorKey]);
             if (dataContainer[chartKey] && dataContainer[chartColorKey].includes('Pattern')) {
-                let pattern = dataContainer[chartColorKey].replace('url(','').replace(')', '');
+                let pattern = dataContainer[chartColorKey].replace('url(', '').replace(')', '');
                 pattern = $(pattern).children()[0];
                 pattern.setAttribute('stroke', dataContainer[chartPatternKey]);
             }
@@ -404,7 +410,7 @@
             dataContainer[chartColorKey] = barElement.getAttribute('fill');
             barElement.setAttribute('stroke', highlightColor)
             if (dataContainer[chartColorKey] && dataContainer[chartColorKey].includes('Pattern')) {
-                let pattern = dataContainer[chartColorKey].replace('url(','').replace(')', '');
+                let pattern = dataContainer[chartColorKey].replace('url(', '').replace(')', '');
                 pattern = $(pattern).children()[0];
                 dataContainer[chartPatternKey] = pattern.getAttribute('stroke');
                 pattern.setAttribute('stroke', highlightColor);
@@ -774,7 +780,7 @@
                     }
                 },
                 active: {
-                     filter: {
+                    filter: {
                         type: center ? 'lighten' : 'none',
                         value: 0.10,
                     }

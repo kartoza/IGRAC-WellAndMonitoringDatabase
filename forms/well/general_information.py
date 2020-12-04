@@ -25,6 +25,11 @@ class GeneralInformationForm(WellBaseForm):
             'photo': FileSelectionInput(preview=True),
         }
 
+    def __init__(self, *args, **kwargs):
+        super(GeneralInformationForm, self).__init__(*args, **kwargs)
+        self.fields['name'].required = True
+        self.fields['feature_type'].required = True
+
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data
