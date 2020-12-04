@@ -47,18 +47,21 @@
     }
 </script>
 <script>
-    let $successful = $($('#id_successful').find('option')[0]);
-    $successful.val('');
-    $successful.html('-------');
+    $(document).ready(function () {
+        let $successful = $($('#id_successful').find('option')[0]);
+        $successful.val('');
+        $successful.html('-------');
 
-    $('#id_successful').change(function () {
-        $('#failed-explanation').val('')
-        $('#failed-explanation').hide();
-        if ($('#id_successful').val() === 'false') {
-            $('#failed-explanation').show();
-        }
+        $('#id_successful').change(function () {
+            $('#failed-explanation').val('')
+            $('#failed-explanation').hide();
+            if ($('#id_successful').val() === 'false') {
+                $('#failed-explanation').show();
+            }
+        })
+        $('#id_successful').trigger('change')
     })
-    $('#id_successful').trigger('change')
+
     submitFunctions['drilling'] = function () {
         let data = {
             water_strike: submitFunctionsManyToMany['water_strike'](),
