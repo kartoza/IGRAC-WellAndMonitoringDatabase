@@ -69,13 +69,17 @@
         color: #24619d;
     }
 
+    .read-only .well-table-container table td {
+        padding: 10px !important;
+    }
+
 </style>
 
 
-<div class="well-chart-row">
+<div class="well-chart-row many-to-many">
     <div class="column-50 height-100">
         <div class="charts-header">
-            <h3>Well Chart</h3>
+            <h4>Well Chart <i class="fa fa fa-arrows-alt" aria-hidden="true" onclick="toggleFullScreenWellChart(this)"></i></h4>
         </div>
         <div style="height: 30px;font-size: 9pt">
             <div style="width: 30%; float: left">Depth From Surface</div>
@@ -198,6 +202,13 @@
     let stratigraphyChart = null;
     let lastHoveredData = {};
     let lastClickedData = {};
+
+    const toggleFullScreenWellChart = function (element) {
+        toggleFullScreen(element);
+        setTimeout(function () {
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
+    }
 
     const getWellChartData = function () {
         {# TODO: #}

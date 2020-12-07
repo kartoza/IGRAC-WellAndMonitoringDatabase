@@ -715,7 +715,7 @@ table td div.error::after {
 }
 
 .well-table-container tbody td:first-child {
-    width: 50%;
+    width: 100%;
 }
 
 .well-table-container .table-description {
@@ -725,6 +725,12 @@ table td div.error::after {
 .title {
     color: #24619d;
     width: 50%;
+}
+
+
+.well-table-container tr td:first-child {
+    display: block !important;
+    border-bottom: 0;
 }
 
 .well-table-container td {
