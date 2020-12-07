@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
+from django.utils.timezone import make_aware
 
 from gwml2.models.document import Document
 from gwml2.models.general_information import GeneralInformation
@@ -77,7 +78,7 @@ class Well(GeneralInformation, CreationMetadata):
                 receiver=update_well,
                 sender=Well
         ):
-            self.last_edited_at = datetime.now()
+            self.last_edited_at = make_aware(datetime.now())
             try:
                 self.save()
             except (ValueError, KeyError):

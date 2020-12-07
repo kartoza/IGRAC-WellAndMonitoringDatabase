@@ -1,6 +1,10 @@
+# NOTE : To run this command you need to install reverse_geocoder
+# pip install reverse_geocoder
 # coding=utf-8
+import ast
 import requests
 import re
+import json
 import os
 import time
 import calendar
@@ -8,10 +12,19 @@ import csv
 from datetime import datetime
 from shutil import copyfile
 from openpyxl import load_workbook
-from geopy.geocoders import Nominatim
+import reverse_geocoder as rg
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+from django.contrib.gis.geos import Point
+from django.contrib.auth import get_user_model
+
+from gwml2.tasks.uploader.well import (
+    create_or_get_well, create_monitoring_data
+)
+from gwml2.models.well_management.organisation import Organisation
+
+User = get_user_model()
 
 CODE = 'code'
 NAME = 'name'
@@ -36,6 +49,7 @@ PARAMETER = {
 }
 
 COUNTRIES_CODE_FILE = 'countries_codes_and_coordinates.csv'
+ORGANISATION_NAME = 'ggmn'
 
 DJANGO_ROOT = os.path.dirname(
     os.path.dirname(
@@ -49,8 +63,9 @@ class Command(BaseCommand):
     well_ids = []
     well_data = {}
     countries_code = {}
-    locator = Nominatim(user_agent='geocoder')
     max_page = 0
+    admin_id = None
+    organisation = None
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -59,6 +74,18 @@ class Command(BaseCommand):
             dest='max_page',
             default=0,
             help='Max pages to fetch, default is fetch all')
+        parser.add_argument(
+            '-f',
+            '--from_page',
+            dest='from_page',
+            default=1,
+            help='Start the command from this page index, default = 1')
+        parser.add_argument(
+            '-db',
+            '--upload-to-db',
+            dest='upload_to_db',
+            default='False'
+        )
 
     def get_current_timestamp(self):
         """
@@ -104,8 +131,11 @@ class Command(BaseCommand):
         response = requests.get(well_url)
         ground_stations = response.json()
 
-        wb = load_workbook(well_template_output_path)
-        ws = wb.worksheets[0]
+        if well_template_output_path:
+            wb = load_workbook(well_template_output_path)
+            ws = wb.worksheets[0]
+        else:
+            wb, ws = None, None
 
         for ground_station in ground_stations['results']:
             if ground_station[CODE] in self.well_ids:
@@ -114,13 +144,9 @@ class Command(BaseCommand):
             print('#-- Processing well {}'.format(ground_station[CODE]))
             lat = ground_station[GEOMETRY][COORDINATES][1]
             lon = ground_station[GEOMETRY][COORDINATES][0]
-            print(ground_station)
             try:
-                location = self.locator.reverse(
-                    '{lat},{lon}'.format(
-                        lat=lat,
-                        lon=lon
-                    )
+                location = rg.search(
+                    (lat, lon),
                 )
             except TypeError:
                 continue
@@ -150,14 +176,41 @@ class Command(BaseCommand):
                     'm',  # Ground surface elevation unit
                     '', '',  # Elevation of the top of the casing ( unknown )
                     self.countries_code[
-                        location.raw['address']['country_code'].upper()],
+                        location[0]['cc'].upper()],
                     '',  # Address
                     ''  # Description
                 ]
-                ws.append(row_data)
+                if well_template_output_path:
+                    ws.append(row_data)
+                else:
+                    # Upload to db directly
+                    if not self.organisation:
+                        self.organisation, _ = Organisation.objects.get_or_create(
+                            name=ORGANISATION_NAME
+                        )
+                    if not self.admin_id:
+                        self.admin_id = User.objects.filter(
+                            is_superuser=True,
+                            username='admin'
+                        )[0].id
+                    well, created = create_or_get_well(
+                        organisation=self.organisation,
+                        data=row_data,
+                        additional_data={
+                            'created_by': self.admin_id,
+                            'last_edited_by': self.admin_id,
+                            'description': json.dumps(
+                                self.well_data[ground_station[CODE]])
+                        }
+                    )
+                    print('Well {name}, Status : {status}'.format(
+                        name=well.original_id,
+                        status='Created' if created else 'Exist'
+                    ))
             except KeyError:
                 pass
-        wb.save(well_template_output_path)
+        if wb:
+            wb.save(well_template_output_path)
         if 'next' in ground_stations:
             next_url = ground_stations['next']
             next_page = int(re.findall(r'\d+', next_url)[-1])
@@ -175,9 +228,11 @@ class Command(BaseCommand):
 
         if not self.well_data:
             return
-
-        wb = load_workbook(template_output_path)
-        ws = wb.worksheets[0]
+        if template_output_path:
+            wb = load_workbook(template_output_path)
+            ws = wb.worksheets[0]
+        else:
+            wb, ws = None, None
 
         # self.well_data e.g. {'B10H0082':
         # [{"GWmMSL": "167761f9-7691-44fa-a11e-addf331c3ff8"},
@@ -195,7 +250,8 @@ class Command(BaseCommand):
                     # uuid => "167761f9-7691-44fa-a11e-addf331c3ff8"
                     # time_series_name => "GWmMSL"
                     uuid = time_series[time_series_name]
-                    print('#-- Processing {name} uuid {uuid}'.format(
+                    print('#-- Processing {well} - {name} uuid {uuid}'.format(
+                        well=well_code,
                         name=time_series_name,
                         uuid=uuid))
                     monitoring_url = (
@@ -221,15 +277,26 @@ class Command(BaseCommand):
                             date_object = datetime.fromtimestamp(timestamp)
                             row_data = [
                                 well_code,  # ID
-                                date_object.strftime('%Y-%m-%d %H:%M'),  # Date and time
+                                date_object.strftime('%Y-%m-%d %H:%M:%S'),  # Date and time
                                 PARAMETER[time_series_name],  # Parameter
                                 event['value'],  # Value
                                 'm',  # Unit
                                 '',  # Method
                             ]
-                            ws.append(row_data)
+                            if template_output_path:
+                                ws.append(row_data)
+                            else:
+                                create_monitoring_data(
+                                    organisation_name=self.organisation.name,
+                                    data=row_data,
+                                    additional_data={
+                                        'created_by': self.admin_id,
+                                        'last_edited_by': self.admin_id
+                                    },
+                                )
 
-        wb.save(template_output_path)
+        if template_output_path:
+            wb.save(template_output_path)
 
     def handle(self, *args, **options):
         """Implementation for command.
@@ -239,44 +306,56 @@ class Command(BaseCommand):
         """
         self.read_countries_code()
         self.max_page = int(options.get('max_page'))
+        from_page = int(options.get('from_page'))
+        if self.max_page > 0:
+            self.max_page +=  from_page - 1
+        upload_to_db = ast.literal_eval(
+            options.get('upload_to_db', 'False')
+        )
 
         print('# Fetching Wells ')
-        well_template_path = os.path.join(
-            settings.STATIC_ROOT,
-            'download_template',
-            WELL_TEMPLATE_FILE
-        )
-        well_template_output_name = '{file}_{time}.xlsx'.format(
-            file='WELL',
-            time=self.get_current_timestamp()
-        )
-        well_template_output_path = os.path.join(
-            DJANGO_ROOT,
-            well_template_output_name
-        )
-        copyfile(
-            well_template_path,
-            well_template_output_path
-        )
+        if not upload_to_db:
+            well_template_path = os.path.join(
+                settings.STATIC_ROOT,
+                'download_template',
+                WELL_TEMPLATE_FILE
+            )
+            well_template_output_name = '{file}_{time}.xlsx'.format(
+                file='WELL',
+                time=self.get_current_timestamp()
+            )
+            well_template_output_path = os.path.join(
+                DJANGO_ROOT,
+                well_template_output_name
+            )
+            copyfile(
+                well_template_path,
+                well_template_output_path
+            )
+        else:
+            well_template_output_path = None
 
-        self.fetch_wells(well_template_output_path)
+        self.fetch_wells(well_template_output_path, page=from_page)
 
         print('# Fetching Monitoring data')
-        well_monitoring_template_path = os.path.join(
-            settings.STATIC_ROOT,
-            'download_template',
-            WELL_MONITORING_FILE
-        )
-        well_monitoring_template_output_name = '{file}_{time}.xlsx'.format(
-            file='WELL_MONITORING',
-            time=self.get_current_timestamp()
-        )
-        well_monitoring_template_output_path = os.path.join(
-            DJANGO_ROOT,
-            well_monitoring_template_output_name
-        )
-        copyfile(
-            well_monitoring_template_path,
-            well_monitoring_template_output_path
-        )
+        if not upload_to_db:
+            well_monitoring_template_path = os.path.join(
+                settings.STATIC_ROOT,
+                'download_template',
+                WELL_MONITORING_FILE
+            )
+            well_monitoring_template_output_name = '{file}_{time}.xlsx'.format(
+                file='WELL_MONITORING',
+                time=self.get_current_timestamp()
+            )
+            well_monitoring_template_output_path = os.path.join(
+                DJANGO_ROOT,
+                well_monitoring_template_output_name
+            )
+            copyfile(
+                well_monitoring_template_path,
+                well_monitoring_template_output_path
+            )
+        else:
+            well_monitoring_template_output_path = None
         self.fetch_monitoring_data(well_monitoring_template_output_path)
