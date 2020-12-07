@@ -2,6 +2,8 @@ import datetime
 from django.contrib.gis.geos import Point
 from django.db import transaction
 from django.http import JsonResponse
+from django.utils import timezone
+from django.utils.timezone import make_aware
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from pyexcel_xls import get_data as xls_get
@@ -45,20 +47,187 @@ MONITORING_UNIT = 4
 MONITORING_METHOD = 5
 
 
+def create_or_get_well(
+        organisation,
+        data,
+        additional_data = None):
+    """Create or get a Well object"""
+
+    original_id = get_column(data, ID)
+    _lon = get_column(data, LON)
+    _lat = get_column(data, LAT)
+    country_code = get_column(data, COUNTRY)
+    well_status = get_column(data, STATUS)
+    purpose = get_column(data, PURPOSE)
+    feature_type = get_column(data, FEATURE_TYPE)
+    ground_elevation_unit = get_column(
+        data, GROUND_ELEVATION_UNIT)
+    ground_elevation_number = get_column(
+        data, GROUND_ELEVATION_NUMBER)
+    top_casing_elevation_unit = get_column(
+        data, TOP_CASING_ELEVATION_UNIT)
+    top_casing_elevation_number = get_column(
+        data, TOP_CASING_ELEVATION_NUMBER)
+    description = get_column(data, DESCRIPTION)
+    address = get_column(data, ADDRESS)
+    name = get_column(data, NAME)
+
+    location = Point(x=_lon, y=_lat, srid=4326)
+
+    if not additional_data:
+        additional_data = {}
+
+    if name:
+        additional_data['name'] = name
+
+    if address:
+        additional_data['address'] = address
+
+    if description:
+        additional_data['description'] = description
+
+    if country_code:
+        additional_data['country'] = Country.objects.get(
+            code=country_code
+        )
+
+    if well_status:
+        additional_data['status'] = TermWellStatus.objects.get(
+            name=well_status
+        )
+
+    if purpose:
+        additional_data['purpose'] = TermWellPurpose.objects.get(
+            name=purpose
+        )
+
+    if feature_type:
+        additional_data['feature_type'] = TermFeatureType.objects.get(
+            name=feature_type
+        )
+
+    if ground_elevation_unit and ground_elevation_number:
+        elevation_unit = Unit.objects.get(
+            name=ground_elevation_unit.lower().strip())
+        ground_surface_elevation = Quantity.objects.create(
+            value=ground_elevation_number,
+            unit=elevation_unit
+        )
+        additional_data['ground_surface_elevation'] = (
+            ground_surface_elevation)
+
+    if top_casing_elevation_unit and top_casing_elevation_number:
+        _top_casing_elevation_unit = Unit.objects.get(
+            name=top_casing_elevation_unit.lower().strip())
+        _top_casing_elevation_quantity = Quantity.objects.create(
+            value=top_casing_elevation_number,
+            unit=_top_casing_elevation_unit
+        )
+        additional_data['top_borehole_elevation'] = (
+            _top_casing_elevation_quantity)
+
+    well, created = Well.objects.get_or_create(
+        original_id=original_id,
+        organisation=organisation,
+        location=location,
+    )
+
+    Well.objects.filter(id=well.id).update(**additional_data)
+
+    return well, created
+
+
+def create_monitoring_data(data, organisation_name, additional_data=None):
+    """Create a monitoring data from dictionary"""
+
+    if not additional_data:
+        additional_data = {}
+
+    well_id = get_column(data, ID)
+
+    _monitoring_date_and_time = get_column(
+        data,
+        MONITORING_DATE_AND_TIME)
+    _monitoring_parameter = get_column(
+        data,
+        MONITORING_PARAMETER)
+    _monitoring_value = get_column(
+        data,
+        MONITORING_VALUE)
+    _monitoring_unit = get_column(
+        data,
+        MONITORING_UNIT)
+    _monitoring_method = get_column(
+        data,
+        MONITORING_METHOD)
+
+    # -- Well
+    well = Well.objects.get(
+        original_id=well_id,
+        organisation__name=organisation_name)
+
+    # -- Date and time ('%Y-%m-%d %H:%M:%S') e.g '2020-10-20 14:00:00'
+    date_and_time = datetime.datetime.strptime(
+        str(_monitoring_date_and_time).split('.')[0],
+        '%Y-%m-%d %H:%M:%S'
+    )
+    aware_date_and_time = make_aware(date_and_time)
+
+    # -- Parameter
+    parameter = _monitoring_parameter
+    measurement_parameter = (
+        TermMeasurementParameter.objects.get(
+            name=parameter
+        )
+    )
+
+    # -- Value & Unit
+    value = _monitoring_value
+    unit = _monitoring_unit
+    if value and unit:
+        measurement_unit = (
+            Unit.objects.get(
+                name=unit.lower().strip()
+            )
+        )
+        additional_data['value'] = Quantity.objects.create(
+            value=value,
+            unit=measurement_unit
+        )
+
+        # -- Method
+        method = _monitoring_method
+        if method:
+            additional_data['methodology'] = method
+
+    if 'edited_at' not in additional_data:
+        additional_data['edited_at'] = timezone.now()
+    if 'created_at' not in additional_data:
+        additional_data['created_at'] = timezone.now()
+
+    return WellLevelMeasurement.objects.update_or_create(
+        well=well,
+        time=aware_date_and_time,
+        parameter=measurement_parameter,
+        defaults=additional_data
+    )
+
+
+def get_column(record: dict, index: int):
+    """ Return column data by INDEX
+    """
+    try:
+        return record[index]
+    except IndexError:
+        return None
+
+
 class BatchUploader(object):
     """ Uploader for well """
     START_ROW = 2
 
     def __init__(self, upload_session: UploadSession):
         self.upload_session = upload_session
-
-    def get_column(self, record: dict, INDEX: int):
-        """ Return column with index
-        """
-        try:
-            return record[INDEX]
-        except IndexError:
-            return None
 
     def get_records(self):
         """ Get records form upload session """
@@ -95,87 +264,22 @@ class WellUploader(BatchUploader):
             with transaction.atomic(using='gwml2'):
                 for index, record in enumerate(records):
                     process_percent = (index / total_records) * 100
-                    record_id = self.get_column(record, ID)
+                    record_id = get_column(record, ID)
 
                     self.upload_session.update_progress(
                         progress=int(process_percent),
                         status='Processing well : {}'.format(record_id)
                     )
 
-                    _lon = self.get_column(record, LON)
-                    _lat = self.get_column(record, LAT)
-                    _country = self.get_column(record, COUNTRY)
-                    _status = self.get_column(record, STATUS)
-                    _purpose = self.get_column(record, PURPOSE)
-                    _feature_type = self.get_column(record, FEATURE_TYPE)
-                    _ground_elevation_unit = self.get_column(
-                        record, GROUND_ELEVATION_UNIT)
-                    _ground_elevation_number = self.get_column(
-                        record, GROUND_ELEVATION_NUMBER)
-                    _top_casing_elevation_unit = self.get_column(
-                        record, TOP_CASING_ELEVATION_UNIT)
-                    _top_casing_elevation_number = self.get_column(
-                        record, TOP_CASING_ELEVATION_NUMBER)
-                    _description = self.get_column(record, DESCRIPTION)
-                    _address = self.get_column(record, ADDRESS)
-
-                    point = Point(x=_lon, y=_lat, srid=4326)
-
-                    additional_fields = {
+                    additional_data = {
                         'created_by': self.upload_session.uploader,
-                        'last_edited_by': self.upload_session.uploader,
-                        'address': _address
+                        'last_edited_by': self.upload_session.uploader
                     }
 
-                    if _country:
-                        additional_fields['country'] = Country.objects.get(
-                            code=_country
-                        )
-
-                    if _status:
-                        additional_fields['status'] = TermWellStatus.objects.get(
-                            name=_status
-                        )
-                    if _purpose:
-                        additional_fields['purpose'] = TermWellPurpose.objects.get(
-                            name=_purpose
-                        )
-
-                    if _feature_type:
-                        additional_fields['feature_type'] = TermFeatureType.objects.get(
-                            name=_feature_type
-                        )
-
-                    if _ground_elevation_unit and _ground_elevation_number:
-                        elevation_unit = Unit.objects.get(
-                            name=_ground_elevation_unit.lower().strip())
-                        ground_surface_elevation = Quantity.objects.create(
-                            value=_ground_elevation_number,
-                            unit=elevation_unit
-                        )
-                        additional_fields['ground_surface_elevation'] = (
-                            ground_surface_elevation)
-
-                    if _top_casing_elevation_unit and _top_casing_elevation_number:
-                        top_casing_elevation_unit = Unit.objects.get(
-                            name=_top_casing_elevation_unit.lower().strip())
-                        top_casing_elevation_quantity = Quantity.objects.create(
-                            value=_top_casing_elevation_number,
-                            unit=top_casing_elevation_unit
-                        )
-                        additional_fields['top_borehole_elevation'] = (
-                            top_casing_elevation_quantity)
-
-                    try:
-                        additional_fields['description'] = _description
-                    except IndexError:
-                        pass
-
-                    Well.objects.get_or_create(
-                        original_id=record_id,
+                    create_or_get_well(
                         organisation=organisation,
-                        location=point,
-                        defaults=additional_fields
+                        data=record,
+                        additional_data=additional_data
                     )
 
             self.upload_session.update_progress(
@@ -234,7 +338,6 @@ class WellMonitoringUploader(BatchUploader):
             with transaction.atomic(using='gwml2'):
                 for index, record in enumerate(records):
                     process_percent = (index / total_records) * 100
-                    _id = self.get_column(record, ID)
                     record_id = 'row {}'.format(index + self.START_ROW)
 
                     self.upload_session.update_progress(
@@ -242,55 +345,9 @@ class WellMonitoringUploader(BatchUploader):
                         status='Processing monitoring : {}'.format(record_id)
                     )
 
-                    _monitoring_date_and_time = self.get_column(record, MONITORING_DATE_AND_TIME)
-                    _monitoring_parameter = self.get_column(record, MONITORING_PARAMETER)
-                    _monitoring_value = self.get_column(record, MONITORING_VALUE)
-                    _monitoring_unit = self.get_column(record, MONITORING_UNIT)
-                    _monitoring_method = self.get_column(record, MONITORING_METHOD)
-
-                    additional_fields = {}
-                    # -- Well
-                    well = Well.objects.get(
-                        original_id=_id,
-                        organisation__name=organisation.name)
-
-                    # -- Date and time ('%Y-%m-%d %H:%M:%S') e.g '2020-10-20 14:00:00'
-                    date_and_time = datetime.datetime.strptime(
-                        str(_monitoring_date_and_time).split('.')[0],
-                        '%Y-%m-%d %H:%M:%S'
-                    )
-                    # -- Parameter
-                    parameter = _monitoring_parameter
-                    measurement_parameter = (
-                        TermMeasurementParameter.objects.get(
-                            name=parameter
-                        )
-                    )
-
-                    # -- Value & Unit
-                    value = _monitoring_value
-                    unit = _monitoring_unit
-                    if value and unit:
-                        measurement_unit = (
-                            Unit.objects.get(
-                                name=unit.lower().strip()
-                            )
-                        )
-                        additional_fields['value'] = Quantity.objects.create(
-                            value=value,
-                            unit=measurement_unit
-                        )
-
-                        # -- Method
-                        method = _monitoring_method
-                        if method:
-                            additional_fields['methodology'] = method
-
-                    level, created = WellLevelMeasurement.objects.update_or_create(
-                        well=well,
-                        time=date_and_time,
-                        parameter=measurement_parameter,
-                        defaults=additional_fields
+                    level, created = create_monitoring_data(
+                        organisation_name=organisation.name,
+                        data=record
                     )
 
                     if created:
