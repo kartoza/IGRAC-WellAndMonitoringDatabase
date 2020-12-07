@@ -11,6 +11,7 @@ class DrillingForm(WellBaseForm):
     def __init__(self, *args, **kwargs):
         super(DrillingForm, self).__init__(*args, **kwargs)
         self.fields['year_of_drilling'].label = 'Construction year'
+        self.fields['year_of_drilling'].widget.attrs = {'min': 1900}
         self.fields['drilling_method'].label = 'Excavation method'
         self.fields['driller'].label = 'Contractor'
 

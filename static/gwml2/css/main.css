@@ -883,11 +883,21 @@ input[name="stratigraphic_unit"] {
     width: 70% !important;
 }
 
+/* select 2*/
+#wrap select {
+    -webkit-appearance: none;
+    -moz-appearance: window;
+    background-image: url("/static/img/drop.png");
+    background-repeat: no-repeat;
+    background-position: right 5px center;
+    padding-right: 30px;
+    vertical-align: bottom;
+}
+
 .select2-selection:focus {
     outline: none;
 }
 
-/* select 2*/
 .select2-search--dropdown {
     padding: 2px !important;
 }
@@ -918,7 +928,6 @@ input[name="stratigraphic_unit"] {
 }
 
 /*** Update existing style ***/
-
 .page-header {
     color: #fff;
     background: #24619d;

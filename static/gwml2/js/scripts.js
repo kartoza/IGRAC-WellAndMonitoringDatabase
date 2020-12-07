@@ -103,6 +103,13 @@ $(document).ready(function () {
     $scrollItems.mouseenter(function (e) {
         turnOnElement($(this))
     });
+
+    $('#id_valid_from').change(function () {
+       formValidator.form();
+    })
+    $('#id_valid_until').change(function () {
+       formValidator.form();
+    })
 })
 
 function chartTableToggle(elm, dataID) {

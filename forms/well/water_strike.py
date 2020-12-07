@@ -15,7 +15,9 @@ class WaterStrikeForm(WellBaseForm):
         model = WaterStrike
         fields = ('id', 'depth', 'description')
         widgets = {
-            'depth': ReferenceElevationInput(unit_group='length')
+            'depth': ReferenceElevationInput(
+                unit_required=True,
+                unit_group='length')
         }
 
     field_order = ('id', 'depth', 'description')

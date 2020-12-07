@@ -49,36 +49,6 @@ function parameterChanged($inputParameter, $inputUnit) {
     });
 }
 
-function referenceElevationIndicatorUpdate($referenceElevation) {
-    let $td = $referenceElevation.closest('td')
-
-    let value = '';
-    if ($referenceElevation.length > 0) {
-        let referenceData = valElmt($referenceElevation)
-        if (referenceData === ELEVATION_TOPBOREHOLE) {
-            let top_borehole_elevation = valElmt($('*[name^="top_borehole_elevation_value"]'));
-            let top_borehole_elevation_unit = valElmt($('*[name^="top_borehole_elevation_unit"]'));
-
-            if (top_borehole_elevation_unit === 'ft') {
-                top_borehole_elevation = feetToMeter(top_borehole_elevation)
-            }
-            value = `${top_borehole_elevation} meters`
-        } else if (referenceData === ELEVATION_GROUNDSURFACE) {
-            let ground_surface_elevation = valElmt($('*[name^="ground_surface_elevation_value"]'));
-            let ground_surface_elevation_unit = valElmt($('*[name^="ground_surface_elevation_unit"]'));
-
-            if (ground_surface_elevation_unit === 'ft') {
-                ground_surface_elevation = feetToMeter(ground_surface_elevation)
-            }
-            value = `${ground_surface_elevation} meters`
-        }
-        $td.find('.fa-question-circle-o').remove()
-        if (value) {
-            $td.append(`<i class="fa fa-question-circle-o"  style="margin-left: 5px" aria-hidden="true" data-toggle="tooltip" title="${value}"></i>`)
-        }
-    }
-}
-
 function initRowData($row) {
     let $inputTime = $row.find('input[name="time"]');
     $inputTime.attr('autocomplete', 'off');
@@ -101,13 +71,6 @@ function initRowData($row) {
     });
 
     // parameters
-    let $referenceElevation = $row.find('select[name="reference_elevation"]');
-    if ($referenceElevation.length > 0) {
-        $referenceElevation.change(function () {
-            referenceElevationIndicatorUpdate($referenceElevation);
-        });
-        referenceElevationIndicatorUpdate($referenceElevation);
-    }
     let $detailInput = $row.find('input[name="info"]');
     if ($detailInput.length > 0) {
         $detailInput.replaceWith(`<i class="fa fa-info-circle" aria-hidden="true" title="${$detailInput.val()}"></i>`)
@@ -230,12 +193,6 @@ $(document).ready(function () {
     $('.table-wrapper').each(function () {
         fetchManyToMany($(this), 1)
     });
-
-    $('#id_top_borehole_elevation_value, #id_top_borehole_elevation_unit, #id_ground_surface_elevation_value, #id_ground_surface_elevation_unit').change(function () {
-        $('.many-to-many *[name^="reference_elevation"]').each(function () {
-            referenceElevationIndicatorUpdate($(this));
-        })
-    })
 })
 
 function toggleFullScreen(element) {

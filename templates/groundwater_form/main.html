@@ -128,7 +128,7 @@
                         </li>
                         <li class="nav">
                             <a data-toggle="tab" href="#well_metadata" title="Metadata">
-                                {% include "svg/management.html" %} <span>Metadata</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/metadata.html" %} <span>Metadata</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                     </ul>
@@ -161,7 +161,7 @@
                 $(".select-2").select2({
                     tags: true
                 });
-                $("select").not(".select-2").select2({
+                $("#wrap select").not(".select-2").select2({
                     tags: false
                 });
             {% endif %}

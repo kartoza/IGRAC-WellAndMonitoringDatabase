@@ -1,4 +1,3 @@
-
 /** This check validation for ground surface and top of borehole
  */
 $.validator.addMethod(
@@ -34,9 +33,23 @@ $.validator.addMethod(
     },
     "Top depth is more than bottom depth"
 );
+/** This check validation for license
+ */
+$.validator.addMethod(
+    "validFromValidation",
+    function (value, element) {
+        const $validFrom = $('#id_valid_from');
+        const $validUntil = $('#id_valid_until');
+        if ($validUntil.val() !== null && $validFrom.val() !== null) {
+            return $validFrom.val() <= $validUntil.val()
+        }
+        return true;
+    },
+    "Valid from should be lesser than valid until"
+);
 
 
-$('#form').validate({
+const formValidator = $('#form').validate({
     errorElement: 'div',
     /** Handle event when there is invalid event
      */
@@ -44,8 +57,17 @@ $('#form').validate({
         ground_surface_elevation_value: {
             groundSurfaceValidation: true
         },
+        top_borehole_elevation_value: {
+            groundSurfaceValidation: true
+        },
         top_depth_value: {
             bottomDepthValidation: true
+        },
+        bottom_depth_value: {
+            bottomDepthValidation: true
+        },
+        valid_from: {
+            validFromValidation: true
         }
     },
     invalidHandler: function (event, validator) {

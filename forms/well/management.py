@@ -8,6 +8,10 @@ class ManagementForm(WellBaseForm):
     Form for management.
     """
 
+    def __init__(self, *args, **kwargs):
+        super(ManagementForm, self).__init__(*args, **kwargs)
+        self.fields['number_of_users'].widget.attrs = {'min': 0}
+
     class Meta:
         model = Management
         fields = ('manager', 'description', 'groundwater_use', 'number_of_users')

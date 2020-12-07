@@ -13,7 +13,11 @@ class GeologyForm(WellBaseForm):
         model = Geology
         fields = ('total_depth',)
         widgets = {
-            'total_depth': QuantityInput(unit_group='length'),
+            'total_depth': QuantityInput(
+                unit_group='length', attrs={
+                    'min': 0
+                }
+            ),
         }
 
     @staticmethod
