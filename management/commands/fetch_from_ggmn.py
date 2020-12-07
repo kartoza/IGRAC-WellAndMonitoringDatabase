@@ -75,6 +75,12 @@ class Command(BaseCommand):
             default=0,
             help='Max pages to fetch, default is fetch all')
         parser.add_argument(
+            '-f',
+            '--from_page',
+            dest='from_page',
+            default=1,
+            help='Start the command from this page index, default = 1')
+        parser.add_argument(
             '-db',
             '--upload-to-db',
             dest='upload_to_db',
@@ -300,6 +306,9 @@ class Command(BaseCommand):
         """
         self.read_countries_code()
         self.max_page = int(options.get('max_page'))
+        from_page = int(options.get('from_page'))
+        if self.max_page > 0:
+            self.max_page +=  from_page - 1
         upload_to_db = ast.literal_eval(
             options.get('upload_to_db', 'False')
         )
@@ -326,7 +335,7 @@ class Command(BaseCommand):
         else:
             well_template_output_path = None
 
-        self.fetch_wells(well_template_output_path)
+        self.fetch_wells(well_template_output_path, page=from_page)
 
         print('# Fetching Monitoring data')
         if not upload_to_db:

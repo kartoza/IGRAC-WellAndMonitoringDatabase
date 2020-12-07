@@ -2,7 +2,6 @@ import datetime
 from django.contrib.gis.geos import Point
 from django.db import transaction
 from django.http import JsonResponse
-from django.utils import timezone
 from django.utils.timezone import make_aware
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -200,10 +199,10 @@ def create_monitoring_data(data, organisation_name, additional_data=None):
         if method:
             additional_data['methodology'] = method
 
-    if 'edited_at' not in additional_data:
-        additional_data['edited_at'] = timezone.now()
+    if 'last_edited_at' not in additional_data:
+        additional_data['last_edited_at'] = make_aware(datetime.datetime.now())
     if 'created_at' not in additional_data:
-        additional_data['created_at'] = timezone.now()
+        additional_data['created_at'] = make_aware(datetime.datetime.now())
 
     return WellLevelMeasurement.objects.update_or_create(
         well=well,
