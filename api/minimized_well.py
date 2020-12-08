@@ -40,16 +40,16 @@ class WellListMinimizedAPI(APIView):
         except ValueError:
             return HttpResponseBadRequest('minimal page is 1')
 
-        # check the offset
+        # check the limit
         try:
-            offset = int(request.GET.get('offset', '10'))
-            if offset < 1:
+            limit = int(request.GET.get('limit', '10'))
+            if limit < 1:
                 raise ValueError()
         except ValueError:
-            return HttpResponseBadRequest('minimal offset is 1')
+            return HttpResponseBadRequest('minimal limit is 1')
 
-        idx_start = (page - 1) * offset
-        idx_end = idx_start + offset - 1
+        idx_start = (page - 1) * limit
+        idx_end = idx_start + limit
         wells = wells[idx_start:idx_end]
 
         return Response(
@@ -75,16 +75,16 @@ class WellMeasurementListMinimizedAPI(APIView):
         except ValueError:
             return HttpResponseBadRequest('minimal page is 1')
 
-        # check the offset
+        # check the limit
         try:
-            offset = int(request.GET.get('offset', '10'))
-            if offset < 1:
+            limit = int(request.GET.get('limit', '10'))
+            if limit < 1:
                 raise ValueError()
         except ValueError:
-            return HttpResponseBadRequest('minimal offset is 1')
+            return HttpResponseBadRequest('minimal limit is 1')
 
-        idx_start = (page - 1) * offset
-        idx_end = idx_start + offset - 1
+        idx_start = (page - 1) * limit
+        idx_end = idx_start + limit
 
         if well.view_permission(request.user):
             query = None
