@@ -45,3 +45,30 @@ class WellSerializer(object):
                     data['{}_unit'.format(field_name)] = obj.value.unit.name
 
         return data
+
+    def get_val(self, value):
+        if value is None:
+            return ''
+        else:
+            if value is False:
+                return 'f'
+            elif value is True:
+                return 't'
+        return value if value else ''
+
+    def term_val(self, value):
+        """ return value of term """
+        return value.name if value else ''
+
+    def get_quantity(self, value):
+        """ return value of quantity """
+        return value.__str__() if value else ''
+
+    def get_length_to_meter(self, value):
+        """ return value of quantity of lenght to meter
+        :type value: Quantity
+        """
+        if not value:
+            return ''
+        else:
+            return value.convert('m')
