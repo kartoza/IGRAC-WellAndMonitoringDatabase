@@ -125,11 +125,17 @@ def create_or_get_well(
         additional_data['top_borehole_elevation'] = (
             _top_casing_elevation_quantity)
 
-    well, created = Well.objects.get_or_create(
-        original_id=original_id,
-        organisation=organisation,
-        location=location,
-    )
+    if organisation:
+        well, created = Well.objects.get_or_create(
+            original_id=original_id,
+            organisation=organisation,
+            location=location,
+        )
+    else:
+        well, created = Well.objects.get_or_create(
+            original_id=original_id,
+            location=location,
+        )
 
     Well.objects.filter(id=well.id).update(**additional_data)
 
@@ -161,9 +167,14 @@ def create_monitoring_data(data, organisation_name, additional_data=None):
         MONITORING_METHOD)
 
     # -- Well
-    well = Well.objects.get(
-        original_id=well_id,
-        organisation__name=organisation_name)
+    if organisation_name:
+        well = Well.objects.get(
+            original_id=well_id,
+            organisation__name=organisation_name)
+    else:
+        well = Well.objects.get(
+            original_id=well_id
+        )
 
     # -- Date and time ('%Y-%m-%d %H:%M:%S') e.g '2020-10-20 14:00:00'
     date_and_time = datetime.datetime.strptime(

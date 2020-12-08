@@ -23,6 +23,7 @@ from gwml2.tasks.uploader.well import (
     create_or_get_well, create_monitoring_data
 )
 from gwml2.models.well_management.organisation import Organisation
+from gwml2.models.well import Well, TermWellStatus
 
 User = get_user_model()
 
@@ -167,9 +168,11 @@ class Command(BaseCommand):
                     user_obj, user_created = (
                         User.objects.get_or_create(
                             username=user['username'],
-                            first_name=user['first_name'],
-                            last_name=user['last_name'],
-                            email=user['email']
+                            defaults={
+                                'first_name': user['first_name'],
+                                'last_name': user['last_name'],
+                                'email': user['email']
+                            }
                         )
                     )
                     if user_obj.id not in organisation_obj.viewers:
@@ -223,9 +226,14 @@ class Command(BaseCommand):
             except TypeError:
                 continue
 
+            # If the station in canada then skip
+            if location[0]['cc'].upper() == 'CA':
+                print('Well in Canada, skip')
+                continue
+
             # Store well data for fetching monitoring data
-            self.well_data[ground_station[CODE]] = []
             if FILTERS in ground_station:
+                self.well_data[ground_station[CODE]] = []
                 filters = ground_station[FILTERS]
                 if len(filters) > 0:
                     _filter = filters[0]
@@ -236,6 +244,10 @@ class Command(BaseCommand):
                                     time_series_data['uuid']
                             })
             try:
+                try:
+                    TermWellStatus.objects.get_or_create(name=ground_station[STATUS].capitalize())
+                except TermWellStatus.MultipleObjectsReturned:
+                    pass
                 row_data = [
                     ground_station[CODE],  # ID
                     ground_station[NAME],  # NAME
@@ -256,17 +268,13 @@ class Command(BaseCommand):
                     ws.append(row_data)
                 else:
                     # Upload to db directly
-                    if not self.organisation:
-                        self.organisation, _ = Organisation.objects.get_or_create(
-                            name=ORGANISATION_NAME
-                        )
                     if not self.admin_id:
                         self.admin_id = User.objects.filter(
                             is_superuser=True,
                             username='admin'
                         )[0].id
                     well, created = create_or_get_well(
-                        organisation=self.organisation,
+                        organisation=None,
                         data=row_data,
                         additional_data={
                             'created_by': self.admin_id,
@@ -315,10 +323,14 @@ class Command(BaseCommand):
             # {"GWmMSL": "167761f9-7691-44fa-a11e-addf331c3ff8"},
             # {"GWmBGS": "258f8f51-6c97-4829-ade3-b1ac4642ef72"}]
             well_data = self.well_data[well_code]
+            well_data = sorted(well_data, key=lambda d: list(d.keys()), reverse=True)
+            gwmmsl_timestamps = []
 
             # time_series => {"GWmMSL": "167761f9-7691-44fa-a11e-addf331c3ff8"}
             for time_series in well_data:
                 for time_series_name in time_series:
+                    if time_series_name not in PARAMETER:
+                        continue
                     # uuid => "167761f9-7691-44fa-a11e-addf331c3ff8"
                     # time_series_name => "GWmMSL"
                     uuid = time_series[time_series_name]
@@ -345,6 +357,12 @@ class Command(BaseCommand):
                     for result in results:
                         events = result['events']
                         for event in events:
+                            if time_series_name == 'GWmMSL':
+                                gwmmsl_timestamps.append(event['timestamp'])
+                            else: # GWmBGS, if timestamp is the same with GWmMSL then skip
+                                if event['timestamp'] in gwmmsl_timestamps:
+                                    print('-- skip well level data, same timestamp --')
+                                    continue
                             timestamp = int(event['timestamp'] / 1000)
                             date_object = datetime.fromtimestamp(timestamp)
                             row_data = [
@@ -359,13 +377,27 @@ class Command(BaseCommand):
                                 ws.append(row_data)
                             else:
                                 create_monitoring_data(
-                                    organisation_name=self.organisation.name,
+                                    organisation_name=None,
                                     data=row_data,
                                     additional_data={
                                         'created_by': self.admin_id,
                                         'last_edited_by': self.admin_id
                                     },
                                 )
+
+                                # Update well organisation here
+                                well = Well.objects.get(original_id=well_code)
+                                if not well.organisation:
+                                    if 'organisation' in result['location']:
+                                        organisation_name = result['location']['organisation']['name']
+                                        try:
+                                            organisation_obj = Organisation.objects.get(
+                                                name=organisation_name
+                                            )
+                                            well.organisation = organisation_obj
+                                            well.save()
+                                        except Organisation.DoesNotExist:
+                                            continue
 
         if template_output_path:
             wb.save(template_output_path)
