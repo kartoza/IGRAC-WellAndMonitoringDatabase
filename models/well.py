@@ -22,6 +22,12 @@ class Well(GeneralInformation, CreationMetadata):
     7.6.38 GW_Well
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after
     IGH1397)."""
+    ggis_uid = models.CharField(
+        max_length=256,
+        null=True, blank=True,
+        help_text='organisation name + Original ID'
+    )
+
     purpose = models.ForeignKey(
         TermWellPurpose, on_delete=models.SET_NULL,
         null=True, blank=True
@@ -79,6 +85,7 @@ class Well(GeneralInformation, CreationMetadata):
                 sender=Well
         ):
             self.last_edited_at = make_aware(datetime.now())
+            self.ggis_uid = '{}-{}'.format(self.organisation.name, self.original_id)
             try:
                 self.save()
             except (ValueError, KeyError):
