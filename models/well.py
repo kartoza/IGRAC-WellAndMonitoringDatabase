@@ -85,7 +85,8 @@ class Well(GeneralInformation, CreationMetadata):
                 sender=Well
         ):
             self.last_edited_at = make_aware(datetime.now())
-            self.ggis_uid = '{}-{}'.format(self.organisation.name, self.original_id)
+            if self.organisation:
+                self.ggis_uid = '{}-{}'.format(self.organisation.name, self.original_id)
             try:
                 self.save()
             except (ValueError, KeyError):
