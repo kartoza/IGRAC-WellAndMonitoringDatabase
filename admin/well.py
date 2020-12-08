@@ -15,6 +15,10 @@ class WellAdmin(admin.ModelAdmin):
     list_filter = ('organisation',)
     readonly_fields = ('created_at', 'created_by_user', 'last_edited_at', 'last_edited_by_user', 'ggis_uid')
     filter_horizontal = ('affiliate_organisations',)
+    raw_id_fields = (
+        'ground_surface_elevation', 'top_borehole_elevation', 'drilling',
+        'geology', 'construction', 'management', 'hydrogeology_parameter'
+    )
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])
