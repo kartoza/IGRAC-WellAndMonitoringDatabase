@@ -3,6 +3,7 @@
 # coding=utf-8
 import ast
 import requests
+from requests.auth import HTTPBasicAuth
 import re
 import json
 import os
@@ -16,7 +17,6 @@ import reverse_geocoder as rg
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from django.contrib.gis.geos import Point
 from django.contrib.auth import get_user_model
 
 from gwml2.tasks.uploader.well import (
@@ -58,16 +58,34 @@ DJANGO_ROOT = os.path.dirname(
 
 
 class Command(BaseCommand):
-    ggmn_station_url = 'https://ggmn.lizard.net/api/v3/groundwaterstations/'
-    ggmn_timeseries_url = 'https://ggmn.lizard.net/api/v3/timeseries/'
+    ggmn_station_url = 'https://demo.lizard.net/api/v3/groundwaterstations/'
+    ggmn_timeseries_url = 'https://demo.lizard.net/api/v3/timeseries/'
+    ggmn_organisation_url = 'https://demo.lizard.net/api/v3/organisations/'
     well_ids = []
     well_data = {}
     countries_code = {}
     max_page = 0
     admin_id = None
     organisation = None
+    username = ''
+    password = ''
+    command_list = [
+        'organisations', 'wells', 'location'
+    ]
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            '-u',
+            '--username',
+            dest='username',
+            default='',
+            help='GGMN account username')
+        parser.add_argument(
+            '-p',
+            '--password',
+            dest='password',
+            default='',
+            help='GGMN account password')
         parser.add_argument(
             '-m',
             '--max_page',
@@ -85,6 +103,12 @@ class Command(BaseCommand):
             '--upload-to-db',
             dest='upload_to_db',
             default='False'
+        )
+        parser.add_argument(
+            '-c',
+            '--commands',
+            dest='commands',
+            default='organisation,wells,location'
         )
 
     def get_current_timestamp(self):
@@ -113,6 +137,54 @@ class Command(BaseCommand):
                 self.countries_code[
                     row[1].strip().replace('"', '')
                 ] = row[2].strip().replace('"', '')
+
+    def fetch_organisations(self, page=1):
+        """Fetch organisations data then store them to database"""
+        organisation_url = '{base_url}?page={page}'.format(
+            base_url=self.ggmn_organisation_url,
+            page=page
+        )
+        print(organisation_url)
+        response = requests.get(
+            organisation_url,
+            auth=(self.username, self.password))
+        organisations = response.json()
+        for organisation in organisations['results']:
+            organisation_obj, _ = Organisation.objects.get_or_create(
+                name=organisation['name'],
+                description='organisation from ggmn'
+            )
+            print(organisation_obj.name, _)
+            if 'users_url' in organisation:
+                print('## Fetching users')
+                print(organisation['users_url'])
+                users_response = requests.get(
+                    organisation['users_url'],
+                    auth=(self.username, self.password)
+                )
+                users = users_response.json()
+                for user in users:
+                    user_obj, user_created = (
+                        User.objects.get_or_create(
+                            username=user['username'],
+                            first_name=user['first_name'],
+                            last_name=user['last_name'],
+                            email=user['email']
+                        )
+                    )
+                    if user_obj.id not in organisation_obj.viewers:
+                        organisation_obj.viewers.append(user_obj.id)
+                        organisation_obj.save()
+                        print('User {username} has been added as a viewer to {org}'.format(
+                            username=user_obj.username,
+                            org=organisation_obj.name
+                        ))
+
+        if 'next' in organisations and organisations['next']:
+            next_url = organisations['next']
+            next_page = int(re.findall(r'\d+', next_url)[-1])
+            self.fetch_organisations(next_page)
+
 
     def fetch_wells(self, well_template_output_path, page=1):
         """
@@ -211,7 +283,7 @@ class Command(BaseCommand):
                 pass
         if wb:
             wb.save(well_template_output_path)
-        if 'next' in ground_stations:
+        if 'next' in ground_stations and ground_stations['next']:
             next_url = ground_stations['next']
             next_page = int(re.findall(r'\d+', next_url)[-1])
             if self.max_page:
@@ -313,49 +385,57 @@ class Command(BaseCommand):
             options.get('upload_to_db', 'False')
         )
 
-        print('# Fetching Wells ')
-        if not upload_to_db:
-            well_template_path = os.path.join(
-                settings.STATIC_ROOT,
-                'download_template',
-                WELL_TEMPLATE_FILE
-            )
-            well_template_output_name = '{file}_{time}.xlsx'.format(
-                file='WELL',
-                time=self.get_current_timestamp()
-            )
-            well_template_output_path = os.path.join(
-                DJANGO_ROOT,
-                well_template_output_name
-            )
-            copyfile(
-                well_template_path,
-                well_template_output_path
-            )
-        else:
-            well_template_output_path = None
+        commands = options.get('commands', '').split(',')
+        self.username = options.get('username', '')
+        self.password = options.get('password', '')
 
-        self.fetch_wells(well_template_output_path, page=from_page)
+        if 'organisations' in commands:
+            print('# Fetching organisations')
+            self.fetch_organisations()
 
-        print('# Fetching Monitoring data')
-        if not upload_to_db:
-            well_monitoring_template_path = os.path.join(
-                settings.STATIC_ROOT,
-                'download_template',
-                WELL_MONITORING_FILE
-            )
-            well_monitoring_template_output_name = '{file}_{time}.xlsx'.format(
-                file='WELL_MONITORING',
-                time=self.get_current_timestamp()
-            )
-            well_monitoring_template_output_path = os.path.join(
-                DJANGO_ROOT,
-                well_monitoring_template_output_name
-            )
-            copyfile(
-                well_monitoring_template_path,
-                well_monitoring_template_output_path
-            )
-        else:
-            well_monitoring_template_output_path = None
-        self.fetch_monitoring_data(well_monitoring_template_output_path)
+        if 'wells' in commands:
+            print('# Fetching Wells ')
+            if not upload_to_db:
+                well_template_path = os.path.join(
+                    settings.STATIC_ROOT,
+                    'download_template',
+                    WELL_TEMPLATE_FILE
+                )
+                well_template_output_name = '{file}_{time}.xlsx'.format(
+                    file='WELL',
+                    time=self.get_current_timestamp()
+                )
+                well_template_output_path = os.path.join(
+                    DJANGO_ROOT,
+                    well_template_output_name
+                )
+                copyfile(
+                    well_template_path,
+                    well_template_output_path
+                )
+            else:
+                well_template_output_path = None
+            self.fetch_wells(well_template_output_path, page=from_page)
+
+            print('# Fetching Monitoring data')
+            if not upload_to_db:
+                well_monitoring_template_path = os.path.join(
+                    settings.STATIC_ROOT,
+                    'download_template',
+                    WELL_MONITORING_FILE
+                )
+                well_monitoring_template_output_name = '{file}_{time}.xlsx'.format(
+                    file='WELL_MONITORING',
+                    time=self.get_current_timestamp()
+                )
+                well_monitoring_template_output_path = os.path.join(
+                    DJANGO_ROOT,
+                    well_monitoring_template_output_name
+                )
+                copyfile(
+                    well_monitoring_template_path,
+                    well_monitoring_template_output_path
+                )
+            else:
+                well_monitoring_template_output_path = None
+            self.fetch_monitoring_data(well_monitoring_template_output_path)
