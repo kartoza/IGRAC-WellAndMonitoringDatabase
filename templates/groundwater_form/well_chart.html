@@ -111,14 +111,12 @@
             </tr>
             <tr>
                 <td>Top depth</td>
-                <td><%= construction.actual_top %> <%= construction.actual_top_depth_unit %>
-                    (<%= construction.translated_top %> <%= construction.translated_top_depth_unit %>)
+                <td><%= construction.translated_top %> <%= construction.translated_top_depth_unit %>
                 </td>
             </tr>
             <tr>
                 <td>Bottom depth</td>
-                <td><%= construction.actual_bottom %> <%= construction.actual_bottom_depth_unit %>
-                    (<%= construction.translated_bottom %> <%= construction.translated_bottom_depth_unit %>)
+                <td><%= construction.translated_bottom %> <%= construction.translated_bottom_depth_unit %>
                 </td>
             </tr>
             <tr>
@@ -127,11 +125,11 @@
             </tr>
             <tr>
                 <td>Diameter</td>
-                <td><%= construction.data.diameter %></td>
+                <td><% if (construction.data) { %><%= construction.data.diameter %><% } else { %>-<% } %></td>
             </tr>
             <tr>
                 <td>Material</td>
-                <td><%= construction.data.material %></td>
+                <td><% if (construction.data) { %><%= construction.data.material %><% } else { %>-<% } %></td>
             </tr>
         </table>
     </div>
@@ -141,14 +139,12 @@
             <table>
                 <tr>
                     <td width="30%">Top depth</td>
-                    <td><%= stratigraphy.actual_top %> <%= stratigraphy.actual_top_depth_unit %>
-                        (<%= stratigraphy.translated_top %> <%= stratigraphy.translated_top_depth_unit %>)
+                    <td><%= stratigraphy.translated_top %> <%= stratigraphy.translated_top_depth_unit %>
                     </td>
                 </tr>
                 <tr>
                     <td>Bottom depth</td>
-                    <td><%= stratigraphy.actual_bottom %> <%= stratigraphy.actual_bottom_depth_unit %>
-                        (<%= stratigraphy.translated_bottom %> <%= stratigraphy.translated_bottom_depth_unit %>)
+                    <td><%= stratigraphy.translated_bottom %> <%= stratigraphy.translated_bottom_depth_unit %>
                     </td>
                 </tr>
                 <tr>
@@ -182,7 +178,7 @@
     </div>
     <div class="table-description">
         <h5>Description</h5>
-        <%= construction.data.description %>
+        <% if (construction.data) { %><%= construction.data.description %><% } else { %>-<% } %>
     </div>
 </script>
 
@@ -374,7 +370,7 @@
         }
         $('#well-chart-container').html('')
         if (stratigraphicLogData.length > 0 || constructionData.length > 0) {
-            createWellChart(chartData, 'well-chart-container', 'well-table-container', topBoreholeChart);
+            createWellChart(chartData, 'well-chart-container', 'well-table-container', 0);
         } else {
             $('.well-chart-row').hide();
         }
@@ -436,7 +432,7 @@
     function updateWellInformation(event, chartData) {
         let tableContainerId = 'well-table-container';
         const $tableDiv = $(`#${tableContainerId}`);
-        const constructionData = chartData['construction'][currentSeriesIndex - 1];
+        const constructionData = chartData['construction'][currentSeriesIndex];
         if (!event || typeof constructionData === 'undefined') {
             $tableDiv.html(`<div class="well-info"><p>Please hover mouse over the chart</p></div>`);
             return true;
@@ -460,7 +456,7 @@
             const [stratiIndex, stratiElement] = getStratiBarFromCoordinate(event.clientY);
             if (stratiElement) {
                 stratiBar = stratiElement;
-                chartData['stratigraphyData'] = chartData['stratigraphy'][stratiIndex];
+                chartData['stratigraphyData'] = chartData['stratigraphy'][stratiIndex + 1];
             }
         }
         highlightChartBar(constructionBar, 'construction');
@@ -550,6 +546,9 @@
             chartData['constructionPatterns'].unshift('solid');
         }
 
+        let _chartDataConstruction = Object.assign([], chartData['construction']);
+        let _chartPatternConstruction = Object.assign([], chartData['constructionPatterns']);
+
         chartData['construction'].forEach((constructionData, index) => {
             if (topDepthConstruction === null) {
                 topDepthConstruction = constructionData['top'];
@@ -568,6 +567,28 @@
 
             const range = constructionData['bottom'] - constructionData['top'];
             maxConstructionData += range
+
+            if (index > 0) {
+                if (constructionData['top'] > chartData['construction'][index - 1]['bottom']) {
+                    let emptyRange = constructionData['top'] - chartData['construction'][index - 1]['bottom'];
+                    constructionDataSeries.push({
+                        name: -999,
+                        data: [emptyRange],
+                    })
+                    maxConstructionData += emptyRange;
+                    _chartDataConstruction.splice(index, 0, ({
+                        'translated_top': chartData['construction'][index - 1]['bottom'],
+                        'translated_bottom': constructionData['top'],
+                        'type': 'Empty',
+                        'translated_top_depth_unit': 'm',
+                        'translated_bottom_depth_unit': 'm',
+                    }));
+                    constructionColors.push('#ffffff');
+                     constructionOpacities.push('0.5');
+                    _chartPatternConstruction.splice(index, 0, 'solid');
+                }
+            }
+
             constructionDataSeries.push({
                 name: constructionData['id'],
                 data: [range]
@@ -582,6 +603,9 @@
             }
             constructionOpacities.push('1');
         })
+
+        chartData['construction'] = _chartDataConstruction;
+        chartData['constructionPatterns'] = _chartPatternConstruction;
 
         const stratigraphyDataSeries = [];
         const stratigraphyColors = [];
