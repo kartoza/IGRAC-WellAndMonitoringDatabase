@@ -18,7 +18,7 @@ class GeneralInformationForm(WellBaseForm):
 
     class Meta:
         model = Well
-        fields = ('original_id', 'location', 'name', 'feature_type', 'purpose', 'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
+        fields = ('ggis_uid', 'original_id', 'location', 'name', 'feature_type', 'purpose', 'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
         widgets = {
             'ground_surface_elevation': QuantityInput(unit_group='length'),
             'top_borehole_elevation': QuantityInput(unit_group='length'),
@@ -28,6 +28,7 @@ class GeneralInformationForm(WellBaseForm):
     def __init__(self, *args, **kwargs):
         super(GeneralInformationForm, self).__init__(*args, **kwargs)
         self.fields['name'].required = True
+        self.fields['ggis_uid'].disabled = True
         self.fields['feature_type'].required = True
 
     @staticmethod

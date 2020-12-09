@@ -57,6 +57,9 @@ class WellView(ViewWellFormMixin, View):
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
             }
         }
+        if not well.ggis_uid:
+            well.save()
+
         context.update(GeneralInformationGetForms(well).get())
         context.update(GeologyGetForms(well).get())
         context.update(DrillingGetForms(well).get())
