@@ -560,7 +560,7 @@ table td div.error::after {
 
 /* CUSTOM INPUT FILE */
 .inputfile {
-    width: 269px;
+    width: 279px;
     height: 29px;
     border: 1px solid #cac8c8;
     border-radius: 2px;
@@ -623,7 +623,7 @@ table td div.error::after {
 }
 
 .inputfile label strong {
-    width: 110px;
+    width: 119px;
     color: #fff;
     background-color: #24619d;
     display: inline-block;
