@@ -17,7 +17,6 @@ class WellLevelMeasurementForm(BaseMeasurementForm):
 
     parameter_group = 'Level Measurement'
 
-
     @staticmethod
     def make_from_instance(instance):
         """ Create form from instance

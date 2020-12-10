@@ -22,6 +22,10 @@ class WaterStrikeForm(WellBaseForm):
 
     field_order = ('id', 'depth', 'description')
 
+    def __init__(self, *args, **kwargs):
+        super(WaterStrikeForm, self).__init__(*args, **kwargs)
+        self.fields['description'].widget.attrs = {'cols': 50, 'rows': 2}
+
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data

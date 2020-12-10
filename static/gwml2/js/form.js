@@ -7,11 +7,22 @@ $.validator.addMethod(
         const top_borehole = wellElevation['top_borehole'];
         const ground_surface = wellElevation['ground_surface'];
         if (top_borehole !== null && ground_surface !== null) {
-            return ground_surface <= top_borehole
+            if (ground_surface <= top_borehole) {
+                const $groundwater = $('#id_ground_surface_elevation_value');
+                const $topBorehole = $('#id_top_borehole_elevation_value');
+                // if it is ok, make everything valid
+                $groundwater.closest('.quantity-input').find('.quantity-value').removeClass('error').addClass('valid')
+                $topBorehole.closest('.quantity-input').find('.quantity-value').removeClass('error').addClass('valid')
+                $groundwater.closest('.quantity-input').find('.error').hide()
+                $topBorehole.closest('.quantity-input').find('.error').hide()
+                return true
+            } else {
+                return false
+            }
         }
         return true;
     },
-    "Ground surface elevation is more than Top borehole elevation"
+    "Ground surface elevation should be lower than Top borehole elevation"
 );
 /** This check validation for top and bottom depth
  */
@@ -27,11 +38,20 @@ $.validator.addMethod(
         const topDepth = getQuantityInputValue($topDepth.closest('.quantity-input'), 'm');
         const bottomDepth = getQuantityInputValue($bottomDepth.closest('.quantity-input'), 'm');
         if (topDepth !== null && bottomDepth !== null) {
-            return bottomDepth >= topDepth
+            if (bottomDepth >= topDepth) {
+                // if it is ok, make everything valid
+                $topDepth.closest('.quantity-input').find('.quantity-value').removeClass('error').addClass('valid')
+                $bottomDepth.closest('.quantity-input').find('.quantity-value').removeClass('error').addClass('valid')
+                $topDepth.closest('.quantity-input').find('.error').hide()
+                $bottomDepth.closest('.quantity-input').find('.error').hide()
+                return true
+            } else {
+                return false
+            }
         }
         return true;
     },
-    "Top depth is more than bottom depth"
+    "Top depth value should be lower than bottom depth value"
 );
 /** This check validation for license
  */
@@ -69,6 +89,12 @@ const formValidator = $('#form').validate({
         valid_from: {
             validFromValidation: true
         }
+    },
+    showErrors: function (errorMap, errorList) {
+        this.defaultShowErrors();
+        $('div.error').click(function () {
+            $(this).hide()
+        })
     },
     invalidHandler: function (event, validator) {
         $('.navigation a').removeClass('error')

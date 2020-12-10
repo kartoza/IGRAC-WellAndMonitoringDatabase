@@ -28,6 +28,10 @@ class ConstructionStructureForm(WellBaseForm):
     field_order = ('id', 'type', 'reference_elevation', 'top_depth', 'bottom_depth',
                    'diameter', 'material', 'description')
 
+    def __init__(self, *args, **kwargs):
+        super(ConstructionStructureForm, self).__init__(*args, **kwargs)
+        self.fields['description'].widget.attrs = {'cols': 25, 'rows': 1}
+
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data
