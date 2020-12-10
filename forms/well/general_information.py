@@ -29,6 +29,7 @@ class GeneralInformationForm(WellBaseForm):
         super(GeneralInformationForm, self).__init__(*args, **kwargs)
         self.fields['name'].required = True
         self.fields['ggis_uid'].disabled = True
+        self.fields['ggis_uid'].label = 'GGIS UID'
         self.fields['feature_type'].required = True
 
     @staticmethod
