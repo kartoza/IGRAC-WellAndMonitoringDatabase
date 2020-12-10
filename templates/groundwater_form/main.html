@@ -158,10 +158,7 @@
             {% if read_only %}
                 makeReadOnly();
             {% else %}
-                $(".select-2").select2({
-                    tags: true
-                });
-                $("#wrap select").not(".select-2").select2({
+                $("#wrap select").select2({
                     tags: false
                 });
             {% endif %}

@@ -25,8 +25,8 @@ class ConstructionStructureForm(WellBaseForm):
                 }),
         }
 
-    field_order = ('id', 'type', 'reference_elevation', 'top_depth', 'bottom_depth',
-                   'diameter', 'material', 'description')
+    field_order = ('id', 'reference_elevation', 'top_depth', 'bottom_depth',
+                   'type', 'diameter', 'material', 'description')
 
     def __init__(self, *args, **kwargs):
         super(ConstructionStructureForm, self).__init__(*args, **kwargs)

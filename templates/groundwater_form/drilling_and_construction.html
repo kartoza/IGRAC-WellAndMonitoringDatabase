@@ -5,9 +5,21 @@
         <h3>
             For wells and boreholes
         </h3>
-        <div id="drilling-data" class="section drilling">
+        <div id="geology" class="section" style="margin-bottom: 0;">
             <table>
-                {% field_as_row geology.total_depth id='geology' %}
+                <tr class="input-column">
+                    <td>{% render_label geology.total_depth %} {% render_help_text geology.total_depth %}</td>
+                    <td>
+                        <div class="input">
+                            {{ geology.total_depth }} from {{ geology.reference_elevation }}
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="section"></div>
+        <div id="drilling-data" class="section">
+            <table>
                 {% field_as_row drilling.year_of_drilling %}
                 {% field_as_row drilling.drilling_method %}
                 {% field_as_row drilling.driller %}

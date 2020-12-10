@@ -289,14 +289,14 @@
 
         let constructionData = $('#structure_table tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
-            let type = `${valElmt($td.eq(1).find('[name^="type"]'))}`;
-            let reference_elevation = `${valElmt($td.eq(2).find('[name^="reference_elevation"]'))}`;
-            let top = parseFloat(`${valElmt($td.eq(3).find('[name^="top_depth_value"]'))}`);
-            let bottom = parseFloat(`${valElmt($td.eq(4).find('[name^="bottom_depth_value"]'))}`);
+            let type = `${valElmt($td.eq(4).find('[name^="type"]'))}`;
+            let reference_elevation = `${valElmt($td.eq(1).find('[name^="reference_elevation"]'))}`;
+            let top = parseFloat(`${valElmt($td.eq(2).find('[name^="top_depth_value"]'))}`);
+            let bottom = parseFloat(`${valElmt($td.eq(3).find('[name^="bottom_depth_value"]'))}`);
             let actual_top = top;
             let actual_bottom = bottom;
-            let top_depth_unit = `${valElmt($td.eq(3).find('[name^="top_depth_unit"]'))}`;
-            let bottom_depth_unit = `${valElmt($td.eq(4).find('[name^="bottom_depth_unit"]'))}`;
+            let top_depth_unit = `${valElmt($td.eq(2).find('[name^="top_depth_unit"]'))}`;
+            let bottom_depth_unit = `${valElmt($td.eq(3).find('[name^="bottom_depth_unit"]'))}`;
             let actual_top_depth_unit = top_depth_unit;
             let actual_bottom_depth_unit = bottom_depth_unit;
             if (top_depth_unit === 'ft') {

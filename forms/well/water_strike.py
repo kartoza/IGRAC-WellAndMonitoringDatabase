@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.well.base import WellBaseForm
-from gwml2.forms.widgets.reference_elevation import ReferenceElevationInput
+from gwml2.forms.widgets.reference_elevation import QuantityInput
 from gwml2.models.drilling import WaterStrike
 
 
@@ -13,14 +13,12 @@ class WaterStrikeForm(WellBaseForm):
 
     class Meta:
         model = WaterStrike
-        fields = ('id', 'depth', 'description')
+        fields = ('id', 'reference_elevation', 'depth', 'description')
         widgets = {
-            'depth': ReferenceElevationInput(
-                unit_required=True,
-                unit_group='length')
+            'depth': QuantityInput(unit_group='length'),
         }
 
-    field_order = ('id', 'depth', 'description')
+    field_order = ('id', 'reference_elevation', 'depth', 'description')
 
     def __init__(self, *args, **kwargs):
         super(WaterStrikeForm, self).__init__(*args, **kwargs)

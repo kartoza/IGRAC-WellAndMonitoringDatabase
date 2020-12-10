@@ -878,12 +878,12 @@ input[name="stratigraphic_unit"] {
 }
 
 .table-wrapper .quantity-input input {
-    width: 30% !important;
+    width: 40% !important;
 }
 
 .table-wrapper .quantity-input .select2,
 .table-wrapper .quantity-input select {
-    width: 70% !important;
+    width: 60% !important;
 }
 
 /* select 2*/
@@ -1006,3 +1006,12 @@ input[name="stratigraphic_unit"] {
     }
 }
 
+/* Geology*/
+#geology .quantity-input {
+    width: 40%;
+    margin-right: 0;
+}
+
+#geology #id_reference_elevation {
+    width: 130px;
+}

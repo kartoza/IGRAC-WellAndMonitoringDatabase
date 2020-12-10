@@ -1,6 +1,5 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
-from gwml2.models.reference_elevation import ReferenceElevation
 from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
 
 
@@ -78,8 +77,12 @@ class WaterStrike(models.Model):
     )
 
     # information
+    reference_elevation = models.ForeignKey(
+        TermReferenceElevationType, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
     depth = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
+        Quantity, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     description = models.TextField(

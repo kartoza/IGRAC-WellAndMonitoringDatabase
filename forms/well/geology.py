@@ -11,7 +11,7 @@ class GeologyForm(WellBaseForm):
 
     class Meta:
         model = Geology
-        fields = ('total_depth',)
+        fields = ('total_depth', 'reference_elevation')
         widgets = {
             'total_depth': QuantityInput(
                 unit_group='length', attrs={
