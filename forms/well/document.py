@@ -23,6 +23,10 @@ class DocumentForm(WellBaseForm):
             'file': FileSelectionInput(read_only=True)
         }
 
+    def __init__(self, *args, **kwargs):
+        super(DocumentForm, self).__init__(*args, **kwargs)
+        self.fields['description'].widget.attrs = {'cols': 50, 'rows': 3}
+
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data
