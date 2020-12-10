@@ -30,6 +30,7 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['name'].required = True
         self.fields['ggis_uid'].disabled = True
         self.fields['ggis_uid'].label = 'GGIS UID'
+        self.fields['original_id'].label = 'Original ID'
         self.fields['feature_type'].required = True
 
     @staticmethod
