@@ -31,6 +31,9 @@ function deleteRelation(elm) {
 }
 
 function parameterChanged($inputParameter, $inputUnit) {
+    if ($inputParameter.find('option').length === 1) {
+        return
+    }
     let units = parameters[$inputParameter.val()] || [];
     let $option = $inputUnit.find('option');
     let val = $inputUnit.val()

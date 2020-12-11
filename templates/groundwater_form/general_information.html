@@ -131,4 +131,30 @@
     $('#id_latitude, #id_longitude').trigger('change')
     $('#id_photo').attr('accept', 'image/gif, image/png, image/jpeg')
 
+    let feature_type = {}
+    {% for query in form.feature_type.field.queryset %}
+        feature_type[{{ query.id }}] = '{{ query.name }}'
+    {% endfor %}
+
+    $(document).ready(function () {
+        const $featureType = $('#id_feature_type')
+        const $purpose = $('#id_purpose')
+        const $topBorehole = $('#id_top_borehole_elevation')
+        {# enable purpose and top well elevation when type is water well#}
+        $featureType.change(function () {
+            if (feature_type[$(this).val()] === 'Water well') {
+                $purpose.prop("disabled", false);
+                $topBorehole.find('.quantity-value').prop("disabled", false);
+                $topBorehole.find('.quantity-unit').prop("disabled", false);
+            } else {
+                $purpose.val('').trigger('change');
+                $purpose.prop("disabled", true);
+                $topBorehole.find('.quantity-value').val('').trigger('change');
+                $topBorehole.find('.quantity-unit').val('').trigger('change');
+                $topBorehole.find('.quantity-value').prop("disabled", true);
+                $topBorehole.find('.quantity-unit').prop("disabled", true);
+            }
+        })
+        $featureType.trigger('change')
+    })
 </script>

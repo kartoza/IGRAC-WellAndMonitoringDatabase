@@ -1,5 +1,25 @@
 /** This check validation for ground surface and top of borehole
  */
+
+/** Latitude and longitude check
+ */
+$.validator.addMethod(
+    "latitudeValidation",
+    function (value, element) {
+        return (-90 <= parseInt(value) && parseInt(value) <= 90)
+    },
+    "Please enter a value comprised between -90 and 90"
+);
+$.validator.addMethod(
+    "longitudeValidation",
+    function (value, element) {
+        return (-180 <= parseInt(value) && parseInt(value) <= 180)
+    },
+    "Please enter a value comprised between -180 and 180"
+);
+
+/** Validation for groundsurface elevation
+ */
 $.validator.addMethod(
     "groundSurfaceValidation",
     function (value, element) {
@@ -22,8 +42,9 @@ $.validator.addMethod(
         }
         return true;
     },
-    "Ground surface elevation should be lower than Top borehole elevation"
+    "Ground surface elevation should be lower than Top of well elevation"
 );
+
 /** This check validation for top and bottom depth
  */
 $.validator.addMethod(
@@ -74,6 +95,12 @@ const formValidator = $('#form').validate({
     /** Handle event when there is invalid event
      */
     rules: {
+        latitude: {
+            latitudeValidation: true
+        },
+        longitude: {
+            longitudeValidation: true
+        },
         ground_surface_elevation_value: {
             groundSurfaceValidation: true
         },

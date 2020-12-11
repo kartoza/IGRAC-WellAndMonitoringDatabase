@@ -12,9 +12,9 @@ class GeneralInformationForm(WellBaseForm):
     Form of general information of well.
     """
     latitude = forms.FloatField(
-        help_text='Latitude must be expressed in decimal degrees.', min_value=-90, max_value=90)
+        help_text='Latitude must be expressed in decimal degrees.')
     longitude = forms.FloatField(
-        help_text='Longitude must be expressed in decimal degrees.', min_value=-180, max_value=180)
+        help_text='Longitude must be expressed in decimal degrees.')
 
     class Meta:
         model = Well
@@ -30,6 +30,7 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['name'].required = True
         self.fields['ggis_uid'].disabled = True
         self.fields['ggis_uid'].label = 'GGIS UID'
+        self.fields['top_borehole_elevation'].label = 'Top of well elevation'
         self.fields['original_id'].label = 'Original ID'
         self.fields['feature_type'].required = True
 

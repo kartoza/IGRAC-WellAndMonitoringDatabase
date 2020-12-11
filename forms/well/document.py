@@ -25,7 +25,8 @@ class DocumentForm(WellBaseForm):
 
     def __init__(self, *args, **kwargs):
         super(DocumentForm, self).__init__(*args, **kwargs)
-        self.fields['description'].widget.attrs = {'cols': 50, 'rows': 3}
+        self.fields['description'].widget.attrs['cols'] = 30
+        self.fields['description'].widget.attrs['rows'] = 3
 
     @staticmethod
     def make_from_data(instance, data, files):

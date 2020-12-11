@@ -13,25 +13,32 @@
       "length"
     ]
   },
+  "cm": {
+    "html": "cm",
+    "description": "Centimeter",
+    "groups": [
+      "length"
+    ]
+  },
   "m²/day": {
     "description": "Cubic meter per day",
     "groups": [
-      "flow rate"
+      "length^2 / time"
     ]
   },
   "m³/day": {
     "groups": [
-      "flow rate"
+      "length^2 / time"
     ]
   },
   "m³/h": {
     "groups": [
-      "flow rate"
+      "length^2 / time"
     ]
   },
   "m³/min": {
     "groups": [
-      "flow rate"
+      "length^2 / time"
     ]
   },
   "%": {
@@ -39,14 +46,6 @@
     "groups": [
       "Percentage"
     ]
-  },
-  "S/m": {
-    "description": "siemens/metre",
-    "groups": []
-  },
-  "μS/cm": {
-    "description": "micro Siemens/centimetres",
-    "groups": []
   },
   "°C": {
     "description": "Celcius",
@@ -90,12 +89,16 @@
       "Mass Concentration"
     ]
   },
-  "cfu per mL": {
-    "description": "Colony forming unit per mL",
-    "groups": []
+  "m/day": {
+    "description": "meter per day",
+    "groups": [
+      "length / time"
+    ]
   },
-  "cfu per 100 ml": {
-    "description": "Colony forming unit per 100 mL",
-    "groups": []
+  "1/m": {
+    "description": "meter per day",
+    "groups": [
+      "1 / length"
+    ]
   }
 }

@@ -21,10 +21,9 @@
     "Rotary drilling"
   ],
   "TermFeatureType": [
-    "Borehole",
-    "Hand-dug well",
-    "Other - specify",
-    "Spring"
+    "Spring",
+    "Water well",
+    "Other"
   ],
   "TermGroundwaterUse": [
     "Domestic",

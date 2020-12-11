@@ -406,10 +406,10 @@ select {
     height: 30px !important;
 }
 
-input:disabled, textarea:disabled, select:disabled {
-    background: none;
-    border: none !important;
-    width: 100%;
+input:disabled, textarea:disabled, select:disabled,
+.select2-container--default.select2-container--disabled .select2-selection--single {
+    border: 1px solid #ddd !important;
+    background-color: rgba(239, 239, 239, 0.3) !important;
 }
 
 
@@ -1004,14 +1004,4 @@ input[name="stratigraphic_unit"] {
     .many-to-many td, .many-to-many th {
         padding: 7px 5px;
     }
-}
-
-/* Geology*/
-#geology .quantity-input {
-    width: 40%;
-    margin-right: 0;
-}
-
-#geology #id_reference_elevation {
-    width: 130px;
 }

@@ -1,4 +1,4 @@
-<div class="quantity-input">
+<div class="quantity-input" id="{{ widget.attrs.id }}">
     <input
             type="number"
             name="{{ widget.name }}_id"
@@ -11,6 +11,7 @@
             name="{{ widget.name }}_value"
             {% if value != None %} value="{{ value }}" {% endif %}
             id="{{ widget.attrs.id }}_value"
+            maxlength="10"
             placeholder=""
             class="quantity-value"
             {% include "django/forms/widgets/attrs.html" %}

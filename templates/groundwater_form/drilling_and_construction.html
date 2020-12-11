@@ -7,14 +7,8 @@
         </h3>
         <div id="geology" class="section" style="margin-bottom: 0;">
             <table>
-                <tr class="input-column">
-                    <td>{% render_label geology.total_depth %} {% render_help_text geology.total_depth %}</td>
-                    <td>
-                        <div class="input">
-                            {{ geology.total_depth }} from {{ geology.reference_elevation }}
-                        </div>
-                    </td>
-                </tr>
+                {% field_as_row geology.total_depth %}
+                {% field_as_row geology.reference_elevation %}
             </table>
         </div>
         <div class="section"></div>

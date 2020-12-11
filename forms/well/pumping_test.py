@@ -11,14 +11,19 @@ class PumpingTestForm(WellBaseForm):
 
     class Meta:
         model = PumpingTest
-        fields = ('porosity', 'hydraulic_conductivity', 'transmissivity', 'specific_storage',
+        fields = ('porosity', 'hydraulic_conductivity', 'transmissivity', 'specific_storage', 'specific_yield',
                   'storativity', 'specific_capacity', 'test_type')
         widgets = {
-            'hydraulic_conductivity': QuantityInput(unit_group='length'),
+            'hydraulic_conductivity': QuantityInput(unit_group='length / time'),
             'transmissivity': QuantityInput(unit_group='flow rate'),
-            'specific_storage': QuantityInput(unit_group='percentage'),
-            'specific_capacity': QuantityInput(unit_group='flow rate')
+            'specific_storage': QuantityInput(unit_group='1 / length'),
+            'specific_capacity': QuantityInput(unit_group='flow rate'),
+            'storativity': QuantityInput(unit_group='length^2 / time'),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(PumpingTestForm, self).__init__(*args, **kwargs)
+        self.fields['storativity'].label = 'Yield'
 
     @staticmethod
     def make_from_data(instance, data, files):
