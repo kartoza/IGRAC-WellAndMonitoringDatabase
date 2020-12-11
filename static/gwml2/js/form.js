@@ -86,7 +86,7 @@ $.validator.addMethod(
         }
         return true;
     },
-    "Valid from should be lesser than valid until"
+    "Valid from should be before valid until"
 );
 
 
