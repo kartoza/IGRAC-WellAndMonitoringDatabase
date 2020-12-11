@@ -20,9 +20,17 @@ def fetch(modeladmin, request, queryset):
 fetch.short_description = "Create uuid for other users"
 
 
+def update_username(modeladmin, request, queryset):
+    for query in queryset:
+        query.update_username()
+
+
+update_username.short_description = "Update username"
+
+
 class UserUUIDAdmin(admin.ModelAdmin):
-    list_display = ('user', 'uuid')
-    actions = [fetch]
+    list_display = ('user', 'uuid', 'username')
+    actions = [fetch, update_username]
 
     def user(self, obj):
         try:
