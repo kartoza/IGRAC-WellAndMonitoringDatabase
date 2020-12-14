@@ -3,6 +3,7 @@
     <h2 class="section-title">Metadata</h2>
     <div class="section">
         <table>
+            {% field_as_row form.public %}
             {% field_as_row form.organisation %}
             {% field_as_row form.created_by %}
             {% field_as_row form.created_at %}

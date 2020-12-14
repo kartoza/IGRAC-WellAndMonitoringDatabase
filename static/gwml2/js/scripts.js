@@ -105,10 +105,10 @@ $(document).ready(function () {
     });
 
     $('#id_valid_from').change(function () {
-       formValidator.form();
+        formValidator.form();
     })
     $('#id_valid_until').change(function () {
-       formValidator.form();
+        formValidator.form();
     })
 })
 
@@ -133,7 +133,11 @@ function makeReadOnly() {
             }
             $(this).addClass('read-only');
             const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
-            return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${$(this).val()}</span>`;
+            let value = $(this).val()
+            if ($(this).attr('type') === 'checkbox') {
+                value = $(this).attr('checked') ? 'Public' : 'Private';
+            }
+            return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
         });
         $('#form input, textarea').hide();
         $('#form select').not(".read-only").after(function () {

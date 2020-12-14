@@ -68,6 +68,11 @@ class Well(GeneralInformation, CreationMetadata):
         Organisation, null=True, blank=True,
         related_name='well_affiliate_organisations'
     )
+    public = models.BooleanField(
+        default=True,
+        help_text='indicate that well can be viewed by '
+                  'non organisation user'
+    )
 
     def __str__(self):
         return self.original_id
@@ -123,6 +128,8 @@ class Well(GeneralInformation, CreationMetadata):
         :return: permission
         :rtype: bool
         """
+        if self.public:
+            return True
         if not self.organisation:
             return True
         if not user:

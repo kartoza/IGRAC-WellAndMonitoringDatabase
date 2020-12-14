@@ -57,7 +57,7 @@ class WellView(ViewWellFormMixin, View):
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
             }
         }
-        if not well.ggis_uid:
+        if well.pk and not well.ggis_uid:
             well.save()
 
         context.update(GeneralInformationGetForms(well).get())

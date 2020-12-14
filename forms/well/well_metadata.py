@@ -18,7 +18,7 @@ class WellMetadataForm(WellBaseForm):
 
     class Meta:
         model = Well
-        fields = ('organisation', 'created_by', 'created_at', 'last_edited_by', 'last_edited_at', 'affiliate_organisations')
+        fields = ('organisation', 'created_by', 'created_at', 'last_edited_by', 'last_edited_at', 'affiliate_organisations', 'public')
 
     def __init__(self, *args, **kwargs):
         organisation = kwargs.get('organisation', None)

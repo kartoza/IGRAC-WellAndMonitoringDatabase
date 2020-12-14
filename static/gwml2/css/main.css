@@ -422,11 +422,6 @@ input[type="file"] {
     padding-left: 0;
 }
 
-input[type="checkbox"] {
-    height: 20px;
-    width: 20px;;
-}
-
 .many-to-many tr th:first-child, .many-to-many tr td:first-child {
     display: none;
 }
@@ -855,6 +850,11 @@ input[name="stratigraphic_unit"] {
     width: 100%;
 }
 
+input[type="checkbox"] {
+    height: 20px;
+    width: 20px;;
+}
+
 .quantity-input {
     width: 100%;
     position: relative;
@@ -1004,4 +1004,9 @@ input[name="stratigraphic_unit"] {
     .many-to-many td, .many-to-many th {
         padding: 7px 5px;
     }
+}
+
+.fa-info-circle {
+    font-size: 20px;
+    color: #222;
 }
