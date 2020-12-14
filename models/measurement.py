@@ -16,7 +16,7 @@ class Measurement(CreationMetadata):
         on_delete=models.SET_NULL
     )
     methodology = models.CharField(
-        null=True, blank=True, max_length=512,
+        null=True, blank=True, max_length=200,
         help_text="Explain the methodology used to collect the data, in the field and eventually in the lab."
     )
     value = models.OneToOneField(

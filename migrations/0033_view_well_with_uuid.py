@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('gwml2', '0031_well_public'),
+        ('gwml2', '0032_auto_20201214_0640'),
     ]
 
     # TODO:

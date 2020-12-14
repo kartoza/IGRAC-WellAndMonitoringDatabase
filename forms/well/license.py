@@ -12,6 +12,10 @@ class LicenseForm(WellBaseForm):
         model = License
         fields = ('number', 'valid_from', 'valid_until', 'description')
 
+    def __init__(self, *args, **kwargs):
+        super(LicenseForm, self).__init__(*args, **kwargs)
+        self.fields['description'].widget.attrs['maxlength'] = 500
+
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data

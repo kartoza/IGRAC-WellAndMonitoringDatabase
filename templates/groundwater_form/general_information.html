@@ -155,6 +155,17 @@
                 $topBorehole.find('.quantity-unit').prop("disabled", true);
             }
         })
-        $featureType.trigger('change')
+        $featureType.trigger('change');
+
+        {# original ID no space#}
+        $("#id_original_id").on({
+            keydown: function (e) {
+                if (e.which === 32)
+                    return false;
+            },
+            change: function () {
+                this.value = this.value.replace(/\s/g, "");
+            }
+        });
     })
 </script>

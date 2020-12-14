@@ -8,7 +8,7 @@ class Construction(models.Model):
     """ Construction
     """
     pump_installer = models.CharField(
-        null=True, blank=True, max_length=512,
+        null=True, blank=True, max_length=200,
         help_text="Name of the company or person who installed the pump."
     )
     pump_description = models.TextField(
@@ -40,7 +40,7 @@ class ConstructionStructure(models.Model):
 
     # information
     material = models.CharField(
-        null=True, blank=True, max_length=512
+        null=True, blank=True, max_length=200
     )
     description = models.TextField(
         null=True,

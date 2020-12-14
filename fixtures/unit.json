@@ -28,17 +28,17 @@
   },
   "m³/day": {
     "groups": [
-      "length^2 / time"
+      "length^3 / time"
     ]
   },
   "m³/h": {
     "groups": [
-      "length^2 / time"
+      "length^3 / time"
     ]
   },
   "m³/min": {
     "groups": [
-      "length^2 / time"
+      "length^3 / time"
     ]
   },
   "%": {

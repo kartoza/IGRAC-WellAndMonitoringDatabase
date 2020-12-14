@@ -32,6 +32,7 @@ class ConstructionStructureForm(WellBaseForm):
         super(ConstructionStructureForm, self).__init__(*args, **kwargs)
         self.fields['description'].widget.attrs['cols'] = 20
         self.fields['description'].widget.attrs['rows'] = 1
+        self.fields['description'].widget.attrs['maxlength'] = 200
 
     @staticmethod
     def make_from_data(instance, data, files):

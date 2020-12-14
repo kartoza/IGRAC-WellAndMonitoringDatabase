@@ -27,12 +27,16 @@ class GeneralInformationForm(WellBaseForm):
 
     def __init__(self, *args, **kwargs):
         super(GeneralInformationForm, self).__init__(*args, **kwargs)
-        self.fields['name'].required = True
+
         self.fields['ggis_uid'].disabled = True
         self.fields['ggis_uid'].label = 'GGIS UID'
-        self.fields['top_borehole_elevation'].label = 'Top of well elevation'
         self.fields['original_id'].label = 'Original ID'
+        self.fields['name'].required = True
         self.fields['feature_type'].required = True
+
+        self.fields['description'].widget.attrs['maxlength'] = 1000
+        self.fields['address'].widget.attrs['maxlength'] = 200
+        self.fields['top_borehole_elevation'].label = 'Top of well elevation'
 
     @staticmethod
     def make_from_data(instance, data, files):

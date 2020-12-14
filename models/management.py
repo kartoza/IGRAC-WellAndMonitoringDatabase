@@ -8,7 +8,7 @@ from gwml2.models.term import TermGroundwaterUse
 class License(models.Model):
     """ License model """
     number = models.CharField(
-        max_length=512,
+        max_length=20,
         null=True,
         blank=True)
     valid_from = models.DateField(
@@ -33,7 +33,7 @@ class Management(models.Model):
     """ Management model """
     manager = models.CharField(
         verbose_name='Manager / owner',
-        max_length=512,
+        max_length=200,
         null=True,
         blank=True,
         help_text='Name of the manager or owner of the groundwater point. '

@@ -18,12 +18,14 @@ class PumpingTestForm(WellBaseForm):
             'transmissivity': QuantityInput(unit_group='flow rate'),
             'specific_storage': QuantityInput(unit_group='1 / length'),
             'specific_capacity': QuantityInput(unit_group='flow rate'),
-            'storativity': QuantityInput(unit_group='length^2 / time'),
+            'storativity': QuantityInput(unit_group='length^3 / time'),
         }
 
     def __init__(self, *args, **kwargs):
         super(PumpingTestForm, self).__init__(*args, **kwargs)
         self.fields['storativity'].label = 'Yield'
+        self.fields['porosity'].widget.attrs['maxlength'] = 10
+        self.fields['specific_yield'].widget.attrs['maxlength'] = 10
 
     @staticmethod
     def make_from_data(instance, data, files):

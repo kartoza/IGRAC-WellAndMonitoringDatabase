@@ -12,6 +12,10 @@ class ConstructionForm(WellBaseForm):
         model = Construction
         fields = ('pump_installer', 'pump_description')
 
+    def __init__(self, *args, **kwargs):
+        super(ConstructionForm, self).__init__(*args, **kwargs)
+        self.fields['pump_description'].widget.attrs['maxlength'] = 500
+
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data

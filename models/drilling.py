@@ -57,10 +57,10 @@ class StratigraphicLog(models.Model):
         related_name='stratigraphic_log_bottom_depth'
     )
     material = models.CharField(
-        null=True, blank=True, max_length=512
+        null=True, blank=True, max_length=200
     )
     stratigraphic_unit = models.CharField(
-        null=True, blank=True, max_length=256
+        null=True, blank=True, max_length=128
     )
 
     class Meta:

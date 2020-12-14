@@ -24,6 +24,7 @@ class WaterStrikeForm(WellBaseForm):
         super(WaterStrikeForm, self).__init__(*args, **kwargs)
         self.fields['description'].widget.attrs['cols'] = 30
         self.fields['description'].widget.attrs['rows'] = 2
+        self.fields['description'].widget.attrs['maxlength'] = 200
 
     @staticmethod
     def make_from_data(instance, data, files):

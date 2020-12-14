@@ -10,7 +10,9 @@ class ManagementForm(WellBaseForm):
 
     def __init__(self, *args, **kwargs):
         super(ManagementForm, self).__init__(*args, **kwargs)
-        self.fields['number_of_users'].widget.attrs = {'min': 0}
+        self.fields['number_of_users'].widget.attrs['min'] = 0
+        self.fields['description'].widget.attrs['maxlength'] = 500
+        self.fields['number_of_users'].widget.attrs['maxlength'] = 7
 
     class Meta:
         model = Management
