@@ -5,11 +5,19 @@ from gwml2.models.hydrogeology import HydrogeologyParameter, PumpingTest
 class PumpingTestAdmin(admin.ModelAdmin):
     list_display = (
         'test_type', 'porosity', 'hydraulic_conductivity',
-        'transmissivity', 'specific_storage')
+        'transmissivity', 'specific_storage'
+    )
+    raw_id_fields = (
+        'specific_capacity', 'hydraulic_conductivity',
+        'transmissivity', 'specific_storage', 'storativity'
+    )
 
 
 class HydrogeologyParameterAdmin(admin.ModelAdmin):
     list_display = ('aquifer_name', 'aquifer_material', 'aquifer_type')
+    raw_id_fields = (
+        'aquifer_thickness',
+    )
 
 
 admin.site.register(HydrogeologyParameter, HydrogeologyParameterAdmin)

@@ -39,6 +39,9 @@ admin.site.register(Well, WellAdmin)
 class MeasurementAdmin(admin.ModelAdmin):
     list_display = ('well', 'time', 'parameter', 'methodology', 'value')
     search_fields = ('well__original_id',)
+    raw_id_fields = (
+        'value',
+    )
 
 
 admin.site.register(WellLevelMeasurement, MeasurementAdmin)
