@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='well',
             name='original_id',
-            field=models.CharField(help_text='As recorded in the original database.', max_length=20, unique=True),
+            field=models.CharField(help_text='As recorded in the original database.', max_length=20),
         ),
         migrations.AlterField(
             model_name='welllevelmeasurement',
