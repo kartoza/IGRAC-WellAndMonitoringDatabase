@@ -47,6 +47,9 @@ class WellWithUUID(models.Model):
     detail = models.CharField(
         null=True, blank=True, max_length=512
     )
+    public = models.BooleanField(
+        default=True
+    )
 
     class Meta:
         db_table = 'well_with_uuid'

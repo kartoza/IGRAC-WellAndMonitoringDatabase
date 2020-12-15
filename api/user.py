@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models import Extent
 
@@ -20,26 +21,25 @@ class UserUUIDAPI(APIView):
     """
 
     def get(self, request, *args):
+        _uuid = 'Not found'
         try:
             user_id = -1
             if request.user.is_authenticated:
                 user_id = request.user.id
-            user_uuid = UserUUID.objects.get(user_id=user_id)
+            _uuid = UserUUID.objects.get(user_id=user_id).uuid
             if request.user.is_staff:
                 try:
-                    user_uuid = UserUUID.objects.get(user_id=0)
+                    _uuid = UserUUID.objects.get(user_id=0).uuid
                 except UserUUID.DoesNotExist:
                     pass
-            wells = WellWithUUID.objects.filter(uuid=user_uuid.uuid).aggregate(Extent('location'))
-            return Response({
-                'uuid': user_uuid.uuid,
-                'extent': wells['location__extent']
-            })
         except UserUUID.DoesNotExist:
-            return Response({
-                'uuid': 'not found',
-                'extent': None
-            })
+            pass
+        wells = WellWithUUID.objects.filter(
+            Q(uuid=_uuid) | Q(public=True)).aggregate(Extent('location'))
+        return Response({
+            'uuid': _uuid,
+            'extent': wells['location__extent']
+        })
 
 
 class UserAutocompleteAPI(APIView):
