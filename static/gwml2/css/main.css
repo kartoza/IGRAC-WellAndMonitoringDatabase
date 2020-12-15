@@ -1010,3 +1010,8 @@ input[type="checkbox"] {
     font-size: 20px;
     color: #222;
 }
+
+.tooltip-inner {
+    white-space: pre-wrap;
+    text-align: left;
+}
