@@ -75,23 +75,28 @@
 
 </style>
 
+<svg>
+<defs>
+<pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
+  <path d="M-1,1 l2,-2
+           M0,4 l4,-4
+           M3,5 l2,-2"
+        style="stroke:black; stroke-width:1"></path>
+</pattern>
+</defs>
+</svg>
 
 <div class="well-chart-row many-to-many">
     <div class="column-50 height-100">
         <div class="charts-header">
             <h4>Well Chart <i class="fa fa fa-arrows-alt" aria-hidden="true" onclick="toggleFullScreenWellChart(this)"></i></h4>
         </div>
-        <div style="height: 30px;font-size: 9pt">
-            <div style="width: 30%; float: left">Depth From Surface</div>
-            <div style="width: 45%; float: left; text-align: center">Construction</div>
-            <div style="width: 25%; float: left">Stratigraphy</div>
-        </div>
         <div class="charts" id="well-chart-container">
         </div>
     </div>
     <div class="column-50">
         <h3>&nbsp;</h3>
-        <div id="well-table-container" class="well-table-container" style="max-width: 100% !important;">
+        <div id="well-table-container" class="well-table-container" style="max-width: 100% !important; margin-top: -10px;">
             <div class="well-info">
                 <p>Please hover mouse over the chart</p>
             </div>
@@ -106,10 +111,6 @@
         </div>
         <table>
             <tr>
-                <td width="30%">Type</td>
-                <td><%= construction.type %></td>
-            </tr>
-            <tr>
                 <td>Top depth</td>
                 <td><%= construction.translated_top %> <%= construction.translated_top_depth_unit %>
                 </td>
@@ -120,8 +121,8 @@
                 </td>
             </tr>
             <tr>
-                <td>Reference Elevation</td>
-                <td><%= construction.reference_elevation %></td>
+                <td>Type</td>
+                <td><%= construction.type %></td>
             </tr>
             <tr>
                 <td>Diameter</td>
@@ -147,15 +148,11 @@
                     <td><%= stratigraphy.translated_bottom %> <%= stratigraphy.translated_bottom_depth_unit %>
                     </td>
                 </tr>
-                <tr>
-                    <td>Reference Elevation</td>
-                    <td><%= stratigraphy.reference_elevation %></td>
-                </tr>
                 <% if (stratigraphy.data) { %>
                 <tr>
                     <td>Material</td>
                     <td>
-                        <div style="height: 10px; width: 10px; opacity: 0.5; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
+                        <div style="height: 10px; width: 10px; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
                         <%= stratigraphy.data.material %>
                     </td>
                 </tr>
@@ -176,14 +173,10 @@
             </table>
         </div>
     </div>
-    <div class="table-description">
-        <h5>Description</h5>
-        <% if (construction.data) { %><%= construction.data.description %><% } else { %>-<% } %>
-    </div>
 </script>
 
 <script type="text/javascript"
-        src="{% static 'js/apexcharts/apexcharts.min.js' %}"></script>
+        src="{% static 'js/apexcharts/apexcharts.js' %}"></script>
 <script type="text/javascript"
         src="{% static 'js/chroma.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/underscore-1.11.0/underscore-min.js' %}"></script>
@@ -191,11 +184,13 @@
 
     // Last selected bar in the chart
     let currentSeriesIndex = null;
-    let hoveredColorHighlight = 'rgba(219, 186, 0, 0.4)';
+    let hoveredColorHighlight = 'rgba(219, 186, 0, 1)';
+    let hoveredColorHighlight2 = 'rgb(255,230,115)';
     let selectedColorHighlight = 'rgba(70,165,42, 0.5)';
     let constructionChartEntered = false;
     let constructionChartClicked = false;
     let stratigraphyChart = null;
+    let constructionChart = null;
     let lastHoveredData = {};
     let lastClickedData = {};
 
@@ -400,7 +395,28 @@
         return [stratiIndex, stratiChartElement];
     }
 
-    function highlightChartBar(barElement, chartKey, dataContainer = lastHoveredData, highlightColor = hoveredColorHighlight) {
+    /**
+     * Retrieve construction bar from coordinate
+     * @return [ construction bar index, construction bar element ]
+     **/
+    function getConstructionBarFromCoordinate(y) {
+        let constructionIndex = null;
+        let constructionChartElement = null;
+        constructionChart.each((index, _constructionChart) => {
+            const boundingRect = _constructionChart.getBoundingClientRect();
+            const _top = boundingRect.top;
+            const _bottom = boundingRect.top + boundingRect.height;
+            if (y >= _top && y <= _bottom) {
+                constructionIndex = _constructionChart.getAttribute('rel') - 2;
+                constructionChartElement = $(_constructionChart).children()[0];
+                return true;
+            }
+        })
+        return [constructionIndex, constructionChartElement];
+    }
+
+    function highlightChartBar(barElement, chartKey, highlightColor = hoveredColorHighlight) {
+        const dataContainer = lastHoveredData;
         const chartColorKey = chartKey + 'Color';
         const chartPatternKey = chartKey + 'Pattern';
         if (dataContainer[chartKey]) {
@@ -429,10 +445,13 @@
         }
     }
 
-    function updateWellInformation(event, chartData) {
+    function updateWellInformation(event, chartData, index = currentSeriesIndex) {
         let tableContainerId = 'well-table-container';
         const $tableDiv = $(`#${tableContainerId}`);
-        const constructionData = chartData['construction'][currentSeriesIndex];
+        let constructionData = chartData['construction'][index];
+        if (chartData['constructionData']) {
+            constructionData = chartData['constructionData']
+        }
         if (!event || typeof constructionData === 'undefined') {
             $tableDiv.html(`<div class="well-info"><p>Please hover mouse over the chart</p></div>`);
             return true;
@@ -447,21 +466,52 @@
     /**
      * Handler for chart hover event
      **/
-    function chartHovered(event, chartData) {
-        let constructionBar = null;
-        let stratiBar = null;
+    function chartHovered(event, chartData, type = 'construction') {
+        let hoveredBar = null;
+        let oppositeBar = null;
 
         if (event) {
-            constructionBar = event.target;
-            const [stratiIndex, stratiElement] = getStratiBarFromCoordinate(event.clientY);
-            if (stratiElement) {
-                stratiBar = stratiElement;
-                chartData['stratigraphyData'] = chartData['stratigraphy'][stratiIndex + 1];
-            }
+            hoveredBar = event.target;
         }
-        highlightChartBar(constructionBar, 'construction');
-        highlightChartBar(stratiBar, 'strati');
+
+        if (type === 'construction') {
+            if (event) {
+                const [stratiIndex, stratiElement] = getStratiBarFromCoordinate(event.clientY);
+                if (stratiElement) {
+                    chartData['constructionData'] = null;
+                    oppositeBar = stratiElement;
+                    chartData['stratigraphyData'] = chartData['stratigraphy'][stratiIndex + 1];
+                }
+            }
+            highlightChartBar(hoveredBar, 'construction');
+            highlightChartBar(oppositeBar, 'strati');
+        } else {
+            if (event) {
+                const [constructionIndex, constructionElement] = getConstructionBarFromCoordinate(event.clientY);
+                if (constructionElement) {
+                    oppositeBar = constructionElement;
+                    chartData['constructionData'] = chartData['construction'][constructionIndex + 1];
+                } else {
+                    chartData['constructionData'] = {};
+                }
+                chartData['stratigraphyData'] = chartData['stratigraphy'][currentSeriesIndex];
+            }
+            highlightChartBar(hoveredBar, 'strati');
+            highlightChartBar(oppositeBar, 'construction', hoveredColorHighlight2);
+        }
         updateWellInformation(event, chartData);
+    }
+
+    /**
+     * Calculate construction chart padding
+     **/
+    function constructionChartPadding() {
+        const containerWidth = $('#well-chart-container').width();
+        if (containerWidth > 260) {
+            return 0.7 * containerWidth;
+        } else {
+            return 0.75 * containerWidth;
+        }
     }
 
     /**
@@ -584,7 +634,7 @@
                         'translated_bottom_depth_unit': 'm',
                     }));
                     constructionColors.push('#ffffff');
-                     constructionOpacities.push('0.5');
+                    constructionOpacities.push('1');
                     _chartPatternConstruction.splice(index, 0, 'solid');
                 }
             }
@@ -639,13 +689,13 @@
                 data: [range]
             })
             stratigraphyColors.push(stratigraphyData['data']['material_color']);
-            stratigraphyOpacities.push(0.5);
+            stratigraphyOpacities.push(1);
         })
         const max = maxConstructionData > maxStratigraphyData ? maxConstructionData : maxStratigraphyData;
         renderChart(constructionDataSeries, `#${constructionChartId}`, max,
             {
                 'width': width,
-                'padding_width': 180,
+                'padding_width': constructionChartPadding(),
                 'center': true,
                 'colors': constructionColors,
                 'opacity': constructionOpacities,
@@ -665,6 +715,10 @@
                 'colors': stratigraphyColors,
                 'opacity': stratigraphyOpacities,
                 'topCasing': topCasing,
+            }, (event, chartContext, config, eventName = 'hovered') => {
+                if (eventName === 'hovered') {
+                    chartHovered(event, chartData, 'strati');
+                }
             });
     }
 
@@ -687,7 +741,7 @@
         const opacity = options.hasOwnProperty('opacity') ? options['opacity'] : 1;
         const topCasing = options.hasOwnProperty('topCasing') ? options['topCasing'] : 0;
         const patterns = options.hasOwnProperty('patterns') ? options['patterns'] : 'solid';
-        const pattern_type = options.hasOwnProperty('pattern_type') ? options['pattern_type'] : 'horizontalLines';
+        const pattern_type = options.hasOwnProperty('pattern_type') ? options['pattern_type'] : 'diagonalLines';
         let chartOptions = {
             series: chartSeriesData,
             stroke: {
@@ -699,7 +753,7 @@
             },
             chart: {
                 type: 'bar',
-                height: 450,
+                height: 500,
                 width: width - padding_width,
                 stacked: true,
                 events: {
@@ -738,10 +792,16 @@
                         stratigraphyChart = (
                             $('#stratigraphy-chart-container').find('.apexcharts-series')
                         )
+                        constructionChart = (
+                            $('#construction-chart-container').find('.apexcharts-series')
+                        )
                     },
                     updated: function (chartContext, config) {
                         chart.destroy();
                         options['width'] = $('#well-chart-container').width();
+                        if (chartContainerId.includes('construction')) {
+                            options['padding_width'] = constructionChartPadding();
+                        }
                         renderChart(chartSeriesData, chartContainerId, maxSeriesData, options, callback);
                     },
                     mouseMove: function (event, chartContext, config) {
@@ -767,6 +827,9 @@
                 categories: ['Depth'],
             },
             yaxis: {
+                type: 'numeric',
+                min: 0,
+                tickAmount: maxSeriesData/10,
                 reversed: true,
                 show: !center,
                 max: maxSeriesData,
@@ -786,6 +849,10 @@
                         }
                         return value.toFixed(2) + "m";
                     }
+                },
+                title: {
+                    show: true,
+                    text: "Depth Below Ground Surface"
                 }
             },
             grid: {
@@ -797,9 +864,9 @@
                 type: patterns,
                 pattern: {
                     style: pattern_type,
-                    width: 5,
-                    height: 5,
-                    strokeWidth: 3,
+                    width: 4,
+                    height: 4,
+                    strokeWidth: 1,
                 },
             },
             legend: {

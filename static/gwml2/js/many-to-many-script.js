@@ -77,7 +77,6 @@ function initRowData($row) {
     let $detailInput = $row.find('input[name="info"]');
     if ($detailInput.length > 0) {
         if ($detailInput.val()) {
-            console.log($detailInput.val().replaceAll('&#013;', '\n'))
             $detailInput.replaceWith(
                 `<i class="fa fa-info-circle" data-toggle="tooltip" aria-hidden="true" title="${$detailInput.val().replaceAll('&#013;', '\n')}"></i>`)
             $row.find('.fa-info-circle').tooltip();

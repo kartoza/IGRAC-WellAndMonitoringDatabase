@@ -172,7 +172,8 @@ const stringToColour = function (str) {
         colour += ('00' + value.toString(16)).substr(-2);
     }
     colour += '00'
-    return colour;
+    colors = [colour, '#606060', '#994C00', '#808080', '#330000', '#A2A09F'];
+    return chroma.average(colors).hex();
 }
 
 const feetToMeter = function (value) {
