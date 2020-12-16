@@ -465,6 +465,18 @@
     }
 
     /**
+     * Calculate construction chart padding
+     **/
+    function constructionChartPadding() {
+        const containerWidth = $('#well-chart-container').width();
+        if (containerWidth > 260) {
+            return 0.6 * containerWidth;
+        } else {
+            return 0.7 * containerWidth;
+        }
+    }
+
+    /**
      * Handler for chart click event
      **/
     function chartClicked(event, chartData) {
@@ -584,7 +596,7 @@
                         'translated_bottom_depth_unit': 'm',
                     }));
                     constructionColors.push('#ffffff');
-                     constructionOpacities.push('0.5');
+                    constructionOpacities.push('1');
                     _chartPatternConstruction.splice(index, 0, 'solid');
                 }
             }
@@ -645,7 +657,7 @@
         renderChart(constructionDataSeries, `#${constructionChartId}`, max,
             {
                 'width': width,
-                'padding_width': 180,
+                'padding_width': constructionChartPadding(),
                 'center': true,
                 'colors': constructionColors,
                 'opacity': constructionOpacities,
@@ -742,6 +754,9 @@
                     updated: function (chartContext, config) {
                         chart.destroy();
                         options['width'] = $('#well-chart-container').width();
+                        if (chartContainerId.includes('construction')) {
+                            options['padding_width'] = constructionChartPadding();
+                        }
                         renderChart(chartSeriesData, chartContainerId, maxSeriesData, options, callback);
                     },
                     mouseMove: function (event, chartContext, config) {
