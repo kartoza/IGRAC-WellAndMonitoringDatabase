@@ -152,7 +152,7 @@
                 <tr>
                     <td>Material</td>
                     <td>
-                        <div style="height: 10px; width: 10px; opacity: 0.5; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
+                        <div style="height: 10px; width: 10px; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
                         <%= stratigraphy.data.material %>
                     </td>
                 </tr>
@@ -689,7 +689,7 @@
                 data: [range]
             })
             stratigraphyColors.push(stratigraphyData['data']['material_color']);
-            stratigraphyOpacities.push(0.5);
+            stratigraphyOpacities.push(1);
         })
         const max = maxConstructionData > maxStratigraphyData ? maxConstructionData : maxStratigraphyData;
         renderChart(constructionDataSeries, `#${constructionChartId}`, max,
