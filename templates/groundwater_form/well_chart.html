@@ -702,6 +702,7 @@
     }
 
     function renderChart(chartSeriesData, chartContainerId, maxSeriesData, options, callback = null) {
+        console.log('maxSeriesData', maxSeriesData)
         const center = options.hasOwnProperty('center') ? options['center'] : false;
         const width = options.hasOwnProperty('width') ? options['width'] : 300;
         const padding_width = options.hasOwnProperty('padding_width') ? options['padding_width'] : 300;
@@ -792,6 +793,9 @@
                 categories: ['Depth'],
             },
             yaxis: {
+                type: 'numeric',
+                min: 0,
+                tickAmount: maxSeriesData/10,
                 reversed: true,
                 show: !center,
                 max: maxSeriesData,
