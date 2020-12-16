@@ -91,17 +91,12 @@
         <div class="charts-header">
             <h4>Well Chart <i class="fa fa fa-arrows-alt" aria-hidden="true" onclick="toggleFullScreenWellChart(this)"></i></h4>
         </div>
-        <div style="height: 30px;font-size: 9pt">
-            <div style="width: 30%; float: left">Depth From Surface</div>
-            <div style="width: 45%; float: left; text-align: center">Construction</div>
-            <div style="width: 25%; float: left">Stratigraphy</div>
-        </div>
         <div class="charts" id="well-chart-container">
         </div>
     </div>
     <div class="column-50">
         <h3>&nbsp;</h3>
-        <div id="well-table-container" class="well-table-container" style="max-width: 100% !important;">
+        <div id="well-table-container" class="well-table-container" style="max-width: 100% !important; margin-top: -10px;">
             <div class="well-info">
                 <p>Please hover mouse over the chart</p>
             </div>
@@ -116,10 +111,6 @@
         </div>
         <table>
             <tr>
-                <td width="30%">Type</td>
-                <td><%= construction.type %></td>
-            </tr>
-            <tr>
                 <td>Top depth</td>
                 <td><%= construction.translated_top %> <%= construction.translated_top_depth_unit %>
                 </td>
@@ -130,8 +121,8 @@
                 </td>
             </tr>
             <tr>
-                <td>Reference Elevation</td>
-                <td><%= construction.reference_elevation %></td>
+                <td>Type</td>
+                <td><%= construction.type %></td>
             </tr>
             <tr>
                 <td>Diameter</td>
@@ -157,10 +148,6 @@
                     <td><%= stratigraphy.translated_bottom %> <%= stratigraphy.translated_bottom_depth_unit %>
                     </td>
                 </tr>
-                <tr>
-                    <td>Reference Elevation</td>
-                    <td><%= stratigraphy.reference_elevation %></td>
-                </tr>
                 <% if (stratigraphy.data) { %>
                 <tr>
                     <td>Material</td>
@@ -185,10 +172,6 @@
                 <% } %>
             </table>
         </div>
-    </div>
-    <div class="table-description">
-        <h5>Description</h5>
-        <% if (construction.data) { %><%= construction.data.description %><% } else { %>-<% } %>
     </div>
 </script>
 
@@ -770,7 +753,7 @@
             },
             chart: {
                 type: 'bar',
-                height: 450,
+                height: 500,
                 width: width - padding_width,
                 stacked: true,
                 events: {
@@ -866,6 +849,10 @@
                         }
                         return value.toFixed(2) + "m";
                     }
+                },
+                title: {
+                    show: true,
+                    text: "Depth Below Ground Surface"
                 }
             },
             grid: {
