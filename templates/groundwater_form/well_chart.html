@@ -75,6 +75,16 @@
 
 </style>
 
+<svg>
+<defs>
+<pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
+  <path d="M-1,1 l2,-2
+           M0,4 l4,-4
+           M3,5 l2,-2"
+        style="stroke:black; stroke-width:1"></path>
+</pattern>
+</defs>
+</svg>
 
 <div class="well-chart-row many-to-many">
     <div class="column-50 height-100">
@@ -183,7 +193,7 @@
 </script>
 
 <script type="text/javascript"
-        src="{% static 'js/apexcharts/apexcharts.min.js' %}"></script>
+        src="{% static 'js/apexcharts/apexcharts.js' %}"></script>
 <script type="text/javascript"
         src="{% static 'js/chroma.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/underscore-1.11.0/underscore-min.js' %}"></script>
@@ -191,7 +201,7 @@
 
     // Last selected bar in the chart
     let currentSeriesIndex = null;
-    let hoveredColorHighlight = 'rgba(219, 186, 0, 0.4)';
+    let hoveredColorHighlight = 'rgba(219, 186, 0, 1)';
     let selectedColorHighlight = 'rgba(70,165,42, 0.5)';
     let constructionChartEntered = false;
     let constructionChartClicked = false;
@@ -699,7 +709,7 @@
         const opacity = options.hasOwnProperty('opacity') ? options['opacity'] : 1;
         const topCasing = options.hasOwnProperty('topCasing') ? options['topCasing'] : 0;
         const patterns = options.hasOwnProperty('patterns') ? options['patterns'] : 'solid';
-        const pattern_type = options.hasOwnProperty('pattern_type') ? options['pattern_type'] : 'horizontalLines';
+        const pattern_type = options.hasOwnProperty('pattern_type') ? options['pattern_type'] : 'diagonalLines';
         let chartOptions = {
             series: chartSeriesData,
             stroke: {
@@ -812,9 +822,9 @@
                 type: patterns,
                 pattern: {
                     style: pattern_type,
-                    width: 5,
-                    height: 5,
-                    strokeWidth: 3,
+                    width: 4,
+                    height: 4,
+                    strokeWidth: 1,
                 },
             },
             legend: {
