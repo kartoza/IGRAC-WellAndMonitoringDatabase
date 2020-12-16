@@ -202,10 +202,12 @@
     // Last selected bar in the chart
     let currentSeriesIndex = null;
     let hoveredColorHighlight = 'rgba(219, 186, 0, 1)';
+    let hoveredColorHighlight2 = 'rgb(255,230,115)';
     let selectedColorHighlight = 'rgba(70,165,42, 0.5)';
     let constructionChartEntered = false;
     let constructionChartClicked = false;
     let stratigraphyChart = null;
+    let constructionChart = null;
     let lastHoveredData = {};
     let lastClickedData = {};
 
@@ -410,7 +412,28 @@
         return [stratiIndex, stratiChartElement];
     }
 
-    function highlightChartBar(barElement, chartKey, dataContainer = lastHoveredData, highlightColor = hoveredColorHighlight) {
+    /**
+     * Retrieve construction bar from coordinate
+     * @return [ construction bar index, construction bar element ]
+     **/
+    function getConstructionBarFromCoordinate(y) {
+        let constructionIndex = null;
+        let constructionChartElement = null;
+        constructionChart.each((index, _constructionChart) => {
+            const boundingRect = _constructionChart.getBoundingClientRect();
+            const _top = boundingRect.top;
+            const _bottom = boundingRect.top + boundingRect.height;
+            if (y >= _top && y <= _bottom) {
+                constructionIndex = _constructionChart.getAttribute('rel') - 2;
+                constructionChartElement = $(_constructionChart).children()[0];
+                return true;
+            }
+        })
+        return [constructionIndex, constructionChartElement];
+    }
+
+    function highlightChartBar(barElement, chartKey, highlightColor = hoveredColorHighlight) {
+        const dataContainer = lastHoveredData;
         const chartColorKey = chartKey + 'Color';
         const chartPatternKey = chartKey + 'Pattern';
         if (dataContainer[chartKey]) {
@@ -439,10 +462,13 @@
         }
     }
 
-    function updateWellInformation(event, chartData) {
+    function updateWellInformation(event, chartData, index = currentSeriesIndex) {
         let tableContainerId = 'well-table-container';
         const $tableDiv = $(`#${tableContainerId}`);
-        const constructionData = chartData['construction'][currentSeriesIndex];
+        let constructionData = chartData['construction'][index];
+        if (chartData['constructionData']) {
+            constructionData = chartData['constructionData']
+        }
         if (!event || typeof constructionData === 'undefined') {
             $tableDiv.html(`<div class="well-info"><p>Please hover mouse over the chart</p></div>`);
             return true;
@@ -457,20 +483,39 @@
     /**
      * Handler for chart hover event
      **/
-    function chartHovered(event, chartData) {
-        let constructionBar = null;
-        let stratiBar = null;
+    function chartHovered(event, chartData, type = 'construction') {
+        let hoveredBar = null;
+        let oppositeBar = null;
 
         if (event) {
-            constructionBar = event.target;
-            const [stratiIndex, stratiElement] = getStratiBarFromCoordinate(event.clientY);
-            if (stratiElement) {
-                stratiBar = stratiElement;
-                chartData['stratigraphyData'] = chartData['stratigraphy'][stratiIndex + 1];
-            }
+            hoveredBar = event.target;
         }
-        highlightChartBar(constructionBar, 'construction');
-        highlightChartBar(stratiBar, 'strati');
+
+        if (type === 'construction') {
+            if (event) {
+                const [stratiIndex, stratiElement] = getStratiBarFromCoordinate(event.clientY);
+                if (stratiElement) {
+                    chartData['constructionData'] = null;
+                    oppositeBar = stratiElement;
+                    chartData['stratigraphyData'] = chartData['stratigraphy'][stratiIndex + 1];
+                }
+            }
+            highlightChartBar(hoveredBar, 'construction');
+            highlightChartBar(oppositeBar, 'strati');
+        } else {
+            if (event) {
+                const [constructionIndex, constructionElement] = getConstructionBarFromCoordinate(event.clientY);
+                if (constructionElement) {
+                    oppositeBar = constructionElement;
+                    chartData['constructionData'] = chartData['construction'][constructionIndex + 1];
+                } else {
+                    chartData['constructionData'] = {};
+                }
+                chartData['stratigraphyData'] = chartData['stratigraphy'][currentSeriesIndex];
+            }
+            highlightChartBar(hoveredBar, 'strati');
+            highlightChartBar(oppositeBar, 'construction', hoveredColorHighlight2);
+        }
         updateWellInformation(event, chartData);
     }
 
@@ -480,9 +525,9 @@
     function constructionChartPadding() {
         const containerWidth = $('#well-chart-container').width();
         if (containerWidth > 260) {
-            return 0.6 * containerWidth;
-        } else {
             return 0.7 * containerWidth;
+        } else {
+            return 0.75 * containerWidth;
         }
     }
 
@@ -687,6 +732,10 @@
                 'colors': stratigraphyColors,
                 'opacity': stratigraphyOpacities,
                 'topCasing': topCasing,
+            }, (event, chartContext, config, eventName = 'hovered') => {
+                if (eventName === 'hovered') {
+                    chartHovered(event, chartData, 'strati');
+                }
             });
     }
 
@@ -702,7 +751,6 @@
     }
 
     function renderChart(chartSeriesData, chartContainerId, maxSeriesData, options, callback = null) {
-        console.log('maxSeriesData', maxSeriesData)
         const center = options.hasOwnProperty('center') ? options['center'] : false;
         const width = options.hasOwnProperty('width') ? options['width'] : 300;
         const padding_width = options.hasOwnProperty('padding_width') ? options['padding_width'] : 300;
@@ -760,6 +808,9 @@
                         }
                         stratigraphyChart = (
                             $('#stratigraphy-chart-container').find('.apexcharts-series')
+                        )
+                        constructionChart = (
+                            $('#construction-chart-container').find('.apexcharts-series')
                         )
                     },
                     updated: function (chartContext, config) {
