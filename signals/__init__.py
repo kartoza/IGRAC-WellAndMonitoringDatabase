@@ -1,3 +1,4 @@
+from django.db.utils import ProgrammingError
 from django.contrib.auth import get_user_model
 from gwml2.models.well_management.user import UserUUID
 from gwml2.models.download_session import DownloadSession
@@ -21,6 +22,9 @@ def gwml2_data_saved(sender, instance, **kwargs):
 
 @receiver(post_save, sender=User)
 def user_saved(sender, instance, **kwargs):
-    UserUUID.objects.get_or_create(user_id=instance.id, defaults={
-        'username': instance.username
-    })
+    try:
+        UserUUID.objects.get_or_create(user_id=instance.id, defaults={
+            'username': instance.username
+        })
+    except ProgrammingError:
+        pass

@@ -12,7 +12,7 @@ class WellYieldMeasurementForm(BaseMeasurementForm):
         model = WellYieldMeasurement
         fields = ('id', 'time', 'parameter', 'methodology', 'value', 'info')
         widgets = {
-            'value': QuantityInput(unit_group='length^2 / time')
+            'value': QuantityInput()
         }
 
     parameter_group = 'Yield Measurement'

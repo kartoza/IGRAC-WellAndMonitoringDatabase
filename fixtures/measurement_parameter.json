@@ -249,5 +249,27 @@
       "μg/L",
       "mg/L"
     ]
+  },
+  "Yield": {
+    "description": "Yield",
+    "groups": [
+      "Yield Measurement"
+    ],
+    "units": [
+      "m³/day",
+      "m³/h",
+      "m³/min"
+    ]
+  },
+  "Spring discharge": {
+    "description": "Spring discharge",
+    "groups": [
+      "Yield Measurement"
+    ],
+    "units": [
+      "m³/day",
+      "m³/h",
+      "m³/min"
+    ]
   }
 }
