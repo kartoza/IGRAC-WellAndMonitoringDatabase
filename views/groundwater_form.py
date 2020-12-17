@@ -151,7 +151,7 @@ class WellFormView(WellEditing, EditWellFormMixin, WellView):
 
         self.edit_well(well, data, self.request.FILES, request.user)
 
-        return HttpResponse(reverse('well_form', kwargs={'id': well.id}))
+        return HttpResponse(reverse('well_view', kwargs={'id': well.id}))
 
 
 class WellFormCreateView(WellFormView):
@@ -176,4 +176,4 @@ class WellFormCreateView(WellFormView):
         except (ValueError, FormNotValid, Exception) as e:
             return HttpResponseBadRequest('{}'.format(e))
 
-        return HttpResponse(reverse('well_form', kwargs={'id': well.id}))
+        return HttpResponse(reverse('well_view', kwargs={'id': well.id}))
