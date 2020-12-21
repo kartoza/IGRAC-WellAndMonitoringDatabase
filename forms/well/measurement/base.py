@@ -30,6 +30,8 @@ class BaseMeasurementForm(WellBaseForm):
                 name=self.parameter_group).parameters.all()
         except TermMeasurementParameterGroup.DoesNotExist:
             pass
+        self.fields['value'].widget.attrs['min'] = 0
+        self.fields['value'].widget.attrs['data-min'] = 0
 
     @staticmethod
     def make_from_data(instance, data, files):

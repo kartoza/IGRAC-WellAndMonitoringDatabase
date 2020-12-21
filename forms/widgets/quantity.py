@@ -58,10 +58,12 @@ class QuantityInput(forms.widgets.Input):
                 quantity = Quantity()
             if data['{}_value'.format(name)]:
                 quantity.value = data['{}_value'.format(name)]
-                unit, created = Unit.objects.get_or_create(name=data['{}_unit'.format(name)])
-                if created and self.unit_group:
-                    self.unit_group.units.add(unit)
-                quantity.unit = unit
+                quantity.unit = None
+                if data['{}_unit'.format(name)]:
+                    unit, created = Unit.objects.get_or_create(name=data['{}_unit'.format(name)])
+                    if created and self.unit_group:
+                        self.unit_group.units.add(unit)
+                    quantity.unit = unit
                 quantity.save()
                 return quantity.id
             else:

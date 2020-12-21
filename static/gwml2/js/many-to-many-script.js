@@ -30,11 +30,12 @@ function deleteRelation(elm) {
     }
 }
 
-function parameterChanged($inputParameter, $inputUnit) {
+function parameterChanged($inputParameter, $inputUnit, $inputValue) {
     if ($inputParameter.find('option').length === 1) {
         return
     }
-    let units = parameters[$inputParameter.val()] || [];
+    let parametersSelected = $inputParameter.val()
+    let units = parameters[parametersSelected] || [];
     let $option = $inputUnit.find('option');
     let val = $inputUnit.val()
     $option.each(function (index) {
@@ -45,11 +46,28 @@ function parameterChanged($inputParameter, $inputUnit) {
             $(this).hide();
             $(this).attr('hidden', 'hidden')
             $(this).removeAttr('selected');
-            if (val && val === $(this).attr('value')) {
+            if (val === $(this).attr('value')) {
                 $inputUnit.val('')
             }
         }
     });
+    // make default value attributes
+    if ($inputValue.data('min') !== undefined) {
+        $inputValue.attr('min', $inputValue.data('min'))
+    } else {
+        $inputValue.removeAttr('min')
+    }
+    if ($inputValue.data('max') !== undefined) {
+        $inputValue.attr('max', $inputValue.data('max'))
+    } else {
+        $inputValue.removeAttr('max')
+    }
+
+    // if the parameter is ph
+    if ($inputParameter.find("option:selected").text().toLowerCase().includes('ph')) {
+        $inputValue.attr('min', 0)
+        $inputValue.attr('max', 14)
+    }
 }
 
 function initRowData($row) {
@@ -64,8 +82,9 @@ function initRowData($row) {
     let $inputParameter = $row.find('select[name="parameter"]');
     if ($inputParameter.length > 0) {
         let $inputUnit = $row.find('select[name="value_unit"]');
+        let $inputValue = $row.find('input[name="value_value"]');
         $inputParameter.change(function () {
-            parameterChanged($inputParameter, $inputUnit);
+            parameterChanged($inputParameter, $inputUnit, $inputValue);
         });
         $inputParameter.trigger('change')
     }
