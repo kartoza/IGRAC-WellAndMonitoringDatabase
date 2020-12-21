@@ -3,13 +3,30 @@
     <h2 class="section-title">Metadata</h2>
     <div class="section">
         <table>
-            {% field_as_row form.public %}
             {% field_as_row form.organisation %}
             {% field_as_row form.created_by %}
             {% field_as_row form.created_at %}
             {% field_as_row form.last_edited_by %}
             {% field_as_row form.last_edited_at %}
-            {% field_as_row form.affiliate_organisations %}
+            <tr class="input-column">
+                <td>
+                    Who can view it?
+                </td>
+                <td>
+                    <div class="input">
+                        <div style="float: left;">{{ form.public }}</div>
+                        <div style="padding-top: 5px; margin-left: 28px;">
+                            <span>Anyone</span>
+                        </div>
+                    </div>
+                    <div style="clear: both; margin-top: 11px; margin-bottom: 6px;">
+                        The following organisations:
+                    </div>
+                    <div>
+                        {{ form.affiliate_organisations }}
+                    </div>
+                </td>
+            </tr>
             {% field_as_row form.license %}
             {% field_as_row form.restriction_code_type %}
             {% field_as_row form.constraints_other %}

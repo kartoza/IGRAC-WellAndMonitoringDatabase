@@ -33,8 +33,11 @@ class WellMetadataForm(WellBaseForm):
             pass
         super(WellMetadataForm, self).__init__(*args, **kwargs)
         self.fields['organisation'].queryset = organisation
+        self.fields['restriction_code_type'].label = 'Restrictions'
         self.fields['affiliate_organisations'].widget = MultiValueInput(
-            url=reverse('organisation_autocomplete'), Model=Organisation
+            url=reverse('organisation_autocomplete'), Model=Organisation, attrs={
+                'placeholder': 'Please enter 1 or more character'
+            }
         )
 
     def clean(self):

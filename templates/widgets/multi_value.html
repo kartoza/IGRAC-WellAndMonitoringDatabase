@@ -19,8 +19,8 @@
     }
 </style>
 
-<div id="{{ widget.attrs.id }}" class="multivalue">
-    <input class="ui-autocomplete-input" autocomplete="off" placeholder="search">
+<div id="{{ widget.attrs.id }}" class="multivalue input">
+    <input class="ui-autocomplete-input" autocomplete="off" placeholder="{{ widget.attrs.placeholder }}">
     <input class="multivalue-input" name="{{ widget.name }}" style="display: none" value="{{ value }}">
     <div class="multivalue-selection">
         {% for select in selected %}
@@ -56,7 +56,7 @@
                 },
             });
         },
-        minLength: 2,
+        minLength: 1,
         select: function (event, ui) {
             if (ui.item.id) {
                 {# select it #}
@@ -82,7 +82,8 @@
         close: function () {
             $(this).removeClass("ui-corner-top").addClass("ui-corner-all");
         }
-    });
+    })
+
     $('#{{ widget.attrs.id }} .multivalue-selection span').click(function () {
         const id = $(this).data('id');
         $(this).closest('div').remove();
