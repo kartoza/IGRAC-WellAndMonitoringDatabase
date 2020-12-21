@@ -17,7 +17,20 @@
                     <h4>Hydraulic properties</h4>
                 </td>
             </tr>
-            {% field_as_row pumping_test.porosity %}
+            <tr>
+            <tr class="input-column">
+                <td>{{ pumping_test.porosity.label }} {{ pumping_test.porosity.help_text }}</td>
+                <td>
+                    <div class="input">
+                        <div class="quantity-input">
+                            {{ pumping_test.porosity }}
+                            <select>
+                                <option>%</option>
+                            </select>
+                        </div>
+                    </div>
+                </td>
+            </tr>
             {% field_as_row pumping_test.hydraulic_conductivity %}
             {% field_as_row pumping_test.transmissivity %}
             {% field_as_row pumping_test.specific_storage %}

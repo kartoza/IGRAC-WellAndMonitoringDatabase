@@ -15,9 +15,6 @@ class PumpingTestAdmin(admin.ModelAdmin):
 
 class HydrogeologyParameterAdmin(admin.ModelAdmin):
     list_display = ('aquifer_name', 'aquifer_material', 'aquifer_type')
-    raw_id_fields = (
-        'aquifer_thickness',
-    )
 
 
 admin.site.register(HydrogeologyParameter, HydrogeologyParameterAdmin)

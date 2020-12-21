@@ -1,6 +1,5 @@
 from django.forms.models import model_to_dict
 from gwml2.forms.well.base import WellBaseForm
-from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.hydrogeology import HydrogeologyParameter
 
 
@@ -12,9 +11,6 @@ class HydrogeologyParameterForm(WellBaseForm):
     class Meta:
         model = HydrogeologyParameter
         fields = ('aquifer_name', 'aquifer_material', 'aquifer_type', 'aquifer_thickness', 'confinement', 'degree_of_confinement')
-        widgets = {
-            'aquifer_thickness': QuantityInput(unit_group='length')
-        }
 
     @staticmethod
     def make_from_data(instance, data, files):

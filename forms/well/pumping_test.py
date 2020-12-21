@@ -23,6 +23,15 @@ class PumpingTestForm(WellBaseForm):
 
     def __init__(self, *args, **kwargs):
         super(PumpingTestForm, self).__init__(*args, **kwargs)
+        self.fields['porosity'].widget.attrs['min'] = 0
+        self.fields['porosity'].widget.attrs['max'] = 100
+        self.fields['hydraulic_conductivity'].widget.attrs['min'] = 0
+        self.fields['transmissivity'].widget.attrs['min'] = 0
+        self.fields['specific_storage'].widget.attrs['min'] = 0
+        self.fields['specific_yield'].widget.attrs['min'] = 0
+        self.fields['storativity'].widget.attrs['min'] = 0
+        self.fields['specific_capacity'].widget.attrs['min'] = 0
+
         self.fields['storativity'].label = 'Yield'
         self.fields['porosity'].widget.attrs['maxlength'] = 10
         self.fields['specific_yield'].widget.attrs['maxlength'] = 10

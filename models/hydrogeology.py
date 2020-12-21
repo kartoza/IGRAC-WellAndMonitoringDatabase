@@ -1,6 +1,4 @@
 from django.contrib.gis.db import models
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
 from gwml2.models.general import Quantity
 from gwml2.models.term import TermAquiferType, TermConfinement
 
@@ -65,9 +63,8 @@ class HydrogeologyParameter(models.Model):
         TermAquiferType, on_delete=models.SET_NULL,
         null=True, blank=True
     )
-    aquifer_thickness = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True
+    aquifer_thickness = models.CharField(
+        null=True, blank=True, max_length=512
     )
     confinement = models.ForeignKey(
         TermConfinement, on_delete=models.SET_NULL,
