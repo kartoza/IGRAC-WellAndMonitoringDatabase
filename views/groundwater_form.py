@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.views.generic.base import View
 from gwml2.mixin import ViewWellFormMixin, EditWellFormMixin
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
+from gwml2.models.reference_elevation import TermReferenceElevationType
 from gwml2.models.well import Well
 from gwml2.views.form_group.general_information import (
     GeneralInformationGetForms, GeneralInformationCreateForm
@@ -55,6 +56,9 @@ class WellView(ViewWellFormMixin, View):
             'well': well,
             'parameters': {
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
+            },
+            'reference_elevations': {
+                type.id: type.name for type in TermReferenceElevationType.objects.all()
             }
         }
         if well.pk and not well.ggis_uid:

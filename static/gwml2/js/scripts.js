@@ -147,7 +147,7 @@ function makeReadOnly() {
             $(this).addClass('read-only');
             const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
             let value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
-            if (value === '---------') {
+            if (value.includes('---')) {
                 value = ''
             }
             return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;

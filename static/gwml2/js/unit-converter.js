@@ -7,12 +7,24 @@ function unitConvert(unitFrom, unitTo, value) {
             switch (unitTo) {
                 case 'm':
                     return Math.round(value / 3.281);
+                case 'cm':
+                    return Math.round(value * 100 / 3.281);
             }
             break;
         case 'm':
             switch (unitTo) {
                 case 'ft':
                     return Math.round(value * 3.281);
+                case 'cm':
+                    return Math.round(value * 100);
+            }
+            break;
+        case 'cm':
+            switch (unitTo) {
+                case 'ft':
+                    return Math.round(value * 3.281 / 100);
+                case 'm':
+                    return Math.round(value / 100);
             }
             break;
 

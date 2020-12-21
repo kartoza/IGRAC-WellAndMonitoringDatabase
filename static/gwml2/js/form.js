@@ -89,6 +89,43 @@ $.validator.addMethod(
     "Valid from should be before valid until"
 );
 
+/** This check validation for can't be more than total depth
+ */
+$.validator.addMethod(
+    "checkWithTotalDepth",
+    function (value, element) {
+        // we keep into groundwater
+        let total_depth = getQuantityInputValue($('#id_total_depth'), 'm')
+        let total_depth_elevation = referenceElevations[$('#geology #id_reference_elevation').val()]
+        if (total_depth === undefined || total_depth === null || total_depth_elevation === null) {
+            return true
+        }
+
+        let topGround = getTopGroundSurfaceWell('m');
+        const top_borehole = topGround['top_borehole'];
+        const ground_surface = topGround['ground_surface'];
+        let different = 0;
+        if (top_borehole && ground_surface) {
+            different = top_borehole - ground_surface;
+        }
+        if (total_depth_elevation === ELEVATION_TOPBOREHOLE) {
+            total_depth = total_depth - different
+        }
+        let referenceElevation = referenceElevations[$(element).closest('tr').find('#id_reference_elevation').val()]
+        value = parseInt(value)
+        if (referenceElevation === ELEVATION_TOPBOREHOLE) {
+            value = value - different
+        }
+        if (value > total_depth) {
+            return false
+        } else {
+            return true
+        }
+
+    },
+    "The depth should be lower than total depth"
+);
+
 
 const formValidator = $('#form').validate({
     errorElement: 'div',
@@ -108,10 +145,15 @@ const formValidator = $('#form').validate({
             groundSurfaceValidation: true
         },
         top_depth_value: {
+            checkWithTotalDepth: true,
             bottomDepthValidation: true
         },
         bottom_depth_value: {
+            checkWithTotalDepth: true,
             bottomDepthValidation: true
+        },
+        depth_value: {
+            checkWithTotalDepth: true
         },
         valid_from: {
             validFromValidation: true
