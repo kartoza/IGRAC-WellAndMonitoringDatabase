@@ -1,6 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from django.urls import reverse
+from geonode.base.models import License, RestrictionCodeType
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.forms.well.base import WellBaseForm
@@ -15,10 +16,14 @@ class WellMetadataForm(WellBaseForm):
     created_at = forms.CharField(required=False, disabled=True, label='Created at')
     last_edited_by = forms.CharField(required=False, disabled=True, label='Last edited by')
     last_edited_at = forms.CharField(required=False, disabled=True, label='Last edited at')
+    restriction_code_type = forms.ModelChoiceField(queryset=RestrictionCodeType.objects.all(), required=False)
+    license = forms.ModelChoiceField(queryset=License.objects.all(), required=False)
 
     class Meta:
         model = Well
-        fields = ('organisation', 'created_by', 'created_at', 'last_edited_by', 'last_edited_at', 'affiliate_organisations', 'public')
+        fields = (
+            'organisation', 'created_by', 'created_at', 'last_edited_by', 'last_edited_at', 'affiliate_organisations', 'public',
+            'license', 'restriction_code_type', 'constraints_other')
 
     def __init__(self, *args, **kwargs):
         organisation = kwargs.get('organisation', None)
@@ -31,6 +36,11 @@ class WellMetadataForm(WellBaseForm):
         self.fields['affiliate_organisations'].widget = MultiValueInput(
             url=reverse('organisation_autocomplete'), Model=Organisation
         )
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        cleaned_data['license'] = cleaned_data['license'].id if cleaned_data['license'] else None
+        cleaned_data['restriction_code_type'] = cleaned_data['restriction_code_type'].id if cleaned_data['restriction_code_type'] else None
 
     @staticmethod
     def make_from_data(instance, data, files):
