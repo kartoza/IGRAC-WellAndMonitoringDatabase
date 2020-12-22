@@ -6,7 +6,7 @@ from gwml2.models.term import TermFeatureType
 class GeneralInformation(models.Model):
     """ Abstract model for General Information """
     original_id = models.CharField(
-        max_length=20, help_text='As recorded in the original database.')
+        max_length=64, help_text='As recorded in the original database.')
 
     # geometry information
     location = models.PointField(
@@ -27,7 +27,7 @@ class GeneralInformation(models.Model):
     )
 
     name = models.CharField(
-        null=True, blank=True, max_length=20
+        null=True, blank=True, max_length=64
     )
     feature_type = models.ForeignKey(
         TermFeatureType, on_delete=models.SET_NULL,

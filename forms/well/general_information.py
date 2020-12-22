@@ -38,6 +38,8 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['photo'].widget.attrs['accept'] = 'image/x-jpeg, image/gif, image/png, image/jpeg'
         self.fields['description'].widget.attrs['maxlength'] = 1000
         self.fields['address'].widget.attrs['maxlength'] = 200
+        self.fields['original_id'].widget.attrs['maxlength'] = 20
+        self.fields['name'].widget.attrs['maxlength'] = 20
         self.fields['top_borehole_elevation'].label = 'Top of well elevation'
 
     @staticmethod
