@@ -130,7 +130,6 @@
         }
     })
     $('#id_latitude, #id_longitude').trigger('change')
-    $('#id_photo').attr('accept', 'image/gif, image/png, image/jpeg')
 
     let feature_type = {}
     {% for query in form.feature_type.field.queryset %}

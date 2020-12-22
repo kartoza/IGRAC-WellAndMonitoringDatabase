@@ -3,14 +3,25 @@
     <h2 class="section-title">Metadata</h2>
     <div class="section">
         <table>
+            <tr>
+                <td>
+                    <h4>Data log</h4>
+                </td>
+            </tr>
             {% field_as_row form.organisation %}
             {% field_as_row form.created_by %}
             {% field_as_row form.created_at %}
             {% field_as_row form.last_edited_by %}
             {% field_as_row form.last_edited_at %}
+            <tr>
+                <td>
+                    <br><br>
+                    <h4>Permissions</h4>
+                </td>
+            </tr>
             <tr class="input-column">
                 <td>
-                    Who can view it?
+                    Who can view and download it?
                 </td>
                 <td>
                     <div class="input">

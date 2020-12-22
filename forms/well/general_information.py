@@ -35,6 +35,7 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['name'].required = True
         self.fields['feature_type'].required = True
 
+        self.fields['photo'].widget.attrs['accept'] = 'image/x-jpeg, image/gif, image/png, image/jpeg'
         self.fields['description'].widget.attrs['maxlength'] = 1000
         self.fields['address'].widget.attrs['maxlength'] = 200
         self.fields['top_borehole_elevation'].label = 'Top of well elevation'

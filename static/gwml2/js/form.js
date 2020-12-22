@@ -126,6 +126,15 @@ $.validator.addMethod(
     "The depth should be lower than total depth"
 );
 
+/** This check validation for photo
+ */
+$.validator.addMethod(
+    "validPhotoExtension",
+    function (value, element) {
+        return checkFileIsAccepted(element);
+    },
+    "Photo is not valid file"
+);
 
 const formValidator = $('#form').validate({
     errorElement: 'div',
@@ -157,6 +166,9 @@ const formValidator = $('#form').validate({
         },
         valid_from: {
             validFromValidation: true
+        },
+        photo: {
+            validPhotoExtension: true
         }
     },
     showErrors: function (errorMap, errorList) {

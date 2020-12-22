@@ -26,3 +26,16 @@ function getQuantityInputValue($element, unit_to) {
     }
     return unitConvert(unit, unit_to, value);
 }
+
+/** Return check
+ *
+ */
+function checkFileIsAccepted(elm) {
+    let names = elm.files[0].name.split('.');
+    let accepts = $(elm).attr('accept');
+    if (names.length > 1 && accepts.includes(names[1])) {
+        return true
+    } else {
+        return false
+    }
+}

@@ -40,7 +40,11 @@ $(document).ready(function () {
 
 
     $("#id_photo").change(function () {
-        readURL(this);
+        $('.photo-preview').attr('src', $('.photo-preview').data('no-image'))
+        if (checkFileIsAccepted(this)) {
+            readURL(this);
+        }
+        formValidator.element("#id_photo");
     });
 
     // SCROLL EVENT
