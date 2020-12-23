@@ -240,9 +240,9 @@ def download_well(self, download_session_id, filters=None):
             for water_strike in well.drilling.waterstrike_set.all():
                 water_strike_sheet.append([
                     well.original_id,
-                    water_strike.depth.value.value if water_strike.depth and water_strike.depth.value else '',
-                    water_strike.depth.value.unit.__str__() if water_strike.depth and water_strike.depth.value and water_strike.depth.value.unit else '',
-                    water_strike.depth.reference.__str__() if water_strike.depth and water_strike.depth.reference else ''
+                    water_strike.depth.value if water_strike.depth else '',
+                    water_strike.depth.unit.__str__() if water_strike.depth and water_strike.depth.unit else '',
+                    water_strike.reference_elevation.__str__() if water_strike.reference_elevation else ''
                 ])
 
             # stratigraphic
