@@ -31,11 +31,14 @@ function getQuantityInputValue($element, unit_to) {
  *
  */
 function checkFileIsAccepted(elm) {
-    let names = elm.files[0].name.split('.');
-    let accepts = $(elm).attr('accept');
-    if (names.length > 1 && accepts.includes(names[1])) {
-        return true
-    } else {
-        return false
+    if (elm.files[0]) {
+        let names = elm.files[0].name.split('.');
+        let accepts = $(elm).attr('accept');
+        if (names.length > 1 && accepts.includes(names[1])) {
+            return true
+        } else {
+            return false
+        }
     }
+    return true
 }

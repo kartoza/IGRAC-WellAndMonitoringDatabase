@@ -157,6 +157,19 @@ function makeReadOnly() {
             return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
         });
         $('#form select').hide();
+
+        // this is for permissions section
+        $('#id_public, .public-input').hide();
+        if (!$('#id_public').attr('checked')) {
+            $('.public-indicator span').html('Not anyone')
+        }
+        if ($('#id_affiliate_organisations .multivalue-selection div').length === 0) {
+            $('#id_affiliate_organisations').hide()
+            $('#id_affiliate_organisations-label').hide()
+        } else {
+            $('#id_affiliate_organisations .multivalue-selection span').remove();
+            $('#id_affiliate_organisations .input-data').hide();
+        }
     }
 }
 

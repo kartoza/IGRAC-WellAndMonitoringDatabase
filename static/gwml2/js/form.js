@@ -135,6 +135,9 @@ $.validator.addMethod(
     },
     "Photo is not valid file"
 );
+$('#form').submit(function () {
+    return false;
+})
 
 const formValidator = $('#form').validate({
     errorElement: 'div',

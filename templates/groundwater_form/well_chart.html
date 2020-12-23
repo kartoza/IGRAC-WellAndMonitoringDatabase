@@ -75,15 +75,15 @@
 
 </style>
 
-<svg>
-<defs>
-<pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
-  <path d="M-1,1 l2,-2
+<svg style="display: none">
+    <defs>
+        <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
+            <path d="M-1,1 l2,-2
            M0,4 l4,-4
            M3,5 l2,-2"
-        style="stroke:black; stroke-width:1"></path>
-</pattern>
-</defs>
+                  style="stroke:black; stroke-width:1"></path>
+        </pattern>
+    </defs>
 </svg>
 
 <div class="well-chart-row many-to-many">
@@ -829,7 +829,7 @@
             yaxis: {
                 type: 'numeric',
                 min: 0,
-                tickAmount: maxSeriesData/10,
+                tickAmount: maxSeriesData / 10,
                 reversed: true,
                 show: !center,
                 max: maxSeriesData,

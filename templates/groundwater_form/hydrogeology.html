@@ -18,13 +18,13 @@
                 </td>
             </tr>
             <tr>
-            <tr class="input-column">
+            <tr class="input-column" id="porosity-input">
                 <td>{{ pumping_test.porosity.label }} {{ pumping_test.porosity.help_text }}</td>
                 <td>
                     <div class="input">
                         <div class="quantity-input">
                             {{ pumping_test.porosity }}
-                            <select>
+                            <select class="quantity-unit">
                                 <option>%</option>
                             </select>
                         </div>
@@ -43,6 +43,9 @@
     </div>
 </div>
 <script>
+    $('#porosity-input .quantity-unit').attr(
+        'data-value', $('#porosity-input .quantity-value').val() ?  $('#porosity-input .quantity-value').val() : "None"
+    )
     submitFunctions['hydrogeology'] = function () {
         let data = {
             pumping_test: {}

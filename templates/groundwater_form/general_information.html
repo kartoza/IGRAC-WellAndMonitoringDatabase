@@ -7,7 +7,7 @@
 
 <div id="general_information" class="page-section">
     <h2 class="section-title">General information</h2>
-    <div id="general_information_data" style="width: 100%">
+    <div id="general_information_data" style="width: 100%;min-height: 917px;">
         <table style="width: 100%">
             <tr>
                 <td><h4>Identification</h4></td>
@@ -22,7 +22,6 @@
             {% field_as_row form.description %}
             <tr>
                 <td>
-                    <br><br>
                     <h4>Location</h4>
                 </td>
                 <td></td>
@@ -142,7 +141,7 @@
         const $topBorehole = $('#id_top_borehole_elevation')
         {# enable purpose and top well elevation when type is water well#}
         $featureType.change(function () {
-            if (feature_type[$(this).val()].toLowerCase() === 'Water well'.toLowerCase()) {
+            if (feature_type[$(this).val()] && feature_type[$(this).val()].toLowerCase() === 'Water well'.toLowerCase()) {
                 $purpose.prop("disabled", false);
                 $topBorehole.find('.quantity-value').prop("disabled", false);
                 $topBorehole.find('.quantity-unit').prop("disabled", false);
