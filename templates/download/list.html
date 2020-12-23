@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load gwml2_download %}
+
+{% block page_title %}
+    <h1>Download list.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    <style>
+        .col-md-8 {
+            width: 100%;
+        }
+
+        .empty-row {
+            font-style: italic;
+            text-align: center;
+            color: gray;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <h2>Download list</h2>
+    </div>
+    <div class="tab-content" id="search-content">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>Detail</th>
+                <th>Downloaded at</th>
+                <th>Progress / file</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for object in object_list %}
+                <tr>
+                    <td><i class="fa fa-info-circle" data-toggle="tooltip" aria-hidden="true" title="" data-original-title="{% get_download_session_info object.session %}"></i></td>
+                    <td>{{ object.session.start_at }}</td>
+                    <td style="width: 50%">
+                        {% if object.session.file %}
+                            <a href="{{ object.session.file.url }}">{{ object.session.token }}</a>
+                        {% else %}
+                            <div style="width: 100%;  border: 1px solid #ddd;">
+                                <div style="width: {{ object.session.progress }}%; padding: 2px; padding-left: 10px; background-color: #ddd; font-size: 12px; font-weight: bold;">
+                                    {{ object.session.progress }}%
+                                </div>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if object.session.obsolete %}
+                            <span style="font-style: italic; color: red; opacity: 0.7">data out of date</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="2" class="empty-row">No download found</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+
+{% endblock extra_script %}

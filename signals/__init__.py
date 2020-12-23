@@ -16,8 +16,8 @@ User = get_user_model()
 
 @receiver(post_save)
 def gwml2_data_saved(sender, instance, **kwargs):
-    if sender._meta.app_label == 'gwml2' and sender._meta.object_name != 'DownloadSession':
-        DownloadSession.objects.all().delete()
+    if sender._meta.app_label == 'gwml2' and sender._meta.object_name != 'DownloadSession' and sender._meta.object_name != 'DownloadSessionUser':
+        DownloadSession.objects.all().update(obsolete=True)
 
 
 @receiver(post_save, sender=User)

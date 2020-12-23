@@ -2,6 +2,7 @@
 """Download session model definition.
 
 """
+import json
 import os
 import uuid
 from datetime import datetime
@@ -23,7 +24,7 @@ class DownloadSession(models.Model):
         null=True
     )
 
-    uploaded_at = models.DateTimeField(
+    start_at = models.DateTimeField(
         default=datetime.now
     )
 
@@ -41,12 +42,16 @@ class DownloadSession(models.Model):
         null=True
     )
 
+    obsolete = models.BooleanField(
+        default=False
+    )
+
     # noinspection PyClassicStyleClass
     class Meta:
         """Meta class for project."""
         verbose_name_plural = 'Download Sessions'
         verbose_name = 'Download Session'
-        ordering = ('-uploaded_at',)
+        ordering = ('-start_at',)
         db_table = 'download_session'
 
     def __str__(self):
@@ -64,6 +69,31 @@ class DownloadSession(models.Model):
         self.progress = progress
         self.notes = notes
         self.save()
+
+
+class DownloadSessionUser(models.Model):
+    """Download session user model
+    """
+    session = models.ForeignKey(
+        DownloadSession, on_delete=models.CASCADE
+    )
+
+    user = models.IntegerField(
+        null=True,
+        blank=True
+    )
+
+    # noinspection PyClassicStyleClass
+    class Meta:
+        """Meta class for project."""
+        verbose_name_plural = 'Download Sessions User'
+        verbose_name = 'Download Session User'
+        db_table = 'download_session_user'
+
+    def get_info(self):
+        return '\n;'.join([
+            '{} : {}'.format(key, value) for key, value in json.loads(self.session.filters).items()
+        ])
 
 
 @receiver(models.signals.post_delete, sender=DownloadSession)

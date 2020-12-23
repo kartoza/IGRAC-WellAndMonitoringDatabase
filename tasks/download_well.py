@@ -6,6 +6,7 @@ import zipfile
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.db.models import Q
 from django.http import JsonResponse
 from shutil import copyfile
 from openpyxl import load_workbook
@@ -21,7 +22,7 @@ User = get_user_model()
 
 
 def filter_wells_to_download(filters):
-    wells = Well.objects.all()
+    wells = Well.objects.filter(Q(public=True) | Q(organisation__in=filters['well_organisations']))
     if not filters:
         return wells
 
@@ -138,14 +139,13 @@ def filter_wells_to_download(filters):
 
 
 @shared_task(bind=True, queue='update')
-def download_well(self, user_id, download_session_id, filters=None):
+def download_well(self, download_session_id, filters=None):
     DJANGO_ROOT = os.path.dirname(
         os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
         ))
 
     download_session = DownloadSession.objects.get(id=download_session_id)
-    user = User.objects.get(id=user_id)
 
     logger.debug('----- begin download  -------')
     wells = filter_wells_to_download(filters)
@@ -202,10 +202,6 @@ def download_well(self, user_id, download_session_id, filters=None):
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
         download_session.update_progress(process_percent)
-
-        # check if user has view permission
-        if not well.view_permission(user):
-            continue
 
         # General Information
         general_information_sheet.append([
@@ -284,8 +280,7 @@ def download_well(self, user_id, download_session_id, filters=None):
             well.hydrogeology_parameter.aquifer_name if well.hydrogeology_parameter else '',
             well.hydrogeology_parameter.aquifer_material if well.hydrogeology_parameter else '',
             well.hydrogeology_parameter.aquifer_type.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_type else '',
-            well.hydrogeology_parameter.aquifer_thickness.value if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_thickness else '',
-            well.hydrogeology_parameter.aquifer_thickness.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_thickness and well.hydrogeology_parameter.aquifer_thickness.unit else '',
+            well.hydrogeology_parameter.aquifer_thickness if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_thickness else '',
             well.hydrogeology_parameter.confinement.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.confinement else '',
             well.hydrogeology_parameter.degree_of_confinement if well.hydrogeology_parameter else '',
 
@@ -307,7 +302,10 @@ def download_well(self, user_id, download_session_id, filters=None):
             well.hydrogeology_parameter.pumping_test.specific_capacity.value if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_capacity else '',
             well.hydrogeology_parameter.pumping_test.specific_capacity.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_capacity and well.hydrogeology_parameter.pumping_test.specific_capacity.unit else '',
 
-            well.hydrogeology_parameter.pumping_test.storativity if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test else '',
+            # specific capacity
+            well.hydrogeology_parameter.pumping_test.storativity.value if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.storativity else '',
+            well.hydrogeology_parameter.pumping_test.storativity.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.storativity and well.hydrogeology_parameter.pumping_test.storativity.unit else '',
+
             well.hydrogeology_parameter.pumping_test.test_type if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test else '',
         ])
 

@@ -135,16 +135,16 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             return True
         if not user:
             return False
-        else:
-            if user.is_staff:
-                return True
-            accessible = user.id in self.organisation.viewers or user.id in self.organisation.editors or user.id in self.organisation.admins
-            if not accessible:
-                """ Check from affiliate organisation """
-                for org in self.affiliate_organisations.all():
-                    if user.id in org.viewers or user.id in org.editors or user.id in org.admins:
-                        return True
-            return accessible
+        if user.is_staff:
+            return True
+
+        accessible = user.id in self.organisation.viewers or user.id in self.organisation.editors or user.id in self.organisation.admins
+        if not accessible:
+            """ Check from affiliate organisation """
+            for org in self.affiliate_organisations.all():
+                if user.id in org.viewers or user.id in org.editors or user.id in org.admins:
+                    return True
+        return accessible
 
     def editor_permission(self, user):
         """ Return editor permission from user id
@@ -155,14 +155,14 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         :return: permission
         :rtype: bool
         """
-        if not self.organisation:
-            return True
         if not user:
             return False
-        else:
-            if user.is_staff:
-                return True
-            return user.id in self.organisation.editors or user.id in self.organisation.admins
+        elif user.is_staff:
+            return True
+
+        if not self.organisation:
+            return False
+        return user.id in self.organisation.editors or user.id in self.organisation.admins
 
 
 # documents
