@@ -22,7 +22,9 @@ User = get_user_model()
 
 
 def filter_wells_to_download(filters):
-    wells = Well.objects.filter(Q(public=True) | Q(organisation__in=filters['well_organisations']))
+    wells = Well.objects.filter(
+        downloadable=True).filter(
+        Q(public=True) | Q(organisation__in=filters['well_organisations']))
     if not filters:
         return wells
 
@@ -202,8 +204,6 @@ def download_well(self, download_session_id, filters=None):
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
         download_session.update_progress(process_percent)
-        if not well.downloadable:
-            continue
 
         # General Information
         general_information_sheet.append([
