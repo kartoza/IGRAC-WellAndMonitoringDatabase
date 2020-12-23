@@ -11,7 +11,7 @@ User = get_user_model()
 
 
 class WellAdmin(admin.ModelAdmin):
-    list_display = ('original_id', 'organisation', 'edit', 'public')
+    list_display = ('original_id', 'organisation', 'edit', 'public', 'downloadable')
     list_filter = ('organisation',)
     readonly_fields = ('created_at', 'created_by_user', 'last_edited_at', 'last_edited_by_user', 'ggis_uid')
     filter_horizontal = ('affiliate_organisations',)
@@ -19,7 +19,7 @@ class WellAdmin(admin.ModelAdmin):
         'ground_surface_elevation', 'top_borehole_elevation', 'drilling',
         'geology', 'construction', 'management', 'hydrogeology_parameter'
     )
-    list_editable = ('public',)
+    list_editable = ('public', 'downloadable')
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])
