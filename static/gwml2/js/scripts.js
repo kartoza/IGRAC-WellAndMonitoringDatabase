@@ -163,6 +163,10 @@ function makeReadOnly() {
         if (!$('#id_public').attr('checked')) {
             $('.public-indicator span').html('Not anyone')
         }
+        $('#id_downloadable, .downloadable-input').hide();
+        if (!$('#id_downloadable').attr('checked')) {
+            $('.downloadable-indicator span').html('Not anyone')
+        }
         if ($('#id_affiliate_organisations .multivalue-selection div').length === 0) {
             $('#id_affiliate_organisations').hide()
             $('#id_affiliate_organisations-label').hide()

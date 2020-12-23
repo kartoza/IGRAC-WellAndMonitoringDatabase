@@ -202,6 +202,8 @@ def download_well(self, download_session_id, filters=None):
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
         download_session.update_progress(process_percent)
+        if not well.downloadable:
+            continue
 
         # General Information
         general_information_sheet.append([

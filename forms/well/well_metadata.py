@@ -22,7 +22,7 @@ class WellMetadataForm(WellBaseForm):
     class Meta:
         model = Well
         fields = (
-            'organisation', 'created_by', 'created_at', 'last_edited_by', 'last_edited_at', 'affiliate_organisations', 'public',
+            'organisation', 'created_by', 'created_at', 'last_edited_by', 'last_edited_at', 'affiliate_organisations', 'public', 'downloadable',
             'license', 'restriction_code_type', 'constraints_other')
 
     def __init__(self, *args, **kwargs):

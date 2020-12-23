@@ -74,6 +74,10 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         help_text='indicate that well can be viewed by '
                   'non organisation user'
     )
+    downloadable = models.BooleanField(
+        default=True,
+        help_text='indicate that well can be downloaded'
+    )
 
     def __str__(self):
         return self.original_id

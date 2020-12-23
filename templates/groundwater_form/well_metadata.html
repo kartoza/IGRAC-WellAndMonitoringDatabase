@@ -21,7 +21,7 @@
             </tr>
             <tr class="input-column">
                 <td>
-                    Who can view and download it?
+                    Who can view?
                 </td>
                 <td>
                     <div class="input">
@@ -35,6 +35,19 @@
                     </div>
                     <div>
                         {{ form.affiliate_organisations }}
+                    </div>
+                </td>
+            </tr>
+            <tr class="input-column">
+                <td>
+                    Who can Download?
+                </td>
+                <td>
+                    <div class="input">
+                        <div class="downloadable-input" style="float: left; margin-right: 8px;">{{ form.downloadable }}</div>
+                        <div class="downloadable-indicator" style="padding-top: 5px;">
+                            <span>Anyone</span>
+                        </div>
                     </div>
                 </td>
             </tr>
