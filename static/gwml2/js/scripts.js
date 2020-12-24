@@ -25,28 +25,18 @@ function getBottom($el, $wrapper) {
     return $el.position().top + $el.outerHeight(true) - $wrapper.outerHeight()
 }
 
-$(document).ready(function () {
-
-    function readURL(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-
-            reader.onload = function (e) {
-                $('.photo-preview').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(input.files[0]); // convert to base64 string
+function readURL(input, $preview) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            $preview.attr('src', e.target.result);
         }
+        reader.readAsDataURL(input.files[0]); // convert to base64 string
+        $(this).data('value', input.files[0].name)
     }
+}
 
-
-    $("#id_photo").change(function () {
-        $('.photo-preview').attr('src', $('.photo-preview').data('no-image'))
-        if (checkFileIsAccepted(this)) {
-            readURL(this);
-        }
-        formValidator.element("#id_photo");
-    });
-
+$(document).ready(function () {
     // SCROLL EVENT
     // Cache selectors
     let $singlePage = $('.singlepage');
@@ -165,7 +155,7 @@ function makeReadOnly() {
         }
         $('#id_downloadable, .downloadable-input').hide();
         if (!$('#id_downloadable').attr('checked')) {
-            $('.downloadable-indicator span').html('Not anyone')
+            $('.downloadable-indicator span').html('Not downloadable')
         }
         if ($('#id_affiliate_organisations .multivalue-selection div').length === 0) {
             $('#id_affiliate_organisations').hide()

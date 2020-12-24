@@ -333,6 +333,10 @@ table tr td:first-child {
     padding-top: 5px;
 }
 
+.read-only .inputfile {
+    display: none;
+}
+
 .read-only table td {
     padding-bottom: 0 !important;
 }
@@ -563,9 +567,14 @@ table td div.error::after {
     opacity: 0.3;
 }
 
+.icon-svg.delete {
+    margin-top: 0;
+}
+
 
 /* CUSTOM INPUT FILE */
 .inputfile {
+    position: relative;
     width: 279px;
     height: 29px;
     border: 1px solid #cac8c8;

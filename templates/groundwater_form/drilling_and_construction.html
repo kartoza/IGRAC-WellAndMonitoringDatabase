@@ -51,6 +51,14 @@
             });
         return data;
     }
+    $('#drilling #id_total_depth_value').change(function () {
+        if ($(this).val()) {
+            $('#drilling #id_reference_elevation').attr('required', 'required')
+        } else {
+            $('#drilling #id_reference_elevation').removeAttr('required')
+        }
+    })
+    $('#drilling #id_total_depth_value').trigger('change');
 </script>
 <script>
     $(document).ready(function () {

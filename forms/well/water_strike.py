@@ -25,6 +25,9 @@ class WaterStrikeForm(WellBaseForm):
         self.fields['description'].widget.attrs['cols'] = 30
         self.fields['description'].widget.attrs['rows'] = 2
         self.fields['description'].widget.attrs['maxlength'] = 200
+        self.fields['reference_elevation'].empty_label = None
+        self.fields['reference_elevation'].required = True
+        self.fields['reference_elevation'].widget.attrs['required'] = True
 
     @staticmethod
     def make_from_data(instance, data, files):

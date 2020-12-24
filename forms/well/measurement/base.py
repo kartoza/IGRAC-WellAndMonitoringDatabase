@@ -30,8 +30,14 @@ class BaseMeasurementForm(WellBaseForm):
                 name=self.parameter_group).parameters.all()
         except TermMeasurementParameterGroup.DoesNotExist:
             pass
+        self.fields['time'].required = True
+        self.fields['time'].widget.attrs['required'] = True
+        self.fields['parameter'].empty_label = None
+        self.fields['parameter'].required = True
+        self.fields['parameter'].widget.attrs['required'] = True
         self.fields['value'].widget.attrs['min'] = 0
         self.fields['value'].widget.attrs['data-min'] = 0
+        self.fields['time'].label = 'Date and Time'
 
     @staticmethod
     def make_from_data(instance, data, files):

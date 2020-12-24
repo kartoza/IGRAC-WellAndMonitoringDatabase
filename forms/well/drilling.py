@@ -9,6 +9,10 @@ class DrillingForm(WellBaseForm):
     Form for Drilling.
     """
 
+    class Meta:
+        model = Drilling
+        fields = ('drilling_method', 'driller', 'successful', 'cause_of_failure', 'year_of_drilling')
+
     def __init__(self, *args, **kwargs):
         super(DrillingForm, self).__init__(*args, **kwargs)
         self.fields['year_of_drilling'].label = 'Construction year'
@@ -18,10 +22,6 @@ class DrillingForm(WellBaseForm):
 
         self.fields['drilling_method'].label = 'Excavation method'
         self.fields['driller'].label = 'Contractor'
-
-    class Meta:
-        model = Drilling
-        fields = ('drilling_method', 'driller', 'successful', 'cause_of_failure', 'year_of_drilling')
 
     @staticmethod
     def make_from_data(instance, data, files):

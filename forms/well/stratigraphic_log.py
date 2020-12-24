@@ -21,6 +21,12 @@ class StratigraphicLogForm(WellBaseForm):
 
     field_order = ('id', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
 
+    def __init__(self, *args, **kwargs):
+        super(StratigraphicLogForm, self).__init__(*args, **kwargs)
+        self.fields['reference_elevation'].empty_label = None
+        self.fields['reference_elevation'].required = True
+        self.fields['reference_elevation'].widget.attrs['required'] = True
+
     @staticmethod
     def make_from_data(instance, data, files):
         """ Create form from request data

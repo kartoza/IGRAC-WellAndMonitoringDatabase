@@ -51,6 +51,10 @@ function parameterChanged($inputParameter, $inputUnit, $inputValue) {
             }
         }
     });
+    // make default value
+    if ($inputUnit.find('option:selected').length === 0 && $inputUnit.find("option:not([hidden='hidden'])").length > 0) {
+        $inputUnit.val($($inputUnit.find("option:not([hidden='hidden'])")[0]).attr('value'))
+    }
     // make default value attributes
     if ($inputValue.data('min') !== undefined) {
         $inputValue.attr('min', $inputValue.data('min'))

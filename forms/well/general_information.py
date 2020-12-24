@@ -61,14 +61,16 @@ class GeneralInformationForm(WellBaseForm):
             x=float(data['longitude']), y=float(data['latitude']), srid=4326)
 
         # check the files
-        if data.get('photo', None):
-            files = {
-                'photo': files[data['photo']]
+        form_files = {}
+        photo = data.get('photo', None)
+        if not photo:
+            instance.photo = None
+        elif photo and files.get(photo, None):
+            form_files = {
+                'photo': files.get(photo, None)
             }
-        else:
-            files = {}
 
-        return GeneralInformationForm(data, files, instance=instance)
+        return GeneralInformationForm(data, form_files, instance=instance)
 
     @staticmethod
     def make_from_instance(instance):

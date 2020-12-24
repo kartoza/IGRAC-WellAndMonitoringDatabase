@@ -33,6 +33,12 @@ class ConstructionStructureForm(WellBaseForm):
         self.fields['description'].widget.attrs['cols'] = 20
         self.fields['description'].widget.attrs['rows'] = 1
         self.fields['description'].widget.attrs['maxlength'] = 200
+        self.fields['reference_elevation'].empty_label = None
+        self.fields['reference_elevation'].required = True
+        self.fields['reference_elevation'].widget.attrs['required'] = True
+        self.fields['type'].empty_label = None
+        self.fields['type'].required = True
+        self.fields['type'].widget.attrs['required'] = True
 
     @staticmethod
     def make_from_data(instance, data, files):

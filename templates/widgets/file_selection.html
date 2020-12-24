@@ -1,6 +1,6 @@
 {% load staticfiles %}
 {% if preview or file_type == 'image' %}
-    <div>
+    <div id="{{ widget.attrs.id }}-preview">
         <a {% if url %}
             href="{{ url }}"
         {% endif %}
@@ -14,29 +14,29 @@
         " alt="photo">
         </a>
     </div>
+    <script>
+        $(document).ready(function () {
+            $("#{{ widget.attrs.id }}-file #id_photo").change(function () {
+                $(this).data('value', null)
+                $('#{{ widget.attrs.id }}-preview .photo-preview').attr('src', $('#{{ widget.attrs.id }}-preview .photo-preview').data('no-image'))
+                if (checkFileIsAccepted(this)) {
+                    readURL(this, $('#{{ widget.attrs.id }}-preview .photo-preview'));
+                }
+                formValidator.element("#{{ widget.attrs.id }}-file #id_photo");
+            });
+
+            $("#{{ widget.attrs.id }}-file #id_photo").click(function () {
+                $("#{{ widget.attrs.id }}-file #id_photo").trigger('change')
+            })
+        });
+    </script>
 {% endif %}
 
-{% if read_only %}
-    {% if value %}
-        <input type="text" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} hidden>
-        <a href="{{ url }}" target="_blank" download>{{ value }}</a>
-    {% else %}
-        <div style="position: relative" class="inputfile">
-            <label for="file">
-                <span>{% if value != None %} {{ value }}{% endif %}</span>
-                <strong>Choose a file</strong>
-            </label>
-            <input
-                    type="file"
-                    name="{{ widget.name }}"
-                    id="{{ widget.attrs.id }}"
-                    onchange="fileSelectionChanged(this)"
-                    {% include "django/forms/widgets/attrs.html" %}
-            >
-        </div>
-    {% endif %}
+{% if read_only and value %}
+    <input type="text" name="{{ widget.name }}" {% include "django/forms/widgets/attrs.html" %} hidden>
+    <a href="{{ url }}" target="_blank" download>{{ value }}</a>
 {% else %}
-    <div style="position: relative" class="inputfile">
+    <div class="inputfile" id="{{ widget.attrs.id }}-file">
         <label for="file">
             <span>{% if value != None %} {{ value }}{% endif %}</span>
             <strong>Choose a file</strong>
@@ -46,6 +46,7 @@
                 name="{{ widget.name }}"
                 id="{{ widget.attrs.id }}"
                 onchange="fileSelectionChanged(this)"
+                data-value="{{ url }}"
                 {% include "django/forms/widgets/attrs.html" %}
         >
     </div>

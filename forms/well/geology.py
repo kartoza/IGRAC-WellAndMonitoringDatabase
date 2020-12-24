@@ -39,6 +39,8 @@ class GeologyForm(WellBaseForm):
         :return: Form
         :rtype: GeologyForm
         """
+        if not data['total_depth_value']:
+            data['reference_elevation'] = None
         return GeologyForm(data, files, instance=instance)
 
     @staticmethod

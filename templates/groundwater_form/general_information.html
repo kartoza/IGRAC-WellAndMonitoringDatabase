@@ -57,6 +57,8 @@
         let picture = $('#general_information #id_photo').get(0).files[0]
         if (picture) {
             data['photo'] = picture.name
+        } else {
+            data['photo'] = $('#general_information #id_photo').data('value')
         }
         return data
     }
