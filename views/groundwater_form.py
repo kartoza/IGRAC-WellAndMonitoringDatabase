@@ -8,6 +8,7 @@ from gwml2.mixin import ViewWellFormMixin, EditWellFormMixin
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.reference_elevation import TermReferenceElevationType
 from gwml2.models.well import Well
+from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.form_group.general_information import (
     GeneralInformationGetForms, GeneralInformationCreateForm
 )
@@ -39,12 +40,6 @@ from gwml2.views.form_group.level_measurement import (
 from gwml2.views.form_group.well_metadata import (
     WellMetadataGetForms, WellMetadataCreateForm
 )
-
-
-class FormNotValid(Exception):
-    def __init__(self, error):
-        super(Exception, self).__init__(error)
-        self.errors = error
 
 
 class WellView(ViewWellFormMixin, View):

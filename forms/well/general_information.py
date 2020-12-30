@@ -59,6 +59,10 @@ class GeneralInformationForm(WellBaseForm):
         """
         data['location'] = Point(
             x=float(data['longitude']), y=float(data['latitude']), srid=4326)
+        if instance.ground_surface_elevation_id:
+            data['ground_surface_elevation_id'] = instance.ground_surface_elevation_id
+        if instance.top_borehole_elevation_id:
+            data['top_borehole_elevation_id'] = instance.top_borehole_elevation_id
 
         # check the files
         form_files = {}

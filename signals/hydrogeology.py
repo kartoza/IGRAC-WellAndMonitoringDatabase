@@ -26,6 +26,8 @@ def delete_pumpingtest(sender, instance, **kwargs):
         instance.transmissivity.delete()
     if instance.specific_storage:
         instance.specific_storage.delete()
+    if instance.storativity:
+        instance.storativity.delete()
 
 
 @receiver(post_save, sender=HydrogeologyParameter)
@@ -41,7 +43,5 @@ def hydrogeologyparameter_changed(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=HydrogeologyParameter)
 def delete_hydrogeologyparameter(sender, instance, **kwargs):
-    if instance.aquifer_thickness:
-        instance.aquifer_thickness.delete()
     if instance.pumping_test:
         instance.pumping_test.delete()
