@@ -1,7 +1,6 @@
 import json
 import os
 import shutil
-import time
 import zipfile
 
 from django.contrib.auth import get_user_model
@@ -200,7 +199,7 @@ def download_well(self, download_session_id, filters=None):
     level_measurement_sheet = monitor_book['Level Measurement']
     quality_measurement_sheet = monitor_book['Quality Measurement']
     yield_measurement_sheet = monitor_book['Yield Measurement']
-    time.sleep(2.4)
+
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
         download_session.update_progress(process_percent)

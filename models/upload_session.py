@@ -8,6 +8,7 @@ import ntpath
 import uuid
 from datetime import datetime
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 from gwml2.models.well_management.organisation import Organisation
 
@@ -19,6 +20,8 @@ UPLOAD_SESSION_CATEGORY = (
     (UPLOAD_SESSION_CATEGORY_WELL_UPLOAD, UPLOAD_SESSION_CATEGORY_WELL_UPLOAD),
     (UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD, UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD),
 )
+
+User = get_user_model()
 
 
 class UploadSession(models.Model):
@@ -84,6 +87,13 @@ class UploadSession(models.Model):
 
     def __str__(self):
         return str(self.token)
+
+    def get_uploader(self):
+        """ return user of uploader """
+        try:
+            return User.objects.get(id=self.uploader)
+        except User.DoesNotExist:
+            return None
 
     def filename(self):
         """ return filename """

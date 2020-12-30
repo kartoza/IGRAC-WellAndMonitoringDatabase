@@ -37,11 +37,31 @@
         .template-indicator a {
             font-weight: 700;
         }
+
+        .notes span {
+            display: inline-block;
+            padding: 5px 10px;
+            font-weight: 700;
+        }
+
+        .notes .added {
+            background-color: #48b14f;
+            color: white;
+        }
+
+        .notes .error {
+            background-color: #ca3232;
+            color: white;
+        }
+
+        .notes .skipped {
+            background-color: #ffef44;
+        }
     </style>
 
     <div class="container">
         <div class="page-header">
-            <h2>Well Upload Form</h2>
+            <h2>Batch Upload Form</h2>
         </div>
         <div class="row">
             {% if upload_session %}
@@ -76,25 +96,35 @@
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab"
                                    data-toggle="tab" href="#well-descriptor" role="tab"
-                                   aria-controls="home" aria-selected="true">Well Descriptors</a>
+                                   aria-controls="home" aria-selected="true">General Information</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="profile-tab"
                                    data-toggle="tab"
                                    href="#well-monitoring" role="tab"
                                    aria-controls="profile"
-                                   aria-selected="false">Well Monitoring</a>
+                                   aria-selected="false">Monitoring data</a>
                             </li>
                         </ul>
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade" id="well-descriptor"
                                  role="tabpanel" aria-labelledby="home-tab">
-                                <div class="template-indicator">file template can be download in <a href="{% static 'download_template/wells.xlsx' %}">here</a></div>
+                                <div class="template-indicator">
+                                    The Batch Upload allows you to import several Well and Monitoring Data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data
+                                    points) and Monitoring Data. Download the templates <a href="{% static 'upload_template/well.xlsx' %}">here</a> and fill them in with your data, then simply upload these files. Don't forget to assign
+                                    permissions on your data: is it
+                                    public? which organisations can access the data?
+                                </div>
                             </div>
                             <div class="tab-pane fade" id="well-monitoring"
                                  role="tabpanel"
                                  aria-labelledby="profile-tab">
-                                <div class="template-indicator">file template can be download in <a href="{% static 'download_template/monitoring_data.xlsx' %}">here</a></div>
+                                <div class="template-indicator">
+                                    The Batch Upload allows you to import several Well and Monitoring Data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data
+                                    points) and Monitoring Data. Download the templates <a href="{% static 'upload_template/monitoring_data.xlsx' %}">here</a> and fill them in with your data, then simply upload these files. Don't forget to
+                                    assign permissions on your data: is it
+                                    public? which organisations can access the data?
+                                </div>
                             </div>
                         </div>
 
@@ -121,39 +151,85 @@
 
         </div>
 
-        {% if past_upload_sessions %}
-            <h5>Past Upload Sessions</h5>
-            <div style="height: 20px"></div>
-            {% for past_upload_session in past_upload_sessions %}
-                <div class="well well-sm" style="border: 2px solid {% if past_upload_session.is_canceled %} #ca3232 {% else %} #48b14f {% endif %}">
-                    <div class="container-fluid row" style="padding-top: 10px;">
-                        <div class="col-xs-2">
-                            <p>Filename</p>
-                            <p>Organisation</p>
-                            <p>Uploaded at</p>
-                            <p>Status</p>
-                            <p>Notes</p>
-                        </div>
-                        <div class="col-xs-10">
-                            <p>: {{ past_upload_session.filename }}</p>
-                            <p>: {{ past_upload_session.organisation }}</p>
-                            <p>: {{ past_upload_session.uploaded_at }}</p>
-                            <p>: {% if past_upload_session.is_canceled %}Canceled{% else %}Processed{% endif %}</p>
-                            <p>: {{ past_upload_session.status }}</p>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+        {% if past_upload %}
+            <div id="past-upload-sessions">
+                <h5>Past Upload Sessions</h5>
+                <br>
+                <div id="pass-upload"></div>
+            </div>
         {% endif %}
     </div>
 
     <script src="{% static "lib/js/jquery.js" %}"></script>
     <script>
-        $(document).ready(function () {
+        let past_upload = {{ past_upload|safe }};
 
+        function returnStatusHtml(status) {
+            return `
+                <span class="added">${status.added} added</span>
+                <span class="error">${status.error} error</span>
+                <span class="skipped">${status.skipped} skipped</span>
+            `
+        }
+
+        $(document).ready(function () {
+            {# render past upload #}
+            const $pastUpload = $('#pass-upload');
+            $.each(past_upload, function (index, value) {
+                {# if there is error, show red border#}
+                let color = '#ca3232'
+                let status = value.status
+                try {
+                    status = JSON.parse(value.status)
+                    if (!status.error) {
+                        color = '#48b14f'
+                    }
+                    status = returnStatusHtml(status)
+                    console.log(status)
+                } catch (e) {
+
+                }
+                $pastUpload.append(`
+                 <div class="well well-sm past-upload ${value.category}" style="border: 1px solid ${color}">
+                    <div class="container-fluid row" style="padding-top: 10px;">
+                        <div class="col-xs-2">
+                            <p>Filename</p>
+                            <p>Organisation</p>
+                            <p>Uploaded at</p>
+                            <p></p>
+                        </div>
+                        <div class="col-xs-10">
+                            <p>: ${value.filename}</p>
+                            <p>: ${value.organisation}</p>
+                            <p>: ${value.uploaded_at}</p>
+                            <p class="notes">${status}</p>
+                        </div>
+                    </div>
+                </div>`)
+            });
+
+            {# update the form #}
             $('#id_gw_well_file').parent().prependTo('#well-descriptor');
             $('#id_gw_well_monitoring_file').parent().prependTo('#well-monitoring');
             $('#myTab a[href="#well-descriptor"]').tab('show')
+
+            {# when tab clicked, show/hide the pas upload#}
+            $('#myTab a').click(function () {
+                $('.past-upload').hide();
+                let $el = null
+                if ($(this).attr('href') === '#well-descriptor') {
+                    $el = $('.well_upload');
+                } else {
+                    $el = $('.well_monitoring_upload')
+                }
+                $el.show();
+                if ($el.length === 0) {
+                    $('#past-upload-sessions').hide()
+                } else {
+                    $('#past-upload-sessions').show()
+                }
+            });
+            $('#myTab a[href="#well-descriptor"]').click()
 
             let uploadProgress = 0;
             {% if upload_session %}
@@ -176,7 +252,7 @@
                             }
                         }
                     });
-                }, 1000)
+                }, 1000);
             {% endif %}
         })
     </script>

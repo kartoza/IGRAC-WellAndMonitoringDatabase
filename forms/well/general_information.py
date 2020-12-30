@@ -12,9 +12,9 @@ class GeneralInformationForm(WellBaseForm):
     Form of general information of well.
     """
     latitude = forms.FloatField(
-        help_text='Latitude must be expressed in decimal degrees.')
+        help_text='Latitude must be expressed in decimal degrees.', required=True)
     longitude = forms.FloatField(
-        help_text='Longitude must be expressed in decimal degrees.')
+        help_text='Longitude must be expressed in decimal degrees.', required=True)
 
     class Meta:
         model = Well
@@ -57,8 +57,9 @@ class GeneralInformationForm(WellBaseForm):
         :return: Form
         :rtype: GeneralInformationForm
         """
-        data['location'] = Point(
-            x=float(data['longitude']), y=float(data['latitude']), srid=4326)
+        if data['longitude'] and data['latitude']:
+            data['location'] = Point(
+                x=float(data['longitude']), y=float(data['latitude']), srid=4326)
         if instance.ground_surface_elevation_id:
             data['ground_surface_elevation_id'] = instance.ground_surface_elevation_id
         if instance.top_borehole_elevation_id:
