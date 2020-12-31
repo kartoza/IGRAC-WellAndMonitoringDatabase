@@ -9,7 +9,7 @@ from gwml2.models.term import (
 )
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
-from gwml2.models.upload_session import UploadSession
+from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.groundwater_form import WellEditing
 from gwml2.tasks.uploader.well import get_column
@@ -73,7 +73,7 @@ class BaseUploader(WellEditing):
         }
         index = 0
         for sheet_name, records in self.records.items():
-            for raw_record in records:
+            for row, raw_record in enumerate(records):
                 index += 1
                 process_percent = (index / total_records) * 100
                 error = {}
@@ -100,20 +100,50 @@ class BaseUploader(WellEditing):
                         self.edit_well(well, record, {}, self.upload_session.get_uploader())
                 except Well.DoesNotExist:
                     error = {
-                        'original_id': 'well does not exist'
+                        'original_id': 'Well does not exist'
                     }
                 except TermNotFound as e:
                     error = json.loads('{}'.format(e))
                 except FormNotValid as e:
                     error = json.loads('{}'.format(e))
                 except Exception as e:
-                    error = '{}'.format(e)
+                    error = {
+                        'original_id': '{}'.format(e)
+                    }
 
                 # update progress
                 if error:
                     progress['error'] += 1
+
+                    # create progress status per row
+                    for key, value in error.items():
+                        try:
+                            column = list(self.RECORD_FORMAT.keys()).index(key)
+                        except ValueError:
+                            column = 0
+                        if type(value) is list:
+                            value = '<br>'.join(value)
+                        UploadSessionRowStatus.objects.get_or_create(
+                            upload_session=self.upload_session,
+                            sheet_name=sheet_name,
+                            row=row + self.START_ROW + 1,
+                            column=column,
+                            status=1,
+                            defaults={
+                                'note': value
+                            }
+                        )
                 elif skipped:
                     progress['skipped'] += 1
+
+                    # create progress status per row
+                    UploadSessionRowStatus.objects.get_or_create(
+                        upload_session=self.upload_session,
+                        sheet_name=sheet_name,
+                        row=row + self.START_ROW + 1,
+                        column=0,
+                        status=2
+                    )
                 else:
                     progress['added'] += 1
 
@@ -122,7 +152,7 @@ class BaseUploader(WellEditing):
                     status=json.dumps(progress)
                 )
 
-        # finish
+                # finish
         self.upload_session.update_progress(
             finished=True,
             progress=100,

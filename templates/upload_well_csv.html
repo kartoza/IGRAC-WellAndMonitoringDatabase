@@ -71,6 +71,11 @@
             width: fit-content;
             display: inline-block;
         }
+
+        .well:hover {
+            cursor: pointer;
+            opacity: 0.7;
+        }
     </style>
 
     <div class="container">
@@ -179,9 +184,6 @@
                         </div>
                     </form>
                 </div>
-
-
-
             {% endif %}
 
         </div>
@@ -224,7 +226,7 @@
 
                 }
                 $pastUpload.append(`
-                 <div class="well well-sm past-upload ${value.category}" style="border: 1px solid ${color}">
+                 <div class="well well-sm past-upload ${value.category}" style="border: 1px solid ${color}" data-id="${value.id}">
                     <div class="container-fluid row" style="padding-top: 10px;">
                         <div class="col-xs-2">
                             <p>Filename</p>
@@ -241,6 +243,9 @@
                     </div>
                 </div>`)
             });
+            $('.well').click(function () {
+                window.open(`/groundwater/upload-session/${$(this).data('id')}/detail`, '_blank')
+            })
 
             {# update the form #}
             $('#myTab a[href="#well-descriptor"]').tab('show')

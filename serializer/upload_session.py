@@ -14,4 +14,4 @@ class UploadSessionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UploadSession
-        fields = ['organisation', 'token', 'uploaded_at', 'status', 'progress', 'filename', 'category']
+        fields = ['id', 'organisation', 'token', 'uploaded_at', 'status', 'progress', 'filename', 'category']
