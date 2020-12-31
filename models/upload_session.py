@@ -78,6 +78,17 @@ class UploadSession(models.Model):
         default=False
     )
 
+    # for permissions
+    affiliate_organisations = models.ManyToManyField(
+        Organisation, null=True, blank=True,
+        related_name='well_upload_affiliate_organisations'
+    )
+    public = models.BooleanField(
+        default=True,
+        help_text='indicate that well can be viewed by '
+                  'non organisation user'
+    )
+
     # noinspection PyClassicStyleClass
     class Meta:
         """Meta class for project."""

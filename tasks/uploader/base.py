@@ -29,6 +29,7 @@ class BaseUploader(WellEditing):
     SHEETS = []
     START_ROW = 2
     RECORD_FORMAT = {}
+    WELL_AUTOCREATE = False
 
     def __init__(self, upload_session: UploadSession):
         self.upload_session = upload_session
@@ -70,8 +71,10 @@ class BaseUploader(WellEditing):
             'error': 0,
             'skipped': 0,
         }
+        index = 0
         for sheet_name, records in self.records.items():
-            for index, raw_record in enumerate(records):
+            for raw_record in records:
+                index += 1
                 process_percent = (index / total_records) * 100
                 error = {}
                 skipped = False
@@ -84,7 +87,10 @@ class BaseUploader(WellEditing):
                             organisation=organisation, original_id=original_id
                         )
                     except Well.DoesNotExist:
-                        well = None
+                        if self.WELL_AUTOCREATE:
+                            well = None
+                        else:
+                            raise Well.DoesNotExist()
 
                     # TODO:
                     #  just remove this if the data is allowed to be updated
@@ -100,12 +106,11 @@ class BaseUploader(WellEditing):
                     error = json.loads('{}'.format(e))
                 except FormNotValid as e:
                     error = json.loads('{}'.format(e))
-                # except Exception as e:
-                #     error = '{}'.format(e)
+                except Exception as e:
+                    error = '{}'.format(e)
 
                 # update progress
                 if error:
-                    print(error)
                     progress['error'] += 1
                 elif skipped:
                     progress['skipped'] += 1

@@ -96,20 +96,23 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     organisation=form.cleaned_data['organisation'],
                     category=UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
                     upload_file=gw_well_file,
-                    uploader=request.user.id
+                    uploader=request.user.id,
+                    public=form.cleaned_data['public']
                 )
+                upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             elif gw_monitoring_file:
                 upload_session = UploadSession.objects.create(
                     organisation=form.cleaned_data['organisation'],
                     category=UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
                     upload_file=gw_monitoring_file,
-                    uploader=request.user.id
+                    uploader=request.user.id,
+                    public=form.cleaned_data['public']
                 )
+                upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             else:
                 return self.form_invalid(form)
 
-            well_batch_upload(upload_session.id)
+            well_batch_upload.delay(upload_session.id)
             return self.form_valid(form)
-
         else:
             return self.form_invalid(form)

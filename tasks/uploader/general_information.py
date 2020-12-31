@@ -15,6 +15,7 @@ class GeneralInformationUploader(BaseUploader):
     SHEETS = [
         'General Information'
     ]
+    WELL_AUTOCREATE = True
 
     # key related with the index of keys
     # value if it has tem
@@ -38,11 +39,12 @@ class GeneralInformationUploader(BaseUploader):
     def convert_record(self, sheet_name, data):
         """ return object that will be used
         """
-        organisation = self.upload_session.organisation
         return {
             'general_information': data,
             'well_metadata': {
-                'organisation': organisation.id
+                'organisation': self.upload_session.organisation.id,
+                'public': self.upload_session.public,
+                'affiliate_organisations': ','.join(['{}'.format(org.id) for org in self.upload_session.affiliate_organisations.all()])
             }
         }
 

@@ -1,4 +1,7 @@
 from django import forms
+from django.urls import reverse
+from gwml2.models.well_management.organisation import Organisation
+from gwml2.forms.widgets.multi_value import MultiValueInput
 
 
 class CsvWellForm(forms.Form):
@@ -9,6 +12,15 @@ class CsvWellForm(forms.Form):
         queryset=None,
         label='Organisation',
         required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    public = forms.BooleanField(
+        initial=True,
+        required=False
+    )
+    affiliate_organisations = forms.ModelMultipleChoiceField(
+        required=False,
+        queryset=Organisation.objects.all(),
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
@@ -30,3 +42,8 @@ class CsvWellForm(forms.Form):
         self.fields['organisation'].empty_label = None
         self.fields['organisation'].required = True
         self.fields['organisation'].widget.attrs['required'] = True
+        self.fields['affiliate_organisations'].widget = MultiValueInput(
+            url=reverse('organisation_autocomplete'), Model=Organisation, attrs={
+                'placeholder': 'Please enter 1 or more character'
+            }
+        )
