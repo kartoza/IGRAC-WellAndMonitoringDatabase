@@ -38,6 +38,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         result = super(WellMinimizedSerializer, self).to_representation(instance)
         result['pk'] = instance.id  # ID
         result['id'] = instance.original_id  # Original ID
+        result['nm'] = instance.name  # Well name
         result['loc'] = [  # location
             round(instance.location.y, 7), round(instance.location.x, 7)
         ]
