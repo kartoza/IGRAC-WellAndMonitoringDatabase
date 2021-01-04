@@ -74,6 +74,6 @@ class Quantity(models.Model):
         :param to:
         :type to: str
         """
-        if (self.unit.name == 'ft' or self.unit.name == 'ft') and to == 'm':
+        if self.unit and (self.unit.name == 'ft' or self.unit.name == 'ft') and to == 'm':
             return self.value / 3.281
         return self.value
