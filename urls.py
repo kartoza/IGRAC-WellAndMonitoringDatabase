@@ -7,7 +7,8 @@ from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.authentication import TokenAuth
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.user import UserUUIDAPI
-from gwml2.api.minimized_well import WellListMinimizedAPI, WellMeasurementListMinimizedAPI
+from gwml2.api.mobile.minimized_well import WellListMinimizedAPI, WellMeasurementListMinimizedAPI
+from gwml2.api.mobile.well import WellEditAPI
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.download_session import DownloadSessionApiView
@@ -68,6 +69,9 @@ api_url = [
     url(r'^well/minimized',
         view=WellListMinimizedAPI.as_view(),
         name='well_list_minimized_api'),
+    url(r'^well/(?P<id>\d+)/edit',
+        view=WellEditAPI.as_view(),
+        name='well_edit_api'),
 
     # autocomplete
     url(r'^organisation/autocomplete',
