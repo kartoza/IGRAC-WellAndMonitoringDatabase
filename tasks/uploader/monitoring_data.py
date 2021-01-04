@@ -57,11 +57,8 @@ class MonitoringDataUploader(BaseUploader):
             MODEL = WellYieldMeasurement
             key = 'yield_measurement'
 
-        try:
-            return MODEL.objects.get(
-                well=well,
-                time=record[key][0]['time'],
-                parameter=record[key][0]['parameter']
-            )
-        except MODEL.DoesNotExist:
-            return None
+        return MODEL.objects.filter(
+            well=well,
+            time=record[key][0]['time'],
+            parameter=record[key][0]['parameter']
+        ).count()
