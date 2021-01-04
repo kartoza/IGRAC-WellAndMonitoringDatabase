@@ -75,9 +75,9 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
                 result['ws'].append({
                     'id': water_strike.id,  # id
                     'ref': self.term_val(  # reference
-                        water_strike.depth.reference) if water_strike.depth else '',
+                        water_strike.reference_elevation) if water_strike.reference_elevation else '',
                     'd': self.get_length_to_meter(  # depth
-                        water_strike.depth.value) if water_strike.depth else '',
+                        water_strike.depth) if water_strike.depth else '',
                     'dsc': self.get_val(water_strike.description)  # description
                 })
         # Stratigraphic Log
@@ -133,35 +133,29 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
             instance.hydrogeology_parameter.aquifer_material) if instance.hydrogeology_parameter else ''
         result['at'] = self.term_val(  # Hydrogeology : Aquifer type
             instance.hydrogeology_parameter.aquifer_type) if instance.hydrogeology_parameter else ''
-        result['atn'] = self.get_length_to_meter(  # Hydrogeology : Aquifer thickness
-            instance.hydrogeology_parameter.aquifer_thickness) if instance.hydrogeology_parameter else ''
+        result['atn'] = instance.hydrogeology_parameter.aquifer_thickness
         result['ac'] = self.term_val(  # Hydrogeology : Confinement
             instance.hydrogeology_parameter.confinement) if instance.hydrogeology_parameter else ''
         result['adc'] = self.get_val(  # Hydrogeology : Degree of Confinement
             instance.hydrogeology_parameter.degree_of_confinement) if instance.hydrogeology_parameter else ''
 
         # Hydraulic properties
-        result['hp'] = self.get_val(  # Hydraulic properties : Porosity
+        result['hp'] = self.get_val(
             instance.hydrogeology_parameter.pumping_test.porosity) \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['hc'] = self.get_length_to_meter(  # Hydraulic properties : Hydraulic conductivity
-            instance.hydrogeology_parameter.pumping_test.hydraulic_conductivity) \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['ht'] = self.get_length_to_meter(  # Hydraulic properties : Transmissivity
-            instance.hydrogeology_parameter.pumping_test.transmissivity) \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['hss'] = self.get_length_to_meter(  # Hydraulic properties : Specific storage
-            instance.hydrogeology_parameter.pumping_test.specific_storage) \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['hsc'] = self.get_length_to_meter(  # Hydraulic properties : Specific capacity
-            instance.hydrogeology_parameter.pumping_test.specific_capacity) \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['hs'] = self.get_val(  # Hydraulic properties : Storativity
-            instance.hydrogeology_parameter.pumping_test.storativity) \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
-        result['htt'] = self.get_val(  # Hydraulic properties : Test Type
-            instance.hydrogeology_parameter.pumping_test.test_type) \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Porosity
+        result['hc'] = instance.hydrogeology_parameter.pumping_test.hydraulic_conductivity.__str__() \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Hydraulic conductivity
+
+        result['ht'] = instance.hydrogeology_parameter.pumping_test.transmissivity.__str__() \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Transmissivity
+        result['hss'] = instance.hydrogeology_parameter.pumping_test.specific_storage.__str__() \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific storage
+        result['hsc'] = instance.hydrogeology_parameter.pumping_test.specific_capacity.__str__() \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific capacity
+        result['hs'] = instance.hydrogeology_parameter.pumping_test.storativity.__str__() \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Storativity
+        result['htt'] = self.get_val(instance.hydrogeology_parameter.pumping_test.test_type) \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Test Type
 
         # Management
         result['mm'] = self.get_val(  # Management : Manager
