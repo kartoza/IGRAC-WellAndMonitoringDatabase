@@ -97,7 +97,8 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     category=UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
                     upload_file=gw_well_file,
                     uploader=request.user.id,
-                    public=form.cleaned_data['public']
+                    public=form.cleaned_data['public'],
+                    downloadable=form.cleaned_data['downloadable']
                 )
                 upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             elif gw_monitoring_file:
@@ -106,7 +107,8 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     category=UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
                     upload_file=gw_monitoring_file,
                     uploader=request.user.id,
-                    public=form.cleaned_data['public']
+                    public=form.cleaned_data['public'],
+                    downloadable=form.cleaned_data['downloadable']
                 )
                 upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             else:

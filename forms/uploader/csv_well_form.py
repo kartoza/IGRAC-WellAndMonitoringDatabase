@@ -18,6 +18,10 @@ class CsvWellForm(forms.Form):
         initial=True,
         required=False
     )
+    downloadable = forms.BooleanField(
+        initial=True,
+        required=False
+    )
     affiliate_organisations = forms.ModelMultipleChoiceField(
         required=False,
         queryset=Organisation.objects.all(),

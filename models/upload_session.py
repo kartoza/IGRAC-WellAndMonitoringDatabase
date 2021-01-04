@@ -89,6 +89,10 @@ class UploadSession(models.Model):
         help_text='indicate that well can be viewed by '
                   'non organisation user'
     )
+    downloadable = models.BooleanField(
+        default=True,
+        help_text='indicate that well can be downloaded'
+    )
 
     # noinspection PyClassicStyleClass
     class Meta:
