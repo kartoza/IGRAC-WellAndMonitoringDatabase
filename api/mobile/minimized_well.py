@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from geonode.base.models import License, RestrictionCodeType
 from gwml2.authentication import GWMLTokenAthentication
 from gwml2.models.well import Well
 from gwml2.models.term import TermWellStatus, TermWellPurpose, TermFeatureType
@@ -57,14 +58,12 @@ class WellListMinimizedAPI(APIView):
 
         # put terms in the output
         terms = {}
-        for Model in [TermWellStatus, TermWellPurpose, TermFeatureType]:
+        for Model in [TermWellStatus, TermWellPurpose, TermFeatureType, License, RestrictionCodeType]:
             terms[Model._meta.model_name] = [{
-                model.id: model.name
+                model.id: getattr(model, 'name', None) if getattr(model, 'name', None) else model.__str__()
             } for model in Model.objects.all()]
         try:
-            terms['unit_length'] = [{
-                model.id: model.name
-            } for model in UnitGroup.objects.get(name='length').units.all()]
+            terms['unit_length'] = [model.name for model in UnitGroup.objects.get(name='length').units.all()]
         except UnitGroup.DoesNotExist:
             terms['unit_length'] = []
 
