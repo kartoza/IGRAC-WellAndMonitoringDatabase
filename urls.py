@@ -8,7 +8,7 @@ from gwml2.api.authentication import TokenAuth
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.user import UserUUIDAPI
 from gwml2.api.mobile.minimized_well import WellListMinimizedAPI, WellMeasurementListMinimizedAPI
-from gwml2.api.mobile.well import WellEditAPI
+from gwml2.api.well import WellEditAPI
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.download_session import DownloadSessionApiView
