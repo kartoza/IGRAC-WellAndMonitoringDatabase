@@ -133,7 +133,7 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
             instance.hydrogeology_parameter.aquifer_material) if instance.hydrogeology_parameter else ''
         result['at'] = self.term_val(  # Hydrogeology : Aquifer type
             instance.hydrogeology_parameter.aquifer_type) if instance.hydrogeology_parameter else ''
-        result['atn'] = instance.hydrogeology_parameter.aquifer_thickness
+        result['atn'] = instance.hydrogeology_parameter.aquifer_thickness if instance.hydrogeology_parameter else ''
         result['ac'] = self.term_val(  # Hydrogeology : Confinement
             instance.hydrogeology_parameter.confinement) if instance.hydrogeology_parameter else ''
         result['adc'] = self.get_val(  # Hydrogeology : Degree of Confinement
