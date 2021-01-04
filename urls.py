@@ -103,7 +103,7 @@ urlpatterns = [
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
         view=UploadSessionApiView.as_view(),
         name='upload_session_progress'),
-    url(r'^upload-session/(?P<pk>\d+)',
+    url(r'^upload-session/(?P<pk>\d+)/detail',
         view=UploadSessionDetailView.as_view(),
         name='upload_session_detail'),
     url(r'^download-session/'
