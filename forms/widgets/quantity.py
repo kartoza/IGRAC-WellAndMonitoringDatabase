@@ -50,7 +50,7 @@ class QuantityInput(forms.widgets.Input):
         of this widget or None if it's not provided.
         """
         try:
-            if data['{}_id'.format(name)]:
+            if '{}_id'.format(name) in data and data['{}_id'.format(name)]:
                 quantity = Quantity.objects.get(
                     id=data['{}_id'.format(name)]
                 )

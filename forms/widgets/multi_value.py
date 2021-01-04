@@ -13,6 +13,8 @@ class MultiValueInput(forms.widgets.FileInput):
     def get_context(self, name, value, attrs):
         context = super(MultiValueInput, self).get_context(name, value, attrs)
         context['url'] = self.url
+        if value is None:
+            value = []
         context['value'] = ','.join(['{}'.format(val) for val in value])
         context['selected'] = self.selected(value)
         return context

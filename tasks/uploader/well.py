@@ -391,16 +391,16 @@ class WellMonitoringUploader(BatchUploader):
                 status='{}'.format(e)
             )
 
-
-@shared_task(bind=True, queue='update')
-def well_batch_upload(self, upload_session_token: str):
-    try:
-        upload_session = UploadSession.objects.get(token=upload_session_token)
-        if upload_session.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
-            WellUploader(upload_session).process()
-        elif upload_session.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
-            WellMonitoringUploader(upload_session).process()
-    except UploadSession.DoesNotExist:
-        logger.debug('Upload session does not exists')
-        return
-    return JsonResponse({'status': 'success'})
+#
+# @shared_task(bind=True, queue='update')
+# def well_batch_upload(self, upload_session_token: str):
+#     try:
+#         upload_session = UploadSession.objects.get(token=upload_session_token)
+#         if upload_session.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
+#             WellUploader(upload_session).process()
+#         elif upload_session.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
+#             WellMonitoringUploader(upload_session).process()
+#     except UploadSession.DoesNotExist:
+#         logger.debug('Upload session does not exists')
+#         return
+#     return JsonResponse({'status': 'success'})

@@ -1,3 +1,4 @@
+import json
 from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import reverse
@@ -13,6 +14,7 @@ from gwml2.models.upload_session import (
     UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
 )
 from gwml2.utilities import get_organisations_as_editor
+from gwml2.serializer.upload_session import UploadSessionSerializer
 
 
 class WellUploadView(LoginRequiredMixin, FormView):
@@ -55,13 +57,15 @@ class WellUploadView(LoginRequiredMixin, FormView):
             context['upload_session_file_name'] = (
                 upload_session.upload_file.name.split('/')[1]
             )
-        past_upload_sessions = UploadSession.objects.filter(
-            Q(is_canceled=True) |
-            Q(is_processed=True)
-        ).filter(
-            uploader=self.request.user.id
-        )
-        context['past_upload_sessions'] = past_upload_sessions[:5]
+        MAX = 10
+        context['past_upload'] = UploadSessionSerializer(
+            UploadSession.objects.filter(
+                Q(is_canceled=True) |
+                Q(is_processed=True)
+            ).filter(
+                uploader=self.request.user.id
+            )[:MAX], many=True).data
+        context['past_upload'] = json.dumps(context['past_upload'])
         return context
 
     def get_form_kwargs(self):
@@ -92,20 +96,23 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     organisation=form.cleaned_data['organisation'],
                     category=UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
                     upload_file=gw_well_file,
-                    uploader=request.user.id
+                    uploader=request.user.id,
+                    public=form.cleaned_data['public']
                 )
+                upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             elif gw_monitoring_file:
                 upload_session = UploadSession.objects.create(
                     organisation=form.cleaned_data['organisation'],
                     category=UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
                     upload_file=gw_monitoring_file,
-                    uploader=request.user.id
+                    uploader=request.user.id,
+                    public=form.cleaned_data['public']
                 )
+                upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             else:
                 return self.form_invalid(form)
 
-            well_batch_upload.delay(upload_session.token)
+            well_batch_upload.delay(upload_session.id)
             return self.form_valid(form)
-
         else:
             return self.form_invalid(form)

@@ -22,16 +22,17 @@ class WellMetadataGetForms(FormGroupGet):
 
 class WellMetadataCreateForm(FormGroupCreate):
     """ Collection form for general information section """
-    documents = []
 
     def create(self):
         """ create form from data
         """
-        self.form = self._make_form(
-            self.well, WellMetadataForm,
-            self.data['well_metadata']
-        )
+        if 'well_metadata' in self.data:
+            self.form = self._make_form(
+                self.well, WellMetadataForm,
+                self.data['well_metadata']
+            )
 
     def save(self):
         """ save all available data """
-        self.form.save()
+        if self.form:
+            self.form.save()

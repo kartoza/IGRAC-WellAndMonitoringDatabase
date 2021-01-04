@@ -8,6 +8,7 @@ import ntpath
 import uuid
 from datetime import datetime
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
 from gwml2.models.well_management.organisation import Organisation
 
@@ -19,6 +20,8 @@ UPLOAD_SESSION_CATEGORY = (
     (UPLOAD_SESSION_CATEGORY_WELL_UPLOAD, UPLOAD_SESSION_CATEGORY_WELL_UPLOAD),
     (UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD, UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD),
 )
+
+User = get_user_model()
 
 
 class UploadSession(models.Model):
@@ -54,6 +57,7 @@ class UploadSession(models.Model):
     )
 
     status = models.TextField(
+        help_text='What is the status of progress. Mostly it will split by added, error and skipped ',
         blank=True,
         null=True
     )
@@ -75,15 +79,34 @@ class UploadSession(models.Model):
         default=False
     )
 
+    # for permissions
+    affiliate_organisations = models.ManyToManyField(
+        Organisation, null=True, blank=True,
+        related_name='well_upload_affiliate_organisations'
+    )
+    public = models.BooleanField(
+        default=True,
+        help_text='indicate that well can be viewed by '
+                  'non organisation user'
+    )
+
     # noinspection PyClassicStyleClass
     class Meta:
         """Meta class for project."""
-        verbose_name_plural = 'Upload Sessions'
-        verbose_name = 'Upload Session'
+        verbose_name_plural = 'Upload sessions'
+        verbose_name = 'Upload session'
         ordering = ('-uploaded_at',)
+        db_table = 'upload_session'
 
     def __str__(self):
         return str(self.token)
+
+    def get_uploader(self):
+        """ return user of uploader """
+        try:
+            return User.objects.get(id=self.uploader)
+        except User.DoesNotExist:
+            return None
 
     def filename(self):
         """ return filename """
@@ -145,3 +168,30 @@ class UploadSession(models.Model):
         self.progress = progress
         self.status = status
         self.save()
+
+
+RowStatus = [
+    (0, 'Added'),
+    (1, 'Error'),
+    (2, 'Skipped')
+]
+
+
+class UploadSessionRowStatus(models.Model):
+    """ Check status data per row of upload """
+    upload_session = models.ForeignKey(
+        UploadSession, on_delete=models.CASCADE)
+    sheet_name = models.CharField(max_length=256)
+    row = models.IntegerField()
+    column = models.IntegerField()
+    status = models.IntegerField(
+        choices=RowStatus)
+    note = models.TextField(
+        null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name_plural = 'Upload sessions row statuses'
+        verbose_name = 'Upload session row status'
+        db_table = 'upload_session_row_status'
+        unique_together = ['upload_session', 'sheet_name', 'row', 'column']
