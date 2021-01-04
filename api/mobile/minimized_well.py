@@ -8,10 +8,13 @@ from rest_framework.views import APIView
 
 from gwml2.authentication import GWMLTokenAthentication
 from gwml2.models.well import Well
+from gwml2.models.term import TermWellStatus, TermWellPurpose, TermFeatureType
+from gwml2.models.term_measurement_parameter import TermMeasurementParameterGroup
+from gwml2.models.general import UnitGroup
 from gwml2.serializer.well.minimized_well import (
     WellMinimizedSerializer,
     WellMeasurementMinimizedSerializer)
-from gwml2.utilities import get_organisations_as_viewer
+from gwml2.utilities import get_organisations_as_viewer, get_organisations_as_editor
 
 
 class WellListMinimizedAPI(APIView):
@@ -52,9 +55,33 @@ class WellListMinimizedAPI(APIView):
         idx_end = idx_start + limit
         wells = wells[idx_start:idx_end]
 
-        return Response(
-            WellMinimizedSerializer(wells, many=True).data
-        )
+        # put terms in the output
+        terms = {}
+        for Model in [TermWellStatus, TermWellPurpose, TermFeatureType]:
+            terms[Model._meta.model_name] = [{
+                model.id: model.name
+            } for model in Model.objects.all()]
+        try:
+            terms['unit_length'] = [{
+                model.id: model.name
+            } for model in UnitGroup.objects.get(name='length').units.all()]
+        except UnitGroup.DoesNotExist:
+            terms['unit_length'] = []
+
+        measurement_parameters = {}
+        for group in TermMeasurementParameterGroup.objects.all():
+            measurement_parameters[group.name] = {}
+            for parameters in group.parameters.all():
+                measurement_parameters[group.name][parameters.name] = [
+                    unit.name for unit in parameters.units.all()
+                ]
+        terms['measurement_parameters'] = measurement_parameters
+        terms['organisation'] = [{org.id: org.name} for org in get_organisations_as_editor(request.user)]
+
+        return Response({
+            'terms': terms,
+            'wells': WellMinimizedSerializer(wells, many=True).data
+        })
 
 
 class WellMeasurementListMinimizedAPI(APIView):
