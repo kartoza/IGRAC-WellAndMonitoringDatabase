@@ -196,9 +196,9 @@ def download_well(self, download_session_id, filters=None):
     structure_sheet = drilling_and_construction_book['Structures']
 
     monitor_book = load_workbook(monitoring_file)
-    level_measurement_sheet = monitor_book['Level Measurement']
-    quality_measurement_sheet = monitor_book['Quality Measurement']
-    yield_measurement_sheet = monitor_book['Yield Measurement']
+    level_measurement_sheet = monitor_book['Groundwater Level']
+    quality_measurement_sheet = monitor_book['Groundwater Quality']
+    yield_measurement_sheet = monitor_book['Abstraction-Discharge']
 
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
@@ -208,9 +208,10 @@ def download_well(self, download_session_id, filters=None):
         general_information_sheet.append([
             well.original_id,
             well.name,
-            well.status.__str__() if well.status else '',
             well.feature_type.__str__() if well.feature_type else '',
             well.purpose.__str__() if well.purpose else '',
+            well.status.__str__() if well.status else '',
+            well.description,
             well.location.y,
             well.location.x,
             well.ground_surface_elevation.value if well.ground_surface_elevation else '',
@@ -219,7 +220,6 @@ def download_well(self, download_session_id, filters=None):
             well.top_borehole_elevation.unit.name if well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
             well.country.code if well.country else '',
             well.address,
-            well.description,
         ])
 
         # drilling and construction
