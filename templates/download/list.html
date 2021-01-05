@@ -17,13 +17,27 @@
             text-align: center;
             color: gray;
         }
+
+        .page-header {
+            margin-top: 0;
+        }
+
+        .col-md-8 {
+            padding-top: 30px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
     </style>
 {% endblock %}
 
 {% block body %}
-    <div class="page-header">
-        <h2>Download list</h2>
-    </div>
+    {% if object_list.count > 1 %}
+        <div class="page-header">
+            <h2>Download list</h2>
+        </div>
+    {% endif %}
     <div class="tab-content" id="search-content">
         <table class="table table-striped">
             <thead>
