@@ -29,6 +29,10 @@
         h2 {
             margin-top: 0;
         }
+
+        .progress {
+            background-color: transparent;
+        }
     </style>
 {% endblock %}
 
@@ -50,15 +54,15 @@
             </thead>
             <tbody>
             {% for object in object_list %}
-                <tr>
+                <tr id="{{ object.session.token }}">
                     <td><i class="fa fa-info-circle" data-toggle="tooltip" aria-hidden="true" title="" data-original-title="{% get_download_session_info object.session %}"></i></td>
                     <td>{{ object.session.start_at }}</td>
-                    <td style="width: 50%">
-                        {% if object.session.file %}
+                    <td class="progress" style="width: 50%">
+                        {% if object.session.progress == 100 %}
                             <a href="{{ object.session.file.url }}">{{ object.session.token }}</a>
                         {% else %}
                             <div style="width: 100%;  border: 1px solid #ddd;">
-                                <div style="width: {{ object.session.progress }}%; padding: 2px; padding-left: 10px; background-color: #ddd; font-size: 12px; font-weight: bold;">
+                                <div class="progress-loading" style="width: {{ object.session.progress }}%; padding: 2px; padding-left: 10px; background-color: #ddd; font-size: 12px; font-weight: bold;">
                                     {{ object.session.progress }}%
                                 </div>
                             </div>
@@ -81,5 +85,40 @@
 {% endblock %}
 
 {% block extra_script %}
+    <script>
+        let unfinished = []
 
+        function update() {
+            $.each(unfinished, function (index, token) {
+                let $progress = $(`#${token} .progress`);
+                if ($progress.find('.progress-loading').length > 0) {
+                    let url = '/groundwater/download-session/' + token;
+                    $.ajax({
+                        url: url,
+                        type: "GET",
+                        success: function (data) {
+                            if (data.progress === 100) {
+                                $progress.html(`<a href="${data.url}">${token}</a>`)
+                            } else {
+                                $progress.find('.progress-loading').css('width', `${data.progress}%`);
+                                $progress.find('.progress-loading').html(`${data.progress}%`);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            {% for object in object_list %}
+                {% if object.session.progress != 100 %}
+                    unfinished.push('{{ object.session.token }}');
+                {% endif %}
+            {% endfor %}
+
+            let progressInterval = setInterval(function () {
+                update()
+            }, 1000);
+        })
+    </script>
 {% endblock extra_script %}

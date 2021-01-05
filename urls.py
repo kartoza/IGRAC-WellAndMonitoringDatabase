@@ -99,9 +99,6 @@ urlpatterns = [
     url(r'^well/', include(well_url)),
     url(r'^user/', include(user_url)),
     url(r'^organisation/', include(organisation_url)),
-    url(r'^download',
-        view=DownloadListView.as_view(),
-        name='download_list_view'),
     url(r'^upload-session/'
         r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
@@ -115,4 +112,7 @@ urlpatterns = [
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
         view=DownloadSessionApiView.as_view(),
         name='download_session_progress'),
+    url(r'^download$',
+        view=DownloadListView.as_view(),
+        name='download_list_view'),
 ]
