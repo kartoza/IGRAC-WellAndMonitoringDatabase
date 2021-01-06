@@ -79,6 +79,12 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         help_text='indicate that well can be downloaded'
     )
 
+    # number of measurement
+    number_of_measurements = models.IntegerField(
+        default=0,
+        help_text='Indicate how many measurement this well has'
+    )
+
     def __str__(self):
         return self.original_id
 

@@ -62,6 +62,25 @@ def pre_save_well(sender, instance, **kwargs):
 def post_delete_measurement(sender, instance, **kwargs):
     if instance.value:
         instance.value.delete()
+        try:
+            instance.well.number_of_measurements -= 1
+            instance.well.updated()
+        except Well.DoesNotExist:
+            pass
+
+
+@receiver(pre_save, sender=WellLevelMeasurement)
+@receiver(pre_save, sender=WellQualityMeasurement)
+@receiver(pre_save, sender=WellYieldMeasurement)
+def pre_save_measurement(sender, instance, **kwargs):
+    """ when changed
+    :type instance: WellLevelMeasurement
+    """
+    try:
+        if not instance.id:
+            instance.well.number_of_measurements += 1
+    except Well.DoesNotExist:
+        pass
 
 
 @receiver(post_save, sender=WellLevelMeasurement)
