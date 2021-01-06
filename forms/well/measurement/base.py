@@ -1,3 +1,4 @@
+from datetime import datetime
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
@@ -54,6 +55,8 @@ class BaseMeasurementForm(WellBaseForm):
         :return: Form
         :rtype: BaseMeasurementForm
         """
+        if type(data['time']) == int:
+            data['time'] = datetime.fromtimestamp(data['time'])
         return BaseMeasurementForm(data, files, instance=instance)
 
     @staticmethod

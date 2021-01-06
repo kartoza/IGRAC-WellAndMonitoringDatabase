@@ -76,11 +76,13 @@ function parameterChanged($inputParameter, $inputUnit, $inputValue) {
 
 function initRowData($row) {
     let $inputTime = $row.find('input[name="time"]');
-    $inputTime.attr('autocomplete', 'off');
-    $inputTime.datetimepicker({
-        formatTime: 'H:i',
-        format: 'Y-m-d H:i',
-    });
+    if ($inputTime.length > 0) {
+        $inputTime.attr('autocomplete', 'off');
+        $inputTime.datetimepicker({
+            formatTime: 'H:i',
+            format: 'Y-m-d H:i',
+        });
+    }
 
     // parameters
     let $inputParameter = $row.find('select[name="parameter"]');

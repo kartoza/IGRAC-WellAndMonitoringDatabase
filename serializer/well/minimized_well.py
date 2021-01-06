@@ -8,10 +8,11 @@ class WellMeasurementMinimizedSerializer(WellSerializer, serializers.ModelSerial
     par = serializers.SerializerMethodField()
     mt = serializers.SerializerMethodField()
     v = serializers.SerializerMethodField()
+    u = serializers.SerializerMethodField()
 
     class Meta:
         model = WellLevelMeasurement
-        fields = ['id', 'dt', 'par', 'mt', 'v']
+        fields = ['id', 'dt', 'par', 'mt', 'v', 'u']
 
     def get_dt(self, obj):
         return obj.time.timestamp()
@@ -24,6 +25,9 @@ class WellMeasurementMinimizedSerializer(WellSerializer, serializers.ModelSerial
 
     def get_v(self, obj):
         return self.get_length_to_meter(obj.value)
+
+    def get_u(self, obj):
+        return self.get_val(obj.value.unit.name) if obj.value and obj.value.unit else ''
 
 
 class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):

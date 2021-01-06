@@ -83,6 +83,16 @@ class WellView(ViewWellFormMixin, View):
 
 class WellEditing(object):
     """ Contains function to create/edit well"""
+    general_information = None
+    geology = None
+    drilling = None
+    construction = None
+    hydrogeology = None
+    management = None
+    yield_measurement = None
+    quality_measurement = None
+    level_measurement = None
+    well_metadata = None
 
     @transaction.atomic
     def edit_well(self, well, data, FILES, user):
@@ -107,36 +117,36 @@ class WellEditing(object):
             general_information.save()
             well = general_information.form.instance
 
-        general_information = GeneralInformationCreateForm(well, data, FILES)
-        geology = GeologyCreateForm(well, data, FILES)
-        drilling = DrillingCreateForm(well, data, FILES)
-        construction = ConstructionCreateForm(well, data, FILES)
-        hydrogeology = HydrogeologyCreateForm(well, data, FILES)
-        management = ManagementCreateForm(well, data, FILES)
-        yield_measurement = YieldMeasurementCreateForm(well, data, FILES)
-        quality_measurement = QualityMeasurementCreateForm(well, data, FILES)
-        level_measurement = LevelMeasurementCreateForm(well, data, FILES)
+        self.general_information = GeneralInformationCreateForm(well, data, FILES)
+        self.geology = GeologyCreateForm(well, data, FILES)
+        self.drilling = DrillingCreateForm(well, data, FILES)
+        self.construction = ConstructionCreateForm(well, data, FILES)
+        self.hydrogeology = HydrogeologyCreateForm(well, data, FILES)
+        self.management = ManagementCreateForm(well, data, FILES)
+        self.yield_measurement = YieldMeasurementCreateForm(well, data, FILES)
+        self.quality_measurement = QualityMeasurementCreateForm(well, data, FILES)
+        self.level_measurement = LevelMeasurementCreateForm(well, data, FILES)
 
         if not well.created_by:
             well.created_by = user.id
         well.last_edited_by = user.id
         well.save()
 
-        well_metadata = WellMetadataCreateForm(well, data, FILES)
+        self.well_metadata = WellMetadataCreateForm(well, data, FILES)
 
         # -----------------------------------------
         # save all forms
         # -----------------------------------------
-        geology.save()
-        construction.save()
-        drilling.save()
-        management.save()
-        hydrogeology.save()
-        yield_measurement.save()
-        quality_measurement.save()
-        level_measurement.save()
-        general_information.save()
-        well_metadata.save()
+        self.geology.save()
+        self.construction.save()
+        self.drilling.save()
+        self.management.save()
+        self.hydrogeology.save()
+        self.yield_measurement.save()
+        self.quality_measurement.save()
+        self.level_measurement.save()
+        self.general_information.save()
+        self.well_metadata.save()
 
         return well
 
