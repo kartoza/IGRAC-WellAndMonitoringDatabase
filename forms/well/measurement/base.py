@@ -3,7 +3,8 @@ from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.forms.well.base import WellBaseForm
-from gwml2.models.term_measurement_parameter import TermMeasurementParameterGroup
+from gwml2.models.term_measurement_parameter import (
+    TermMeasurementParameterGroup, TermMeasurementParameter)
 from gwml2.models.well import WellLevelMeasurement
 
 
@@ -57,6 +58,16 @@ class BaseMeasurementForm(WellBaseForm):
         """
         if type(data['time']) == int:
             data['time'] = datetime.fromtimestamp(data['time'])
+
+        # if parameter is string
+        try:
+            int(data['parameter'])
+        except ValueError:
+            try:
+                data['parameter'] = TermMeasurementParameter.objects.get(name=data['parameter']).id
+            except TermMeasurementParameter.DoesNotExist:
+                pass
+
         return BaseMeasurementForm(data, files, instance=instance)
 
     @staticmethod
