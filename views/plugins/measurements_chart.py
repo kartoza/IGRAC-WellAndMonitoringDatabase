@@ -65,3 +65,24 @@ class MeasurementChart(ViewWellFormMixin, View):
                 'parameters': parameters
             }
         )
+
+
+class MeasurementChartIframe(ViewWellFormMixin, View):
+    def get(self, request, *args, **kwargs):
+        id = kwargs['id']
+        model = kwargs['model']
+        well = get_object_or_404(Well, id=id)
+
+        if model != 'WellLevelMeasurement' and model != 'WellQualityMeasurement' and model != 'WellYieldMeasurement':
+            return HttpResponseBadRequest('Model is not measurements')
+
+        return render(
+            request,
+            'plugins/measurements_chart_iframe.html',
+            {
+                'url': reverse('well-measurement-chart', kwargs={
+                    'id': id,
+                    'model': model
+                })
+            }
+        )

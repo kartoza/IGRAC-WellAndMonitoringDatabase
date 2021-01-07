@@ -19,7 +19,7 @@ from gwml2.api.well_downloader import WellDownloader
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.download import DownloadListView
 from gwml2.views.organisation import OrganisationFormView, OrganisationListView
-from gwml2.views.plugins.measurements_chart import MeasurementChart
+from gwml2.views.plugins.measurements_chart import MeasurementChart, MeasurementChartIframe
 from gwml2.views.upload_session import UploadSessionDetailView
 from gwml2.views.well_uploader import WellUploadView
 
@@ -31,6 +31,7 @@ well_relation = [
 well_detail_urls = [
     url(r'^(?P<model>[\w\+%_& ]+)/(?P<model_id>\d+)/', include(well_relation)),
     url(r'^(?P<model>[\w\+%_& ]+)/list', WellRelationListView.as_view(), name='well-relation-list'),
+    url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart/iframe', MeasurementChartIframe.as_view(), name='well-measurement-chart-iframe'),
     url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart', MeasurementChart.as_view(), name='well-measurement-chart'),
     url(r'^measurements/(?P<model>[\w\+%_& ]+)', WellMeasurements.as_view(), name='well-measurement-list'),
     url(r'^edit',
