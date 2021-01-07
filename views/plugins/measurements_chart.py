@@ -13,15 +13,31 @@ xframe_options_exempt_m = method_decorator(
     xframe_options_exempt, name='dispatch')
 
 
-class MeasurementChart(ViewWellFormMixin, View):
+class MeasurementChart(View):
+
     @xframe_options_sameorigin
     def get(self, request, *args, **kwargs):
         id = kwargs['id']
         model = kwargs['model']
-        well = get_object_or_404(Well, id=id)
+
+        error = ''
+        try:
+            well = Well.objects.get(id=id)
+            if well.editor_permission(request.user) or well.view_permission(request.user):
+                pass
+            else:
+                error = "You don't have permission to access this well."
+        except Well.DoesNotExist:
+            error = "Well does not found"
 
         if model != 'WellLevelMeasurement' and model != 'WellQualityMeasurement' and model != 'WellYieldMeasurement':
-            return HttpResponseBadRequest('Model is not measurements')
+            error = "Model is not measurements"
+
+        if error:
+            return render(
+                request,
+                'plugins/measurements_chart_error.html',
+                {'error': error})
 
         if model == 'WellLevelMeasurement':
             group_name = 'Level Measurement'
@@ -67,7 +83,7 @@ class MeasurementChart(ViewWellFormMixin, View):
         )
 
 
-class MeasurementChartIframe(ViewWellFormMixin, View):
+class MeasurementChartIframe(View):
     def get(self, request, *args, **kwargs):
         id = kwargs['id']
         model = kwargs['model']

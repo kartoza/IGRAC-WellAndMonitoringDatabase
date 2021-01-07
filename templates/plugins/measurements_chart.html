@@ -17,7 +17,11 @@
 <div id="canvas">
     <canvas id="{{ identifier }}-chart"></canvas>
 </div>
-<div id="loading"></div>
+<div id="loading">
+    <div id="loader-wrapper">
+        <div class="loader">Loading...</div>
+    </div>
+</div>
 <script>
     {# save parameters #}
     const url = '{{ url }}';
