@@ -1,4 +1,8 @@
 function unitConvert(unitFrom, unitTo, value) {
+    if (value === undefined || value === null || value === '') {
+        return value
+    }
+
     value = parseFloat(value)
     // unit from
     switch (unitFrom) {

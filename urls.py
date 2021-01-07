@@ -8,16 +8,18 @@ from gwml2.api.authentication import TokenAuth
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.user import UserUUIDAPI
 from gwml2.api.mobile.minimized_well import WellListMinimizedAPI, WellMeasurementListMinimizedAPI
-from gwml2.api.well import WellEditAPI
-from gwml2.api.well_downloader import WellDownloader
 from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.download_session import DownloadSessionApiView
 from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.user import UserAutocompleteAPI
+from gwml2.api.well import WellEditAPI
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
+from gwml2.api.well_measurement import WellMeasurements
+from gwml2.api.well_downloader import WellDownloader
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.download import DownloadListView
 from gwml2.views.organisation import OrganisationFormView, OrganisationListView
+from gwml2.views.plugins.measurements_chart import MeasurementChart
 from gwml2.views.upload_session import UploadSessionDetailView
 from gwml2.views.well_uploader import WellUploadView
 
@@ -29,6 +31,8 @@ well_relation = [
 well_detail_urls = [
     url(r'^(?P<model>[\w\+%_& ]+)/(?P<model_id>\d+)/', include(well_relation)),
     url(r'^(?P<model>[\w\+%_& ]+)/list', WellRelationListView.as_view(), name='well-relation-list'),
+    url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart', MeasurementChart.as_view(), name='well-measurement-chart'),
+    url(r'^measurements/(?P<model>[\w\+%_& ]+)', WellMeasurements.as_view(), name='well-measurement-list'),
     url(r'^edit',
         view=WellFormView.as_view(),
         name='well_form'),

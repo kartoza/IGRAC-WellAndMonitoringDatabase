@@ -1,0 +1,100 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart.css' %}">
+    <script src="{% static "lib/js/moment-with-locales.js" %}"></script>
+    <script src="{% static 'js/jquery/3.5.1/jquery.min.js' %}"></script>
+    <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
+    <script src="{% static 'gwml2/js/measurements_chart.js' %}"></script>
+    <script src="{% static "js/chartjs/2.8.0/chartjs.min.js" %}"></script>
+</head>
+<body>
+<select id="parameters"></select>
+<select id="units"></select>
+<br>
+<br>
+<div id="canvas">
+    <canvas id="{{ identifier }}-chart"></canvas>
+</div>
+<div id="loading"></div>
+<script>
+    {# save parameters #}
+    const url = '{{ url }}';
+    const $parameters = $('#parameters');
+    const $units = $('#units');
+    const $loading = $('#loading');
+
+    let identifier = '{{ identifier }}';
+    let top_borehole_elevation = {{ top_borehole_elevation|safe }};
+    let ground_surface_elevation = {{ ground_surface_elevation|safe }};
+    let SET = 1;
+    let DATA = [];
+    let parameters ={{ parameters|safe }};
+
+    function render(unit_to, parameter_to) {
+        const cleanData = convertMeasurementData(
+            DATA, unit_to, parameter_to,
+            unitConvert(
+                top_borehole_elevation.u, unit_to, top_borehole_elevation.v
+            ),
+            unitConvert(
+                ground_surface_elevation.u, unit_to, ground_surface_elevation.v
+            )
+        )
+        renderMeasurementChart(identifier, cleanData, 'Time', parameter_to)
+    }
+
+    function renderChart(unit_to, parameter_to) {
+        if (identifier === 'WellLevelMeasurement' && DATA.length > 0) {
+            render(unit_to, parameter_to);
+        } else {
+            $loading.show();
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                data: {
+                    set: SET
+                },
+                success: function (data, textStatus, request) {
+                    DATA = [];
+                    DATA = data.data;
+                    render(unit_to, parameter_to);
+                    $loading.hide();
+                },
+                error: function (error, textStatus, request) {
+                }
+            })
+        }
+    }
+
+    function dataChanged() {
+        let unit_to = $units.find(":selected").text();
+        let parameter_to = $parameters.find(":selected").text();
+        renderChart(unit_to, parameter_to)
+    }
+
+    $.each(parameters, function (key, value) {
+        $parameters.append(`<option value="${key}">${value.name}</option>`)
+    });
+    $parameters.change(function () {
+        const parameter = parameters[$(this).val()];
+        $units.html('');
+        $.each(parameter.units, function (key, value) {
+            $units.append(`<option value="${key}">${value}</option>`)
+        });
+        dataChanged();
+    })
+    $units.change(function () {
+        dataChanged();
+    })
+
+    {# let's we call the ajax#}
+    $(document).ready(function () {
+        $parameters.trigger('change');
+        dataChanged();
+
+    })
+</script>
+</body>
+</html>
