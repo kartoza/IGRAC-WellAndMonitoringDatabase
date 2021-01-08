@@ -36,6 +36,10 @@ class WellListMinimizedAPI(APIView):
             wells = wells.filter(last_edited_at__lte=datetime.fromtimestamp(
                 int(request.GET.get('to')))
             )
+
+        if request.GET.get('pks', None):
+            wells = wells.filter(id__in=request.GET.get('pks').split(','))
+
         # check the page
         try:
             page = int(request.GET.get('page', '1'))
