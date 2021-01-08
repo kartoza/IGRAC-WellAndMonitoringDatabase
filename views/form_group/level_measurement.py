@@ -1,3 +1,4 @@
+from django.urls import reverse
 from gwml2.forms import WellLevelMeasurementForm
 from gwml2.models.well import WellLevelMeasurement
 from gwml2.views.form_group.form_group import FormGroupGet, FormGroupCreate
@@ -11,8 +12,14 @@ class LevelMeasurementGetForms(FormGroupGet):
         :return: dictionary of forms
         :rtype: dict
         """
+        form = WellLevelMeasurementForm()
+        if self.well.id:
+            form.url_chart = reverse(
+                'well-measurement-chart',
+                kwargs={
+                    'id': self.well.id, 'model': 'WellLevelMeasurement'})
         return {
-            'level_measurement': WellLevelMeasurementForm(),  # manytomany form
+            'level_measurement': form,  # manytomany form
         }
 
 
