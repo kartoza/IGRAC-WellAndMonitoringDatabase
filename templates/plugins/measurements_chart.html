@@ -10,10 +10,23 @@
     <script src="{% static "js/chartjs/2.8.0/chartjs.min.js" %}"></script>
 </head>
 <body>
-<select id="parameters"></select>
-<select id="units"></select>
-<br>
-<br>
+<div style="width: 100%; margin-bottom: 20px">
+    <select id="parameters"></select>
+    <select id="units"></select>
+    <div class="nav-right">
+        <button id="load-more">Load more</button>
+        {# TODO : ask if it has min/max/median, #}
+        {#   it's quite a big process because 1 #}
+        {# range can has multiple unit that need to be calculated one by one #}
+        <select id="time-range" style="display: none">
+            <option value="hourly">Hourly for last 100 data</option>
+            <option value="daily">Daily for last 100 days</option>
+            <option value="weekly">Weekly for last year</option>
+            <option value="monthly">Monthly for 10 year</option>
+            <option value="yearly">Yearly for all time</option>
+        </select>
+    </div>
+</div>
 <div id="canvas">
     <canvas id="{{ identifier }}-chart"></canvas>
 </div>
@@ -28,54 +41,82 @@
     const $parameters = $('#parameters');
     const $units = $('#units');
     const $loading = $('#loading');
+    const $timeRange = $('#time-range');
+    const $loadMore = $('#load-more');
 
     let identifier = '{{ identifier }}';
     let top_borehole_elevation = {{ top_borehole_elevation|safe }};
     let ground_surface_elevation = {{ ground_surface_elevation|safe }};
-    let SET = 1;
-    let DATA = [];
     let parameters ={{ parameters|safe }};
 
-    function render(unit_to, parameter_to) {
+    let UNIT_TO = null;
+    let PARAMETER_TO = null;
+    let TIME_RANGE = null;
+
+    let DATA = {};
+
+    function render(unitTo, parameterTo, timeRange) {
+        let usedData = DATA[timeRange];
+        if (usedData.end) {
+            $loadMore.attr('disabled', 'disabled')
+        } else {
+            $loadMore.removeAttr('disabled')
+        }
         const cleanData = convertMeasurementData(
-            DATA, unit_to, parameter_to,
+            usedData.data, unitTo, parameterTo,
             unitConvert(
-                top_borehole_elevation.u, unit_to, top_borehole_elevation.v
+                top_borehole_elevation.u, unitTo, top_borehole_elevation.v
             ),
             unitConvert(
-                ground_surface_elevation.u, unit_to, ground_surface_elevation.v
+                ground_surface_elevation.u, unitTo, ground_surface_elevation.v
             )
         )
-        renderMeasurementChart(identifier, cleanData, 'Time', parameter_to)
+        renderMeasurementChart(identifier, cleanData, 'Time', parameterTo)
     }
 
-    function renderChart(unit_to, parameter_to) {
-        if (identifier === 'WellLevelMeasurement' && DATA.length > 0) {
-            render(unit_to, parameter_to);
-        } else {
-            $loading.show();
-            $.ajax({
-                url: url,
-                dataType: 'json',
-                data: {
-                    set: SET
-                },
-                success: function (data, textStatus, request) {
-                    DATA = [];
-                    DATA = data.data;
-                    render(unit_to, parameter_to);
+    function fetchChart(unitTo, parameterTo, timeRange) {
+        let usedData = DATA[timeRange];
+        $loading.show();
+        $loadMore.attr('disabled', 'disabled')
+        $.ajax({
+            url: url,
+            dataType: 'json',
+            data: {
+                page: usedData.page,
+                timerange: timeRange
+            },
+            success: function (data, textStatus, request) {
+                usedData.page += 1;
+                usedData.data = usedData.data.concat(data.data);
+                usedData.end = data.end;
+                if (unitTo === UNIT_TO && PARAMETER_TO === parameterTo && TIME_RANGE === timeRange) {
+                    render(unitTo, parameterTo, timeRange);
                     $loading.hide();
-                },
-                error: function (error, textStatus, request) {
                 }
-            })
-        }
+            },
+            error: function (error, textStatus, request) {
+            }
+        })
     }
 
-    function dataChanged() {
-        let unit_to = $units.find(":selected").text();
-        let parameter_to = $parameters.find(":selected").text();
-        renderChart(unit_to, parameter_to)
+    function selectionChanged(force) {
+        let unitTo = $units.find(":selected").text();
+        let parameterTo = $parameters.find(":selected").text();
+        let timeRange = $timeRange.val();
+        if (unitTo !== UNIT_TO || PARAMETER_TO !== parameterTo || TIME_RANGE !== timeRange) {
+            UNIT_TO = unitTo;
+            PARAMETER_TO = parameterTo;
+            TIME_RANGE = timeRange;
+            if (!DATA[timeRange]) {
+                DATA[timeRange] = {
+                    data: [],
+                    page: 1
+                }
+                fetchChart(unitTo, parameterTo, timeRange)
+            } else {
+                render(unitTo, parameterTo, timeRange)
+            }
+        }
     }
 
     $.each(parameters, function (key, value) {
@@ -87,16 +128,22 @@
         $.each(parameter.units, function (key, value) {
             $units.append(`<option value="${key}">${value}</option>`)
         });
-        dataChanged();
+        selectionChanged();
     })
     $units.change(function () {
-        dataChanged();
+        selectionChanged();
+    })
+    $timeRange.change(function () {
+        selectionChanged();
+    })
+    $loadMore.click(function () {
+        fetchChart(UNIT_TO, PARAMETER_TO, TIME_RANGE)
     })
 
     {# let's we call the ajax#}
     $(document).ready(function () {
         $parameters.trigger('change');
-        dataChanged();
+        selectionChanged();
 
     })
 </script>

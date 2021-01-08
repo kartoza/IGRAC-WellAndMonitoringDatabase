@@ -278,9 +278,7 @@ class Command(BaseCommand):
                         data=row_data,
                         additional_data={
                             'created_by': self.admin_id,
-                            'last_edited_by': self.admin_id,
-                            'description': json.dumps(
-                                self.well_data[ground_station[CODE]])
+                            'last_edited_by': self.admin_id
                         }
                     )
                     print('Well {name}, Status : {status}'.format(

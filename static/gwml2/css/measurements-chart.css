@@ -137,3 +137,14 @@ select {
         transform: rotate(360deg);
     }
 }
+
+.nav-right {
+    width: auto;
+    display: inline-block;
+    float: right;
+}
+
+button {
+    cursor: pointer;
+    height: 31px;
+}
