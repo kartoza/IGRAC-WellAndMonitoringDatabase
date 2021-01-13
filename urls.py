@@ -91,7 +91,7 @@ urlpatterns = [
     url(r'^token-auth',
         view=TokenAuth.as_view(),
         name='gwml2-token-aut'),
-    url(r'^well-upload',
+    url(r'^batch-upload',
         view=WellUploadView.as_view(),
         name='well_upload_view'),
     url(r'^progress-upload',
@@ -101,7 +101,7 @@ urlpatterns = [
         view=TaskProgress.as_view(),
         name='task_progress'),
     url(r'^api/', include(api_url)),
-    url(r'^well/', include(well_url)),
+    url(r'^record/', include(well_url)),
     url(r'^user/', include(user_url)),
     url(r'^organisation/', include(organisation_url)),
     url(r'^upload-session/'
