@@ -5,9 +5,10 @@ from django.views.generic import View
 from django.views.decorators.clickjacking import (
     xframe_options_exempt, xframe_options_sameorigin,
 )
-from gwml2.mixin import ViewWellFormMixin
+from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameterGroup
 from gwml2.models.well import Well
+from gwml2.serializer.unit import UnitSerializer
 
 xframe_options_exempt_m = method_decorator(
     xframe_options_exempt, name='dispatch')
@@ -51,14 +52,16 @@ class MeasurementChart(View):
         parameters = {
             measurement.id: {
                 'units': [
-                    unit.name for unit in measurement.units.all()],
+                    unit.id for unit in measurement.units.all()],
                 'name': measurement.name
             } for measurement in TermMeasurementParameterGroup.objects.get(name=group_name).parameters.all()
         }
 
+        units = {unit.id: UnitSerializer(unit).data for unit in Unit.objects.order_by('id')}
+
         return render(
             request,
-            'plugins/measurements_chart.html',
+            'plugins/measurements_chart_page.html',
             {
                 'id': id,
                 'identifier': model,
@@ -78,7 +81,8 @@ class MeasurementChart(View):
                     'v': well.ground_surface_elevation.value if
                     well.ground_surface_elevation else '',
                 },
-                'parameters': parameters
+                'parameters': parameters,
+                'units': units
             }
         )
 

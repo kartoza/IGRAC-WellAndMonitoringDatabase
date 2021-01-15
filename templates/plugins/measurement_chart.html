@@ -1,0 +1,50 @@
+<div id="{{ identifier }}-cw">
+    <div style="width: 100%; margin-bottom: 20px">
+        <select id="parameters"></select>
+        <select id="units"></select>
+        <div class="nav-right">
+            <button id="load-more">Load more</button>
+            {# TODO : ask if it has min/max/median, #}
+            {#   it's quite a big process because 1 #}
+            {# range can has multiple unit that need to be calculated one by one #}
+            <select id="time-range" style="display: none">
+                <option value="hourly">Hourly for last 100 data</option>
+                <option value="daily">Daily for last 100 days</option>
+                <option value="weekly">Weekly for last year</option>
+                <option value="monthly">Monthly for 10 year</option>
+                <option value="yearly">Yearly for all time</option>
+            </select>
+        </div>
+    </div>
+    <div id="canvas">
+        <canvas id="{{ identifier }}-chart"></canvas>
+    </div>
+    <div id="loading">
+        <div id="loader-wrapper">
+            <div class="loader">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    {# let's we call the ajax#}
+    let parameters ={{ parameters|safe }};
+    let units ={{ units|safe }};
+    $(document).ready(function () {
+        {# save parameters #}
+        const $parameters = $('#{{ identifier }}-cw #parameters');
+        $.each(parameters, function (key, value) {
+            $parameters.append(`<option value="${key}">${value.name}</option>`)
+        });
+
+        new MeasurementChartObj(
+            '{{ identifier }}', {{ top_borehole_elevation|safe }}, {{ ground_surface_elevation|safe }}, '{{ url }}', parameters, units,
+            $('#{{ identifier }}-cw #loading'),
+            $('#{{ identifier }}-cw #load-more'),
+            $('#{{ identifier }}-cw #units'),
+            $parameters,
+            $('#{{ identifier }}-cw #time-range')
+        )
+
+    })
+</script>
