@@ -1,40 +1,29 @@
-html, body, #measurement-chart {
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    overflow: hidden;
-}
-
-body {
+.measurement-chart-plugin {
     position: relative;
 }
 
-select {
-    border: 1px solid #cac8c8 !important;
-    padding: 0 6px;
-    height: 31px;
-    line-height: 31px;
-    border-radius: 2px;
-    box-sizing: border-box;
+.measurement-chart-plugin .nav-right {
+    width: auto;
+    display: inline-block;
+    float: right;
+}
 
-    -webkit-appearance: none;
-    -moz-appearance: window;
-    background-image: url("/static/img/drop.png");
-    background-repeat: no-repeat;
-    background-position: right 5px center;
-    padding-right: 30px;
-    vertical-align: bottom;
-
-    background: white;
+.measurement-chart-plugin .nav-right button {
     cursor: pointer;
+    height: 31px;
 }
 
-#canvas {
-    width: 100%;
+.measurement-chart-plugin .nav-right button:disabled {
+    opacity: 0.5;
+}
+
+/* TODO : delete this after the time range working fine*/
+.nav-right .select2 {
+    display: none;
 }
 
 
-#loading {
+.measurement-chart-plugin #loading {
     position: absolute;
     width: 100%;
     height: 100%;
@@ -44,7 +33,7 @@ select {
     display: none;
 }
 
-#loader-wrapper {
+.measurement-chart-plugin #loader-wrapper {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -54,7 +43,7 @@ select {
     margin-top: -50px;
 }
 
-.loader {
+.measurement-chart-plugin .loader {
     color: #555;
     font-size: 90px;
     text-indent: -9999em;
@@ -136,15 +125,4 @@ select {
         -webkit-transform: rotate(360deg);
         transform: rotate(360deg);
     }
-}
-
-.nav-right {
-    width: auto;
-    display: inline-block;
-    float: right;
-}
-
-button {
-    cursor: pointer;
-    height: 31px;
 }

@@ -1,4 +1,4 @@
-<div id="{{ identifier }}-cw">
+<div id="{{ identifier }}-cw" class="measurement-chart-plugin">
     <div style="width: 100%; margin-bottom: 20px">
         <select id="parameters"></select>
         <select id="units"></select>
@@ -25,26 +25,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    {# let's we call the ajax#}
-    let parameters ={{ parameters|safe }};
-    let units ={{ units|safe }};
-    $(document).ready(function () {
-        {# save parameters #}
-        const $parameters = $('#{{ identifier }}-cw #parameters');
-        $.each(parameters, function (key, value) {
-            $parameters.append(`<option value="${key}">${value.name}</option>`)
-        });
-
-        new MeasurementChartObj(
-            '{{ identifier }}', {{ top_borehole_elevation|safe }}, {{ ground_surface_elevation|safe }}, '{{ url }}', parameters, units,
-            $('#{{ identifier }}-cw #loading'),
-            $('#{{ identifier }}-cw #load-more'),
-            $('#{{ identifier }}-cw #units'),
-            $parameters,
-            $('#{{ identifier }}-cw #time-range')
-        )
-
-    })
-</script>

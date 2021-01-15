@@ -5,9 +5,11 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.generic.base import View
 from gwml2.mixin import ViewWellFormMixin, EditWellFormMixin
+from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.reference_elevation import TermReferenceElevationType
 from gwml2.models.well import Well
+from gwml2.serializer.unit import UnitSerializer
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.form_group.general_information import (
     GeneralInformationGetForms, GeneralInformationCreateForm
@@ -52,9 +54,29 @@ class WellView(ViewWellFormMixin, View):
             'parameters': {
                 measurement.id: [unit.name for unit in measurement.units.all()] for measurement in TermMeasurementParameter.objects.all()
             },
+            'parameters_chart': {
+                measurement.id: {
+                    'units': [
+                        unit.id for unit in measurement.units.all()],
+                    'name': measurement.name
+                } for measurement in TermMeasurementParameter.objects.all()
+            },
+            'units': {unit.id: UnitSerializer(unit).data for unit in Unit.objects.order_by('id')},
             'reference_elevations': {
                 type.id: type.name for type in TermReferenceElevationType.objects.all()
-            }
+            },
+            'top_borehole_elevation': {
+                'u': well.top_borehole_elevation.unit.name if
+                well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
+                'v': well.top_borehole_elevation.value if
+                well.top_borehole_elevation else '',
+            },
+            'ground_surface_elevation': {
+                'u': well.ground_surface_elevation.unit.name if
+                well.ground_surface_elevation and well.ground_surface_elevation.unit else '',
+                'v': well.ground_surface_elevation.value if
+                well.ground_surface_elevation else '',
+            },
         }
         if well.pk and not well.ggis_uid:
             well.save()

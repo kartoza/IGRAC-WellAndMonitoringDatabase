@@ -14,15 +14,5 @@
         ></i>
     </h4>
     {% include "groundwater_form/_many-to-many-table.html" %}
-    {% if use_chart and theform.url_chart %}
-        <div id="{{ id }}_chart" class="chart measurement-chart">
-            <iframe src="{{ theform.url_chart }}" style="border: none"></iframe>
-            <i style="display: inline-block;
-                color: #888;
-                font-size: 12px;
-                margin-top: 10px;">
-                This chart is coming from the database. New / updated data that are in current form needs to be saved to make it show on chart.***
-            </i>
-        </div>
-    {% endif %}
+    {% include "groundwater_form/_many-to-many-chart.html" %}
 </div>

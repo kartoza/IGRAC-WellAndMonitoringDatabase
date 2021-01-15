@@ -154,6 +154,14 @@ function fetchManyToMany($element, set) {
     let $manyToMany = $element.closest('.many-to-many');
     let $table = $element.find('table');
     $wrapper.attr('disabled', true);
+
+    // show loading on chart
+    const chart = measurementCharts[$manyToMany.attr('id')];
+    if (chart) {
+        chart.$loading.show();
+        chart.$loadMore.attr('disabled', 'disabled')
+    }
+
     return $.ajax({
         url: $element.data('fetchurl'),
         dataType: 'json',
@@ -177,6 +185,7 @@ function fetchManyToMany($element, set) {
             });
             makeReadOnly();
             $wrapper.data('set', data['set']);
+            $wrapper.data('end', data['end']);
             if (!data['end']) {
                 $wrapper.attr('disabled', false);
             }
@@ -184,6 +193,11 @@ function fetchManyToMany($element, set) {
             // render well chart
             if ($manyToMany.attr('id') === 'stratigraphic_log' || $manyToMany.attr('id') === 'structure') {
                 wellChart()
+            }
+
+            // render chart
+            if (chart) {
+                chart.refetchData()
             }
         },
         error: function (error, textStatus, request) {

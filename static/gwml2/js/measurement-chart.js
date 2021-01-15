@@ -171,6 +171,7 @@ let MeasurementChartObj = function (
 
     /** Render the chart */
     this.renderChart = function () {
+        this.$loading.hide();
         if (this.data.end) {
             this.$loadMore.attr('disabled', 'disabled')
         } else {
@@ -189,30 +190,36 @@ let MeasurementChartObj = function (
             this.identifier, this.chart, cleanData, 'Time', this.parameterTo)
     }
 
+    this.refetchData = function () {
+        this.fetchData(this.unitTo, this.parameterTo, this.timeRange)
+    }
+
     /** Fetch the data */
     this.fetchData = function (unitTo, parameterTo, timeRange) {
         this.$loading.show();
         this.$loadMore.attr('disabled', 'disabled')
-        const that = this;
-        $.ajax({
-            url: url,
-            dataType: 'json',
-            data: {
-                page: this.data.page,
-                timerange: timeRange
-            },
-            success: function (data, textStatus, request) {
-                that.data.page += 1;
-                that.data.data = that.data.data.concat(data.data);
-                that.data.end = data.end;
-                if (unitTo === that.unitTo && parameterTo === that.parameterTo && timeRange === that.timeRange) {
-                    that.renderChart();
-                    that.$loading.hide();
+        if (this.url) {
+            const that = this;
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                data: {
+                    page: this.data.page,
+                    timerange: timeRange
+                },
+                success: function (data, textStatus, request) {
+                    that.data.page += 1;
+                    that.data.data = that.data.data.concat(data.data);
+                    that.data.end = data.end;
+                    if (unitTo === that.unitTo && parameterTo === that.parameterTo && timeRange === that.timeRange) {
+                        that.renderChart();
+                        that.$loading.hide();
+                    }
+                },
+                error: function (error, textStatus, request) {
                 }
-            },
-            error: function (error, textStatus, request) {
-            }
-        })
+            })
+        }
     }
 
     /** Selection Changed **/
@@ -234,7 +241,7 @@ let MeasurementChartObj = function (
 
     const that = this;
     $parameters.change(function () {
-        const parameter = parameters[$(this).val()];
+        const parameter = parameters_chart[$(this).val()];
         const unitVal = parseInt($units.val());
         $units.html('');
         $.each(parameter.units, function (index, id) {
@@ -257,6 +264,7 @@ let MeasurementChartObj = function (
         let parameterTo = that.$parameters.find(":selected").text();
         let timeRange = that.$timeRange.val();
         that.fetchData(unitTo, parameterTo, timeRange);
+        return false;
     })
     $parameters.trigger('change');
 }

@@ -158,6 +158,16 @@
         })
         $featureType.trigger('change');
 
+        $('#id_ground_surface_elevation_value, #id_ground_surface_elevation_unit, #id_top_borehole_elevation_value, #id_top_borehole_elevation_unit').change(function () {
+            ground_surface_elevation.u = $('#id_ground_surface_elevation_unit').val();
+            ground_surface_elevation.v = $('#id_ground_surface_elevation_value').val();
+            top_borehole_elevation.u = $('#id_top_borehole_elevation_unit').val();
+            top_borehole_elevation.v = $('#id_top_borehole_elevation_value').val();
+            $.each(measurementCharts, function (key, chart) {
+                chart.refetchData();
+            });
+        })
+
         {# original ID no space#}
         $("#id_original_id").on({
             keydown: function (e) {

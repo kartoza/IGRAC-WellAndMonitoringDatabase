@@ -1,12 +1,3 @@
-const chartColors = [
-    "rgb(255, 99, 132)",
-    "rgb(54, 162, 235)",
-    "rgb(153, 102, 255)",
-    "rgb(255, 205, 86)",
-    "rgb(75, 192, 192)",
-    "rgb(255, 159, 64)",
-    "rgb(201, 203, 207)"
-]
 $('li.nav').click(function () {
     $('.nav').removeClass('active')
     $(this).closest('ul').closest('li').find('div.nav').addClass("active")
@@ -111,7 +102,9 @@ function chartTableToggle(elm, dataID) {
     if ($(elm).hasClass('fa-table')) {
         $(`#${dataID}_table`).hide();
         $(`#${dataID}_chart`).show();
-        chartFunctions[dataID]();
+
+        let measurement = measurementCharts[dataID];
+        measurement.refetchData();
     } else {
         $(`#${dataID}_table`).show();
         $(`#${dataID}_chart`).hide();

@@ -8,6 +8,7 @@
 {% block extra_head %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart.css' %}">
     <link rel="stylesheet" href="{% static 'gwml2/font/stylesheet.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{% static 'js/jquery-validate/1.19.2/jquery.validate.js' %}"></script>
@@ -24,12 +25,16 @@
             }
         }
 
-        let chartFunctions = {};
+        let measurementCharts = {};
         let submitFunctions = {};
         let submitFunctionsManyToMany = {};
-        let parameters = {{ parameters|safe }};
+        let parameters ={{ parameters|safe }};
+        let parameters_chart ={{ parameters_chart|safe }};
+        let units = {{ units|safe }};
         let referenceElevations = {{ reference_elevations|safe }};
         let mainData = {};
+        let top_borehole_elevation = {{ top_borehole_elevation|safe }};
+        let ground_surface_elevation = {{ ground_surface_elevation|safe }};
         const ELEVATION_TOPBOREHOLE = 'Top of Borehole';
         const ELEVATION_GROUNDSURFACE = 'Ground Surface Level ASL';
         {% if read_only %}
@@ -147,8 +152,9 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="{% static "js/chartjs/2.8.0/chartjs.min.js" %}"></script>
     <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
+    <script src="{% static 'gwml2/js/measurement-chart.js' %}"></script>
     <script src="{% static 'gwml2/js/utilities.js' %}"></script>
     <script src="{% static 'gwml2/js/scripts.js' %}"></script>
     <script src="{% static 'gwml2/js/many-to-many-script.js' %}"></script>
