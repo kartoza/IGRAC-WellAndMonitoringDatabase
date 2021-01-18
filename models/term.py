@@ -20,6 +20,8 @@ class TermWellStatus(_Term):
     """ List of well status term."""
 
     class Meta(Sortable.Meta):
+        verbose_name_plural = 'Term well status'
+        verbose_name = 'Term well status'
         db_table = 'term_well_status'
 
 

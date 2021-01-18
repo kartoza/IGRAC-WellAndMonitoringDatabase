@@ -31,18 +31,24 @@ class HydrogeologyCreateForm(FormGroupCreate):
     def create(self):
         """ create form from data
         """
-        self.form = self._make_form(
-            self.well.hydrogeology_parameter if self.well.hydrogeology_parameter else HydrogeologyParameter()
-            , HydrogeologyParameterForm, self.data['hydrogeology'])
 
-        self.pumping_test_form = self._make_form(
-            self.form.instance.pumping_test if self.form.instance.pumping_test else PumpingTest(),
-            PumpingTestForm, self.data['hydrogeology']['pumping_test']
-        )
+        if self.data.get('hydrogeology', None):
+            self.form = self._make_form(
+                self.well.hydrogeology_parameter if self.well.hydrogeology_parameter else HydrogeologyParameter()
+                , HydrogeologyParameterForm, self.data['hydrogeology'])
+
+            if self.data['hydrogeology'].get('pumping_test'):
+                self.pumping_test_form = self._make_form(
+                    self.form.instance.pumping_test if self.form.instance.pumping_test else PumpingTest(),
+                    PumpingTestForm, self.data['hydrogeology']['pumping_test']
+                )
 
     def save(self):
         """ save all available data """
-        self.pumping_test_form.save()
-        self.form.instance.pumping_test = self.pumping_test_form.instance
-        self.form.save()
-        self.well.hydrogeology_parameter = self.form.instance
+        if self.pumping_test_form:
+            self.pumping_test_form.save()
+        if self.form:
+            if self.pumping_test_form:
+                self.form.instance.pumping_test = self.pumping_test_form.instance
+            self.form.save()
+            self.well.hydrogeology_parameter = self.form.instance

@@ -11,7 +11,11 @@ url(r"^groundwater/", include("gwml2.urls")),
 # REQUIREMENT
 django-braces==1.14.0<br>
 django-admin-sortable==2.1.8
+openpyxl==3.0.5
+pyexcel_xls
 pyexcel_xlsx
+
+Run `python manage.py update_fixtures` to run all fixtures
 
 # Database
 the groundwater will be added into your "default" database. <br>

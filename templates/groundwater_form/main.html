@@ -8,17 +8,35 @@
 {% block extra_head %}
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart.css' %}">
     <link rel="stylesheet" href="{% static 'gwml2/font/stylesheet.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="{% static 'js/jquery-validate/1.19.2/jquery.validate.js' %}"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <script>
-        let chartFunctions = {};
+        const valElmt = function ($element) {
+            if ($element.is('select')) {
+                return $element.find('option:selected').text()
+            } else if ($element.is('input')) {
+                return $element.val()
+            } else {
+                return $element.text()
+            }
+        }
+
+        let measurementCharts = {};
         let submitFunctions = {};
         let submitFunctionsManyToMany = {};
-        let parameters = {{ parameters|safe }};
+        let parameters ={{ parameters|safe }};
+        let parameters_chart ={{ parameters_chart|safe }};
+        let units = {{ units|safe }};
+        let referenceElevations = {{ reference_elevations|safe }};
         let mainData = {};
+        let top_borehole_elevation = {{ top_borehole_elevation|safe }};
+        let ground_surface_elevation = {{ ground_surface_elevation|safe }};
+        const ELEVATION_TOPBOREHOLE = 'Top of Borehole';
+        const ELEVATION_GROUNDSURFACE = 'Ground Surface Level ASL';
         {% if read_only %}
             const readOnly = true;
         {% else %}
@@ -30,13 +48,11 @@
 {% block body %}
     <div class="wrapper">
         <div class="inner-wrapper">
-            <div class="page-header">
-                <h5>Groundwater Point Form</h5>
-            </div>
-            <div class="form">
+            <div class="form {% if read_only %}read-only{% endif %}">
                 <form method="POST" id="form" enctype="multipart/form-data">
+                    <div id="overlay-loading"></div>
                     <div class="form-title">
-                        <span>General Information</span>
+                        {# <span>General Information</span> #}
                         {% if not read_only %}
                             <button id="form-submit" class="pull-right" type="submit">Submit</button>
                         {% elif user.is_staff %}
@@ -47,121 +63,86 @@
                     </div>
                     {% csrf_token %}
                     <div class="singlepage">
-                        {# GENERAL INFORMATION #}
-                        {% include "groundwater_form/general_information.html" with form=general_information %}
-                        {# DRILLING AND CONSTRUCTION #}
-                        {% include "groundwater_form/drilling_and_construction.html" %}
-                        {# HYDROGEOLOGY #}
-                        {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
-                        {# MANAGEMENT #}
-                        {% include "groundwater_form/management.html" with form=management %}
-                        {# MONITORING DATA #}
-                        {% include "groundwater_form/level_measurement.html" %}
-                        {% include "groundwater_form/quality_measurement.html" %}
-                        {% include "groundwater_form/yield_measurement.html" %}
+                        <div id="single-content">
+                            {# GENERAL INFORMATION #}
+                            {% include "groundwater_form/general_information.html" with form=general_information %}
+                            {# DRILLING AND CONSTRUCTION #}
+                            {% include "groundwater_form/drilling_and_construction.html" %}
+                            {# HYDROGEOLOGY #}
+                            {% include "groundwater_form/hydrogeology.html" with form=hydrogeology %}
+                            {# MANAGEMENT #}
+                            {% include "groundwater_form/management.html" with form=management %}
+                            {# MONITORING DATA #}
+                            {% include "groundwater_form/level_measurement.html" %}
+                            {% include "groundwater_form/quality_measurement.html" %}
+                            {% include "groundwater_form/yield_measurement.html" %}
+                            {% include "groundwater_form/well_metadata.html" with form=well_metadata %}
+                            <div style="color: white">a</div>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="navigation">
+                <div class="page-header">
+                    <h5>Well and Monitoring <br>Data Record</h5>
+                </div>
                 <div class="inner-navigation">
                     <ul class="nav">
                         <li class="nav active">
-                            <a data-toggle="tab" href="#general_information">
+                            <a data-toggle="tab" href="#general_information" title="General Information">
                                 {% include "svg/general.html" %} <span>General Information</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
-                            <a data-toggle="tab" href="#drilling-and-construction">
+                            <a data-toggle="tab" href="#drilling-and-construction" title="Drilling and Construction">
                                 {% include "svg/drilling.html" %} <span>Drilling and Construction</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
-                            <a data-toggle="tab" href="#hydrogeology">
+                            <a data-toggle="tab" href="#hydrogeology" title="Hydrogeology">
                                 {% include "svg/hydrogeology.html" %} <span>Hydrogeology </span><i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
-                            <a data-toggle="tab" href="#management">
+                            <a data-toggle="tab" href="#management" title="Management">
                                 {% include "svg/management.html" %} <span>Management</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li>
-                            <a>
-                                {% include "svg/monitoring.html" %} Monitoring Data <span class="abstract-nav"></span>
-                            </a>
+                            <div class="nav">
+                                <a>
+                                    {% include "svg/monitoring.html" %}<span> Monitoring Data</span> <span class="abstract-nav"></span>
+                                </a>
+                            </div>
                             <ul class="nav sub-nav">
                                 <li class="nav">
-                                    <a data-toggle="tab" href="#level-measurement">
-                                        <span>Groundwater Level</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    <a data-toggle="tab" href="#level-measurement" title="Groundwater Level">
+                                        {% include "svg/measurement-level.html" %} <span>Groundwater Level</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
-                                    <a data-toggle="tab" href="#quality-measurement">
-                                        <span>Groundwater Quality</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    <a data-toggle="tab" href="#quality-measurement" title="Groundwater Quality">
+                                        {% include "svg/measurement-quality.html" %} <span>Groundwater Quality</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
-                                    <a data-toggle="tab" href="#yield-measurement">
-                                        <span>Yield / Abstraction </span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    <a data-toggle="tab" href="#yield-measurement" title="Abstraction / Discharge">
+                                        {% include "svg/measurement-yield.html" %} <span>Abstraction / Discharge</span><i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                             </ul>
+                        </li>
+                        <li class="nav">
+                            <a data-toggle="tab" href="#well_metadata" title="Metadata">
+                                {% include "svg/metadata.html" %} <span>Metadata</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            </a>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-        $('#form').validate({
-            errorElement: 'div',
-            invalidHandler: function (event, validator) {
-                $('.navigation a').removeClass('error')
-                if (validator.invalid) {
-                    setTimeout(function () {
-                        $('div.error:visible').each(function () {
-                            $("a[href$='#" + $(this).closest('.page-section').attr('id') + "']").addClass('error')
-                        })
-                    }, 100);
-                }
-            },
-            submitHandler: function (form, event) {
-                $('.navigation a').removeClass('error')
-                event.preventDefault();
-                let data = {}
-                $.each(submitFunctions, function (form, value) {
-                    data[form] = value();
-                });
-                var formData = new FormData();
-                $('input[type="file"]').each(function () {
-                    let file = $(this).get(0).files[0];
-                    if (file) {
-                        formData.append(file.name, file);
-                    }
-                });
-                formData.append('data', JSON.stringify(data));
-                $.ajax({
-                    url: window.location,
-                    type: "POST",
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    beforeSend: function (xhr, settings) {
-                        if (!/^(GET|HEAD|OPTIONS|TRACE)$/.test(settings.type) && !this.crossDomain) {
-                            xhr.setRequestHeader("X-CSRFToken", $(this).find('*[name=csrfmiddlewaretoken]').val());
-                        }
-                    },
-                    success: function (data) {
-                        location.reload();
-                    },
-                    error: function (error) {
-                        alert(error['responseText'])
-                    },
-                    data: formData
-                });
-            }
-        });
-    </script>
+    <script src="{% static 'gwml2/js/form.js' %}"></script>
 {% endblock %}
 
 {% block extra_script %}
@@ -171,7 +152,10 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="{% static "js/chartjs/2.8.0/chartjs.min.js" %}"></script>
+    <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
+    <script src="{% static 'gwml2/js/measurement-chart.js' %}"></script>
+    <script src="{% static 'gwml2/js/utilities.js' %}"></script>
     <script src="{% static 'gwml2/js/scripts.js' %}"></script>
     <script src="{% static 'gwml2/js/many-to-many-script.js' %}"></script>
 
@@ -180,10 +164,12 @@
             {% if read_only %}
                 makeReadOnly();
             {% else %}
-                $(".select-2").select2({
-                    tags: true
+                $("#wrap select").select2({
+                    tags: false
                 });
             {% endif %}
+            $('.leaflet-control').show()
+            $('#overlay-loading').hide()
         });
     </script>
 {% endblock extra_script %}

@@ -27,13 +27,22 @@
             {% for field in theform %}
                 <td>{{ field }}</td>
             {% endfor %}
-            <td>
-                <div></div>
+            <td onclick="deleteRelation(this)">
+                <img class="icon-svg delete" src="/static/gwml2/svg/delete.svg"/>
             </td>
         </tr>
     </template>
     {% if not read_only %}
-        <div class="add-new-many-to-many pull-right">add new</div>
+        <div>
+            <div class="additional-button-table">
+                <div>
+                    {% if csv_add_new %}
+                        <input type="file" class="add-new-many-to-many-csv-input" accept=".csv"/>
+                    {% endif %}
+                </div>
+                <div class="add-new-many-to-many pull-right">add new</div>
+            </div>
+        </div>
     {% else %}
         <div class="separator"></div>
     {% endif %}

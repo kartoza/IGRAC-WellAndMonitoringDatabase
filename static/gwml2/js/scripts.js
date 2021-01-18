@@ -1,14 +1,6 @@
-const chartColors = [
-    "rgb(255, 99, 132)",
-    "rgb(54, 162, 235)",
-    "rgb(153, 102, 255)",
-    "rgb(255, 205, 86)",
-    "rgb(75, 192, 192)",
-    "rgb(255, 159, 64)",
-    "rgb(201, 203, 207)"
-]
 $('li.nav').click(function () {
-    $('.nav li').removeClass('active')
+    $('.nav').removeClass('active')
+    $(this).closest('ul').closest('li').find('div.nav').addClass("active")
     $('.form-title span').html($(this).find('span').text())
 })
 
@@ -20,77 +12,89 @@ function fileSelectionChanged(element) {
     $(element).closest('div').find('span').html(fileName)
 }
 
-$(document).ready(function () {
+function getBottom($el, $wrapper) {
+    return $el.position().top + $el.outerHeight(true) - $wrapper.outerHeight()
+}
 
-    function readURL(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-
-            reader.onload = function (e) {
-                $('.photo-preview').attr('src', e.target.result);
-            }
-            reader.readAsDataURL(input.files[0]); // convert to base64 string
+function readURL(input, $preview) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            $preview.attr('src', e.target.result);
         }
+        reader.readAsDataURL(input.files[0]); // convert to base64 string
+        $(this).data('value', input.files[0].name)
     }
+}
 
-
-    $("#id_photo").change(function () {
-        readURL(this);
-    });
-
+$(document).ready(function () {
+    // SCROLL EVENT
     // Cache selectors
+    let $singlePage = $('.singlepage');
+    const $scrollItems = $('.page-section');
     var lastId,
         topMenu = $(".inner-navigation"),
         //topMenuHeight = topMenu.outerHeight()+15,
         // All list items
-        menuItems = topMenu.find("a"),
-        // Anchors corresponding to menu items
-        scrollItems = menuItems.map(function () {
-            var item = $($(this).attr("href"));
-            if (item.length) {
-                return item;
-            }
-        });
-
+        menuItems = topMenu.find("a");
     // Bind click handler to menu items
     // so we can get a fancy scroll animation
+    let scrollOnClick = false;
     menuItems.click(function (e) {
+        scrollOnClick = true;
         $('.form-title span').html($(this).find('span').text());
-
         var href = $(this).attr("href"),
-            offsetTop = href === "#" ? 0 : $(href).position().top + $('.singlepage').scrollTop() - 40;
-        $('.singlepage').stop().animate({
+            offsetTop = href === "#" ? 0 : $(href).position().top + $singlePage.scrollTop();
+        $singlePage.stop().animate({
             scrollTop: offsetTop
-        }, 300);
+        }, 300, function () {
+            scrollOnClick = false;
+        });
         e.preventDefault();
     });
+    $singlePage.bind('mousewheel', function (e) {
+        scrollOnClick = false;
+    });
 
+    const turnOnElement = function ($element) {
+        let id = $element.attr('id');
+        if (lastId !== id) {
+            lastId = id;
+            // Set/remove active class
+            $('.nav').removeClass("active");
+            let activateButton = menuItems.filter("[href='#" + id + "']").parent();
+            activateButton.closest('ul').closest('li').find('div.nav').addClass("active")
+            activateButton.addClass("active");
+
+        }
+    }
     // Bind to scroll
-    $('.singlepage').scroll(function () {
-        // Get container scroll position
-        var fromTop = $(this).position().top + 60;
+    $singlePage.scroll(function () {
+        if (scrollOnClick) {
+            return;
+        }
 
-        // Get id of current scroll item
-        var cur = scrollItems.map(function () {
-            var cur = scrollItems.map(function () {
-                if ($(this).position().top < fromTop)
-                    return this;
-            });
-            // Get the id of the current element
-            cur = cur[cur.length - 1];
-            var id = cur && cur.length ? cur[0].id : "";
-
-            if (lastId !== id) {
-                lastId = id;
-                // Set/remove active class
-                menuItems
-                    .parent().removeClass("active")
-                    .end().filter("[href='#" + id + "']").parent().addClass("active");
-                $('.form-title span').html(menuItems.filter("[href='#" + id + "']").find('span').text());
-
+        // check element based on position
+        let $element = null;
+        $($scrollItems.get().reverse()).each(function (index) {
+            if ($(this).position().top <= 0) {
+                $element = $(this);
+                return false;
             }
         });
+        turnOnElement($element)
     });
+
+    $scrollItems.mouseenter(function (e) {
+        turnOnElement($(this))
+    });
+
+    $('#id_valid_from').change(function () {
+        formValidator.form();
+    })
+    $('#id_valid_until').change(function () {
+        formValidator.form();
+    })
 })
 
 function chartTableToggle(elm, dataID) {
@@ -98,7 +102,9 @@ function chartTableToggle(elm, dataID) {
     if ($(elm).hasClass('fa-table')) {
         $(`#${dataID}_table`).hide();
         $(`#${dataID}_chart`).show();
-        chartFunctions[dataID]();
+
+        let measurement = measurementCharts[dataID];
+        measurement.refetchData();
     } else {
         $(`#${dataID}_table`).show();
         $(`#${dataID}_chart`).hide();
@@ -108,18 +114,49 @@ function chartTableToggle(elm, dataID) {
 function makeReadOnly() {
     if (readOnly) {
         $('#form input[type=file]').closest('.inputfile').addClass('disabled')
-        $('#form input, textarea').replaceWith(function () {
+        $('#form input, textarea').not(".read-only").after(function () {
+            if ($(this).hasClass('read-only')) {
+                return ''
+            }
+            $(this).addClass('read-only');
             const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
-            return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${$(this).val()}</span>`;
+            let value = $(this).val()
+            if ($(this).attr('type') === 'checkbox') {
+                value = $(this).attr('checked') ? 'Public' : 'Private';
+            }
+            return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
         });
-        $('#form select').replaceWith(function () {
+        $('#form input, textarea').hide();
+        $('#form select').not(".read-only").after(function () {
+            if ($(this).hasClass('read-only')) {
+                return ''
+            }
+            $(this).addClass('read-only');
             const style = $(this).prop("hidden") || $(this).attr('type') === 'hidden' ? 'display:none!important' : '';
             let value = $(this).data('value') !== 'None' ? $(this).find("option:selected").text() : '';
-            if (value === '---------') {
+            if (value.includes('---')) {
                 value = ''
             }
             return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
         });
+        $('#form select').hide();
+
+        // this is for permissions section
+        $('#id_public, .public-input').hide();
+        if (!$('#id_public').attr('checked')) {
+            $('.public-indicator span').html('Not anyone')
+        }
+        $('#id_downloadable, .downloadable-input').hide();
+        if (!$('#id_downloadable').attr('checked')) {
+            $('.downloadable-indicator span').html('Not downloadable')
+        }
+        if ($('#id_affiliate_organisations .multivalue-selection div').length === 0) {
+            $('#id_affiliate_organisations').hide()
+            $('#id_affiliate_organisations-label').hide()
+        } else {
+            $('#id_affiliate_organisations .multivalue-selection span').remove();
+            $('#id_affiliate_organisations .input-data').hide();
+        }
     }
 }
 
@@ -139,9 +176,40 @@ const stringToColour = function (str) {
         colour += ('00' + value.toString(16)).substr(-2);
     }
     colour += '00'
-    return colour;
+    colors = [colour, '#606060', '#994C00', '#808080', '#330000', '#A2A09F'];
+    return chroma.average(colors).hex();
 }
 
 const feetToMeter = function (value) {
     return Math.round(parseFloat(value) / 3.281)
+}
+
+function parseCSV(data) {
+    let parsedata = [];
+    let lines = data.split("\n");
+    let headers = lines[0].split(",")
+    for (let i = 1; i < lines.length - 1; i++) {
+        let columns = lines[i].split(",");
+        let columnData = {}
+        for (let j = 0; j < columns.length; j++) {
+            columnData[headers[j]] = columns[j]
+        }
+        parsedata.push(columnData)
+    }
+    console.log(parsedata)
+    return parsedata;
+}
+
+function sort_unique(arr) {
+    if (arr.length === 0) return arr;
+    arr = arr.sort(function (a, b) {
+        return a * 1 - b * 1;
+    });
+    var ret = [arr[0]];
+    for (var i = 1; i < arr.length; i++) { //Start loop at 1: arr[0] can never be a duplicate
+        if (arr[i - 1] !== arr[i]) {
+            ret.push(arr[i]);
+        }
+    }
+    return ret;
 }

@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block page_title %}
+    <h1>Organisation form.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    <style>
+        .navbar {
+            position: fixed;
+        }
+
+        .col-md-8 {
+            width: 100%;
+        }
+
+        .empty-row {
+            font-style: italic;
+            text-align: center;
+            color: gray;
+        }
+
+        #wrap .container {
+            width: 100%;
+            padding-top: 10px;
+        }
+
+        .page-header {
+            padding: 0;
+            margin: 0;
+        }
+
+        table tr:last-child th span {
+            display: block;
+            width: 100px;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        table {
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+        }
+
+        td, th {
+            border-left: 1px solid #ddd;
+        }
+
+        td.error {
+            background: rgba(202, 50, 50, 0.2);
+        }
+
+        tr.warning td {
+            background: rgba(255, 239, 68, 0.2);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% if excel %}
+        <div class="tab-content">
+            <ul class="nav nav-tabs" role="tablist">
+                {% for key, sheet in excel.items %}
+                    <li class="nav-item">
+                        <a class="nav-link active"
+                           data-toggle="tab" href="#{{ sheet.id }}" role="tab"
+                           aria-controls="home" aria-selected="true">{{ key }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            <div class="tab-content">
+                {% for key, sheet in excel.items %}
+                    <div class="tab-pane fade"
+                         id="{{ sheet.id }}"
+                         role="tabpanel" aria-labelledby="{{ sheet.id }}">
+                        <table class="table table-striped">
+                            <thead>
+                            {% for headers in sheet.header %}
+                                <tr>
+                                    <th></th>
+                                    {% for header in headers %}
+                                        <th><span title="{{ header }}">{{ header }}</span></th>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </thead>
+                            <tbody>
+                            {% for row, body in sheet.body.items %}
+                                <tr>
+                                    <td>{{ row }}</td>
+                                    {% for cell in body %}
+                                        <td class="{% if cell and cell != 'Skipped' %}error{% elif cell == 'Skipped' %}warning{% endif %}">{{ cell }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+        $(document).ready(function () {
+            $('#wrap .nav-item a').first().tab('show')
+            $('.warning').closest('tr').addClass('warning')
+        })
+    </script>
+{% endblock extra_script %}

@@ -1,22 +1,31 @@
 from django import forms
 from django.forms.models import model_to_dict
 from gwml2.forms.widgets.quantity import QuantityInput
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.models.drilling import StratigraphicLog
 
 
-class StratigraphicLogForm(forms.ModelForm):
+class StratigraphicLogForm(WellBaseForm):
     """
     Form of geology log of well.
     """
-    id_ = forms.CharField(required=False)
+    id = forms.CharField(required=False)
 
     class Meta:
         model = StratigraphicLog
-        fields = ('id_', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
+        fields = ('id', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
         widgets = {
             'top_depth': QuantityInput(unit_group='length'),
             'bottom_depth': QuantityInput(unit_group='length'),
         }
+
+    field_order = ('id', 'reference_elevation', 'top_depth', 'bottom_depth', 'material', 'stratigraphic_unit')
+
+    def __init__(self, *args, **kwargs):
+        super(StratigraphicLogForm, self).__init__(*args, **kwargs)
+        self.fields['reference_elevation'].empty_label = None
+        self.fields['reference_elevation'].required = True
+        self.fields['reference_elevation'].widget.attrs['required'] = True
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -46,5 +55,5 @@ class StratigraphicLogForm(forms.ModelForm):
         :rtype: StratigraphicLogForm
         """
         data = model_to_dict(instance)
-        data['id_'] = instance.id
+        data['id'] = instance.id
         return StratigraphicLogForm(initial=data, instance=instance)

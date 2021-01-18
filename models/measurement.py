@@ -1,9 +1,10 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
+from gwml2.models.metadata.creation import CreationMetadata
 
 
-class Measurement(models.Model):
+class Measurement(CreationMetadata):
     """ Model to hold measurement data
     """
 
@@ -15,7 +16,7 @@ class Measurement(models.Model):
         on_delete=models.SET_NULL
     )
     methodology = models.CharField(
-        null=True, blank=True, max_length=512,
+        null=True, blank=True, max_length=200,
         help_text="Explain the methodology used to collect the data, in the field and eventually in the lab."
     )
     value = models.OneToOneField(

@@ -1,12 +1,14 @@
 from django.contrib.gis.db import models
 from django.core.validators import MinValueValidator
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from gwml2.models.term import TermGroundwaterUse
 
 
 class License(models.Model):
     """ License model """
     number = models.CharField(
-        max_length=512,
+        max_length=20,
         null=True,
         blank=True)
     valid_from = models.DateField(
@@ -31,7 +33,7 @@ class Management(models.Model):
     """ Management model """
     manager = models.CharField(
         verbose_name='Manager / owner',
-        max_length=512,
+        max_length=200,
         null=True,
         blank=True,
         help_text='Name of the manager or owner of the groundwater point. '
@@ -51,7 +53,7 @@ class Management(models.Model):
         verbose_name='Number of people served',
         help_text='Indicate how many people use the groundwater.'
     )
-    license = models.ForeignKey(
+    license = models.OneToOneField(
         License, on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -61,3 +63,4 @@ class Management(models.Model):
 
     class Meta:
         db_table = 'management'
+

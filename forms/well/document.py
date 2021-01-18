@@ -1,12 +1,13 @@
 import os
 from django import forms
 from django.forms.models import model_to_dict
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.forms.widgets.file_selection import FileSelectionInput
 from gwml2.models.well import WellDocument
 from gwml2.utilities import convert_size
 
 
-class DocumentForm(forms.ModelForm):
+class DocumentForm(WellBaseForm):
     """
     Form of document of well.
     """
@@ -21,6 +22,11 @@ class DocumentForm(forms.ModelForm):
         widgets = {
             'file': FileSelectionInput(read_only=True)
         }
+
+    def __init__(self, *args, **kwargs):
+        super(DocumentForm, self).__init__(*args, **kwargs)
+        self.fields['description'].widget.attrs['cols'] = 30
+        self.fields['description'].widget.attrs['rows'] = 3
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -61,5 +67,8 @@ class DocumentForm(forms.ModelForm):
         data['time'] = instance.uploaded_at.strftime('%Y-%m-%d %H:%M:%S')
         filename, file_extension = os.path.splitext(instance.file.url)
         data['file_type'] = file_extension.replace('.', '')
-        data['file_size'] = convert_size(os.path.getsize(instance.file.path))
+        if os.path.exists(instance.file.path):
+            data['file_size'] = convert_size(os.path.getsize(instance.file.path))
+        else:
+            data['file_size'] = 'not found'
         return DocumentForm(initial=data, instance=instance)

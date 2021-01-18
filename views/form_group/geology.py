@@ -23,12 +23,14 @@ class GeologyCreateForm(FormGroupCreate):
     def create(self):
         """ create form from data
         """
-        self.form = self._make_form(
-            self.well.geology if self.well.geology else Geology(),
-            GeologyForm,
-            self.data['geology'])
+        if self.data.get('geology', None):
+            self.form = self._make_form(
+                self.well.geology if self.well.geology else Geology(),
+                GeologyForm,
+                self.data['geology'])
 
     def save(self):
         """ save all available data """
-        self.form.save()
-        self.well.geology = self.form.instance
+        if self.form:
+            self.form.save()
+            self.well.geology = self.form.instance

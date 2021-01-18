@@ -1,6 +1,9 @@
 from django.contrib.gis.db import models
+from django.contrib.auth import get_user_model
 from adminsortable.models import Sortable
 from gwml2.models.term import _Term
+
+User = get_user_model()
 
 
 class Country(models.Model):
@@ -16,6 +19,8 @@ class Country(models.Model):
         return self.name
 
     class Meta:
+        verbose_name_plural = 'Countries'
+        verbose_name = 'Country'
         ordering = ('name',)
         db_table = 'country'
 
@@ -26,6 +31,9 @@ class Unit(_Term):
         max_length=512,
         null=True, blank=True
     )
+
+    def __str__(self):
+        return self.html if self.html else self.name
 
     class Meta(Sortable.Meta):
         db_table = 'unit'
@@ -52,9 +60,21 @@ class Quantity(models.Model):
 
     def __str__(self):
         if self.unit:
-            return '{} ({})'.format(self.value, self.unit)
+            return '{} {}'.format(self.value, self.unit)
         else:
             return '{}'.format(self.value)
 
     class Meta:
+        verbose_name_plural = 'Quantities'
+        verbose_name = 'Quantity'
         db_table = 'quantity'
+
+    def convert(self, to):
+        """ this is converter value from unit into to
+        :param to:
+        :type to: str
+        """
+        if self.unit and (self.unit.name == 'ft' or self.unit.name == 'ft') and to == 'm':
+            self.unit.name = to
+            return self.value / 3.281
+        return self.value

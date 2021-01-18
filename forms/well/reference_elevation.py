@@ -8,7 +8,7 @@ class ReferenceElevationForm(forms.ModelForm):
     """
     Form of ReferenceElevation of well.
     """
-    id_ = forms.CharField(required=False)
+    id = forms.CharField(required=False)
 
     class Meta:
         model = ReferenceElevation

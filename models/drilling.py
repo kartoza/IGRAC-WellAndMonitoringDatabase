@@ -1,17 +1,11 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
-from gwml2.models.reference_elevation import ReferenceElevation
 from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
 
 
 class Drilling(models.Model):
     """ Drilling
     """
-    total_depth = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        help_text='Total depth of stratigraphic'
-    )
     drilling_method = models.ForeignKey(
         TermDrillingMethod, on_delete=models.SET_NULL,
         null=True, blank=True
@@ -63,13 +57,14 @@ class StratigraphicLog(models.Model):
         related_name='stratigraphic_log_bottom_depth'
     )
     material = models.CharField(
-        null=True, blank=True, max_length=512
+        null=True, blank=True, max_length=200
     )
     stratigraphic_unit = models.CharField(
-        null=True, blank=True, max_length=256
+        null=True, blank=True, max_length=128
     )
 
     class Meta:
+        ordering = ('top_depth__value',)
         db_table = 'drilling_stratigraphic_log'
 
 
@@ -77,13 +72,17 @@ class WaterStrike(models.Model):
     """ Water strike
     """
     drilling = models.ForeignKey(
-        Drilling, on_delete=models.SET_NULL,
+        Drilling, on_delete=models.CASCADE,
         null=True, blank=True
     )
 
     # information
+    reference_elevation = models.ForeignKey(
+        TermReferenceElevationType, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
     depth = models.OneToOneField(
-        ReferenceElevation, on_delete=models.SET_NULL,
+        Quantity, on_delete=models.SET_NULL,
         null=True, blank=True
     )
     description = models.TextField(

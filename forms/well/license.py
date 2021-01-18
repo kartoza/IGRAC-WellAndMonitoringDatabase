@@ -1,9 +1,9 @@
-from django import forms
 from django.forms.models import model_to_dict
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.models.management import License
 
 
-class LicenseForm(forms.ModelForm):
+class LicenseForm(WellBaseForm):
     """
     Form for License.
     """
@@ -11,6 +11,10 @@ class LicenseForm(forms.ModelForm):
     class Meta:
         model = License
         fields = ('number', 'valid_from', 'valid_until', 'description')
+
+    def __init__(self, *args, **kwargs):
+        super(LicenseForm, self).__init__(*args, **kwargs)
+        self.fields['description'].widget.attrs['maxlength'] = 500
 
     @staticmethod
     def make_from_data(instance, data, files):

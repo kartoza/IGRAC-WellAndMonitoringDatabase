@@ -1,0 +1,41 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart.css' %}">
+    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart-page.css' %}">
+    <script src="{% static "lib/js/moment-with-locales.js" %}"></script>
+    <script src="{% static 'js/jquery/3.5.1/jquery.min.js' %}"></script>
+    <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
+    <script src="{% static 'gwml2/js/measurement-chart.js' %}"></script>
+    <script src="{% static "js/chartjs/2.8.0/chartjs.min.js" %}"></script>
+</head>
+<body>
+<script>
+    let parameters_chart ={{ parameters|safe }};
+    let units ={{ units|safe }};
+    let top_borehole_elevation = {{ top_borehole_elevation|safe }};
+    let ground_surface_elevation = {{ ground_surface_elevation|safe }};
+</script>
+{% include "plugins/measurement_chart.html" with identifier=identifier %}
+<script>
+    {# let's we call the ajax#}
+    $(document).ready(function () {
+        {# save parameters #}
+        const $parameters = $('#{{ identifier }}-cw #parameters');
+        $.each(parameters_chart, function (key, value) {
+            $parameters.append(`<option value="${key}">${value.name}</option>`)
+        });
+
+        new MeasurementChartObj(
+            '{{ identifier }}', top_borehole_elevation, ground_surface_elevation, '{{ url }}', parameters_chart, units,
+            $('#{{ identifier }}-cw #loading'),
+            $('#{{ identifier }}-cw #load-more'),
+            $('#{{ identifier }}-cw #units'),
+            $parameters,
+            $('#{{ identifier }}-cw #time-range')
+        )
+    })
+</script>
+</body>
+</html>

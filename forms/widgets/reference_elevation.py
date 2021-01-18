@@ -7,8 +7,8 @@ from gwml2.forms.widgets.quantity import QuantityInput
 class ReferenceElevationInput(QuantityInput):
     template_name = 'widgets/reference_elevation.html'
 
-    def __init__(self, unit_group=None, attrs=None):
-        super(ReferenceElevationInput, self).__init__(unit_group, attrs)
+    def __init__(self, unit_group=None, unit_required=True, attrs=None):
+        super(ReferenceElevationInput, self).__init__(unit_group, unit_required, attrs)
 
     def get_context(self, name, value, attrs):
         quantity = None

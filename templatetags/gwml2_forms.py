@@ -15,23 +15,28 @@ def render_label(field):
 
 
 @register.simple_tag
-def field_as_row(field, id='', unit='', help_text=''):
+def render_help_text(field, help_text=''):
     if field.help_text:
         help_text = field.help_text
     if help_text:
-        help_text = '<i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{}">'.format(
+        help_text = '<i class="fa fa-question-circle-o" aria-hidden="true" data-toggle="tooltip" title="{}"></i>'.format(
             help_text)
+    return mark_safe(help_text)
+
+
+@register.simple_tag
+def field_as_row(field, id='', unit='', help_text=''):
     if id:
         id = 'id="{}"'.format(id)
     return mark_safe(
         '<tr {id} class="input-column">'
-        '   <td>{label} {help_text}</i></td>'
+        '   <td>{label} {help_text}</td>'
         '   <td>'
         '       <div class="input">{input} {unit}</div>'
         '   </td>'
         '</tr>'.format(
             id=id,
-            help_text=help_text,
+            help_text=render_help_text(field, help_text),
             label=render_label(field),
             input=field,
             unit=unit
@@ -40,8 +45,9 @@ def field_as_row(field, id='', unit='', help_text=''):
 
 @register.simple_tag
 def relation_list_url(well, theform):
+    id = well.id if well.id else 0
     return reverse('well-relation-list', kwargs={
-        'id': well.id,
+        'id': id,
         'model': theform.instance.__class__.__name__
 
     })
@@ -49,8 +55,9 @@ def relation_list_url(well, theform):
 
 @register.simple_tag
 def delete_url(well, instance):
+    id = well.id if well.id else 0
     return reverse('well-relation-delete', kwargs={
-        'id': well.id,
+        'id': id,
         'model': instance.__class__.__name__,
         'model_id': instance.id
 

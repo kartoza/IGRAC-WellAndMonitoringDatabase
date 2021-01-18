@@ -1,0 +1,53 @@
+{# THIS IS MANY TO MANY HTML #}
+{% load staticfiles %}
+{% load gwml2_forms %}
+{% if use_chart and theform.url_chart %}
+    <div id="{{ id }}_chart" class="chart measurement-chart">
+        {% include "plugins/measurement_chart.html" with identifier=id %}
+        <script>
+            {# This is chart section#}
+            $(document).ready(function () {
+                {# save parameters #}
+                const $parameters = $('#{{ id }}-cw #parameters');
+                const template = $('#{{ id }} template').prop('content');
+                $parameters.html($(template).find('#id_parameter').html())
+                measurementCharts['{{ id }}'] = new MeasurementChartObj(
+                    '{{ id }}', top_borehole_elevation, ground_surface_elevation, '{{ url }}', parameters_chart, units,
+                    $('#{{ id }}-cw #loading'),
+                    $('#{{ id }}-cw #load-more'),
+                    $('#{{ id }}-cw #units'),
+                    $parameters,
+                    $('#{{ id }}-cw #time-range')
+                )
+                $("#{{ id }} #load-more").unbind();
+                $("#{{ id }} #load-more").click(function () {
+                    const $wrapper = $(this).closest('.many-to-many').find('.table-wrapper')
+                    const set = $wrapper.data('set');
+                    fetchManyToMany($wrapper, set);
+                    return false;
+                })
+                measurementCharts['{{ id }}'].fetchData = function (unitTo, parameterTo, timeRange) {
+                    let data = {
+                        page: $('#{{ id }} .table-wrapper').data('set'),
+                        end: $('#{{ id }} .table-wrapper').data('end'),
+                        data: []
+                    }
+                    const that = this;
+                    $('#{{ id }}_table table tr').each(function (index) {
+                        if (index > 0) {
+                            data.data.push({
+                                dt: new Date($(this).find('*[name ="time"]').val()).getTime() / 1000,
+                                mt: $(this).find('*[name ="methodology"]').val(),
+                                par: $(this).find('*[name ="parameter"] option:selected').text(),
+                                u: $(this).find('.quantity-unit').val(),
+                                v: $(this).find('.quantity-value').val(),
+                            })
+                        }
+                    })
+                    this.data = data;
+                    that.renderChart()
+                }
+            })
+        </script>
+    </div>
+{% endif %}

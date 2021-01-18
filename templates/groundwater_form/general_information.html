@@ -7,22 +7,22 @@
 
 <div id="general_information" class="page-section">
     <h2 class="section-title">General information</h2>
-    <div id="general_information_data" style="width: 100%">
+    <div id="general_information_data" style="width: 100%;min-height: 917px;">
         <table style="width: 100%">
             <tr>
                 <td><h4>Identification</h4></td>
             </tr>
+            {% field_as_row form.ggis_uid %}
             {% field_as_row form.original_id %}
             {% field_as_row form.name %}
-            {% field_as_row form.status %}
             {% field_as_row form.feature_type %}
             {% field_as_row form.purpose %}
+            {% field_as_row form.status %}
             {% field_as_row form.photo %}
             {% field_as_row form.description %}
             <tr>
                 <td>
-                    <br><br>
-                    <h4>Information</h4>
+                    <h4>Location</h4>
                 </td>
                 <td></td>
                 <td class="map-wrapper">
@@ -57,6 +57,8 @@
         let picture = $('#general_information #id_photo').get(0).files[0]
         if (picture) {
             data['photo'] = picture.name
+        } else {
+            data['photo'] = $('#general_information #id_photo').data('value')
         }
         return data
     }
@@ -69,7 +71,8 @@
         'map-location'
     ).setView([0, 0], 2);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        noWrap: true
     }).addTo(map);
 
     {# Draw Control#}
@@ -128,6 +131,52 @@
         }
     })
     $('#id_latitude, #id_longitude').trigger('change')
-    $('#id_photo').attr('accept', 'image/x-png,image/gif,image/jpeg')
 
+    let feature_type = {}
+    {% for query in form.feature_type.field.queryset %}
+        feature_type[{{ query.id }}] = '{{ query.name }}'
+    {% endfor %}
+
+    $(document).ready(function () {
+        const $featureType = $('#id_feature_type')
+        const $purpose = $('#id_purpose')
+        const $topBorehole = $('#id_top_borehole_elevation')
+        {# enable purpose and top well elevation when type is water well#}
+        $featureType.change(function () {
+            if (feature_type[$(this).val()] && feature_type[$(this).val()].toLowerCase() === 'Water well'.toLowerCase()) {
+                $purpose.prop("disabled", false);
+                $topBorehole.find('.quantity-value').prop("disabled", false);
+                $topBorehole.find('.quantity-unit').prop("disabled", false);
+            } else {
+                $purpose.val('').trigger('change');
+                $purpose.prop("disabled", true);
+                $topBorehole.find('.quantity-value').val('').trigger('change');
+                $topBorehole.find('.quantity-unit').val('').trigger('change');
+                $topBorehole.find('.quantity-value').prop("disabled", true);
+                $topBorehole.find('.quantity-unit').prop("disabled", true);
+            }
+        })
+        $featureType.trigger('change');
+
+        $('#id_ground_surface_elevation_value, #id_ground_surface_elevation_unit, #id_top_borehole_elevation_value, #id_top_borehole_elevation_unit').change(function () {
+            ground_surface_elevation.u = $('#id_ground_surface_elevation_unit').val();
+            ground_surface_elevation.v = $('#id_ground_surface_elevation_value').val();
+            top_borehole_elevation.u = $('#id_top_borehole_elevation_unit').val();
+            top_borehole_elevation.v = $('#id_top_borehole_elevation_value').val();
+            $.each(measurementCharts, function (key, chart) {
+                chart.refetchData();
+            });
+        })
+
+        {# original ID no space#}
+        $("#id_original_id").on({
+            keydown: function (e) {
+                if (e.which === 32)
+                    return false;
+            },
+            change: function () {
+                this.value = this.value.replace(/\s/g, "");
+            }
+        });
+    })
 </script>

@@ -5,7 +5,12 @@ from gwml2.models.hydrogeology import HydrogeologyParameter, PumpingTest
 class PumpingTestAdmin(admin.ModelAdmin):
     list_display = (
         'test_type', 'porosity', 'hydraulic_conductivity',
-        'transmissivity', 'specific_storage', 'storativity')
+        'transmissivity', 'specific_storage'
+    )
+    raw_id_fields = (
+        'specific_capacity', 'hydraulic_conductivity',
+        'transmissivity', 'specific_storage', 'storativity'
+    )
 
 
 class HydrogeologyParameterAdmin(admin.ModelAdmin):

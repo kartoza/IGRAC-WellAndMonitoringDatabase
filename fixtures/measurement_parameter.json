@@ -3,18 +3,273 @@
     "description": "",
     "groups": [
       "Level Measurement"
+    ],
+    "units": [
+      "m",
+      "ft"
     ]
   },
   "Water depth [from the top of the well]": {
     "description": "",
     "groups": [
       "Level Measurement"
+    ],
+    "units": [
+      "m",
+      "ft"
     ]
   },
   "Water level elevation a.m.s.l.": {
     "description": "",
     "groups": [
       "Level Measurement"
+    ],
+    "units": [
+      "m",
+      "ft"
+    ]
+  },
+  "EC": {
+    "description": "Electrical conductivity",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "S/m",
+      "μS/cm"
+    ]
+  },
+  "pH": {
+    "description": "Acidity",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": []
+  },
+  "T": {
+    "description": "Temperature",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "°C",
+      "°F",
+      "°K"
+    ]
+  },
+  "NO₃": {
+    "description": "Nitrate",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "Cl": {
+    "description": "Cloride",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "Ca": {
+    "description": "Calcium",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "Mg": {
+    "description": "Magnesium",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "Na": {
+    "description": "Sodium",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "K": {
+    "description": "Potassium",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "HCO₃": {
+    "description": "Bicarbonate",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "SO₄": {
+    "description": "Sulfate",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "TDS": {
+    "description": "Total dissolved solids",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L",
+      "ppm"
+    ]
+  },
+  "FC": {
+    "description": "Fecal coliforms",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "cfu per mL",
+      "cfu per 100 ml"
+    ]
+  },
+  "FS": {
+    "description": "Fecal streptococci",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "cfu per mL",
+      "cfu per 100 ml"
+    ]
+  },
+  "E Coli": {
+    "description": "Escherichia coli",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "cfu per mL",
+      "cfu per 100 ml"
+    ]
+  },
+  "F": {
+    "description": "Fluoride",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "ng/L",
+      "μg/L",
+      "mg/L"
+    ]
+  },
+  "As": {
+    "description": "Soluble arsenic",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "ng/L",
+      "μg/L",
+      "mg/L"
+    ]
+  },
+  "U": {
+    "description": "Soluble uranium",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "ng/L",
+      "μg/L",
+      "mg/L"
+    ]
+  },
+  "NH₄": {
+    "description": "Ammonium",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "μg/L",
+      "mg/L"
+    ]
+  },
+  "Fe": {
+    "description": "Soluble iron",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "mg/L"
+    ]
+  },
+  "Mn": {
+    "description": "Soluble manganese",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "ng/L",
+      "μg/L",
+      "mg/L"
+    ]
+  },
+  "P": {
+    "description": "orthophosphate",
+    "groups": [
+      "Quality Measurement"
+    ],
+    "units": [
+      "μg/L",
+      "mg/L"
+    ]
+  },
+  "Yield": {
+    "description": "Yield",
+    "groups": [
+      "Yield Measurement"
+    ],
+    "units": [
+      "m³/day",
+      "m³/h",
+      "m³/min"
+    ]
+  },
+  "Spring discharge": {
+    "description": "Spring discharge",
+    "groups": [
+      "Yield Measurement"
+    ],
+    "units": [
+      "m³/day",
+      "m³/h",
+      "m³/min"
     ]
   }
 }

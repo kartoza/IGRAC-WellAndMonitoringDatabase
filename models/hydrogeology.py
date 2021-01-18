@@ -35,10 +35,10 @@ class PumpingTest(models.Model):
     specific_yield = models.FloatField(
         null=True, blank=True
     )
-    storativity = models.FloatField(
+    storativity = models.OneToOneField(
+        Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        help_text='In confined aquifers, storativity is the integrated specific storage over the thickness of the aquifer. '
-                  'In unconfined aquifer, storativity is equivalent to specific yield.'
+        related_name='pumping_test_storativity'
     )
     test_type = models.CharField(
         null=True, blank=True, max_length=512,
@@ -63,9 +63,8 @@ class HydrogeologyParameter(models.Model):
         TermAquiferType, on_delete=models.SET_NULL,
         null=True, blank=True
     )
-    aquifer_thickness = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True
+    aquifer_thickness = models.CharField(
+        null=True, blank=True, max_length=512
     )
     confinement = models.ForeignKey(
         TermConfinement, on_delete=models.SET_NULL,

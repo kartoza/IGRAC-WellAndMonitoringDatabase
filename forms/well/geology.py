@@ -1,20 +1,28 @@
-from django import forms
 from django.forms.models import model_to_dict
+from gwml2.forms.well.base import WellBaseForm
 from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.geology import Geology
 
 
-class GeologyForm(forms.ModelForm):
+class GeologyForm(WellBaseForm):
     """
     Form of geology of well.
     """
 
     class Meta:
         model = Geology
-        fields = ('total_depth',)
+        fields = ('total_depth', 'reference_elevation')
         widgets = {
-            'total_depth': QuantityInput(unit_group='length'),
+            'total_depth': QuantityInput(
+                unit_group='length', attrs={
+                    'min': 0
+                }
+            ),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(GeologyForm, self).__init__(*args, **kwargs)
+        self.fields['reference_elevation'].label = 'Total depth reference elevation'
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -31,6 +39,8 @@ class GeologyForm(forms.ModelForm):
         :return: Form
         :rtype: GeologyForm
         """
+        if not data['total_depth_value']:
+            data['reference_elevation'] = None
         return GeologyForm(data, files, instance=instance)
 
     @staticmethod

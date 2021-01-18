@@ -11,6 +11,11 @@ class TermMeasurementParameter(_Term):
         Unit, null=True, blank=True
     )
 
+    def __str__(self):
+        if self.description:
+            return '{} ({})'.format(self.name, self.description)
+        return self.name
+
     class Meta(Sortable.Meta):
         db_table = 'term_measurement_parameter'
 

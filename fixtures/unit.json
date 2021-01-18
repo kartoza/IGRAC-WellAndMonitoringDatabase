@@ -1,45 +1,104 @@
 {
   "m": {
+    "html": "m",
     "description": "Meters",
     "groups": [
       "length"
     ]
   },
   "ft": {
+    "html": "ft",
     "description": "Feet",
     "groups": [
       "length"
     ]
   },
-  "m2/day": {
+  "cm": {
+    "html": "cm",
+    "description": "Centimeter",
+    "groups": [
+      "length"
+    ]
+  },
+  "m²/day": {
     "description": "Cubic meter per day",
-    "html": "m&sup2;/day",
     "groups": [
-      "flow rate"
+      "length^2 / time"
     ]
   },
-  "m3/day": {
-    "html": "m&sup3;/day",
+  "m³/day": {
     "groups": [
-      "flow rate"
+      "length^3 / time"
     ]
   },
-  "m3/h": {
-    "html": "m&sup3;/h",
+  "m³/h": {
     "groups": [
-      "flow rate"
+      "length^3 / time"
     ]
   },
-  "m3/min": {
-    "html": "m&sup3;/min",
+  "m³/min": {
     "groups": [
-      "flow rate"
+      "length^3 / time"
     ]
   },
   "%": {
     "description": "Percent",
     "groups": [
       "Percentage"
+    ]
+  },
+  "°C": {
+    "description": "Celcius",
+    "groups": [
+      "Temperature"
+    ]
+  },
+  "°F": {
+    "description": "Fahrenheit",
+    "groups": [
+      "Temperature"
+    ]
+  },
+  "°K": {
+    "description": "Kelvin",
+    "groups": [
+      "Temperature"
+    ]
+  },
+  "mg/L": {
+    "description": "Milligrams per litre",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "ng/L": {
+    "description": "Nanogram per litre",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "μg/L": {
+    "description": "Microgram per litre",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "ppm": {
+    "description": "Parts per million",
+    "groups": [
+      "Mass Concentration"
+    ]
+  },
+  "m/day": {
+    "description": "meter per day",
+    "groups": [
+      "length / time"
+    ]
+  },
+  "1/m": {
+    "description": "meter per day",
+    "groups": [
+      "1 / length"
     ]
   }
 }

@@ -5,7 +5,7 @@ from gwml2.models.general import Quantity, Unit, UnitGroup
 
 class QuantityInput(forms.widgets.Input):
     template_name = 'widgets/quantity.html'
-    input_type = 'text'
+    input_type = 'number'
     unit_group = None
     unit_required = True
 
@@ -14,7 +14,7 @@ class QuantityInput(forms.widgets.Input):
         try:
             if unit_group:
                 self.unit_group = UnitGroup.objects.get(name=unit_group)
-        except ProgrammingError:
+        except (ProgrammingError, UnitGroup.DoesNotExist):
             pass
         self.unit_required = unit_required
 
@@ -26,7 +26,7 @@ class QuantityInput(forms.widgets.Input):
         if value:
             quantity = Quantity.objects.get(id=value)
             context['value'] = '%s' % quantity.value
-            context['unit'] = quantity.unit.id
+            context['unit'] = quantity.unit.id if quantity.unit else ''
         else:
             context['value'] = ''
             context['unit'] = ''
@@ -50,7 +50,7 @@ class QuantityInput(forms.widgets.Input):
         of this widget or None if it's not provided.
         """
         try:
-            if data['{}_id'.format(name)]:
+            if '{}_id'.format(name) in data and data['{}_id'.format(name)]:
                 quantity = Quantity.objects.get(
                     id=data['{}_id'.format(name)]
                 )
@@ -58,10 +58,12 @@ class QuantityInput(forms.widgets.Input):
                 quantity = Quantity()
             if data['{}_value'.format(name)]:
                 quantity.value = data['{}_value'.format(name)]
-                unit, created = Unit.objects.get_or_create(name=data['{}_unit'.format(name)])
-                if created and self.unit_group:
-                    self.unit_group.units.add(unit)
-                quantity.unit = unit
+                quantity.unit = None
+                if data['{}_unit'.format(name)]:
+                    unit, created = Unit.objects.get_or_create(name=data['{}_unit'.format(name)])
+                    if created and self.unit_group:
+                        self.unit_group.units.add(unit)
+                    quantity.unit = unit
                 quantity.save()
                 return quantity.id
             else:

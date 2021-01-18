@@ -61,6 +61,7 @@
 
     .well-info p {
         margin: 0;
+        font-size: 9pt;
         position: absolute;
         top: 50%;
         left: 50%;
@@ -68,27 +69,36 @@
         color: #24619d;
     }
 
+    .read-only .well-table-container table td {
+        padding: 10px !important;
+    }
+
 </style>
 
+<svg style="display: none">
+    <defs>
+        <pattern id="diagonalHatch" patternUnits="userSpaceOnUse" width="4" height="4">
+            <path d="M-1,1 l2,-2
+           M0,4 l4,-4
+           M3,5 l2,-2"
+                  style="stroke:black; stroke-width:1"></path>
+        </pattern>
+    </defs>
+</svg>
 
-<div class="well-chart-row">
-    <div class="column-30 height-100">
+<div class="well-chart-row many-to-many">
+    <div class="column-50 height-100">
         <div class="charts-header">
-            <h3>Well Chart</h3>
-        </div>
-        <div style="font-weight: bold; height: 30px;">
-            <div style="width: 30%; float: left">Depth From Surface</div>
-            <div style="width: 40%; float: left; text-align: center">Construction</div>
-            <div style="width: 30%; float: left">Stratigraphy</div>
+            <h4>Well Chart <i class="fa fa fa-arrows-alt" aria-hidden="true" onclick="toggleFullScreenWellChart(this)"></i></h4>
         </div>
         <div class="charts" id="well-chart-container">
         </div>
     </div>
-    <div class="column-70">
-        <h3>Well information</h3>
-        <div id="well-table-container" class="well-table-container" style="max-width: 100% !important;">
+    <div class="column-50">
+        <h3>&nbsp;</h3>
+        <div id="well-table-container" class="well-table-container" style="max-width: 100% !important; margin-top: -10px;">
             <div class="well-info">
-                <p>Please hover over the chart on the left</p>
+                <p>Please hover mouse over the chart</p>
             </div>
         </div>
     </div>
@@ -101,32 +111,26 @@
         </div>
         <table>
             <tr>
-                <td width="30%">Type</td>
-                <td><%= construction.type %></td>
-            </tr>
-            <tr>
                 <td>Top depth</td>
-                <td><%= construction.actual_top %> <%= construction.actual_top_depth_unit %>
-                    (<%= construction.translated_top %> <%= construction.translated_top_depth_unit %>)
+                <td><%= construction.translated_top %> <%= construction.translated_top_depth_unit %>
                 </td>
             </tr>
             <tr>
                 <td>Bottom depth</td>
-                <td><%= construction.actual_bottom %> <%= construction.actual_bottom_depth_unit %>
-                    (<%= construction.translated_bottom %> <%= construction.translated_bottom_depth_unit %>)
+                <td><%= construction.translated_bottom %> <%= construction.translated_bottom_depth_unit %>
                 </td>
             </tr>
             <tr>
-                <td>Reference Elevation</td>
-                <td><%= construction.reference_elevation %></td>
+                <td>Type</td>
+                <td><%= construction.type %></td>
             </tr>
             <tr>
                 <td>Diameter</td>
-                <td><%= construction.data.diameter %></td>
+                <td><% if (construction.data) { %><%= construction.data.diameter %><% } else { %>-<% } %></td>
             </tr>
             <tr>
                 <td>Material</td>
-                <td><%= construction.data.material %></td>
+                <td><% if (construction.data) { %><%= construction.data.material %><% } else { %>-<% } %></td>
             </tr>
         </table>
     </div>
@@ -136,25 +140,19 @@
             <table>
                 <tr>
                     <td width="30%">Top depth</td>
-                    <td><%= stratigraphy.actual_top %> <%= stratigraphy.actual_top_depth_unit %>
-                        (<%= stratigraphy.translated_top %> <%= stratigraphy.translated_top_depth_unit %>)
+                    <td><%= stratigraphy.translated_top %> <%= stratigraphy.translated_top_depth_unit %>
                     </td>
                 </tr>
                 <tr>
                     <td>Bottom depth</td>
-                    <td><%= stratigraphy.actual_bottom %> <%= stratigraphy.actual_bottom_depth_unit %>
-                        (<%= stratigraphy.translated_bottom %> <%= stratigraphy.translated_bottom_depth_unit %>)
+                    <td><%= stratigraphy.translated_bottom %> <%= stratigraphy.translated_bottom_depth_unit %>
                     </td>
-                </tr>
-                <tr>
-                    <td>Reference Elevation</td>
-                    <td><%= stratigraphy.reference_elevation %></td>
                 </tr>
                 <% if (stratigraphy.data) { %>
                 <tr>
                     <td>Material</td>
                     <td>
-                        <div style="height: 10px; width: 10px; opacity: 0.5; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
+                        <div style="height: 10px; width: 10px; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
                         <%= stratigraphy.data.material %>
                     </td>
                 </tr>
@@ -175,44 +173,76 @@
             </table>
         </div>
     </div>
-    <div class="table-description">
-        <h5>Description</h5>
-        <%= construction.data.description %>
-    </div>
 </script>
 
 <script type="text/javascript"
-        src="{% static 'js/apexcharts/apexcharts.min.js' %}"></script>
+        src="{% static 'js/apexcharts/apexcharts.js' %}"></script>
 <script type="text/javascript"
         src="{% static 'js/chroma.min.js' %}"></script>
 <script type="text/javascript" src="{% static 'js/underscore-1.11.0/underscore-min.js' %}"></script>
 <script>
 
+    // Last selected bar in the chart
+    let currentSeriesIndex = null;
+    let hoveredColorHighlight = 'rgba(219, 186, 0, 1)';
+    let hoveredColorHighlight2 = 'rgb(255,230,115)';
+    let selectedColorHighlight = 'rgba(70,165,42, 0.5)';
+    let constructionChartEntered = false;
+    let constructionChartClicked = false;
+    let stratigraphyChart = null;
+    let constructionChart = null;
+    let lastHoveredData = {};
+    let lastClickedData = {};
+
+    const toggleFullScreenWellChart = function (element) {
+        toggleFullScreen(element);
+        setTimeout(function () {
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
+    }
+
     const getWellChartData = function () {
+        {# TODO: #}
+        {#  Please use this#}
+        {#  const wellElevation = getTopGroundSurfaceWell('m') #}
+        {#  top_borehole_elevation = wellElevation['top_borehole']; #}
+        {#  ground_surface_elevation = wellElevation['ground_surface']; #}
+
         // Get chart data
-        let ground_surface_elevation = $('#id_ground_surface_elevation_value').val();
-        let ground_surface_elevation_unit = $('#id_ground_surface_elevation_unit').val();
+        let ground_surface_elevation = valElmt($('*[name^="ground_surface_elevation_value"]'));
+        let ground_surface_elevation_unit = valElmt($('*[name^="ground_surface_elevation_unit"]'));
 
         if (ground_surface_elevation_unit === 'ft') {
             ground_surface_elevation = feetToMeter(ground_surface_elevation)
         }
 
-        let top_borehole_elevation = $('#id_top_borehole_elevation_value').val();
-        let top_borehole_elevation_unit = $('#id_top_borehole_elevation_unit').val();
+        let top_borehole_elevation = valElmt($('*[name^="top_borehole_elevation_value"]'));
+        let top_borehole_elevation_unit = valElmt($('*[name^="top_borehole_elevation_unit"]'));
 
         if (top_borehole_elevation_unit === 'ft') {
             top_borehole_elevation = feetToMeter(top_borehole_elevation)
         }
+        let totalDepth = valElmt($('*[name^="total_depth_value"]'))
+        let totalDepthUnit = valElmt($('*[name^="total_depth_unit"]'))
+        if (totalDepthUnit === 'ft') {
+            totalDepth = feetToMeter(totalDepth)
+        }
+
+        if (top_borehole_elevation) {
+            top_borehole_elevation -= ground_surface_elevation;
+        } else {
+            top_borehole_elevation = 0
+        }
 
         let stratigraphicLogData = $('#stratigraphic_log_table .table-wrapper tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
-            let top = parseFloat(`${$td.eq(2).find('[name^="top_depth_value"]').val()}`);
-            let bottom = parseFloat(`${$td.eq(3).find('[name^="bottom_depth_value"]').val()}`);
-            let top_depth_unit = `${$td.eq(2).find('[name^="top_depth_unit"]').val()}`;
-            let bottom_depth_unit = `${$td.eq(3).find('[name^="bottom_depth_unit"]').val()}`;
+            let top = parseFloat(`${valElmt($td.eq(2).find('[name^="top_depth_value"]'))}`);
+            let bottom = parseFloat(`${valElmt($td.eq(3).find('[name^="bottom_depth_value"]'))}`);
+            let top_depth_unit = `${valElmt($td.eq(2).find('[name^="top_depth_unit"]'))}`;
+            let bottom_depth_unit = `${valElmt($td.eq(3).find('[name^="bottom_depth_unit"]'))}`;
             let actual_top = top;
             let actual_bottom = bottom;
-            let reference_elevation = `${$td.eq(1).find('[name^="reference_elevation"]').find('option:selected').text()}`;
+            let reference_elevation = `${valElmt($td.eq(1).find('[name^="reference_elevation"]'))}`;
             let actual_top_depth_unit = top_depth_unit;
             let actual_bottom_depth_unit = bottom_depth_unit;
             if (top_depth_unit === 'ft') {
@@ -224,11 +254,14 @@
                 bottom_depth_unit = 'm';
             }
             if (reference_elevation === 'Top of Borehole') {
-                bottom -= top_borehole_elevation;
-                top -= top_borehole_elevation;
+                bottom = bottom - top_borehole_elevation;
+                top = top - top_borehole_elevation;
+            } else if (reference_elevation === 'Ground Surface Level ASL') {
+                bottom = bottom;
+                top = top;
             }
             return {
-                id: parseInt(`${$td.eq(0).find('[name^="id_"]').val()}`),
+                id: parseInt(`${valElmt($td.eq(0).find('[name^="id_"]'))}`),
                 top: top,
                 bottom: bottom,
                 top_depth_unit: top_depth_unit,
@@ -243,22 +276,22 @@
                 translated_top_depth_unit: top_depth_unit,
                 translated_bottom_depth_unit: bottom_depth_unit,
                 data: {
-                    material: `${$td.eq(4).find('[name^="material"]').val()}`,
-                    unit: `${$td.eq(5).find('[name^="stratigraphic_unit"]').val()}`,
+                    material: `${valElmt($td.eq(4).find('[name^="material"]'))}`,
+                    unit: `${valElmt($td.eq(5).find('[name^="stratigraphic_unit"]'))}`,
                 }
             }
         }).get();
 
         let constructionData = $('#structure_table tr:has(td)').map(function (i, v) {
             let $td = $('td', this);
-            let type = `${$td.eq(1).find('[name^="type"]').find('option:selected').text()}`;
-            let reference_elevation = `${$td.eq(2).find('[name^="reference_elevation"]').find('option:selected').text()}`;
-            let top = parseFloat(`${$td.eq(3).find('[name^="top_depth_value"]').val()}`);
-            let bottom = parseFloat(`${$td.eq(4).find('[name^="bottom_depth_value"]').val()}`);
+            let type = `${valElmt($td.eq(4).find('[name^="type"]'))}`;
+            let reference_elevation = `${valElmt($td.eq(1).find('[name^="reference_elevation"]'))}`;
+            let top = parseFloat(`${valElmt($td.eq(2).find('[name^="top_depth_value"]'))}`);
+            let bottom = parseFloat(`${valElmt($td.eq(3).find('[name^="bottom_depth_value"]'))}`);
             let actual_top = top;
             let actual_bottom = bottom;
-            let top_depth_unit = `${$td.eq(3).find('[name^="top_depth_unit"]').val()}`;
-            let bottom_depth_unit = `${$td.eq(4).find('[name^="bottom_depth_unit"]').val()}`;
+            let top_depth_unit = `${valElmt($td.eq(2).find('[name^="top_depth_unit"]'))}`;
+            let bottom_depth_unit = `${valElmt($td.eq(3).find('[name^="bottom_depth_unit"]'))}`;
             let actual_top_depth_unit = top_depth_unit;
             let actual_bottom_depth_unit = bottom_depth_unit;
             if (top_depth_unit === 'ft') {
@@ -270,11 +303,14 @@
                 bottom_depth_unit = 'm';
             }
             if (reference_elevation === 'Top of Borehole') {
-                bottom -= top_borehole_elevation;
-                top -= top_borehole_elevation;
+                bottom = bottom - top_borehole_elevation;
+                top = top - top_borehole_elevation;
+            } else if (reference_elevation === 'Ground Surface Level ASL') {
+                bottom = bottom;
+                top = top;
             }
             return {
-                id: parseInt(`${$td.eq(0).find('[name^="id_"]').val()}`),
+                id: parseInt(`${valElmt($td.eq(0).find('[name^="id_"]'))}`),
                 top: top,
                 bottom: bottom,
                 type: type,
@@ -291,13 +327,12 @@
                 translated_bottom_depth_unit: bottom_depth_unit,
                 data: {
                     'type': type,
-                    'diameter': `${$td.eq(5).find('[name^="diameter"]').val()}`,
-                    'material': `${$td.eq(6).find('[name^="material"]').val()}`,
-                    'description': `${$td.eq(7).find('[name^="description"]').val()}`,
+                    'diameter': `${valElmt($td.eq(5).find('[name^="diameter"]'))}`,
+                    'material': `${valElmt($td.eq(6).find('[name^="material"]'))}`,
+                    'description': `${valElmt($td.eq(7).find('[name^="description"]'))}`,
                 }
             }
         }).get();
-
         stratigraphicLogData.sort((a, b) => (a.translated_top > b.translated_top) ? 1 : ((b.translated_top > a.translated_top) ? -1 : 0));
 
         // CONSTRUCTION DATA
@@ -330,7 +365,7 @@
         }
         $('#well-chart-container').html('')
         if (stratigraphicLogData.length > 0 || constructionData.length > 0) {
-            createWellChart(chartData, 'well-chart-container', 'well-table-container', topBoreholeChart);
+            createWellChart(chartData, 'well-chart-container', 'well-table-container', 0);
         } else {
             $('.well-chart-row').hide();
         }
@@ -338,6 +373,152 @@
 
     function wellChart() {
         getWellChartData()
+    }
+
+    /**
+     * Retrieve strati bar from coordinate
+     * @return [ strati bar index, strati bar element ]
+     **/
+    function getStratiBarFromCoordinate(y) {
+        let stratiIndex = null;
+        let stratiChartElement = null;
+        stratigraphyChart.each((index, _stratiChart) => {
+            const boundingRect = _stratiChart.getBoundingClientRect();
+            const _top = boundingRect.top;
+            const _bottom = boundingRect.top + boundingRect.height;
+            if (y >= _top && y <= _bottom) {
+                stratiIndex = _stratiChart.getAttribute('rel') - 2;
+                stratiChartElement = $(_stratiChart).children()[0];
+                return true;
+            }
+        })
+        return [stratiIndex, stratiChartElement];
+    }
+
+    /**
+     * Retrieve construction bar from coordinate
+     * @return [ construction bar index, construction bar element ]
+     **/
+    function getConstructionBarFromCoordinate(y) {
+        let constructionIndex = null;
+        let constructionChartElement = null;
+        constructionChart.each((index, _constructionChart) => {
+            const boundingRect = _constructionChart.getBoundingClientRect();
+            const _top = boundingRect.top;
+            const _bottom = boundingRect.top + boundingRect.height;
+            if (y >= _top && y <= _bottom) {
+                constructionIndex = _constructionChart.getAttribute('rel') - 2;
+                constructionChartElement = $(_constructionChart).children()[0];
+                return true;
+            }
+        })
+        return [constructionIndex, constructionChartElement];
+    }
+
+    function highlightChartBar(barElement, chartKey, highlightColor = hoveredColorHighlight) {
+        const dataContainer = lastHoveredData;
+        const chartColorKey = chartKey + 'Color';
+        const chartPatternKey = chartKey + 'Pattern';
+        if (dataContainer[chartKey]) {
+            dataContainer[chartKey].setAttribute('stroke', '#ffffff');
+            dataContainer[chartKey].setAttribute('fill', dataContainer[chartColorKey]);
+            if (dataContainer[chartKey] && dataContainer[chartColorKey].includes('Pattern')) {
+                let pattern = dataContainer[chartColorKey].replace('url(', '').replace(')', '');
+                pattern = $(pattern).children()[0];
+                pattern.setAttribute('stroke', dataContainer[chartPatternKey]);
+            }
+        }
+        if (barElement) {
+            dataContainer[chartKey] = barElement;
+            dataContainer[chartColorKey] = barElement.getAttribute('fill');
+            barElement.setAttribute('stroke', highlightColor)
+            if (dataContainer[chartColorKey] && dataContainer[chartColorKey].includes('Pattern')) {
+                let pattern = dataContainer[chartColorKey].replace('url(', '').replace(')', '');
+                pattern = $(pattern).children()[0];
+                dataContainer[chartPatternKey] = pattern.getAttribute('stroke');
+                pattern.setAttribute('stroke', highlightColor);
+            } else {
+                barElement.setAttribute('fill', highlightColor);
+            }
+        } else {
+            dataContainer[chartKey] = null;
+        }
+    }
+
+    function updateWellInformation(event, chartData, index = currentSeriesIndex) {
+        let tableContainerId = 'well-table-container';
+        const $tableDiv = $(`#${tableContainerId}`);
+        let constructionData = chartData['construction'][index];
+        if (chartData['constructionData']) {
+            constructionData = chartData['constructionData']
+        }
+        if (!event || typeof constructionData === 'undefined') {
+            $tableDiv.html(`<div class="well-info"><p>Please hover mouse over the chart</p></div>`);
+            return true;
+        }
+        if (chartData['stratigraphyData']) {
+            renderTable(tableContainerId, constructionData, chartData['stratigraphyData']);
+            return true;
+        }
+        renderTable(tableContainerId, constructionData, {});
+    }
+
+    /**
+     * Handler for chart hover event
+     **/
+    function chartHovered(event, chartData, type = 'construction') {
+        let hoveredBar = null;
+        let oppositeBar = null;
+
+        if (event) {
+            hoveredBar = event.target;
+        }
+
+        if (type === 'construction') {
+            if (event) {
+                const [stratiIndex, stratiElement] = getStratiBarFromCoordinate(event.clientY);
+                if (stratiElement) {
+                    chartData['constructionData'] = null;
+                    oppositeBar = stratiElement;
+                    chartData['stratigraphyData'] = chartData['stratigraphy'][stratiIndex + 1];
+                }
+            }
+            highlightChartBar(hoveredBar, 'construction');
+            highlightChartBar(oppositeBar, 'strati');
+        } else {
+            if (event) {
+                const [constructionIndex, constructionElement] = getConstructionBarFromCoordinate(event.clientY);
+                if (constructionElement) {
+                    oppositeBar = constructionElement;
+                    chartData['constructionData'] = chartData['construction'][constructionIndex + 1];
+                } else {
+                    chartData['constructionData'] = {};
+                }
+                chartData['stratigraphyData'] = chartData['stratigraphy'][currentSeriesIndex];
+            }
+            highlightChartBar(hoveredBar, 'strati');
+            highlightChartBar(oppositeBar, 'construction', hoveredColorHighlight2);
+        }
+        updateWellInformation(event, chartData);
+    }
+
+    /**
+     * Calculate construction chart padding
+     **/
+    function constructionChartPadding() {
+        const containerWidth = $('#well-chart-container').width();
+        if (containerWidth > 260) {
+            return 0.7 * containerWidth;
+        } else {
+            return 0.75 * containerWidth;
+        }
+    }
+
+    /**
+     * Handler for chart click event
+     **/
+    function chartClicked(event, chartData) {
+        // TODO : ADD LOGIC
     }
 
     /**
@@ -410,10 +591,13 @@
                 id: -999,
                 data: [topCasing]
             })
-            constructionColors.push('#a74343');
+            constructionColors.push('#4f4f4f');
             constructionOpacities.push('1');
             chartData['constructionPatterns'].unshift('solid');
         }
+
+        let _chartDataConstruction = Object.assign([], chartData['construction']);
+        let _chartPatternConstruction = Object.assign([], chartData['constructionPatterns']);
 
         chartData['construction'].forEach((constructionData, index) => {
             if (topDepthConstruction === null) {
@@ -433,22 +617,45 @@
 
             const range = constructionData['bottom'] - constructionData['top'];
             maxConstructionData += range
+
+            if (index > 0) {
+                if (constructionData['top'] > chartData['construction'][index - 1]['bottom']) {
+                    let emptyRange = constructionData['top'] - chartData['construction'][index - 1]['bottom'];
+                    constructionDataSeries.push({
+                        name: -999,
+                        data: [emptyRange],
+                    })
+                    maxConstructionData += emptyRange;
+                    _chartDataConstruction.splice(index, 0, ({
+                        'translated_top': chartData['construction'][index - 1]['bottom'],
+                        'translated_bottom': constructionData['top'],
+                        'type': 'Empty',
+                        'translated_top_depth_unit': 'm',
+                        'translated_bottom_depth_unit': 'm',
+                    }));
+                    constructionColors.push('#ffffff');
+                    constructionOpacities.push('1');
+                    _chartPatternConstruction.splice(index, 0, 'solid');
+                }
+            }
+
             constructionDataSeries.push({
                 name: constructionData['id'],
                 data: [range]
             })
 
             if (constructionData['type'] === 'Casing') {
-                constructionColors.push('#676767');
-                constructionOpacities.push('0.8');
+                constructionColors.push('#4f4f4f');
             } else if (constructionData['type'] === 'Screen') {
                 constructionColors.push('#303030');
-                constructionOpacities.push('1');
             } else {
-                constructionColors.push('#c8c8c8');
-                constructionOpacities.push('0.6');
+                constructionColors.push('#f6f6f6');
             }
+            constructionOpacities.push('1');
         })
+
+        chartData['construction'] = _chartDataConstruction;
+        chartData['constructionPatterns'] = _chartPatternConstruction;
 
         const stratigraphyDataSeries = [];
         const stratigraphyColors = [];
@@ -482,35 +689,24 @@
                 data: [range]
             })
             stratigraphyColors.push(stratigraphyData['data']['material_color']);
-            stratigraphyOpacities.push(0.5);
+            stratigraphyOpacities.push(1);
         })
         const max = maxConstructionData > maxStratigraphyData ? maxConstructionData : maxStratigraphyData;
         renderChart(constructionDataSeries, `#${constructionChartId}`, max,
             {
                 'width': width,
-                'padding_width': 180,
+                'padding_width': constructionChartPadding(),
                 'center': true,
                 'colors': constructionColors,
                 'opacity': constructionOpacities,
                 'topCasing': topCasing,
                 'patterns': chartData['constructionPatterns'],
-            }, (event, chartContext, config) => {
-                if (!event) {
-                    return true;
+            }, (event, chartContext, config, eventName = 'hovered') => {
+                if (eventName === 'hovered') {
+                    chartHovered(event, chartData);
+                } else if (eventName === 'clicked') {
+                    chartClicked(event, chartData);
                 }
-                let seriesIndex = config['seriesIndex'];
-                if (topCasing !== 0) {
-                    seriesIndex += -1;
-                }
-                const constructionData = chartData['construction'][seriesIndex];
-                chartData['stratigraphy'].some((stratigraphyData, index) => {
-                    if (constructionData['translated_bottom'] <= stratigraphyData['translated_bottom']) {
-                        renderTable(tableContainerId, constructionData, stratigraphyData);
-                        return true;
-                    } else {
-                        renderTable(tableContainerId, constructionData, {});
-                    }
-                })
             });
         renderChart(stratigraphyDataSeries, `#${stratigraphyChartId}`, max,
             {
@@ -519,6 +715,10 @@
                 'colors': stratigraphyColors,
                 'opacity': stratigraphyOpacities,
                 'topCasing': topCasing,
+            }, (event, chartContext, config, eventName = 'hovered') => {
+                if (eventName === 'hovered') {
+                    chartHovered(event, chartData, 'strati');
+                }
             });
     }
 
@@ -541,27 +741,45 @@
         const opacity = options.hasOwnProperty('opacity') ? options['opacity'] : 1;
         const topCasing = options.hasOwnProperty('topCasing') ? options['topCasing'] : 0;
         const patterns = options.hasOwnProperty('patterns') ? options['patterns'] : 'solid';
-        const pattern_type = options.hasOwnProperty('pattern_type') ? options['pattern_type'] : 'horizontalLines';
+        const pattern_type = options.hasOwnProperty('pattern_type') ? options['pattern_type'] : 'diagonalLines';
         let chartOptions = {
             series: chartSeriesData,
             stroke: {
-                width: 1,
+                width: 2,
                 colors: ['#fff']
+            },
+            animations: {
+                enabled: false
             },
             chart: {
                 type: 'bar',
-                height: 450,
+                height: 500,
                 width: width - padding_width,
                 stacked: true,
                 events: {
                     dataPointMouseEnter: function (event, chartContext, config) {
                         if (callback) {
+                            constructionChartEntered = true;
+                            chartContext['seriesIndex'] = config['seriesIndex'];
+                            currentSeriesIndex = config['seriesIndex'];
                             callback(event, chartContext, config);
+                        }
+                    },
+                    click: function (event, chartContext, config) {
+                        if (callback) {
+                            callback(event, chartContext, config, 'clicked');
                         }
                     },
                     dataPointMouseLeave: function (event, chartContext, config) {
                         if (callback) {
-                            callback(null);
+                            constructionChartEntered = false;
+                            if (chartContext['selectedSeriesIndex']) {
+                                const _config = config;
+                                _config['seriesIndex'] = chartContext['selectedSeriesIndex'];
+                                callback(event, chartContext, _config);
+                            } else {
+                                callback(null);
+                            }
                         }
                     },
                     mounted: function (chartContext, config) {
@@ -571,11 +789,28 @@
                                 'margin-right': 'auto'
                             })
                         }
+                        stratigraphyChart = (
+                            $('#stratigraphy-chart-container').find('.apexcharts-series')
+                        )
+                        constructionChart = (
+                            $('#construction-chart-container').find('.apexcharts-series')
+                        )
                     },
                     updated: function (chartContext, config) {
                         chart.destroy();
                         options['width'] = $('#well-chart-container').width();
+                        if (chartContainerId.includes('construction')) {
+                            options['padding_width'] = constructionChartPadding();
+                        }
                         renderChart(chartSeriesData, chartContainerId, maxSeriesData, options, callback);
+                    },
+                    mouseMove: function (event, chartContext, config) {
+                        if (callback) {
+                            if (constructionChartEntered) {
+                                chartContext['seriesIndex'] = config['seriesIndex'];
+                                callback(event, chartContext, config);
+                            }
+                        }
                     }
                 },
                 toolbar: {
@@ -592,6 +827,9 @@
                 categories: ['Depth'],
             },
             yaxis: {
+                type: 'numeric',
+                min: 0,
+                tickAmount: maxSeriesData / 10,
                 reversed: true,
                 show: !center,
                 max: maxSeriesData,
@@ -611,6 +849,10 @@
                         }
                         return value.toFixed(2) + "m";
                     }
+                },
+                title: {
+                    show: true,
+                    text: "Depth Below Ground Surface"
                 }
             },
             grid: {
@@ -622,9 +864,9 @@
                 type: patterns,
                 pattern: {
                     style: pattern_type,
-                    width: 5,
-                    height: 5,
-                    strokeWidth: 3,
+                    width: 4,
+                    height: 4,
+                    strokeWidth: 1,
                 },
             },
             legend: {
@@ -632,11 +874,25 @@
             },
             dataLabels: {
                 enabled: false
+            },
+            states: {
+                hover: {
+                    filter: {
+                        type: center ? 'lighten' : 'none',
+                    }
+                },
+                active: {
+                    filter: {
+                        type: center ? 'lighten' : 'none',
+                        value: 0.10,
+                    }
+                }
             }
         };
 
         let chart = new ApexCharts(document.querySelector(chartContainerId), chartOptions);
         chart.render();
+        return chart;
     }
 
 </script>
