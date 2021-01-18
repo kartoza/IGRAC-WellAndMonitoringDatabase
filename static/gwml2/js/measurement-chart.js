@@ -1,15 +1,42 @@
 const chartColors = [
+    "rgb(75, 192, 192)",
     "rgb(255, 99, 132)",
     "rgb(54, 162, 235)",
     "rgb(153, 102, 255)",
     "rgb(255, 205, 86)",
-    "rgb(75, 192, 192)",
     "rgb(255, 159, 64)",
     "rgb(201, 203, 207)"
 ]
 
-function convertMeasurementData(input, unit_to, parameter_to, top_borehole_elevation, ground_surface_elevation) {
+/** Return year and week of year from date
+ */
+function getWeekNumber(d) {
+    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return [d.getUTCFullYear(), weekNo];
+}
+
+/** Format Date into Year-Month-Day **/
+function formatDate(date) {
+    var d = new Date(date),
+        month = '' + (d.getMonth() + 1),
+        day = '' + d.getDate(),
+        year = d.getFullYear();
+
+    if (month.length < 2)
+        month = '0' + month;
+    if (day.length < 2)
+        day = '0' + day;
+
+    return [year, month, day].join('-');
+}
+
+
+function convertMeasurementData(input, unit_to, parameter_to, time_range, top_borehole_elevation, ground_surface_elevation) {
     let data = {};
+    let timeRangeData = {};
     input.map(function (row) {
         let parameter = row['par'];
         let value = row['v'];
@@ -65,27 +92,122 @@ function convertMeasurementData(input, unit_to, parameter_to, top_borehole_eleva
                 break;
         }
 
+        if (value !== undefined && value !== null && parameter === parameter_to) {
+            let identifier = null;
+            const date = new Date(time * 1000)
+            switch (time_range) {
+                case 'hourly': {
+                    // this is for hourly
+                    if (!data[parameter]) {
+                        data[parameter] = []
+                    }
+                    data[parameter].push({
+                        t: date,
+                        y: value,
+                        methodology: methodology,
+                        unit: unit_to
+                    });
+                    break
+                }
+                case 'daily': {
+                    identifier = formatDate(date)
+                    break
+                }
+                case 'weekly': {
+                    const weeks = getWeekNumber(date)
+                    identifier = `${weeks[0]} Week ${weeks[1]}`
+                    break
+                }
+                case 'monthly': {
+                    identifier = `${date.getFullYear()} Month ${("0" + (date.getMonth() + 1)).slice(-2)}`
+                    break
+                }
+                case 'yearly': {
+                    identifier = `${date.getFullYear()}`
+                    break
+                }
+            }
 
-        if (!data[parameter]) {
-            data[parameter] = []
-        }
-        if (parameter === parameter_to) {
-            data[parameter].push({
-                t: new Date(time * 1000),
-                y: value,
-                methodology: methodology,
-                unit: unit_to
-            });
+            if (identifier) {
+                if (!timeRangeData[identifier]) {
+                    timeRangeData[identifier] = {
+                        'values': [],
+                        'max': null,
+                        'min': null
+                    }
+                }
+                timeRangeData[identifier]['max'] = (
+                    value > timeRangeData[identifier]['max'] || timeRangeData[identifier]['max'] === null) ? value : timeRangeData[identifier]['max'];
+                timeRangeData[identifier]['min'] = (
+                    value < timeRangeData[identifier]['min'] || timeRangeData[identifier]['min'] === null) ? value : timeRangeData[identifier]['min'];
+                timeRangeData[identifier]['values'].push(value)
+            }
         }
     })
-    return data;
+
+    let labels = Object.keys(timeRangeData).sort()
+    if (labels.length > 0) {
+        // reconstruct data by timeRangeData
+        $.each(labels, function (idx, key) {
+            const value = timeRangeData[key];
+            // Max of data
+            if (!data['max']) {
+                data['max'] = []
+            }
+            data['max'].push({
+                x: key,
+                y: value['max'],
+                unit: unit_to
+            })
+
+            // Min of data
+            if (!data['min']) {
+                data['min'] = []
+            }
+            data['min'].push({
+                x: key,
+                y: value['min'],
+                unit: unit_to
+            })
+
+
+            // Calculate Average and Media
+            const arr = value['values'].sort();
+            const sum = arr.reduce((sum, val) => (sum += val));
+            const len = arr.length;
+            const mid = Math.ceil(len / 2);
+
+            if (!data['average']) {
+                data['average'] = []
+            }
+            data['average'].push({
+                x: key,
+                y: sum / len,
+                unit: unit_to
+            })
+
+            // Median of data
+            if (!data['median']) {
+                data['median'] = []
+            }
+            data['median'].push({
+                x: key,
+                y: (len % 2 === 0) ? (arr[mid] + arr[mid - 1]) / 2 : arr[mid - 1],
+                unit: unit_to
+            })
+        });
+    }
+    return {
+        data: data,
+        labels: labels
+    }
 }
 
-function renderMeasurementChart(identifier, chart, data, xLabel, yLabel) {
+function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
     let ctx = document.getElementById(`${identifier}-chart`).getContext("2d");
     let dataset = [];
     let idx = 0;
-    $.each(data, function (key, value) {
+    $.each(rawData.data, function (key, value) {
         dataset.push({
             label: key,
             data: value,
@@ -137,6 +259,27 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel) {
             }
         }
     };
+
+    // show legend if data is more than 2 dataset
+    // and show it as not time
+    if (Object.keys(rawData.data).length > 1) {
+        options.options.legend.display = true
+    }
+    // if there is label, xAxes turns to be string
+    if (rawData.labels.length > 0) {
+        options.options.scales.xAxes = [{
+            scaleLabel: {
+                display: true,
+                labelString: xLabel
+            },
+            ticks: {
+                maxTicksLimit: 20,
+                display: true,
+            },
+        }]
+        options.data.labels = rawData.labels;
+    }
+
     if (!chart) {
         chart = new Chart(ctx, options);
     } else {
@@ -156,6 +299,8 @@ let MeasurementChartObj = function (
     this.url = url;
     this.$loading = $loading;
     this.$loadMore = $loadMore;
+    this.$dataFrom = $loadMore.closest('.measurement-chart-plugin').find('#data-from');
+    this.$dataTo = $loadMore.closest('.measurement-chart-plugin').find('#data-to');
     this.$units = $units;
     this.$parameters = $parameters;
     this.$timeRange = $timeRange;
@@ -177,8 +322,18 @@ let MeasurementChartObj = function (
         } else {
             this.$loadMore.removeAttr('disabled')
         }
+        this.$dataTo.html(
+            this.data.data[0] ?
+                formatDate(new Date(this.data.data[0].dt * 1000))
+                : 'no data'
+        )
+        this.$dataFrom.html(
+            this.data.data[this.data.data.length - 1] ?
+                formatDate(new Date(this.data.data[this.data.data.length - 1].dt * 1000))
+                : 'no data'
+        )
         const cleanData = convertMeasurementData(
-            this.data.data, this.unitTo, this.parameterTo,
+            this.data.data, this.unitTo, this.parameterTo, this.timeRange,
             unitConvert(
                 this.top_borehole.u, this.unitTo, this.top_borehole.v
             ),
@@ -204,8 +359,7 @@ let MeasurementChartObj = function (
                 url: url,
                 dataType: 'json',
                 data: {
-                    page: this.data.page,
-                    timerange: timeRange
+                    page: this.data.page
                 },
                 success: function (data, textStatus, request) {
                     that.data.page += 1;

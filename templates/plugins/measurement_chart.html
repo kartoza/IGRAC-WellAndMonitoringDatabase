@@ -1,19 +1,21 @@
 <div id="{{ identifier }}-cw" class="measurement-chart-plugin">
-    <div style="width: 100%; margin-bottom: 20px">
+    <div style="width: 100%; margin-bottom: 20px" class="measurement-chart-plugin-nav">
         <select id="parameters"></select>
         <select id="units"></select>
+        <select id="time-range">
+            <option value="hourly">Hourly</option>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+        </select>
         <div class="nav-right">
+            <div style="display:inline-block; font-style: italic; font-size: 14px; margin: 10px">
+                Data from <span id="data-from"></span> to <span id="data-to"></span></div>
             <button id="load-more">Load more</button>
             {# TODO : ask if it has min/max/median, #}
             {#   it's quite a big process because 1 #}
             {# range can has multiple unit that need to be calculated one by one #}
-            <select id="time-range" style="display: none">
-                <option value="hourly">Hourly for last 100 data</option>
-                <option value="daily">Daily for last 100 days</option>
-                <option value="weekly">Weekly for last year</option>
-                <option value="monthly">Monthly for 10 year</option>
-                <option value="yearly">Yearly for all time</option>
-            </select>
         </div>
     </div>
     <div id="canvas">

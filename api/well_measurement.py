@@ -1,5 +1,3 @@
-import datetime
-from datetime import timedelta
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -28,24 +26,10 @@ class WellMeasurements(APIView):
         except ValueError:
             return HttpResponseBadRequest('Page is not integer')
 
-        # check per timerange
-        timerange = request.GET.get('timerange', 0)
-        today = datetime.datetime.today()
-
-        if timerange == 'hourly':
-            # hourly
-            STEP = 100
-            _from = (page - 1) * STEP
-            _to = page * STEP
-            queryset = queryset[_from:_to]
-        elif timerange == 'daily':
-            # hourly
-            STEP = 100
-            _from = today - timedelta(days=(page - 1) * STEP)
-            _to = today - timedelta(days=STEP)
-            queryset = queryset.filter(time__gt=_from, time__lte=_from)
-        else:
-            return HttpResponseBadRequest('Timerange is not recognizes')
+        STEP = 100
+        _from = (page - 1) * STEP
+        _to = page * STEP
+        queryset = queryset[_from:_to]
 
         output = WellMeasurementMinimizedSerializer(queryset, many=True).data
         return JsonResponse({
