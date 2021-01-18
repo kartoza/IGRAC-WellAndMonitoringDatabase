@@ -128,7 +128,7 @@ function makeReadOnly() {
         });
         $('#form input, textarea').hide();
         $('#form select').not(".read-only").after(function () {
-            if ($(this).hasClass('read-only')) {
+            if ($(this).hasClass('read-only') || $(this).hasClass('measurement-chart-nav')) {
                 return ''
             }
             $(this).addClass('read-only');
@@ -139,7 +139,7 @@ function makeReadOnly() {
             }
             return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
         });
-        $('#form select').hide();
+        $('#form select').not('.measurement-chart-nav').hide();
 
         // this is for permissions section
         $('#id_public, .public-input').hide();
