@@ -12,7 +12,14 @@ from gwml2.models.term_measurement_parameter import (
 
 
 class TermMeasurementParameterAdmin(SortableAdmin):
+    list_display = ('name', 'unit_list')
     filter_horizontal = ('units',)
+
+    def unit_list(self, obj):
+        """
+        :type obj: TermMeasurementParameter
+        """
+        return ', '.join(obj.units.values_list('name', flat=True))
 
 
 class TermMeasurementParameterGroupAdmin(admin.ModelAdmin):

@@ -31,6 +31,12 @@
         let parameters ={{ parameters|safe }};
         let parameters_chart ={{ parameters_chart|safe }};
         let units = {{ units|safe }};
+        let unitsDict = {};
+        for (var key in units) {
+            const unit = units[key]
+            unitsDict[unit.name] = unit;
+        }
+
         let referenceElevations = {{ reference_elevations|safe }};
         let mainData = {};
         let top_borehole_elevation = {{ top_borehole_elevation|safe }};

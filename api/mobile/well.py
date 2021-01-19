@@ -5,8 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from gwml2.authentication import GWMLTokenAthentication
-from gwml2.serializer.well.minimized_well import (
-    WellMeasurementMinimizedSerializer, WellMinimizedSerializer)
+from gwml2.serializer.well.minimized_well import WellMinimizedSerializer
 from gwml2.mixin import EditWellFormMixin
 from gwml2.models.well import Well
 from gwml2.views.form_group.form_group import FormNotValid

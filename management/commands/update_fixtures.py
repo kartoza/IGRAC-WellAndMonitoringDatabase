@@ -3,7 +3,7 @@ import os
 from django.apps import apps
 from django.core.management.base import BaseCommand
 from gwml2.models import (
-    Country, Unit, UnitGroup,
+    Country, Unit, UnitConvertion, UnitGroup,
     TermMeasurementParameter, TermMeasurementParameterGroup
 )
 
@@ -40,6 +40,22 @@ class Command(BaseCommand):
                         name=group_name
                     )
                     group.units.add(unit)
+
+        # unit_conversion fixture
+        fixture_file = os.path.join(fixture_folder, 'unit_conversion.json')
+        with open(fixture_file) as json_file:
+            data = json.load(json_file)
+            for unit_from, value in data.items():
+                unit_from = Unit.objects.get(name=unit_from)
+                for unit_to, formula in value.items():
+                    unit_to = Unit.objects.get(name=unit_to)
+                    UnitConvertion.objects.get_or_create(
+                        unit_from=unit_from,
+                        unit_to=unit_to,
+                        defaults={
+                            'formula': formula
+                        }
+                    )
 
         # term fixture
         fixture_file = os.path.join(fixture_folder, 'term.json')
