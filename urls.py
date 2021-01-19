@@ -12,7 +12,7 @@ from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.download_session import DownloadSessionApiView
 from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.user import UserAutocompleteAPI
-from gwml2.api.well import WellEditAPI
+from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
 from gwml2.api.well_measurement import WellMeasurements
 from gwml2.api.well_downloader import WellDownloader
@@ -67,16 +67,22 @@ user_url = [
         name='user_uuid')
 ]
 
-api_url = [
-    url(r'^well/minimized/(?P<id>\d+)/(?P<measurement_type>[\w\+%_& ]+)',
+api_minimized_url = [
+    url(r'^create',
+        view=WellCreateMinimizedAPI.as_view(),
+        name='well_create_api'),
+    url(r'^(?P<id>\d+)/edit',
+        view=WellEditMinimizedAPI.as_view(),
+        name='well_edit_api'),
+    url(r'^(?P<id>\d+)/(?P<measurement_type>[\w\+%_& ]+)',
         view=WellMeasurementListMinimizedAPI.as_view(),
         name='well_measurement_list_minimized_api'),
-    url(r'^well/minimized',
+    url(r'^',
         view=WellListMinimizedAPI.as_view(),
         name='well_list_minimized_api'),
-    url(r'^well/(?P<id>\d+)/edit',
-        view=WellEditAPI.as_view(),
-        name='well_edit_api'),
+]
+api_url = [
+    url(r'^well/minimized/', include(api_minimized_url)),
 
     # autocomplete
     url(r'^organisation/autocomplete',
