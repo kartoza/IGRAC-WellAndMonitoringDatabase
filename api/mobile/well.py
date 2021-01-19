@@ -39,15 +39,8 @@ class WellEditMinimizedAPI(WellEditing, APIView, EditWellFormMixin):
         well = get_object_or_404(Well, id=id)
 
         try:
-            self.edit_well(well, data, self.request.FILES, request.user)
-            return JsonResponse({
-                'level_measurement': WellMeasurementMinimizedSerializer(
-                    [form.instance for form in self.level_measurement.measurements], many=True).data,
-                'quality_measurement': WellMeasurementMinimizedSerializer(
-                    [form.instance for form in self.quality_measurement.measurements], many=True).data,
-                'yield_measurement': WellMeasurementMinimizedSerializer(
-                    [form.instance for form in self.yield_measurement.measurements], many=True).data
-            })
+            well = self.edit_well(well, data, self.request.FILES, request.user)
+            return JsonResponse(WellMinimizedSerializer(well).data)
 
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
