@@ -22,7 +22,7 @@
     let top_borehole_elevation = {{ top_borehole_elevation|safe }};
     let ground_surface_elevation = {{ ground_surface_elevation|safe }};
 </script>
-{% include "plugins/measurement_chart.html" with identifier=identifier %}
+{% include "plugins/measurement_chart.html" with identifier=identifier timeRangeOn='yes'%}
 <script>
     {# let's we call the ajax#}
     $(document).ready(function () {

@@ -14,7 +14,7 @@ from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.user import UserAutocompleteAPI
 from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
-from gwml2.api.well_measurement import WellMeasurements
+from gwml2.api.well_measurement import WellLevelMeasurementData
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.download import DownloadListView
@@ -31,9 +31,9 @@ well_relation = [
 well_detail_urls = [
     url(r'^(?P<model>[\w\+%_& ]+)/(?P<model_id>\d+)/', include(well_relation)),
     url(r'^(?P<model>[\w\+%_& ]+)/list', WellRelationListView.as_view(), name='well-relation-list'),
+    url(r'^measurements/WellLevelMeasurement/chart-data', WellLevelMeasurementData.as_view(), name='well-level-measurement-chart-data'),
     url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart/iframe', MeasurementChartIframe.as_view(), name='well-measurement-chart-iframe'),
     url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart', MeasurementChart.as_view(), name='well-measurement-chart'),
-    url(r'^measurements/(?P<model>[\w\+%_& ]+)', WellMeasurements.as_view(), name='well-measurement-list'),
     url(r'^edit',
         view=WellFormView.as_view(),
         name='well_form'),

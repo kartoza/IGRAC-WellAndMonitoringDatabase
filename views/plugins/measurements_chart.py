@@ -65,9 +65,8 @@ class MeasurementChart(View):
             {
                 'id': id,
                 'identifier': model,
-                'url': reverse('well-measurement-list', kwargs={
-                    'id': id,
-                    'model': model
+                'url': reverse('well-level-measurement-chart-data', kwargs={
+                    'id': id
                 }),
                 'top_borehole_elevation': {
                     'u': well.top_borehole_elevation.unit.name if

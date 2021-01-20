@@ -33,119 +33,123 @@ function formatDate(date) {
     return [year, month, day].join('-');
 }
 
+function checkLevelParameter(
+    parameter_from, parameter_to, value,
+    top_borehole_elevation, ground_surface_elevation) {
+    switch (parameter_to) {
+        case 'Water level elevation a.m.s.l.':
+            switch (parameter_from) {
+                case 'Water depth [from the top of the well]':
+                    value = top_borehole_elevation - value;
+                    break;
+                case 'Water depth [from the ground surface]':
+                    value = ground_surface_elevation - value;
+                    break;
+                default:
+                    value = 0 - value;
+                    break;
+            }
+            parameter_from = parameter_to;
+            break;
 
-function convertMeasurementData(input, unit_to, parameter_to, time_range, top_borehole_elevation, ground_surface_elevation) {
+        case 'Water depth [from the ground surface]':
+            switch (parameter_from) {
+                case 'Water depth [from the top of the well]':
+                    value = (top_borehole_elevation - ground_surface_elevation) - value;
+                    break;
+                case 'Water level elevation a.m.s.l.':
+                    value = value - ground_surface_elevation;
+                    break;
+                default:
+                    value = 0 - value;
+                    break;
+            }
+            parameter_from = parameter_to;
+            break;
+
+        case 'Water depth [from the top of the well]':
+            switch (parameter_from) {
+                case 'Water depth [from the ground surface]':
+                    value = 0 - value - (top_borehole_elevation - ground_surface_elevation);
+                    break;
+                case 'Water level elevation a.m.s.l.':
+                    value = value - top_borehole_elevation;
+                    break;
+                default:
+                    value = 0 - value;
+                    break;
+            }
+            parameter_from = parameter_to;
+            break;
+    }
+    return [parameter_from, value]
+}
+
+function convertMeasurementData(
+    input, unit_to, parameter_to, time_range,
+    top_borehole_elevation, ground_surface_elevation) {
     let data = {};
     let timeRangeData = {};
     input.map(function (row) {
-        let parameter = row['par'];
-        let value = row['v'];
-        let methodology = row['mt'];
-        let unit = row['u'];
-        let time = row['dt'];
-        value = unitConvert(unit, unit_to, value);
+        let parameter = row.par;
+        let unit = row.u;
 
-        switch (parameter_to) {
-            case 'Water level elevation a.m.s.l.':
-                switch (parameter) {
-                    case 'Water depth [from the top of the well]':
-                        value = top_borehole_elevation - value;
-                        break;
-                    case 'Water depth [from the ground surface]':
-                        value = ground_surface_elevation - value;
-                        break;
-                    default:
-                        value = 0 - value;
-                        break;
-                }
-                parameter = parameter_to;
-                break;
+        let skip = false;
+        switch (time_range) {
+            case 'hourly': {
+                // this is for hourly
+                let value = row.v;
+                value = unitConvert(unit, unit_to, value);
 
-            case 'Water depth [from the ground surface]':
-                switch (parameter) {
-                    case 'Water depth [from the top of the well]':
-                        value = (top_borehole_elevation - ground_surface_elevation) - value;
-                        break;
-                    case 'Water level elevation a.m.s.l':
-                        value = ground_surface_elevation - value;
-                        break;
-                    default:
-                        value = 0 - value;
-                        break;
+                // skip if no value
+                if (value === undefined || value === null) {
+                    skip = true;
+                    break
                 }
-                parameter = parameter_to;
-                break;
+                const levelParameter = checkLevelParameter(
+                    parameter, parameter_to, value,
+                    top_borehole_elevation, ground_surface_elevation);
+                parameter = levelParameter[0];
+                value = levelParameter[1];
 
-            case 'Water depth [from the top of the well]':
-                switch (parameter) {
-                    case 'Water depth [from the ground surface]':
-                        value = 0 - value - (top_borehole_elevation - ground_surface_elevation);
-                        break;
-                    case 'Water level elevation a.m.s.l':
-                        value = top_borehole_elevation - value;
-                        break;
-                    default:
-                        value = 0 - value;
-                        break;
+                // let's we save it
+                if (!data[parameter]) {
+                    data[parameter] = []
                 }
-                parameter = parameter_to;
-                break;
+                data[parameter].push({
+                    t: new Date(row.dt * 1000),
+                    y: value,
+                    methodology: row.mt,
+                    unit: unit_to
+                });
+                break
+            }
+            default:
+                console.log(row.v)
+                timeRangeData[row.dt] = {
+                    'max': checkLevelParameter(
+                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.max),
+                        top_borehole_elevation, ground_surface_elevation)[1],
+                    'min': checkLevelParameter(
+                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.min),
+                        top_borehole_elevation, ground_surface_elevation)[1],
+                    'median': checkLevelParameter(
+                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.med),
+                        top_borehole_elevation, ground_surface_elevation)[1],
+                    'average': checkLevelParameter(
+                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.avg),
+                        top_borehole_elevation, ground_surface_elevation)[1]
+                };
+                break
         }
 
-        if (value !== undefined && value !== null && parameter === parameter_to) {
-            let identifier = null;
-            const date = new Date(time * 1000)
-            switch (time_range) {
-                case 'hourly': {
-                    // this is for hourly
-                    if (!data[parameter]) {
-                        data[parameter] = []
-                    }
-                    data[parameter].push({
-                        t: date,
-                        y: value,
-                        methodology: methodology,
-                        unit: unit_to
-                    });
-                    break
-                }
-                case 'daily': {
-                    identifier = formatDate(date)
-                    break
-                }
-                case 'weekly': {
-                    const weeks = getWeekNumber(date)
-                    identifier = `${weeks[0]} Week ${weeks[1]}`
-                    break
-                }
-                case 'monthly': {
-                    identifier = `${date.getFullYear()} Month ${("0" + (date.getMonth() + 1)).slice(-2)}`
-                    break
-                }
-                case 'yearly': {
-                    identifier = `${date.getFullYear()}`
-                    break
-                }
-            }
-
-            if (identifier) {
-                if (!timeRangeData[identifier]) {
-                    timeRangeData[identifier] = {
-                        'values': [],
-                        'max': null,
-                        'min': null
-                    }
-                }
-                timeRangeData[identifier]['max'] = (
-                    value > timeRangeData[identifier]['max'] || timeRangeData[identifier]['max'] === null) ? value : timeRangeData[identifier]['max'];
-                timeRangeData[identifier]['min'] = (
-                    value < timeRangeData[identifier]['min'] || timeRangeData[identifier]['min'] === null) ? value : timeRangeData[identifier]['min'];
-                timeRangeData[identifier]['values'].push(value)
-            }
+        // skip it if skip
+        if (skip) {
+            return
         }
     })
 
-    let labels = Object.keys(timeRangeData).sort()
+    let labels = Object.keys(timeRangeData).reverse();
     if (labels.length > 0) {
         // reconstruct data by timeRangeData
         $.each(labels, function (idx, key) {
@@ -170,29 +174,21 @@ function convertMeasurementData(input, unit_to, parameter_to, time_range, top_bo
                 unit: unit_to
             })
 
-
-            // Calculate Average and Media
-            const arr = value['values'].sort();
-            const sum = arr.reduce((sum, val) => (sum += val));
-            const len = arr.length;
-            const mid = Math.ceil(len / 2);
-
             if (!data['average']) {
                 data['average'] = []
             }
             data['average'].push({
                 x: key,
-                y: sum / len,
+                y: value['median'],
                 unit: unit_to
             })
 
-            // Median of data
             if (!data['median']) {
                 data['median'] = []
             }
             data['median'].push({
                 x: key,
-                y: (len % 2 === 0) ? (arr[mid] + arr[mid - 1]) / 2 : arr[mid - 1],
+                y: value['median'],
                 unit: unit_to
             })
         });
@@ -215,7 +211,9 @@ function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
             borderColor: chartColors[idx],
             borderWidth: 1,
             fill: false,
-            lineTension: 0
+            lineTension: 0,
+            pointRadius: 1,
+            pointHoverRadius: 5,
         })
         idx += 1;
     });
@@ -244,8 +242,8 @@ function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
                 }]
             },
             tooltips: {
-                mode: 'point',
-                intersect: true,
+                mode: 'index',
+                intersect: false,
                 callbacks: {
                     label: function (tooltipItem, allData) {
                         let data = allData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
@@ -305,10 +303,7 @@ let MeasurementChartObj = function (
     this.$parameters = $parameters;
     this.$timeRange = $timeRange;
 
-    this.data = {
-        data: [],
-        page: 1
-    };
+    this.data = {};
     this.chart = null;
     this.unitTo = null;
     this.parameterTo = null;
@@ -316,24 +311,25 @@ let MeasurementChartObj = function (
 
     /** Render the chart */
     this.renderChart = function () {
+        const data = that.data[this.timeRange]
         this.$loading.hide();
-        if (this.data.end) {
+        if (data.end) {
             this.$loadMore.attr('disabled', 'disabled')
         } else {
             this.$loadMore.removeAttr('disabled')
         }
         this.$dataTo.html(
-            this.data.data[0] ?
-                formatDate(new Date(this.data.data[0].dt * 1000))
+            data.data[0] ?
+                formatDate(new Date(data.data[0].dt * 1000))
                 : 'no data'
         )
         this.$dataFrom.html(
-            this.data.data[this.data.data.length - 1] ?
-                formatDate(new Date(this.data.data[this.data.data.length - 1].dt * 1000))
+            data.data[data.data.length - 1] ?
+                formatDate(new Date(data.data[data.data.length - 1].dt * 1000))
                 : 'no data'
         )
         const cleanData = convertMeasurementData(
-            this.data.data, this.unitTo, this.parameterTo, this.timeRange,
+            data.data, this.unitTo, this.parameterTo, this.timeRange,
             unitConvert(
                 this.top_borehole.u, this.unitTo, this.top_borehole.v
             ),
@@ -359,12 +355,19 @@ let MeasurementChartObj = function (
                 url: url,
                 dataType: 'json',
                 data: {
-                    page: this.data.page
+                    page: this.data.page,
+                    mode: timeRange
                 },
                 success: function (data, textStatus, request) {
-                    that.data.page += 1;
-                    that.data.data = that.data.data.concat(data.data);
-                    that.data.end = data.end;
+                    if (!that.data[timeRange]) {
+                        that.data[timeRange] = {
+                            data: [],
+                            page: 1
+                        }
+                    }
+                    that.data[timeRange].page += 1;
+                    that.data[timeRange].data = that.data[timeRange].data.concat(data.data);
+                    that.data[timeRange].end = data.end;
                     if (unitTo === that.unitTo && parameterTo === that.parameterTo && timeRange === that.timeRange) {
                         that.renderChart();
                         that.$loading.hide();
@@ -381,11 +384,14 @@ let MeasurementChartObj = function (
         let unitTo = $units.find(":selected").text();
         let parameterTo = $parameters.find(":selected").text();
         let timeRange = $timeRange.val();
+        if (!timeRange) {
+            timeRange = 'hourly'
+        }
         if (unitTo !== this.unitTo || parameterTo !== this.parameterTo || timeRange !== this.timeRange) {
             this.unitTo = unitTo;
             this.parameterTo = parameterTo;
             this.timeRange = timeRange;
-            if (this.data.data.length === 0) {
+            if (!that.data[timeRange]) {
                 this.fetchData(unitTo, parameterTo, timeRange);
             } else {
                 this.renderChart();
