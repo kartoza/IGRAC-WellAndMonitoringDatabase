@@ -7,7 +7,6 @@ from rest_framework.views import APIView
 from gwml2.models import Well
 from gwml2.models.general import Unit
 from gwml2.serializer.unit import UnitWithToSerializer
-from gwml2.serializer.well.minimized_well import WellMeasurementMinimizedSerializer
 
 
 class WellLevelMeasurementData(APIView):
@@ -79,7 +78,7 @@ class WellLevelMeasurementData(APIView):
         aggr = {}
         for measurement in queryset:
             identifier = None
-            if measurement.value.value:
+            if measurement.value and measurement.value.value:
                 if mode == 'daily':
                     identifier = measurement.time.strftime("%Y-%m-%d")
                 elif mode == 'weekly':
