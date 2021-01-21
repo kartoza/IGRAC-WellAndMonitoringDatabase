@@ -1,4 +1,6 @@
 from datetime import datetime
+from django.contrib.gis.db.models.functions import Distance
+from django.contrib.gis.geos import Point
 from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -39,6 +41,23 @@ class WellListMinimizedAPI(APIView):
 
         if request.GET.get('pks', None):
             wells = wells.filter(id__in=request.GET.get('pks').split(','))
+
+        lat = request.GET.get('lat', None)
+        lon = request.GET.get('lon', None)
+        if (lat and not lon) or (not lat and lon):
+            return HttpResponseBadRequest(
+                'Need lat and lon to be able to filter the nearest wells by location')
+        elif lat and lon:
+            try:
+                wells = wells.annotate(
+                    distance=Distance(
+                        'location', Point(
+                            float(lon), float(lat), srid=4326)
+                    )
+                ).order_by('distance')
+            except (TypeError, ValueError):
+                return HttpResponseBadRequest(
+                    'Lat or lon is not float')
 
         # check the page
         try:
