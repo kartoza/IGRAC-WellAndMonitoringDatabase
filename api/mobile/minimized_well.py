@@ -11,7 +11,8 @@ from rest_framework.views import APIView
 from geonode.base.models import License, RestrictionCodeType
 from gwml2.authentication import GWMLTokenAthentication
 from gwml2.models.well import Well
-from gwml2.models.term import TermWellStatus, TermWellPurpose, TermFeatureType
+from gwml2.models.term import (
+    TermWellStatus, TermWellPurpose, TermFeatureType, TermReferenceElevationType, TermDrillingMethod)
 from gwml2.models.term_measurement_parameter import TermMeasurementParameterGroup
 from gwml2.models.general import UnitGroup
 from gwml2.serializer.well.minimized_well import (
@@ -81,7 +82,7 @@ class WellListMinimizedAPI(APIView):
 
         # put terms in the output
         terms = {}
-        for Model in [TermWellStatus, TermWellPurpose, TermFeatureType, License, RestrictionCodeType]:
+        for Model in [TermWellStatus, TermWellPurpose, TermFeatureType, License, RestrictionCodeType, TermReferenceElevationType, TermDrillingMethod]:
             terms[Model._meta.model_name] = [{
                 model.id: getattr(model, 'name', None) if getattr(model, 'name', None) else model.__str__()
             } for model in Model.objects.all()]
