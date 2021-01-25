@@ -38,7 +38,14 @@ class DrillingForm(WellBaseForm):
         :return: Form
         :rtype: DrillingForm
         """
-
+        # if parameter is string
+        try:
+            if data['successful'].lower() == 'yes':
+                data['successful'] = True
+            elif data['successful'].lower() == 'no':
+                data['successful'] = False
+        except KeyError:
+            data['successful'] = instance.successful
         return DrillingForm(data, files, instance=instance)
 
     @staticmethod

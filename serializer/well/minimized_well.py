@@ -62,6 +62,8 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         # Drilling
         result['dtd'] = self.get_length_to_meter(  # Total depth
             instance.geology.total_depth) if instance.geology else ''
+        result['dtdre'] = self.term_val(  # Total depth reference elevation
+            instance.geology.reference_elevation) if instance.geology else ''
         result['ddm'] = self.term_val(  # Drilling : Drilling method
             instance.drilling.drilling_method) if instance.drilling else ''
         result['dd'] = self.get_val(  # Drilling : driller
