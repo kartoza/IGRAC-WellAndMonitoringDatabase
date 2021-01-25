@@ -12,9 +12,9 @@ from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.download_session import DownloadSessionApiView
 from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.user import UserAutocompleteAPI
-from gwml2.api.well import WellEditAPI
+from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView
-from gwml2.api.well_measurement import WellMeasurements
+from gwml2.api.well_measurement import WellLevelMeasurementData
 from gwml2.api.well_downloader import WellDownloader
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.download import DownloadListView
@@ -31,9 +31,9 @@ well_relation = [
 well_detail_urls = [
     url(r'^(?P<model>[\w\+%_& ]+)/(?P<model_id>\d+)/', include(well_relation)),
     url(r'^(?P<model>[\w\+%_& ]+)/list', WellRelationListView.as_view(), name='well-relation-list'),
+    url(r'^measurements/WellLevelMeasurement/chart-data', WellLevelMeasurementData.as_view(), name='well-level-measurement-chart-data'),
     url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart/iframe', MeasurementChartIframe.as_view(), name='well-measurement-chart-iframe'),
     url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart', MeasurementChart.as_view(), name='well-measurement-chart'),
-    url(r'^measurements/(?P<model>[\w\+%_& ]+)', WellMeasurements.as_view(), name='well-measurement-list'),
     url(r'^edit',
         view=WellFormView.as_view(),
         name='well_form'),
@@ -67,16 +67,22 @@ user_url = [
         name='user_uuid')
 ]
 
-api_url = [
-    url(r'^well/minimized/(?P<id>\d+)/(?P<measurement_type>[\w\+%_& ]+)',
+api_minimized_url = [
+    url(r'^create',
+        view=WellCreateMinimizedAPI.as_view(),
+        name='well_create_api'),
+    url(r'^(?P<id>\d+)/edit',
+        view=WellEditMinimizedAPI.as_view(),
+        name='well_edit_api'),
+    url(r'^(?P<id>\d+)/(?P<measurement_type>[\w\+%_& ]+)',
         view=WellMeasurementListMinimizedAPI.as_view(),
         name='well_measurement_list_minimized_api'),
-    url(r'^well/minimized',
+    url(r'^',
         view=WellListMinimizedAPI.as_view(),
         name='well_list_minimized_api'),
-    url(r'^well/(?P<id>\d+)/edit',
-        view=WellEditAPI.as_view(),
-        name='well_edit_api'),
+]
+api_url = [
+    url(r'^well/minimized/', include(api_minimized_url)),
 
     # autocomplete
     url(r'^organisation/autocomplete',

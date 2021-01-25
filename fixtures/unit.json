@@ -100,5 +100,21 @@
     "groups": [
       "1 / length"
     ]
+  },
+  "S/m": {
+    "description": "siemens/metre",
+    "groups": []
+  },
+  "μS/cm": {
+    "description": "micro Siemens/centimetres",
+    "groups": []
+  },
+  "cfu per mL": {
+    "description": "Colony forming unit per mL",
+    "groups": []
+  },
+  "cfu per 100 ml": {
+    "description": "Colony forming unit per 100 mL",
+    "groups": []
   }
 }

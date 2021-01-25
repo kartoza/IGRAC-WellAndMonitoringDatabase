@@ -39,6 +39,29 @@ class Unit(_Term):
         db_table = 'unit'
 
 
+class UnitConvertion(models.Model):
+    """ This model about formula for converting unit """
+    unit_from = models.ForeignKey(
+        Unit,
+        on_delete=models.CASCADE,
+        related_name='unit_convertion_unit_from'
+    )
+    unit_to = models.ForeignKey(
+        Unit,
+        on_delete=models.CASCADE,
+        related_name='unit_convertion_unit_to'
+    )
+    formula = models.CharField(
+        max_length=512,
+        help_text='Use x as parameters for value from an unit.'
+                  'Example: m to cm, fill x*1000'
+    )
+
+    class Meta:
+        db_table = 'unit_conversion'
+        unique_together = ('unit_from', 'unit_to')
+
+
 class UnitGroup(_Term):
     """ Group of unit."""
     units = models.ManyToManyField(

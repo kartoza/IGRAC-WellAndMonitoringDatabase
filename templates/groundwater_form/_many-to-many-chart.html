@@ -3,7 +3,7 @@
 {% load gwml2_forms %}
 {% if use_chart and theform.url_chart %}
     <div id="{{ id }}_chart" class="chart measurement-chart">
-        {% include "plugins/measurement_chart.html" with identifier=id %}
+        {% include "plugins/measurement_chart.html" with identifier=id loadMore='yes' %}
         <script>
             {# This is chart section#}
             $(document).ready(function () {
@@ -44,7 +44,7 @@
                             })
                         }
                     })
-                    this.data = data;
+                    this.data['hourly'] = data;
                     that.renderChart()
                 }
             })

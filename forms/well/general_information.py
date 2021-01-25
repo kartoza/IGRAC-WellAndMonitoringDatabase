@@ -4,6 +4,7 @@ from django.forms.models import model_to_dict
 from gwml2.forms.well.base import WellBaseForm
 from gwml2.forms.widgets.file_selection import FileSelectionInput
 from gwml2.forms.widgets.quantity import QuantityInput
+from gwml2.models.general import Country
 from gwml2.models.well import Well
 
 
@@ -74,6 +75,15 @@ class GeneralInformationForm(WellBaseForm):
             form_files = {
                 'photo': files.get(photo, None)
             }
+
+        # if country is string
+        try:
+            int(data['country'])
+        except ValueError:
+            try:
+                data['country'] = Country.objects.get(name__iexact=data['country']).id
+            except Country.DoesNotExist:
+                pass
 
         return GeneralInformationForm(data, form_files, instance=instance)
 

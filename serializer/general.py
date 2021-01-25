@@ -51,9 +51,9 @@ class WellSerializer(object):
             return ''
         else:
             if value is False:
-                return 'f'
+                return 'No'
             elif value is True:
-                return 't'
+                return 'Yes'
         return value if value else ''
 
     def term_val(self, value):
