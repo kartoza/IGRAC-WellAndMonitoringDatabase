@@ -12,7 +12,8 @@ from geonode.base.models import License, RestrictionCodeType
 from gwml2.authentication import GWMLTokenAthentication
 from gwml2.models.well import Well
 from gwml2.models.term import (
-    TermWellStatus, TermWellPurpose, TermFeatureType, TermReferenceElevationType, TermDrillingMethod)
+    TermWellStatus, TermWellPurpose, TermFeatureType, TermReferenceElevationType, TermDrillingMethod,
+    TermAquiferType, TermConfinement)
 from gwml2.models.term_measurement_parameter import TermMeasurementParameterGroup
 from gwml2.models.general import UnitGroup
 from gwml2.serializer.well.minimized_well import (
@@ -82,14 +83,20 @@ class WellListMinimizedAPI(APIView):
 
         # put terms in the output
         terms = {}
-        for Model in [TermWellStatus, TermWellPurpose, TermFeatureType, License, RestrictionCodeType, TermReferenceElevationType, TermDrillingMethod]:
+        for Model in [TermWellStatus, TermWellPurpose, TermFeatureType, License,
+                      RestrictionCodeType, TermReferenceElevationType, TermDrillingMethod,
+                      TermAquiferType, TermConfinement]:
             terms[Model._meta.model_name] = [{
                 model.id: getattr(model, 'name', None) if getattr(model, 'name', None) else model.__str__()
             } for model in Model.objects.all()]
-        try:
-            terms['unit_length'] = [model.name for model in UnitGroup.objects.get(name='length').units.all()]
-        except UnitGroup.DoesNotExist:
-            terms['unit_length'] = []
+
+        units = {}
+        for group in UnitGroup.objects.all():
+            try:
+                units[group.name] = [model.name for model in group.units.all()]
+            except UnitGroup.DoesNotExist:
+                units[group.name] = []
+        terms['units'] = units
 
         measurement_parameters = {}
         for group in TermMeasurementParameterGroup.objects.all():
