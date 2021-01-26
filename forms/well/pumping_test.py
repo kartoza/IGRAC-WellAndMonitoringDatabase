@@ -15,9 +15,9 @@ class PumpingTestForm(WellBaseForm):
                   'storativity', 'specific_capacity', 'test_type')
         widgets = {
             'hydraulic_conductivity': QuantityInput(unit_group='length / time'),
-            'transmissivity': QuantityInput(unit_group='Mass Concentration'),
+            'transmissivity': QuantityInput(unit_group='length^2 / time'),
             'specific_storage': QuantityInput(unit_group='1 / length'),
-            'specific_capacity': QuantityInput(unit_group='Mass Concentration'),
+            'specific_capacity': QuantityInput(unit_group='length^2 / time'),
             'storativity': QuantityInput(unit_group='length^3 / time'),
         }
 
