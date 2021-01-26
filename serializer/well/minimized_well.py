@@ -154,16 +154,16 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Hydraulic conductivity
 
         result['ht'] = instance.hydrogeology_parameter.pumping_test.transmissivity.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Transmissivity
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.transmissivity else ''  # Hydraulic properties : Transmissivity
         result['hss'] = instance.hydrogeology_parameter.pumping_test.specific_storage.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific storage
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.specific_storage else ''  # Hydraulic properties : Specific storage
         result['hsy'] = self.get_val(
             instance.hydrogeology_parameter.pumping_test.specific_yield) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific yield
         result['hsc'] = instance.hydrogeology_parameter.pumping_test.specific_capacity.__str__() \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific capacity
         result['hs'] = instance.hydrogeology_parameter.pumping_test.storativity.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Storativity
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.storativity else ''  # Hydraulic properties : Storativity
         result['htt'] = self.get_val(instance.hydrogeology_parameter.pumping_test.test_type) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Test Type
 
