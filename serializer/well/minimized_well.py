@@ -157,6 +157,9 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Transmissivity
         result['hss'] = instance.hydrogeology_parameter.pumping_test.specific_storage.__str__() \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific storage
+        result['hsy'] = self.get_val(
+            instance.hydrogeology_parameter.pumping_test.specific_yield) \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific yield
         result['hsc'] = instance.hydrogeology_parameter.pumping_test.specific_capacity.__str__() \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific capacity
         result['hs'] = instance.hydrogeology_parameter.pumping_test.storativity.__str__() \
