@@ -59,9 +59,9 @@ class WellLevelMeasurementData(APIView):
             return HttpResponseBadRequest('Timerange is not recognized')
 
         units = {unit.id: UnitWithToSerializer(unit).data for unit in Unit.objects.all()}
-        ground_surface_elevation = well.ground_surface_elevation
         unit_to = None
         unit_to_str = None
+        ground_surface_elevation = well.ground_surface_elevation
         if ground_surface_elevation:
             unit_to = ground_surface_elevation.unit.id
             unit_to_str = ground_surface_elevation.unit.name
@@ -98,32 +98,40 @@ class WellLevelMeasurementData(APIView):
                 # convert the data
                 value = self.convert_value(measurement.value, unit_to, units)
                 if measurement.parameter.name == 'Water depth [from the top of the well]':
-                    value = top_borehole_elevation - value
+                    if top_borehole_elevation:
+                        value = top_borehole_elevation - value
+                    else:
+                        value = None
                 elif measurement.parameter.name == 'Water depth [from the ground surface]':
-                    value = ground_surface_elevation - value
-                aggr[identifier]['data'].append(value)
+                    if ground_surface_elevation:
+                        value = ground_surface_elevation - value
+                    else:
+                        value = None
+                if value:
+                    aggr[identifier]['data'].append(value)
 
         output = []
         for key, value in aggr.items():
             data = sorted(value['data'])
             length = len(data)
-            index = (length - 1) // 2
+            if length > 0:
+                index = (length - 1) // 2
 
-            if length % 2:
-                median = data[index]
-            else:
-                median = (data[index] + data[index + 1]) / 2.0
-            output.append({
-                'dt': key,
-                'par': value['parameter'],
-                'u': unit_to_str,
-                'v': {
-                    'min': min(data),
-                    'max': max(data),
-                    'avg': sum(data) / length,
-                    'med': median,
-                }
-            })
+                if length % 2:
+                    median = data[index]
+                else:
+                    median = (data[index] + data[index + 1]) / 2.0
+                output.append({
+                    'dt': key,
+                    'par': value['parameter'],
+                    'u': unit_to_str,
+                    'v': {
+                        'min': min(data),
+                        'max': max(data),
+                        'avg': sum(data) / length,
+                        'med': median,
+                    }
+                })
         return JsonResponse({
             'data': output,
             'page': 1,

@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import ValidationError
 from django.db.utils import ProgrammingError
 from gwml2.models.general import Quantity, Unit, UnitGroup
 
@@ -60,10 +61,21 @@ class QuantityInput(forms.widgets.Input):
                 quantity.value = data['{}_value'.format(name)]
                 quantity.unit = None
                 if data['{}_unit'.format(name)]:
-                    unit, created = Unit.objects.get_or_create(name=data['{}_unit'.format(name)])
-                    if created and self.unit_group:
-                        self.unit_group.units.add(unit)
-                    quantity.unit = unit
+                    try:
+                        unit = Unit.objects.get(name=data['{}_unit'.format(name)])
+                        if self.unit_group and unit not in self.unit_group.units.all():
+                            raise ValidationError(
+                                '{} is not allowed for {}. '
+                                'Please contact administrator to add the unit.'.format(
+                                    data['{}_unit'.format(name)], name)
+                            )
+
+                        quantity.unit = unit
+                    except Unit.DoesNotExist:
+                        raise ValidationError(
+                            'Unit {] does not exist. '
+                            'Please contact administrator to add the unit.'.format(data['{}_unit'.format(name)])
+                        )
                 quantity.save()
                 return quantity.id
             else:
@@ -72,3 +84,14 @@ class QuantityInput(forms.widgets.Input):
                 return None
         except KeyError:
             return None
+
+    @staticmethod
+    def quantity_id(data, instance, name):
+        try:
+            if '{}_id'.format(name) in data and data['{}_id'.format(name)]:
+                pass
+            else:
+                data['{}_id'.format(name)] = getattr(instance, name).id
+        except Exception as e:
+            pass
+        return data

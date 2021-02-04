@@ -33,31 +33,42 @@ function formatDate(date) {
     return [year, month, day].join('-');
 }
 
+const FROM_TOP_WALL = 'Water depth [from the top of the well]'
+const FROM_GROUND_LEVEL = 'Water depth [from the ground surface]'
+const FROM_AMSL = 'Water level elevation a.m.s.l.'
+
 function checkLevelParameter(
     parameter_from, parameter_to, value,
     top_borehole_elevation, ground_surface_elevation) {
+
+    if (parameter_to === FROM_TOP_WALL && !top_borehole_elevation || parameter_from === FROM_TOP_WALL && !top_borehole_elevation) {
+        return [parameter_from, null]
+    }
+    if (parameter_to === FROM_GROUND_LEVEL && !ground_surface_elevation || parameter_from === FROM_GROUND_LEVEL && !ground_surface_elevation) {
+        return [parameter_from, null]
+    }
+
     switch (parameter_to) {
-        case 'Water level elevation a.m.s.l.':
+        case FROM_AMSL:
             switch (parameter_from) {
-                case 'Water depth [from the top of the well]':
+                case FROM_TOP_WALL:
                     value = top_borehole_elevation - value;
                     break;
-                case 'Water depth [from the ground surface]':
+                case FROM_GROUND_LEVEL:
                     value = ground_surface_elevation - value;
                     break;
                 default:
-                    value = 0 - value;
                     break;
             }
             parameter_from = parameter_to;
             break;
 
-        case 'Water depth [from the ground surface]':
+        case FROM_GROUND_LEVEL:
             switch (parameter_from) {
-                case 'Water depth [from the top of the well]':
+                case FROM_TOP_WALL:
                     value = (top_borehole_elevation - ground_surface_elevation) - value;
                     break;
-                case 'Water level elevation a.m.s.l.':
+                case FROM_AMSL:
                     value = value - ground_surface_elevation;
                     break;
                 default:
@@ -67,12 +78,12 @@ function checkLevelParameter(
             parameter_from = parameter_to;
             break;
 
-        case 'Water depth [from the top of the well]':
+        case FROM_TOP_WALL:
             switch (parameter_from) {
-                case 'Water depth [from the ground surface]':
+                case FROM_GROUND_LEVEL:
                     value = 0 - value - (top_borehole_elevation - ground_surface_elevation);
                     break;
-                case 'Water level elevation a.m.s.l.':
+                case FROM_AMSL:
                     value = value - top_borehole_elevation;
                     break;
                 default:
@@ -90,6 +101,7 @@ function convertMeasurementData(
     top_borehole_elevation, ground_surface_elevation) {
     let data = {};
     let timeRangeData = {};
+    let isAllSame = true;
     input.map(function (row) {
         let parameter = row.par;
         let unit = row.u;
@@ -113,33 +125,42 @@ function convertMeasurementData(
                 value = levelParameter[1];
 
                 // let's we save it
-                if (!data[parameter]) {
-                    data[parameter] = []
+                if (value != null) {
+                    if (!data[parameter]) {
+                        data[parameter] = []
+                    }
+                    data[parameter].push({
+                        t: new Date(row.dt * 1000),
+                        y: value,
+                        methodology: row.mt,
+                        unit: unit_to
+                    });
                 }
-                data[parameter].push({
-                    t: new Date(row.dt * 1000),
-                    y: value,
-                    methodology: row.mt,
-                    unit: unit_to
-                });
                 break
             }
             default:
-                console.log(row.v)
-                timeRangeData[row.dt] = {
-                    'max': checkLevelParameter(
-                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.max),
-                        top_borehole_elevation, ground_surface_elevation)[1],
-                    'min': checkLevelParameter(
-                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.min),
-                        top_borehole_elevation, ground_surface_elevation)[1],
-                    'median': checkLevelParameter(
-                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.med),
-                        top_borehole_elevation, ground_surface_elevation)[1],
-                    'average': checkLevelParameter(
-                        parameter, parameter_to, unitConvert(unit, unit_to, row.v.avg),
-                        top_borehole_elevation, ground_surface_elevation)[1]
-                };
+                const value = checkLevelParameter(
+                    parameter, parameter_to, unitConvert(unit, unit_to, row.v.max),
+                    top_borehole_elevation, ground_surface_elevation)[1]
+                if (value != null) {
+                    timeRangeData[row.dt] = {
+                        'max': checkLevelParameter(
+                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.max),
+                            top_borehole_elevation, ground_surface_elevation)[1],
+                        'min': checkLevelParameter(
+                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.min),
+                            top_borehole_elevation, ground_surface_elevation)[1],
+                        'median': checkLevelParameter(
+                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.med),
+                            top_borehole_elevation, ground_surface_elevation)[1],
+                        'average': checkLevelParameter(
+                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.avg),
+                            top_borehole_elevation, ground_surface_elevation)[1]
+                    };
+                    if (timeRangeData[row.dt].max !== timeRangeData[row.dt].min) {
+                        isAllSame = false
+                    }
+                }
                 break
         }
 
@@ -149,48 +170,62 @@ function convertMeasurementData(
         }
     })
 
-    let labels = Object.keys(timeRangeData).reverse();
+    let labels = Object.keys(timeRangeData);
+    if (time_range !== 'yearly') {
+        labels = labels.reverse()
+    }
     if (labels.length > 0) {
         // reconstruct data by timeRangeData
         $.each(labels, function (idx, key) {
             const value = timeRangeData[key];
-            // Max of data
-            if (!data['max']) {
-                data['max'] = []
-            }
-            data['max'].push({
-                x: key,
-                y: value['max'],
-                unit: unit_to
-            })
+            if (isAllSame) {
+                if (!data['val']) {
+                    data['val'] = []
+                }
+                data['val'].push({
+                    x: key,
+                    y: value['max'],
+                    unit: unit_to
+                })
+            } else {
+                // Max of data
+                if (!data['max']) {
+                    data['max'] = []
+                }
+                data['max'].push({
+                    x: key,
+                    y: value['max'],
+                    unit: unit_to
+                })
 
-            // Min of data
-            if (!data['min']) {
-                data['min'] = []
-            }
-            data['min'].push({
-                x: key,
-                y: value['min'],
-                unit: unit_to
-            })
+                // Min of data
+                if (!data['min']) {
+                    data['min'] = []
+                }
+                data['min'].push({
+                    x: key,
+                    y: value['min'],
+                    unit: unit_to
+                })
 
-            if (!data['average']) {
-                data['average'] = []
-            }
-            data['average'].push({
-                x: key,
-                y: value['median'],
-                unit: unit_to
-            })
+                if (!data['average']) {
+                    data['average'] = []
+                }
+                data['average'].push({
+                    x: key,
+                    y: value['median'],
+                    unit: unit_to
+                })
 
-            if (!data['median']) {
-                data['median'] = []
+                if (!data['median']) {
+                    data['median'] = []
+                }
+                data['median'].push({
+                    x: key,
+                    y: value['median'],
+                    unit: unit_to
+                })
             }
-            data['median'].push({
-                x: key,
-                y: value['median'],
-                unit: unit_to
-            })
         });
     }
     return {

@@ -140,7 +140,8 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
             instance.hydrogeology_parameter.aquifer_material) if instance.hydrogeology_parameter else ''
         result['at'] = self.term_val(  # Hydrogeology : Aquifer type
             instance.hydrogeology_parameter.aquifer_type) if instance.hydrogeology_parameter else ''
-        result['atn'] = instance.hydrogeology_parameter.aquifer_thickness if instance.hydrogeology_parameter else ''
+        result['atn'] = self.get_val(
+            instance.hydrogeology_parameter.aquifer_thickness) if instance.hydrogeology_parameter else ''
         result['ac'] = self.term_val(  # Hydrogeology : Confinement
             instance.hydrogeology_parameter.confinement) if instance.hydrogeology_parameter else ''
         result['adc'] = self.get_val(  # Hydrogeology : Degree of Confinement
@@ -151,16 +152,19 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
             instance.hydrogeology_parameter.pumping_test.porosity) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Porosity
         result['hc'] = instance.hydrogeology_parameter.pumping_test.hydraulic_conductivity.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Hydraulic conductivity
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.hydraulic_conductivity else ''  # Hydraulic properties : Hydraulic conductivity
 
         result['ht'] = instance.hydrogeology_parameter.pumping_test.transmissivity.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Transmissivity
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.transmissivity else ''  # Hydraulic properties : Transmissivity
         result['hss'] = instance.hydrogeology_parameter.pumping_test.specific_storage.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific storage
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.specific_storage else ''  # Hydraulic properties : Specific storage
+        result['hsy'] = self.get_val(
+            instance.hydrogeology_parameter.pumping_test.specific_yield) \
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific yield
         result['hsc'] = instance.hydrogeology_parameter.pumping_test.specific_capacity.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Specific capacity
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.specific_capacity else ''  # Hydraulic properties : Specific capacity
         result['hs'] = instance.hydrogeology_parameter.pumping_test.storativity.__str__() \
-            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Storativity
+            if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test and instance.hydrogeology_parameter.pumping_test.storativity else ''  # Hydraulic properties : Storativity
         result['htt'] = self.get_val(instance.hydrogeology_parameter.pumping_test.test_type) \
             if instance.hydrogeology_parameter and instance.hydrogeology_parameter.pumping_test else ''  # Hydraulic properties : Test Type
 
@@ -203,4 +207,6 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         # Yield Measurement
         result['ym'] = WellMeasurementMinimizedSerializer(
             instance.wellyieldmeasurement_set.all()[:10], many=True).data
+
+        result['editable'] = self.get_val(instance.editor_permission(self.context['user']))
         return result

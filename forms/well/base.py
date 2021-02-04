@@ -1,5 +1,6 @@
 from django import forms
 from gwml2.models.form_help_text import FormHelpText
+from gwml2.forms.widgets.quantity import QuantityInput
 
 
 class WellBaseForm(forms.ModelForm):
@@ -15,3 +16,12 @@ class WellBaseForm(forms.ModelForm):
                 ).help_text
             except FormHelpText.DoesNotExist:
                 pass
+
+        # check the id of quantity field
+        try:
+            data = args[0]
+            for field_name, field in self.fields.items():
+                if field.widget.__class__ == QuantityInput:
+                    data = QuantityInput.quantity_id(data, kwargs['instance'], field_name)
+        except (KeyError, IndexError):
+            pass
