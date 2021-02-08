@@ -1,12 +1,14 @@
 from django.contrib.auth import get_user_model, user_logged_in
 from django.contrib.auth.hashers import check_password
-from django.http.response import HttpResponseBadRequest, HttpResponse
+from django.http.response import HttpResponseBadRequest
+from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import serializers
 from rest_framework.views import APIView
+from gwml2.serializer.user.user import UserSerializer
 from gwml2.models.well_management.user import UserUUID
 
 User = get_user_model()
@@ -29,7 +31,10 @@ class TokenAuth(APIView):
             user = self.authenticate(username=username, password=password)
             userUUID, created = UserUUID.objects.get_or_create(user_id=user.id)
             user_logged_in.send(sender=user.__class__, request=request, user=user)
-            return HttpResponse('{}'.format(str(userUUID.uuid)))
+            return Response({
+                'token': '{}'.format(str(userUUID.uuid)),
+                'user': UserSerializer(user).data
+            })
         except KeyError:
             return HttpResponseBadRequest('username and password is needed in data')
 
