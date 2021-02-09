@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load staticfiles %}
 {% load gwml2_download %}
 
@@ -46,9 +47,9 @@
         <table class="table table-striped">
             <thead>
             <tr>
-                <th>Detail</th>
-                <th>Downloaded at</th>
-                <th>Progress / File</th>
+                <th>{% trans "Detail" %}</th>
+                <th>{% trans "Downloaded at" %}</th>
+                <th>{% trans "Progress / File" %}</th>
                 <th></th>
             </tr>
             </thead>
