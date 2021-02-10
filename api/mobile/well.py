@@ -21,7 +21,7 @@ class WellCreateMinimizedAPI(WellEditing, APIView, EditWellFormMixin):
 
         try:
             well = self.edit_well(None, data, self.request.FILES, request.user)
-            return JsonResponse(WellMinimizedSerializer(well).data)
+            return JsonResponse(WellMinimizedSerializer(well, context={'user': request.user}).data)
 
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
@@ -39,7 +39,7 @@ class WellEditMinimizedAPI(WellEditing, APIView, EditWellFormMixin):
 
         try:
             well = self.edit_well(well, data, self.request.FILES, request.user)
-            return JsonResponse(WellMinimizedSerializer(well).data)
+            return JsonResponse(WellMinimizedSerializer(well, context={'user': request.user}).data)
 
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
