@@ -20,6 +20,7 @@ class WellAdmin(admin.ModelAdmin):
         'geology', 'construction', 'management', 'hydrogeology_parameter'
     )
     list_editable = ('public', 'downloadable')
+    search_fields = ('original_id', 'name')
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])
