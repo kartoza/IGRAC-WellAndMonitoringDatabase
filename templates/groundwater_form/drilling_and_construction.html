@@ -1,9 +1,10 @@
 {% load gwml2_forms %}
+{% load i18n %}
 <div id="drilling-and-construction" class="page-section">
-    <h2 class="section-title">Drilling and construction</h2>
+    <h2 class="section-title">{% trans "Drilling and Construction" %}</h2>
     <div id="drilling">
         <h3>
-            For wells and boreholes
+            {% trans "For wells and boreholes" %}
         </h3>
         <div id="geology" class="section" style="margin-bottom: 0;">
             <table>
@@ -24,9 +25,9 @@
 
         <br><br>
         {% include "groundwater_form/well_chart.html" %}
-        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title='Water Strike' theform=water_strike help_text='' delete='yes' %}
-        {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title='Stratigraphic Log' theform=stratigraphic_log help_text='' delete='yes' %}
-        {% include "groundwater_form/_many-to-many.html" with id='structure' title='Design' theform=structure thedata=structures help_text='' delete='yes' %}
+        {% include "groundwater_form/_many-to-many.html" with id='water_strike' title=_('Water Strike') theform=water_strike help_text='' delete='yes' %}
+        {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title=_('Stratigraphic Log') theform=stratigraphic_log help_text='' delete='yes' %}
+        {% include "groundwater_form/_many-to-many.html" with id='structure' title=_('Design') theform=structure thedata=structures help_text='' delete='yes' %}
     </div>
     <div id="construction">
         <div id="construction-data" class="section">

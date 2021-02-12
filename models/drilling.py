@@ -1,6 +1,7 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
 from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
+from django.utils.translation import ugettext_lazy as _
 
 
 class Drilling(models.Model):
@@ -8,19 +9,24 @@ class Drilling(models.Model):
     """
     drilling_method = models.ForeignKey(
         TermDrillingMethod, on_delete=models.SET_NULL,
-        null=True, blank=True
+        null=True, blank=True,
+        verbose_name=_('Excavation method')
     )
     driller = models.CharField(
+        _('Contractor'),
         null=True, blank=True, max_length=512,
-        help_text="Name of the drilling company or responsible person.")
+        help_text=_('Name of the drilling company or responsible person.'))
     successful = models.BooleanField(
+        _('Successful'),
         null=True,
         blank=True)
     cause_of_failure = models.TextField(
+        _('Cause of failure'),
         null=True,
         blank=True,
-        help_text="Explain why the drilling was not successful.")
+        help_text=_('Explain why the drilling was not successful.'))
     year_of_drilling = models.PositiveIntegerField(
+        _('Construction year'),
         null=True,
         blank=True)
 
@@ -44,22 +50,27 @@ class StratigraphicLog(models.Model):
     # Log information
     reference_elevation = models.ForeignKey(
         TermReferenceElevationType, on_delete=models.SET_NULL,
-        null=True, blank=True
+        null=True, blank=True,
+        verbose_name=_('Reference elevation')
     )
     top_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='stratigraphic_log_top_depth'
+        related_name='stratigraphic_log_top_depth',
+        verbose_name=_('Top depth')
     )
     bottom_depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name='stratigraphic_log_bottom_depth'
+        related_name='stratigraphic_log_bottom_depth',
+        verbose_name=_('Bottom depth')
     )
     material = models.CharField(
+        _('Material'),
         null=True, blank=True, max_length=200
     )
     stratigraphic_unit = models.CharField(
+        _('Stratigraphic unit'),
         null=True, blank=True, max_length=128
     )
 
@@ -79,13 +90,16 @@ class WaterStrike(models.Model):
     # information
     reference_elevation = models.ForeignKey(
         TermReferenceElevationType, on_delete=models.SET_NULL,
-        null=True, blank=True
+        null=True, blank=True,
+        verbose_name=_('Reference elevation')
     )
     depth = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True
+        null=True, blank=True,
+        verbose_name=_('Depth')
     )
     description = models.TextField(
+        _('Description'),
         null=True,
         blank=True)
 

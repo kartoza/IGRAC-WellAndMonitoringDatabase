@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.gis.geos import Point
 from django.forms.models import model_to_dict
+from django.utils.translation import ugettext_lazy as _
 from gwml2.forms.well.base import WellBaseForm
 from gwml2.forms.widgets.file_selection import FileSelectionInput
 from gwml2.forms.widgets.quantity import QuantityInput
@@ -13,9 +14,9 @@ class GeneralInformationForm(WellBaseForm):
     Form of general information of well.
     """
     latitude = forms.FloatField(
-        help_text='Latitude must be expressed in decimal degrees.', required=True)
+        help_text=_('Latitude must be expressed in decimal degrees.'), required=True)
     longitude = forms.FloatField(
-        help_text='Longitude must be expressed in decimal degrees.', required=True)
+        help_text=_('Longitude must be expressed in decimal degrees.'), required=True)
 
     class Meta:
         model = Well
@@ -41,7 +42,6 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['address'].widget.attrs['maxlength'] = 200
         self.fields['original_id'].widget.attrs['maxlength'] = 20
         self.fields['name'].widget.attrs['maxlength'] = 20
-        self.fields['top_borehole_elevation'].label = 'Top of well elevation'
 
     @staticmethod
     def make_from_data(instance, data, files):

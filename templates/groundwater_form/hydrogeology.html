@@ -1,10 +1,11 @@
 {% load gwml2_forms %}
+{% load i18n %}
 <div id="hydrogeology" class="page-section">
-    <h2 class="section-title">Hydrogeology</h2>
+    <h2 class="section-title">{% trans "Hydrogeology" %}</h2>
     <div class="section">
         <table>
             <tr>
-                <td><h4>Aquifer</h4></td>
+                <td><h4>{% trans "Aquifer" %}</h4></td>
             </tr>
             {% field_as_row form.aquifer_name %}
             {% field_as_row form.aquifer_material %}
@@ -14,7 +15,7 @@
             <tr>
                 <td>
                     <br><br>
-                    <h4>Hydraulic properties</h4>
+                    <h4>{% trans "Hydraulic properties" %}</h4>
                 </td>
             </tr>
             <tr>

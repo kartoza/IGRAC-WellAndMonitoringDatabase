@@ -2,6 +2,7 @@ from datetime import datetime
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
 from django.utils.timezone import make_aware
+from django.utils.translation import ugettext_lazy as _
 
 from gwml2.models.document import Document
 from gwml2.models.general_information import GeneralInformation
@@ -31,11 +32,13 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
 
     purpose = models.ForeignKey(
         TermWellPurpose, on_delete=models.SET_NULL,
-        null=True, blank=True
+        null=True, blank=True,
+        verbose_name=_('Purpose')
     )
     status = models.ForeignKey(
         TermWellStatus, on_delete=models.SET_NULL,
-        null=True, blank=True
+        null=True, blank=True,
+        verbose_name=_('Status')
     )
     drilling = models.OneToOneField(
         Drilling, on_delete=models.SET_NULL,
@@ -61,7 +64,8 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     # this is for management
     organisation = models.ForeignKey(
         Organisation, on_delete=models.SET_NULL,
-        null=True, blank=True
+        null=True, blank=True,
+        verbose_name=_('Organisation')
     )
 
     # metadata
@@ -71,18 +75,18 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     )
     public = models.BooleanField(
         default=True,
-        help_text='indicate that well can be viewed by '
-                  'non organisation user'
+        help_text=_('Indicate that well can be viewed by '
+                    'non organisation user.')
     )
     downloadable = models.BooleanField(
         default=True,
-        help_text='indicate that well can be downloaded'
+        help_text=_('Indicate that well can be downloaded.')
     )
 
     # number of measurement
     number_of_measurements = models.IntegerField(
         default=0,
-        help_text='Indicate how many measurement this well has'
+        help_text=_('Indicate how many measurement this well has.')
     )
 
     def __str__(self):

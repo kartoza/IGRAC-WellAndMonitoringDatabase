@@ -1,6 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 from geonode.base.models import License, RestrictionCodeType
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
@@ -12,17 +13,26 @@ class WellMetadataForm(WellBaseForm):
     """
     Form of metadata of well.
     """
-    created_by = forms.CharField(required=False, disabled=True, label='Created by')
-    created_at = forms.CharField(required=False, disabled=True, label='Created at')
-    last_edited_by = forms.CharField(required=False, disabled=True, label='Last edited by')
-    last_edited_at = forms.CharField(required=False, disabled=True, label='Last edited at')
-    restriction_code_type = forms.ModelChoiceField(queryset=RestrictionCodeType.objects.all(), required=False)
-    license = forms.ModelChoiceField(queryset=License.objects.all(), required=False)
+    created_by = forms.CharField(
+        required=False, disabled=True, label=_('Created by'))
+    created_at = forms.CharField(
+        required=False, disabled=True, label=_('Created at'))
+    last_edited_by = forms.CharField(
+        required=False, disabled=True, label=_('Last edited by'))
+    last_edited_at = forms.CharField(
+        required=False, disabled=True, label=_('Last edited at'))
+    restriction_code_type = forms.ModelChoiceField(
+        queryset=RestrictionCodeType.objects.all(),
+        required=False, label=_('Restriction'))
+    license = forms.ModelChoiceField(
+        queryset=License.objects.all(), required=False, label=_('License'))
 
     class Meta:
         model = Well
         fields = (
-            'organisation', 'created_by', 'created_at', 'last_edited_by', 'last_edited_at', 'affiliate_organisations', 'public', 'downloadable',
+            'organisation', 'created_by', 'created_at',
+            'last_edited_by', 'last_edited_at', 'affiliate_organisations',
+            'public', 'downloadable',
             'license', 'restriction_code_type', 'constraints_other')
 
     def __init__(self, *args, **kwargs):
@@ -33,10 +43,9 @@ class WellMetadataForm(WellBaseForm):
             pass
         super(WellMetadataForm, self).__init__(*args, **kwargs)
         self.fields['organisation'].queryset = organisation
-        self.fields['restriction_code_type'].label = 'Restrictions'
         self.fields['affiliate_organisations'].widget = MultiValueInput(
             url=reverse('organisation_autocomplete'), Model=Organisation, attrs={
-                'placeholder': 'Please enter 1 or more character'
+                'placeholder': _('Please enter 1 or more character')
             }
         )
 

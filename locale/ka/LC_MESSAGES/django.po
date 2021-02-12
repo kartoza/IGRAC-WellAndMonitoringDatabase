@@ -1,0 +1,695 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-02-12 08:24+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+
+#: gwml2/api/authentication.py:48
+msgid "User account is disabled."
+msgstr ""
+
+#: gwml2/api/authentication.py:53
+msgid "Unable to log in with provided credentials."
+msgstr ""
+
+#: gwml2/api/authentication.py:56
+msgid "User does not exist."
+msgstr ""
+
+#: gwml2/authentication.py:21
+msgid "Invalid token."
+msgstr ""
+
+#: gwml2/authentication.py:23
+msgid "No user found for the token."
+msgstr ""
+
+#: gwml2/authentication.py:26
+msgid "User inactive or deleted."
+msgstr ""
+
+#: gwml2/forms/uploader/csv_well_form.py:33
+#: gwml2/templates/groundwater_form/general_information.html:9
+msgid "General information"
+msgstr ""
+
+#: gwml2/forms/uploader/csv_well_form.py:39
+#: gwml2/templates/upload_well_csv.html:144
+msgid "Monitoring data"
+msgstr ""
+
+#: gwml2/forms/well/document.py:16
+msgid "File type"
+msgstr ""
+
+#: gwml2/forms/well/document.py:17
+msgid "File size"
+msgstr ""
+
+#: gwml2/forms/well/document.py:18
+msgid "Upload date"
+msgstr ""
+
+#: gwml2/forms/well/general_information.py:17
+msgid "Latitude must be expressed in decimal degrees."
+msgstr ""
+
+#: gwml2/forms/well/general_information.py:19
+msgid "Longitude must be expressed in decimal degrees."
+msgstr ""
+
+#: gwml2/forms/well/measurement/base.py:43
+msgid "Date and Time"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:17 gwml2/models/metadata/creation.py:16
+msgid "Created by"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:19 gwml2/models/metadata/creation.py:12
+msgid "Created at"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:21 gwml2/models/metadata/creation.py:24
+msgid "Last edited by"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:23 gwml2/models/metadata/creation.py:20
+msgid "Last edited at"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:26
+msgid "Restriction"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:28
+#: gwml2/models/metadata/license_metadata.py:28
+#: gwml2/templates/groundwater_form/management.html:39
+msgid "License"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:48
+msgid "Please enter 1 or more character"
+msgstr ""
+
+#: gwml2/models/construction.py:12
+msgid "Pump installer"
+msgstr ""
+
+#: gwml2/models/construction.py:14
+msgid "Name of the company or person who installed the pump."
+msgstr ""
+
+#: gwml2/models/construction.py:17
+msgid "Pump description"
+msgstr ""
+
+#: gwml2/models/construction.py:20
+msgid ""
+"Any relevant information on the pump (e.g. model, capacity, energy supply, "
+"depth)."
+msgstr ""
+
+#: gwml2/models/construction.py:38
+#: gwml2/templates/groundwater_form/well_chart.html:125
+msgid "Type"
+msgstr ""
+
+#: gwml2/models/construction.py:43 gwml2/models/drilling.py:54
+#: gwml2/models/drilling.py:94
+msgid "Reference elevation"
+msgstr ""
+
+#: gwml2/models/construction.py:48 gwml2/models/drilling.py:69
+#: gwml2/templates/groundwater_form/well_chart.html:133
+#: gwml2/templates/groundwater_form/well_chart.html:154
+#: gwml2/templates/groundwater_form/well_chart.html:166
+msgid "Material"
+msgstr ""
+
+#: gwml2/models/construction.py:52 gwml2/models/document.py:20
+#: gwml2/models/drilling.py:102 gwml2/models/general_information.py:62
+#: gwml2/models/management.py:23 gwml2/models/management.py:51
+#: gwml2/templates/organisation/list.html:32
+msgid "Description"
+msgstr ""
+
+#: gwml2/models/construction.py:61 gwml2/models/drilling.py:60
+#: gwml2/templates/groundwater_form/well_chart.html:115
+#: gwml2/templates/groundwater_form/well_chart.html:143
+msgid "Top depth"
+msgstr ""
+
+#: gwml2/models/construction.py:67 gwml2/models/drilling.py:66
+#: gwml2/templates/groundwater_form/well_chart.html:120
+#: gwml2/templates/groundwater_form/well_chart.html:148
+msgid "Bottom depth"
+msgstr ""
+
+#: gwml2/models/construction.py:73
+#: gwml2/templates/groundwater_form/well_chart.html:129
+msgid "Diameter"
+msgstr ""
+
+#: gwml2/models/document.py:8
+msgid "Uploaded at"
+msgstr ""
+
+#: gwml2/models/document.py:11 gwml2/templates/download/list.html:52
+msgid "File"
+msgstr ""
+
+#: gwml2/models/drilling.py:13
+msgid "Excavation method"
+msgstr ""
+
+#: gwml2/models/drilling.py:16
+msgid "Contractor"
+msgstr ""
+
+#: gwml2/models/drilling.py:18
+msgid "Name of the drilling company or responsible person."
+msgstr ""
+
+#: gwml2/models/drilling.py:20
+msgid "Successful"
+msgstr ""
+
+#: gwml2/models/drilling.py:24
+msgid "Cause of failure"
+msgstr ""
+
+#: gwml2/models/drilling.py:27
+msgid "Explain why the drilling was not successful."
+msgstr ""
+
+#: gwml2/models/drilling.py:29
+msgid "Construction year"
+msgstr ""
+
+#: gwml2/models/drilling.py:73
+msgid "Stratigraphic unit"
+msgstr ""
+
+#: gwml2/models/drilling.py:99
+msgid "Depth"
+msgstr ""
+
+#: gwml2/models/general_information.py:10
+msgid "Original ID"
+msgstr ""
+
+#: gwml2/models/general_information.py:11
+msgid "As recorded in the original database."
+msgstr ""
+
+#: gwml2/models/general_information.py:15
+#: gwml2/templates/groundwater_form/general_information.html:25
+msgid "Location"
+msgstr ""
+
+#: gwml2/models/general_information.py:16
+msgid "Location of the feature."
+msgstr ""
+
+#: gwml2/models/general_information.py:21
+msgid "Ground surface elevation above sea level."
+msgstr ""
+
+#: gwml2/models/general_information.py:23
+msgid "Ground surface elevation"
+msgstr ""
+
+#: gwml2/models/general_information.py:28
+msgid "Elevation of top of borehole above sea level."
+msgstr ""
+
+#: gwml2/models/general_information.py:30
+msgid "Top of well elevation"
+msgstr ""
+
+#: gwml2/models/general_information.py:34
+#: gwml2/templates/organisation/list.html:31
+msgid "Name"
+msgstr ""
+
+#: gwml2/models/general_information.py:40
+msgid "Feature type"
+msgstr ""
+
+#: gwml2/models/general_information.py:45
+msgid "Address"
+msgstr ""
+
+#: gwml2/models/general_information.py:51
+msgid "Country"
+msgstr ""
+
+#: gwml2/models/general_information.py:56
+msgid "Photo"
+msgstr ""
+
+#: gwml2/models/general_information.py:59
+msgid "A photo of the groundwater point. More photos can be added in annex."
+msgstr ""
+
+#: gwml2/models/general_information.py:64
+msgid "A general description of the groundwater point."
+msgstr ""
+
+#: gwml2/models/geology.py:16
+msgid "Depth of the well below the ground surface."
+msgstr ""
+
+#: gwml2/models/geology.py:17
+msgid "Total depth"
+msgstr ""
+
+#: gwml2/models/geology.py:22
+msgid "Total depth reference elevation"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:12
+msgid "Porosity"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:19
+msgid ""
+"Specific capacity is the pumping rate divided by the drawdown. It gives an "
+"indication of the yield of a well."
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:20
+msgid "Specific capacity"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:26
+msgid "Hydraulic conductivity"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:32
+msgid ""
+"Transmissivity is the hydraulic conductivity integrated over the thickness "
+"of the aquifer."
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:33
+msgid "Transmissivity"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:39
+msgid "Specific storage"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:42
+msgid "Specific yield"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:49
+msgid "Yield"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:52
+msgid "Test type"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:54
+msgid ""
+"Provide information on the test(s) performed to estimate the hydraulic "
+"properties."
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:66
+msgid "Aquifer name"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:70
+msgid "Aquifer material"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:76
+msgid "Aquifer type"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:79
+msgid "Aquifer thickness"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:85
+msgid "Confinement"
+msgstr ""
+
+#: gwml2/models/hydrogeology.py:88
+msgid "Degree of confinement"
+msgstr ""
+
+#: gwml2/models/management.py:10
+msgid "Number"
+msgstr ""
+
+#: gwml2/models/management.py:15
+msgid "Valid from"
+msgstr ""
+
+#: gwml2/models/management.py:19
+msgid "Valid until"
+msgstr ""
+
+#: gwml2/models/management.py:26
+msgid "Explain what the license entails."
+msgstr ""
+
+#: gwml2/models/management.py:38
+msgid "Manager / owner"
+msgstr ""
+
+#: gwml2/models/management.py:42
+msgid ""
+"Name of the manager or owner of the groundwater point. This can be a single "
+"person, a group of persons or an organisation."
+msgstr ""
+
+#: gwml2/models/management.py:48
+msgid "Groundwater use"
+msgstr ""
+
+#: gwml2/models/management.py:54
+msgid "Explain how the groundwater point is managed."
+msgstr ""
+
+#: gwml2/models/management.py:56
+msgid "Number of people served"
+msgstr ""
+
+#: gwml2/models/management.py:59
+msgid "Indicate how many people use the groundwater."
+msgstr ""
+
+#: gwml2/models/measurement.py:13
+msgid "Time"
+msgstr ""
+
+#: gwml2/models/measurement.py:18
+msgid "Parameter"
+msgstr ""
+
+#: gwml2/models/measurement.py:22
+msgid "Methodology"
+msgstr ""
+
+#: gwml2/models/measurement.py:24
+msgid ""
+"Explain the methodology used to collect the data, in the field and "
+"eventually in the lab."
+msgstr ""
+
+#: gwml2/models/measurement.py:29
+msgid "Value"
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:8
+msgid ""
+"limitation(s) placed upon the access or use of the data. this is ID of "
+"restriction code in geonode."
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:10
+msgid ""
+"other restrictions and legal prerequisites for accessing and using the "
+"resource or metadata"
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:12
+msgid "license of the dataset. this is ID of license in geonode."
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:15
+msgid "Restrictions"
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:21
+msgid "restrictions other"
+msgstr ""
+
+#: gwml2/models/well.py:36
+msgid "Purpose"
+msgstr ""
+
+#: gwml2/models/well.py:41
+msgid "Status"
+msgstr ""
+
+#: gwml2/models/well.py:68 gwml2/templates/groundwater_form/management.html:23
+#: gwml2/templates/organisation/list.html:25
+msgid "Organisation"
+msgstr ""
+
+#: gwml2/models/well.py:78
+msgid "Indicate that well can be viewed by non organisation user."
+msgstr ""
+
+#: gwml2/models/well.py:83
+msgid "Indicate that well can be downloaded."
+msgstr ""
+
+#: gwml2/models/well.py:89
+msgid "Indicate how many measurement this well has."
+msgstr ""
+
+#: gwml2/templates/download/list.html:50
+msgid "Detail"
+msgstr ""
+
+#: gwml2/templates/download/list.html:51
+msgid "Downloaded at"
+msgstr ""
+
+#: gwml2/templates/download/list.html:52
+msgid "Progress"
+msgstr ""
+
+#: gwml2/templates/download/list.html:74
+msgid "Data out of date"
+msgstr ""
+
+#: gwml2/templates/download/list.html:80
+msgid "No download found"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/_many-to-many-table.html:18
+msgid "Action"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:4
+#: gwml2/templates/groundwater_form/main.html:104
+msgid "Drilling and Construction"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:7
+msgid "For wells and boreholes"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:28
+msgid "Water Strike"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:29
+msgid "Stratigraphic Log"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:30
+msgid "Design"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/general_information.html:13
+msgid "Identification"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/general_information.html:42
+msgid "Documents"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/general_information.html:42
+msgid "Relevant documents or images can be added here."
+msgstr ""
+
+#: gwml2/templates/groundwater_form/hydrogeology.html:4
+#: gwml2/templates/groundwater_form/main.html:109
+msgid "Hydrogeology"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/hydrogeology.html:8
+msgid "Aquifer"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/hydrogeology.html:18
+msgid "Hydraulic properties"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/level_measurement.html:4
+#: gwml2/templates/groundwater_form/main.html:126
+msgid "Groundwater Level"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:63
+msgid "Submit"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:66
+msgid "Go to form"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:93
+msgid "Well and Monitoring Data Record"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:99
+#: gwml2/templates/upload_well_csv.html:137
+msgid "General Information"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:114
+#: gwml2/templates/groundwater_form/management.html:19
+msgid "Management"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:120
+msgid "Monitoring Data"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:131
+#: gwml2/templates/groundwater_form/quality_measurement.html:4
+msgid "Groundwater Quality"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:136
+#: gwml2/templates/groundwater_form/yield_measurement.html:4
+msgid "Abstraction"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:136
+#: gwml2/templates/groundwater_form/yield_measurement.html:4
+msgid "Discharge"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/main.html:143
+#: gwml2/templates/groundwater_form/well_metadata.html:4
+msgid "Metadata"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/management.html:30
+msgid "Production"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_chart.html:93
+msgid "Well Chart"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_chart.html:102
+msgid "Please hover mouse over the chart"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_chart.html:111
+msgid "Construction"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_chart.html:140
+msgid "Stratigraphy"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_chart.html:161
+#: gwml2/templates/groundwater_form/well_chart.html:170
+msgid "Stratigraphy Unit"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:9
+msgid "Data log"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:20
+msgid "Permissions"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:25
+#: gwml2/templates/upload_well_csv.html:116
+msgid "Who can view?"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:31
+#: gwml2/templates/upload_well_csv.html:118
+msgid "Anyone"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:35
+#: gwml2/templates/upload_well_csv.html:121
+msgid "The following organisations"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:44
+#: gwml2/templates/upload_well_csv.html:125
+msgid "Is it downloadable?"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:50
+#: gwml2/templates/upload_well_csv.html:127
+msgid "Downloadable"
+msgstr ""
+
+#: gwml2/templates/organisation/list.html:43
+msgid "Organisation is empty"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:84
+msgid "Batch Upload Form"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:89
+msgid "Upload progress"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:155
+#: gwml2/templates/upload_well_csv.html:168
+msgid ""
+"The Batch Upload allows you to import several Well and Monitoring Data at "
+"one time. The Batch Upload currently supports the upload of General "
+"Information (i.e. identification and location of your data points) and "
+"Monitoring Data. Download the templates and fill them in with your data, "
+"then simply upload these files. Don't forget to assign permissions on your "
+"data: is it public? which organisations can access the data?"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:157
+#: gwml2/templates/upload_well_csv.html:170
+msgid "Template"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:157
+#: gwml2/templates/upload_well_csv.html:170
+msgid "here"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:185
+msgid "Upload"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:197
+msgid "Past Upload Sessions"
+msgstr ""
+
+#: gwml2/templates/widgets/file_selection.html:43
+msgid "Choose a file"
+msgstr ""

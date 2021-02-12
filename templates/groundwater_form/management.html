@@ -1,4 +1,5 @@
 {% load gwml2_forms %}
+{% load i18n %}
 <style>
     #id_organisation_input {
         width: auto;
@@ -15,18 +16,18 @@
     }
 </style>
 <div id="management" class="page-section">
-    <h2 class="section-title">Management</h2>
+    <h2 class="section-title">{% trans "Management" %}</h2>
     <div class="section">
         <table>
             <tr>
-                <td><h4>Organisation</h4></td>
+                <td><h4>{% trans "Organisation" %}</h4></td>
             </tr>
             {% field_as_row form.manager %}
             {% field_as_row form.description %}
             <tr>
                 <td>
                     <br><br>
-                    <h4>Production</h4>
+                    <h4>{% trans "Production" %}</h4>
                 </td>
             </tr>
             {% field_as_row form.groundwater_use %}
@@ -35,7 +36,7 @@
             <tr>
                 <td>
                     <br><br>
-                    <h4>License</h4>
+                    <h4>{% trans "License" %}</h4>
                 </td>
             </tr>
             {% field_as_row license.number %}

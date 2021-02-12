@@ -1,0 +1,711 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-02-12 08:24+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: gwml2/api/authentication.py:48
+msgid "User account is disabled."
+msgstr ""
+
+#: gwml2/api/authentication.py:53
+msgid "Unable to log in with provided credentials."
+msgstr ""
+
+#: gwml2/api/authentication.py:56
+msgid "User does not exist."
+msgstr ""
+
+#: gwml2/authentication.py:21
+msgid "Invalid token."
+msgstr ""
+
+#: gwml2/authentication.py:23
+msgid "No user found for the token."
+msgstr ""
+
+#: gwml2/authentication.py:26
+msgid "User inactive or deleted."
+msgstr ""
+
+#: gwml2/forms/uploader/csv_well_form.py:33
+#: gwml2/templates/groundwater_form/general_information.html:9
+msgid "General information"
+msgstr "Informasi Umum"
+
+#: gwml2/forms/uploader/csv_well_form.py:39
+#: gwml2/templates/upload_well_csv.html:144
+msgid "Monitoring data"
+msgstr "Data Pemantauan"
+
+#: gwml2/forms/well/document.py:16
+msgid "File type"
+msgstr "Tipe berkas"
+
+#: gwml2/forms/well/document.py:17
+msgid "File size"
+msgstr "Ukuran berkas"
+
+#: gwml2/forms/well/document.py:18
+msgid "Upload date"
+msgstr "Tanggal unggah"
+
+#: gwml2/forms/well/general_information.py:17
+msgid "Latitude must be expressed in decimal degrees."
+msgstr "Latitude harus diekspresikan dalam bentuk derajat decimal"
+
+#: gwml2/forms/well/general_information.py:19
+msgid "Longitude must be expressed in decimal degrees."
+msgstr "Longitude harus diekspresikan dalam bentuk derajat decimal"
+
+#: gwml2/forms/well/measurement/base.py:43
+msgid "Date and Time"
+msgstr "Tanggal dan waktu"
+
+#: gwml2/forms/well/well_metadata.py:17 gwml2/models/metadata/creation.py:16
+msgid "Created by"
+msgstr "Dibuat oleh"
+
+#: gwml2/forms/well/well_metadata.py:19 gwml2/models/metadata/creation.py:12
+msgid "Created at"
+msgstr "Dibuat saat"
+
+#: gwml2/forms/well/well_metadata.py:21 gwml2/models/metadata/creation.py:24
+msgid "Last edited by"
+msgstr "Diubah terakhir oleh"
+
+#: gwml2/forms/well/well_metadata.py:23 gwml2/models/metadata/creation.py:20
+msgid "Last edited at"
+msgstr "Diubah terakhir saat"
+
+#: gwml2/forms/well/well_metadata.py:26
+msgid "Restriction"
+msgstr "Batasan"
+
+#: gwml2/forms/well/well_metadata.py:28
+#: gwml2/models/metadata/license_metadata.py:28
+#: gwml2/templates/groundwater_form/management.html:39
+msgid "License"
+msgstr ""
+
+#: gwml2/forms/well/well_metadata.py:48
+msgid "Please enter 1 or more character"
+msgstr "Masukkan 1 atau lebih karakter"
+
+#: gwml2/models/construction.py:12
+msgid "Pump installer"
+msgstr "Pemasang pompa"
+
+#: gwml2/models/construction.py:14
+msgid "Name of the company or person who installed the pump."
+msgstr "Nama perusahaan pengebor atau orang yang bertanggung jawab."
+
+#: gwml2/models/construction.py:17
+msgid "Pump description"
+msgstr "Deskripsi pompa"
+
+#: gwml2/models/construction.py:20
+msgid ""
+"Any relevant information on the pump (e.g. model, capacity, energy supply, "
+"depth)."
+msgstr ""
+"Semua infomasi yang relevan dari pompa (contoh: model, kapasitas, pasokan "
+"energi, kedalaman)"
+
+#: gwml2/models/construction.py:38
+#: gwml2/templates/groundwater_form/well_chart.html:125
+msgid "Type"
+msgstr "Tipe"
+
+#: gwml2/models/construction.py:43 gwml2/models/drilling.py:54
+#: gwml2/models/drilling.py:94
+msgid "Reference elevation"
+msgstr "Referensi ketinggian"
+
+#: gwml2/models/construction.py:48 gwml2/models/drilling.py:69
+#: gwml2/templates/groundwater_form/well_chart.html:133
+#: gwml2/templates/groundwater_form/well_chart.html:154
+#: gwml2/templates/groundwater_form/well_chart.html:166
+msgid "Material"
+msgstr "Material"
+
+#: gwml2/models/construction.py:52 gwml2/models/document.py:20
+#: gwml2/models/drilling.py:102 gwml2/models/general_information.py:62
+#: gwml2/models/management.py:23 gwml2/models/management.py:51
+#: gwml2/templates/organisation/list.html:32
+msgid "Description"
+msgstr "Deskripsi"
+
+#: gwml2/models/construction.py:61 gwml2/models/drilling.py:60
+#: gwml2/templates/groundwater_form/well_chart.html:115
+#: gwml2/templates/groundwater_form/well_chart.html:143
+msgid "Top depth"
+msgstr "Kedalaman bagian atas"
+
+#: gwml2/models/construction.py:67 gwml2/models/drilling.py:66
+#: gwml2/templates/groundwater_form/well_chart.html:120
+#: gwml2/templates/groundwater_form/well_chart.html:148
+msgid "Bottom depth"
+msgstr "Kedalaman bagian bawah"
+
+#: gwml2/models/construction.py:73
+#: gwml2/templates/groundwater_form/well_chart.html:129
+msgid "Diameter"
+msgstr "Diameter"
+
+#: gwml2/models/document.py:8
+msgid "Uploaded at"
+msgstr "Diunggah pada"
+
+#: gwml2/models/document.py:11 gwml2/templates/download/list.html:52
+msgid "File"
+msgstr "Berkas"
+
+#: gwml2/models/drilling.py:13
+msgid "Excavation method"
+msgstr "Metode penggalian"
+
+#: gwml2/models/drilling.py:16
+msgid "Contractor"
+msgstr "Kontraktor"
+
+#: gwml2/models/drilling.py:18
+msgid "Name of the drilling company or responsible person."
+msgstr "Nama perusahaan pengebor atau orang yang bertanggung jawab."
+
+#: gwml2/models/drilling.py:20
+msgid "Successful"
+msgstr "Berhasil"
+
+#: gwml2/models/drilling.py:24
+msgid "Cause of failure"
+msgstr "Penyebab kegagalan"
+
+#: gwml2/models/drilling.py:27
+msgid "Explain why the drilling was not successful."
+msgstr "Jelaskan kenapa penggalian tidak berhasil"
+
+#: gwml2/models/drilling.py:29
+msgid "Construction year"
+msgstr "Tahun konstruksi"
+
+#: gwml2/models/drilling.py:73
+msgid "Stratigraphic unit"
+msgstr "Unit stratigrafi"
+
+#: gwml2/models/drilling.py:99
+msgid "Depth"
+msgstr "Kedalaman"
+
+#: gwml2/models/general_information.py:10
+msgid "Original ID"
+msgstr ""
+
+#: gwml2/models/general_information.py:11
+msgid "As recorded in the original database."
+msgstr "Merupakan ID dari database "
+
+#: gwml2/models/general_information.py:15
+#: gwml2/templates/groundwater_form/general_information.html:25
+msgid "Location"
+msgstr "Lokasi"
+
+#: gwml2/models/general_information.py:16
+msgid "Location of the feature."
+msgstr "Lokasi fitur"
+
+#: gwml2/models/general_information.py:21
+msgid "Ground surface elevation above sea level."
+msgstr "Elevasi permukaan tanah dari permukaan laut"
+
+#: gwml2/models/general_information.py:23
+msgid "Ground surface elevation"
+msgstr "Elevasi permukaan tanah"
+
+#: gwml2/models/general_information.py:28
+msgid "Elevation of top of borehole above sea level."
+msgstr "Elevasi atas dari lubang bor dari permukaan laut"
+
+#: gwml2/models/general_information.py:30
+msgid "Top of well elevation"
+msgstr "Elevasi dari bagian atas sumur"
+
+#: gwml2/models/general_information.py:34
+#: gwml2/templates/organisation/list.html:31
+msgid "Name"
+msgstr "Nama"
+
+#: gwml2/models/general_information.py:40
+msgid "Feature type"
+msgstr "Tipe fitur"
+
+#: gwml2/models/general_information.py:45
+msgid "Address"
+msgstr "Alamat"
+
+#: gwml2/models/general_information.py:51
+msgid "Country"
+msgstr "Negara"
+
+#: gwml2/models/general_information.py:56
+msgid "Photo"
+msgstr "Foto"
+
+#: gwml2/models/general_information.py:59
+msgid "A photo of the groundwater point. More photos can be added in annex."
+msgstr ""
+"Sebuah foto dari titik air tanah. Lebih banyak foto dapat ditambahkan di "
+"dokumen."
+
+#: gwml2/models/general_information.py:64
+msgid "A general description of the groundwater point."
+msgstr "Deskripsi umum dari titik air tanah."
+
+#: gwml2/models/geology.py:16
+msgid "Depth of the well below the ground surface."
+msgstr "Kedalaman sumur dibawah permukaan tanah"
+
+#: gwml2/models/geology.py:17
+msgid "Total depth"
+msgstr "Total kedalaman"
+
+#: gwml2/models/geology.py:22
+msgid "Total depth reference elevation"
+msgstr "Referensi elevasi dari total kedalaman"
+
+#: gwml2/models/hydrogeology.py:12
+msgid "Porosity"
+msgstr "Porositas"
+
+#: gwml2/models/hydrogeology.py:19
+msgid ""
+"Specific capacity is the pumping rate divided by the drawdown. It gives an "
+"indication of the yield of a well."
+msgstr ""
+"Kapasitas khusus adalah laju pemompaan dibagi dengan penurunan. Ini "
+"memberikan indikasi hasil dari sebuah sumur."
+
+#: gwml2/models/hydrogeology.py:20
+msgid "Specific capacity"
+msgstr "Kapasitas khusus"
+
+#: gwml2/models/hydrogeology.py:26
+msgid "Hydraulic conductivity"
+msgstr "Konduktivitas hidrolik"
+
+#: gwml2/models/hydrogeology.py:32
+msgid ""
+"Transmissivity is the hydraulic conductivity integrated over the thickness "
+"of the aquifer."
+msgstr ""
+"Transmisivitas adalah konduktivitas hidraulik yang terintegrasi di atas "
+"ketebalan akuifer"
+
+#: gwml2/models/hydrogeology.py:33
+msgid "Transmissivity"
+msgstr "Transmisivitas"
+
+#: gwml2/models/hydrogeology.py:39
+msgid "Specific storage"
+msgstr "Penyimpanan khusus"
+
+#: gwml2/models/hydrogeology.py:42
+msgid "Specific yield"
+msgstr "Hasil spesifik"
+
+#: gwml2/models/hydrogeology.py:49
+msgid "Yield"
+msgstr "Penghasilan"
+
+#: gwml2/models/hydrogeology.py:52
+msgid "Test type"
+msgstr "Tipe pengujian"
+
+#: gwml2/models/hydrogeology.py:54
+msgid ""
+"Provide information on the test(s) performed to estimate the hydraulic "
+"properties."
+msgstr ""
+"Berikan informasi tentang pengujian yang dilakukan untuk memperkirakan sifat "
+"hidrolik"
+
+#: gwml2/models/hydrogeology.py:66
+msgid "Aquifer name"
+msgstr "Nama akuifer"
+
+#: gwml2/models/hydrogeology.py:70
+msgid "Aquifer material"
+msgstr "Material akuifer"
+
+#: gwml2/models/hydrogeology.py:76
+msgid "Aquifer type"
+msgstr "Tipe akuifer"
+
+#: gwml2/models/hydrogeology.py:79
+msgid "Aquifer thickness"
+msgstr "Ketebalan akuifer"
+
+#: gwml2/models/hydrogeology.py:85
+msgid "Confinement"
+msgstr "kurungan"
+
+#: gwml2/models/hydrogeology.py:88
+msgid "Degree of confinement"
+msgstr "Derajat pengurungan"
+
+#: gwml2/models/management.py:10
+msgid "Number"
+msgstr "Nomor"
+
+#: gwml2/models/management.py:15
+msgid "Valid from"
+msgstr "Berlaku dari"
+
+#: gwml2/models/management.py:19
+msgid "Valid until"
+msgstr "Berlaku hingga"
+
+#: gwml2/models/management.py:26
+msgid "Explain what the license entails."
+msgstr "Jelaskan apa yang diperlukan lisensi."
+
+#: gwml2/models/management.py:38
+msgid "Manager / owner"
+msgstr "Pengelola / pemilik"
+
+#: gwml2/models/management.py:42
+msgid ""
+"Name of the manager or owner of the groundwater point. This can be a single "
+"person, a group of persons or an organisation."
+msgstr ""
+"Nama pengelola atau pemilik titik air tanah. Ini bisa merupakan satu orang, "
+"sekelompok orang atau sebuah organisasi."
+
+#: gwml2/models/management.py:48
+msgid "Groundwater use"
+msgstr "Penggunaan Air Tanah"
+
+#: gwml2/models/management.py:54
+msgid "Explain how the groundwater point is managed."
+msgstr "Jelaskan bagaimana titik air tanah dikelola."
+
+#: gwml2/models/management.py:56
+msgid "Number of people served"
+msgstr "Jumlah orang yang dilayani"
+
+#: gwml2/models/management.py:59
+msgid "Indicate how many people use the groundwater."
+msgstr "Menunjukkan berapa banyak orang yang menggunakan air tanah."
+
+#: gwml2/models/measurement.py:13
+msgid "Time"
+msgstr "Waktu"
+
+#: gwml2/models/measurement.py:18
+msgid "Parameter"
+msgstr "Parameter"
+
+#: gwml2/models/measurement.py:22
+msgid "Methodology"
+msgstr "Metodologi"
+
+#: gwml2/models/measurement.py:24
+msgid ""
+"Explain the methodology used to collect the data, in the field and "
+"eventually in the lab."
+msgstr ""
+"Jelaskan metodologi yang digunakan untuk mengumpulkan data, di lapangan dan "
+"akhirnya di lab."
+
+#: gwml2/models/measurement.py:29
+msgid "Value"
+msgstr "Nilai"
+
+#: gwml2/models/metadata/license_metadata.py:8
+msgid ""
+"limitation(s) placed upon the access or use of the data. this is ID of "
+"restriction code in geonode."
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:10
+msgid ""
+"other restrictions and legal prerequisites for accessing and using the "
+"resource or metadata"
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:12
+msgid "license of the dataset. this is ID of license in geonode."
+msgstr ""
+
+#: gwml2/models/metadata/license_metadata.py:15
+msgid "Restrictions"
+msgstr "Batasan"
+
+#: gwml2/models/metadata/license_metadata.py:21
+msgid "restrictions other"
+msgstr ""
+
+#: gwml2/models/well.py:36
+msgid "Purpose"
+msgstr "Tujuan"
+
+#: gwml2/models/well.py:41
+msgid "Status"
+msgstr ""
+
+#: gwml2/models/well.py:68 gwml2/templates/groundwater_form/management.html:23
+#: gwml2/templates/organisation/list.html:25
+msgid "Organisation"
+msgstr "Organisasi"
+
+#: gwml2/models/well.py:78
+msgid "Indicate that well can be viewed by non organisation user."
+msgstr ""
+"Menunjukkan apakah data sumur ini bisa dilihat oleh pengguna diluar "
+"organisasi."
+
+#: gwml2/models/well.py:83
+msgid "Indicate that well can be downloaded."
+msgstr "Menunjukkan apakah data sumur ini bisa diunduh."
+
+#: gwml2/models/well.py:89
+msgid "Indicate how many measurement this well has."
+msgstr "Menunjukkan berapa banyak pengukuran yang dimiliki sumur ini"
+
+#: gwml2/templates/download/list.html:50
+msgid "Detail"
+msgstr "Detail"
+
+#: gwml2/templates/download/list.html:51
+msgid "Downloaded at"
+msgstr "Diunduh pada"
+
+#: gwml2/templates/download/list.html:52
+msgid "Progress"
+msgstr ""
+
+#: gwml2/templates/download/list.html:74
+msgid "Data out of date"
+msgstr "Data sudah kadaluarsa"
+
+#: gwml2/templates/download/list.html:80
+msgid "No download found"
+msgstr "Unduh tidak ditemukan"
+
+#: gwml2/templates/groundwater_form/_many-to-many-table.html:18
+msgid "Action"
+msgstr "Aksi"
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:4
+#: gwml2/templates/groundwater_form/main.html:104
+msgid "Drilling and Construction"
+msgstr "Pengeboran dan Konstruksi"
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:7
+msgid "For wells and boreholes"
+msgstr "Untuk sumur dan lubang bor"
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:28
+msgid "Water Strike"
+msgstr "Serangan air"
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:29
+msgid "Stratigraphic Log"
+msgstr "Catatan stratigrafi"
+
+#: gwml2/templates/groundwater_form/drilling_and_construction.html:30
+msgid "Design"
+msgstr "Desain"
+
+#: gwml2/templates/groundwater_form/general_information.html:13
+msgid "Identification"
+msgstr "Identifikasi"
+
+#: gwml2/templates/groundwater_form/general_information.html:42
+msgid "Documents"
+msgstr "Dokumen"
+
+#: gwml2/templates/groundwater_form/general_information.html:42
+msgid "Relevant documents or images can be added here."
+msgstr "Dokumen dan gambar terkait dapat ditambahkan disini"
+
+#: gwml2/templates/groundwater_form/hydrogeology.html:4
+#: gwml2/templates/groundwater_form/main.html:109
+msgid "Hydrogeology"
+msgstr "Hidrogeologi"
+
+#: gwml2/templates/groundwater_form/hydrogeology.html:8
+msgid "Aquifer"
+msgstr "Akuifer"
+
+#: gwml2/templates/groundwater_form/hydrogeology.html:18
+msgid "Hydraulic properties"
+msgstr "Sifat hidrolik"
+
+#: gwml2/templates/groundwater_form/level_measurement.html:4
+#: gwml2/templates/groundwater_form/main.html:126
+msgid "Groundwater Level"
+msgstr "Tinggi Air Tanah"
+
+#: gwml2/templates/groundwater_form/main.html:63
+msgid "Submit"
+msgstr "Kirim"
+
+#: gwml2/templates/groundwater_form/main.html:66
+msgid "Go to form"
+msgstr "Formulir"
+
+#: gwml2/templates/groundwater_form/main.html:93
+msgid "Well and Monitoring Data Record"
+msgstr "Data Sumur dan Pemantuannya"
+
+#: gwml2/templates/groundwater_form/main.html:99
+#: gwml2/templates/upload_well_csv.html:137
+msgid "General Information"
+msgstr "Informasi Umum"
+
+#: gwml2/templates/groundwater_form/main.html:114
+#: gwml2/templates/groundwater_form/management.html:19
+msgid "Management"
+msgstr "Pengelolaan"
+
+#: gwml2/templates/groundwater_form/main.html:120
+msgid "Monitoring Data"
+msgstr "Data Pemantauan"
+
+#: gwml2/templates/groundwater_form/main.html:131
+#: gwml2/templates/groundwater_form/quality_measurement.html:4
+msgid "Groundwater Quality"
+msgstr "Kualitas Air Tanah"
+
+#: gwml2/templates/groundwater_form/main.html:136
+#: gwml2/templates/groundwater_form/yield_measurement.html:4
+msgid "Abstraction"
+msgstr "Abstraksi"
+
+#: gwml2/templates/groundwater_form/main.html:136
+#: gwml2/templates/groundwater_form/yield_measurement.html:4
+msgid "Discharge"
+msgstr "Pelepasan"
+
+#: gwml2/templates/groundwater_form/main.html:143
+#: gwml2/templates/groundwater_form/well_metadata.html:4
+msgid "Metadata"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/management.html:30
+msgid "Production"
+msgstr "Produksi"
+
+#: gwml2/templates/groundwater_form/well_chart.html:93
+msgid "Well Chart"
+msgstr "Grafil sumur"
+
+#: gwml2/templates/groundwater_form/well_chart.html:102
+msgid "Please hover mouse over the chart"
+msgstr "Arahkan mouse ke grafik"
+
+#: gwml2/templates/groundwater_form/well_chart.html:111
+msgid "Construction"
+msgstr "Abstraksi"
+
+#: gwml2/templates/groundwater_form/well_chart.html:140
+msgid "Stratigraphy"
+msgstr "Stratigrafi"
+
+#: gwml2/templates/groundwater_form/well_chart.html:161
+#: gwml2/templates/groundwater_form/well_chart.html:170
+msgid "Stratigraphy Unit"
+msgstr "Unit Stratigrafi"
+
+#: gwml2/templates/groundwater_form/well_metadata.html:9
+msgid "Data log"
+msgstr "Catatan Data"
+
+#: gwml2/templates/groundwater_form/well_metadata.html:20
+msgid "Permissions"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:25
+#: gwml2/templates/upload_well_csv.html:116
+msgid "Who can view?"
+msgstr "Siapa yang bisa melihat?"
+
+#: gwml2/templates/groundwater_form/well_metadata.html:31
+#: gwml2/templates/upload_well_csv.html:118
+msgid "Anyone"
+msgstr ""
+
+#: gwml2/templates/groundwater_form/well_metadata.html:35
+#: gwml2/templates/upload_well_csv.html:121
+msgid "The following organisations"
+msgstr "Organisasi di bawah ini"
+
+#: gwml2/templates/groundwater_form/well_metadata.html:44
+#: gwml2/templates/upload_well_csv.html:125
+msgid "Is it downloadable?"
+msgstr "Apakah bisa diunduh?"
+
+#: gwml2/templates/groundwater_form/well_metadata.html:50
+#: gwml2/templates/upload_well_csv.html:127
+msgid "Downloadable"
+msgstr "Bisa diunduh"
+
+#: gwml2/templates/organisation/list.html:43
+msgid "Organisation is empty"
+msgstr "Organisasi kosong"
+
+#: gwml2/templates/upload_well_csv.html:84
+msgid "Batch Upload Form"
+msgstr "Unggah Sejumlah Data"
+
+#: gwml2/templates/upload_well_csv.html:89
+msgid "Upload progress"
+msgstr "Process unggah"
+
+#: gwml2/templates/upload_well_csv.html:155
+#: gwml2/templates/upload_well_csv.html:168
+msgid ""
+"The Batch Upload allows you to import several Well and Monitoring Data at "
+"one time. The Batch Upload currently supports the upload of General "
+"Information (i.e. identification and location of your data points) and "
+"Monitoring Data. Download the templates and fill them in with your data, "
+"then simply upload these files. Don't forget to assign permissions on your "
+"data: is it public? which organisations can access the data?"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:157
+#: gwml2/templates/upload_well_csv.html:170
+msgid "Template"
+msgstr ""
+
+#: gwml2/templates/upload_well_csv.html:157
+#: gwml2/templates/upload_well_csv.html:170
+msgid "here"
+msgstr "disini"
+
+#: gwml2/templates/upload_well_csv.html:185
+msgid "Upload"
+msgstr "Unggah"
+
+#: gwml2/templates/upload_well_csv.html:197
+msgid "Past Upload Sessions"
+msgstr "Sesi Upload Sebelumnya"
+
+#: gwml2/templates/widgets/file_selection.html:43
+msgid "Choose a file"
+msgstr "Pilih berkas"

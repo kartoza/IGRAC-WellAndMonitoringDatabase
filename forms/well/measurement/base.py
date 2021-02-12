@@ -1,6 +1,7 @@
 from datetime import datetime
 from django import forms
 from django.forms.models import model_to_dict
+from django.utils.translation import ugettext_lazy as _
 from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.forms.well.base import WellBaseForm
 from gwml2.models.term_measurement_parameter import (
@@ -39,7 +40,7 @@ class BaseMeasurementForm(WellBaseForm):
         self.fields['parameter'].widget.attrs['required'] = True
         self.fields['value'].widget.attrs['min'] = 0
         self.fields['value'].widget.attrs['data-min'] = 0
-        self.fields['time'].label = 'Date and Time'
+        self.fields['time'].label = _('Date and Time')
 
     @staticmethod
     def make_from_data(instance, data, files):
