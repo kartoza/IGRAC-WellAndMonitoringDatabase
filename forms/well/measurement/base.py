@@ -84,4 +84,5 @@ class BaseMeasurementForm(WellBaseForm):
             'Last Edited by : {}'.format(instance.last_edited_by_username()),
             'Last edited at : {}'.format(instance.last_edited_at.strftime('%Y-%m-%d %H:%M:%S %Z')),
         ])
+        data['time'] = instance.time.strftime('%Y-%m-%d %H:%M:%S')
         return data
