@@ -41,10 +41,10 @@ function checkLevelParameter(
     parameter_from, parameter_to, value,
     top_borehole_elevation, ground_surface_elevation) {
 
-    if (parameter_to === FROM_TOP_WALL && !top_borehole_elevation || parameter_from === FROM_TOP_WALL && !top_borehole_elevation) {
+    if ((parameter_to === FROM_TOP_WALL && !top_borehole_elevation) || (parameter_from === FROM_TOP_WALL && !top_borehole_elevation)) {
         return [parameter_from, null]
     }
-    if (parameter_to === FROM_GROUND_LEVEL && !ground_surface_elevation || parameter_from === FROM_GROUND_LEVEL && !ground_surface_elevation) {
+    if ((parameter_to === FROM_GROUND_LEVEL && !ground_surface_elevation) || (parameter_from === FROM_GROUND_LEVEL && !ground_surface_elevation)) {
         return [parameter_from, null]
     }
 
