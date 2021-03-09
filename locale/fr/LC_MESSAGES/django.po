@@ -495,186 +495,186 @@ msgstr "Téléchargé sur"
 
 #: gwml2/templates/download/list.html:52
 msgid "Progress"
-msgstr ""
+msgstr "Progrès"
 
 #: gwml2/templates/download/list.html:74
 msgid "Data out of date"
-msgstr ""
+msgstr "Données obsolètes"
 
 #: gwml2/templates/download/list.html:80
 msgid "No download found"
-msgstr ""
+msgstr "Aucun téléchargement trouvé"
 
 #: gwml2/templates/groundwater_form/_many-to-many-table.html:18
 msgid "Action"
-msgstr ""
+msgstr "Action"
 
 #: gwml2/templates/groundwater_form/drilling_and_construction.html:4
 #: gwml2/templates/groundwater_form/main.html:104
 msgid "Drilling and Construction"
-msgstr ""
+msgstr "Forage et Construction"
 
 #: gwml2/templates/groundwater_form/drilling_and_construction.html:7
 msgid "For wells and boreholes"
-msgstr ""
+msgstr "Pour les puits et forages"
 
 #: gwml2/templates/groundwater_form/drilling_and_construction.html:28
 msgid "Water Strike"
-msgstr ""
+msgstr "Eau Atteinte "
 
 #: gwml2/templates/groundwater_form/drilling_and_construction.html:29
 msgid "Stratigraphic Log"
-msgstr ""
+msgstr "Log Stratigraphique"
 
 #: gwml2/templates/groundwater_form/drilling_and_construction.html:30
 msgid "Design"
-msgstr ""
+msgstr "Design"
 
 #: gwml2/templates/groundwater_form/general_information.html:13
 msgid "Identification"
-msgstr ""
+msgstr "Identification"
 
 #: gwml2/templates/groundwater_form/general_information.html:42
 msgid "Documents"
-msgstr ""
+msgstr "Documents"
 
 #: gwml2/templates/groundwater_form/general_information.html:42
 msgid "Relevant documents or images can be added here."
-msgstr ""
+msgstr "Les documents ou images pertinents peuvent être ajoutés ici."
 
 #: gwml2/templates/groundwater_form/hydrogeology.html:4
 #: gwml2/templates/groundwater_form/main.html:109
 msgid "Hydrogeology"
-msgstr ""
+msgstr "Hydrogéologie"
 
 #: gwml2/templates/groundwater_form/hydrogeology.html:8
 msgid "Aquifer"
-msgstr ""
+msgstr "Aquifère"
 
 #: gwml2/templates/groundwater_form/hydrogeology.html:18
 msgid "Hydraulic properties"
-msgstr ""
+msgstr "Propriétés hydrauliques"
 
 #: gwml2/templates/groundwater_form/level_measurement.html:4
 #: gwml2/templates/groundwater_form/main.html:126
 msgid "Groundwater Level"
-msgstr ""
+msgstr "Niveau des eaux souterraines"
 
 #: gwml2/templates/groundwater_form/main.html:63
 msgid "Submit"
-msgstr ""
+msgstr "Soumettre"
 
 #: gwml2/templates/groundwater_form/main.html:66
 msgid "Go to form"
-msgstr ""
+msgstr "Aller au formulaire"
 
 #: gwml2/templates/groundwater_form/main.html:93
 msgid "Well and Monitoring Data Record"
-msgstr ""
+msgstr "Enregistrement des données de puits et de surveillance"
 
 #: gwml2/templates/groundwater_form/main.html:99
 #: gwml2/templates/upload_well_csv.html:137
 msgid "General Information"
-msgstr ""
+msgstr "Informations générales"
 
 #: gwml2/templates/groundwater_form/main.html:114
 #: gwml2/templates/groundwater_form/management.html:19
 msgid "Management"
-msgstr ""
+msgstr "Gestion"
 
 #: gwml2/templates/groundwater_form/main.html:120
 msgid "Monitoring Data"
-msgstr ""
+msgstr "Données piézométriques"
 
 #: gwml2/templates/groundwater_form/main.html:131
 #: gwml2/templates/groundwater_form/quality_measurement.html:4
 msgid "Groundwater Quality"
-msgstr ""
+msgstr "Qualité des eaux souterraines"
 
 #: gwml2/templates/groundwater_form/main.html:136
 #: gwml2/templates/groundwater_form/yield_measurement.html:4
 msgid "Abstraction"
-msgstr ""
+msgstr "Abstraction"
 
 #: gwml2/templates/groundwater_form/main.html:136
 #: gwml2/templates/groundwater_form/yield_measurement.html:4
 msgid "Discharge"
-msgstr ""
+msgstr "Ecoulement"
 
 #: gwml2/templates/groundwater_form/main.html:143
 #: gwml2/templates/groundwater_form/well_metadata.html:4
 msgid "Metadata"
-msgstr ""
+msgstr "Métadonnées"
 
 #: gwml2/templates/groundwater_form/management.html:30
 msgid "Production"
-msgstr ""
+msgstr "Production"
 
 #: gwml2/templates/groundwater_form/well_chart.html:93
 msgid "Well Chart"
-msgstr ""
+msgstr "Graphique de puits"
 
 #: gwml2/templates/groundwater_form/well_chart.html:102
 msgid "Please hover mouse over the chart"
-msgstr ""
+msgstr "Veuillez passer la souris sur le graphique"
 
 #: gwml2/templates/groundwater_form/well_chart.html:111
 msgid "Construction"
-msgstr ""
+msgstr "Construction"
 
 #: gwml2/templates/groundwater_form/well_chart.html:140
 msgid "Stratigraphy"
-msgstr ""
+msgstr "Stratigraphie"
 
 #: gwml2/templates/groundwater_form/well_chart.html:161
 #: gwml2/templates/groundwater_form/well_chart.html:170
 msgid "Stratigraphy Unit"
-msgstr ""
+msgstr "Unité stratigraphique"
 
 #: gwml2/templates/groundwater_form/well_metadata.html:9
 msgid "Data log"
-msgstr ""
+msgstr "Log de données"
 
 #: gwml2/templates/groundwater_form/well_metadata.html:20
 msgid "Permissions"
-msgstr ""
+msgstr "Autorisations"
 
 #: gwml2/templates/groundwater_form/well_metadata.html:25
 #: gwml2/templates/upload_well_csv.html:116
 msgid "Who can view?"
-msgstr ""
+msgstr "Qui peut voir?"
 
 #: gwml2/templates/groundwater_form/well_metadata.html:31
 #: gwml2/templates/upload_well_csv.html:118
 msgid "Anyone"
-msgstr ""
+msgstr "Personne"
 
 #: gwml2/templates/groundwater_form/well_metadata.html:35
 #: gwml2/templates/upload_well_csv.html:121
 msgid "The following organisations"
-msgstr ""
+msgstr "Les organisations suivantes"
 
 #: gwml2/templates/groundwater_form/well_metadata.html:44
 #: gwml2/templates/upload_well_csv.html:125
 msgid "Is it downloadable?"
-msgstr ""
+msgstr "Est-ce téléchargeable?"
 
 #: gwml2/templates/groundwater_form/well_metadata.html:50
 #: gwml2/templates/upload_well_csv.html:127
 msgid "Downloadable"
-msgstr ""
+msgstr "Téléchargeable"
 
 #: gwml2/templates/organisation/list.html:43
 msgid "Organisation is empty"
-msgstr ""
+msgstr "L'organisation est vide"
 
 #: gwml2/templates/upload_well_csv.html:84
 msgid "Batch Upload Form"
-msgstr ""
+msgstr "Formulaire de téléchargement par groupe de données"
 
 #: gwml2/templates/upload_well_csv.html:89
 msgid "Upload progress"
-msgstr ""
+msgstr "Télécharger la progression"
 
 #: gwml2/templates/upload_well_csv.html:155
 #: gwml2/templates/upload_well_csv.html:168
@@ -686,25 +686,31 @@ msgid ""
 "then simply upload these files. Don't forget to assign permissions on your "
 "data: is it public? which organisations can access the data?"
 msgstr ""
+"Le téléchargement par groupe vous permet d'importer plusieurs données de puits et piézométriques en "
+"une fois. Le téléchargement par groupe prend actuellement en charge le téléchargement des informations "
+"générales (c'est-à-dire l'identification et l'emplacement de vos points de données) et "
+"données piézométriques. Téléchargez les modèles et remplissez-les avec vos données, "
+"puis téléchargez simplement ces fichiers. N'oubliez pas d'attribuer des autorisations sur vos "
+"données: est-ce public? quelles organisations peuvent accéder aux données?"
 
 #: gwml2/templates/upload_well_csv.html:157
 #: gwml2/templates/upload_well_csv.html:170
 msgid "Template"
-msgstr ""
+msgstr "Modèle"
 
 #: gwml2/templates/upload_well_csv.html:157
 #: gwml2/templates/upload_well_csv.html:170
 msgid "here"
-msgstr ""
+msgstr "ici"
 
 #: gwml2/templates/upload_well_csv.html:185
 msgid "Upload"
-msgstr ""
+msgstr "Télécharger"
 
 #: gwml2/templates/upload_well_csv.html:197
 msgid "Past Upload Sessions"
-msgstr ""
+msgstr "Sessions de téléchargement antérieures"
 
 #: gwml2/templates/widgets/file_selection.html:43
 msgid "Choose a file"
-msgstr ""
+msgstr "Choisissez un fichier"
