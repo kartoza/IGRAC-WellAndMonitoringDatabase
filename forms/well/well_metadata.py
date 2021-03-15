@@ -12,6 +12,7 @@ class WellMetadataForm(WellBaseForm):
     """
     Form of metadata of well.
     """
+    organisation = forms.ModelChoiceField(queryset=Organisation.objects.all(), required=True)
     created_by = forms.CharField(required=False, disabled=True, label='Created by')
     created_at = forms.CharField(required=False, disabled=True, label='Created at')
     last_edited_by = forms.CharField(required=False, disabled=True, label='Last edited by')
