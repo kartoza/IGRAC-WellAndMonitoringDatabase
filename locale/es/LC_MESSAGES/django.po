@@ -20,236 +20,242 @@ msgstr ""
 
 #: gwml2/api/authentication.py:48
 msgid "User account is disabled."
-msgstr ""
+msgstr "La cuenta de usuario está deshabilitada."
 
 #: gwml2/api/authentication.py:53
 msgid "Unable to log in with provided credentials."
-msgstr ""
+msgstr "No se puede iniciar sesión con las credenciales proporcionadas."
 
 #: gwml2/api/authentication.py:56
 msgid "User does not exist."
-msgstr ""
+msgstr "El usuario no existe."
 
 #: gwml2/authentication.py:21
 msgid "Invalid token."
-msgstr ""
+msgstr "Token no es válido."
 
 #: gwml2/authentication.py:23
 msgid "No user found for the token."
-msgstr ""
+msgstr "No se encontró ningún usuario para el token."
 
 #: gwml2/authentication.py:26
 msgid "User inactive or deleted."
-msgstr ""
+msgstr "Usuario inactivo o eliminado"
 
 #: gwml2/forms/uploader/csv_well_form.py:33
 #: gwml2/templates/groundwater_form/general_information.html:9
 msgid "General information"
-msgstr ""
+msgstr "Información general"
 
 #: gwml2/forms/uploader/csv_well_form.py:39
 #: gwml2/templates/upload_well_csv.html:144
 msgid "Monitoring data"
-msgstr ""
+msgstr "Datos de monitoreo"
 
 #: gwml2/forms/well/document.py:16
 msgid "File type"
-msgstr ""
+msgstr "Tipo de archivo"
 
 #: gwml2/forms/well/document.py:17
 msgid "File size"
-msgstr ""
+msgstr "Tamaño del archivo"
 
 #: gwml2/forms/well/document.py:18
 msgid "Upload date"
-msgstr ""
+msgstr "Fecha de subida"
 
 #: gwml2/forms/well/general_information.py:17
 msgid "Latitude must be expressed in decimal degrees."
-msgstr ""
+msgstr "Latitud debe ser expresada en grados decimales"
 
 #: gwml2/forms/well/general_information.py:19
 msgid "Longitude must be expressed in decimal degrees."
-msgstr ""
+msgstr "Longitud debe ser expresada en grados decimales"
 
 #: gwml2/forms/well/measurement/base.py:43
 msgid "Date and Time"
-msgstr ""
+msgstr "Fecha y hora"
 
 #: gwml2/forms/well/well_metadata.py:17 gwml2/models/metadata/creation.py:16
 msgid "Created by"
-msgstr ""
+msgstr "Creado por"
 
 #: gwml2/forms/well/well_metadata.py:19 gwml2/models/metadata/creation.py:12
 msgid "Created at"
-msgstr ""
+msgstr "Creado en"
 
 #: gwml2/forms/well/well_metadata.py:21 gwml2/models/metadata/creation.py:24
 msgid "Last edited by"
-msgstr ""
+msgstr "Última edición por"
 
 #: gwml2/forms/well/well_metadata.py:23 gwml2/models/metadata/creation.py:20
 msgid "Last edited at"
-msgstr ""
+msgstr "Última edición en"
 
 #: gwml2/forms/well/well_metadata.py:26
 msgid "Restriction"
-msgstr ""
+msgstr "Restricción"
 
 #: gwml2/forms/well/well_metadata.py:28
 #: gwml2/models/metadata/license_metadata.py:28
 #: gwml2/templates/groundwater_form/management.html:39
 msgid "License"
-msgstr ""
+msgstr "Licencia"
 
 #: gwml2/forms/well/well_metadata.py:48
 msgid "Please enter 1 or more character"
-msgstr ""
+msgstr "Por favor ingrese 1 o más caracteres"
 
 #: gwml2/models/construction.py:12
 msgid "Pump installer"
-msgstr ""
+msgstr "Instalador de bombas"
 
 #: gwml2/models/construction.py:14
 msgid "Name of the company or person who installed the pump."
-msgstr ""
+msgstr "Nombre de la empresa o persona que instaló la bomba"
 
 #: gwml2/models/construction.py:17
 msgid "Pump description"
-msgstr ""
+msgstr "Descripción de la bomba"
 
 #: gwml2/models/construction.py:20
 msgid ""
 "Any relevant information on the pump (e.g. model, capacity, energy supply, "
 "depth)."
 msgstr ""
+"Cualquier información relevante sobre la bomba (por ejemplo: modelo, "
+"capacidad, suministro de energía, profundidad)."
 
 #: gwml2/models/construction.py:38
 #: gwml2/templates/groundwater_form/well_chart.html:125
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #: gwml2/models/construction.py:43 gwml2/models/drilling.py:54
 #: gwml2/models/drilling.py:94
 msgid "Reference elevation"
-msgstr ""
+msgstr "Elevación de reference"
 
 #: gwml2/models/construction.py:48 gwml2/models/drilling.py:69
 #: gwml2/templates/groundwater_form/well_chart.html:133
 #: gwml2/templates/groundwater_form/well_chart.html:154
 #: gwml2/templates/groundwater_form/well_chart.html:166
 msgid "Material"
-msgstr ""
+msgstr "Material"
 
 #: gwml2/models/construction.py:52 gwml2/models/document.py:20
 #: gwml2/models/drilling.py:102 gwml2/models/general_information.py:62
 #: gwml2/models/management.py:23 gwml2/models/management.py:51
 #: gwml2/templates/organisation/list.html:32
 msgid "Description"
-msgstr ""
+msgstr "Descripción"
 
 #: gwml2/models/construction.py:61 gwml2/models/drilling.py:60
 #: gwml2/templates/groundwater_form/well_chart.html:115
 #: gwml2/templates/groundwater_form/well_chart.html:143
 msgid "Top depth"
-msgstr ""
+msgstr "Profundidad superior"
 
 #: gwml2/models/construction.py:67 gwml2/models/drilling.py:66
 #: gwml2/templates/groundwater_form/well_chart.html:120
 #: gwml2/templates/groundwater_form/well_chart.html:148
 msgid "Bottom depth"
-msgstr ""
+msgstr "Profundidad inferior"
 
 #: gwml2/models/construction.py:73
 #: gwml2/templates/groundwater_form/well_chart.html:129
 msgid "Diameter"
-msgstr ""
+msgstr "Diámetro"
 
 #: gwml2/models/document.py:8
 msgid "Uploaded at"
-msgstr ""
+msgstr "Subido en"
 
 #: gwml2/models/document.py:11 gwml2/templates/download/list.html:52
 msgid "File"
-msgstr ""
+msgstr "Archivo"
 
 #: gwml2/models/drilling.py:13
 msgid "Excavation method"
-msgstr ""
+msgstr "Método de excavación"
 
 #: gwml2/models/drilling.py:16
 msgid "Contractor"
-msgstr ""
+msgstr "Contratista"
 
 #: gwml2/models/drilling.py:18
 msgid "Name of the drilling company or responsible person."
-msgstr ""
+msgstr "Nombre de la empresa de perforación o persona responsable."
 
 #: gwml2/models/drilling.py:20
 msgid "Successful"
-msgstr ""
+msgstr "Exitoso"
 
 #: gwml2/models/drilling.py:24
 msgid "Cause of failure"
-msgstr ""
+msgstr "Causa de la falla"
 
 #: gwml2/models/drilling.py:27
 msgid "Explain why the drilling was not successful."
-msgstr ""
+msgstr "Explique por qué la perforación no fue exitosa"
 
 #: gwml2/models/drilling.py:29
 msgid "Construction year"
-msgstr ""
+msgstr "Año de construcción"
 
 #: gwml2/models/drilling.py:73
 msgid "Stratigraphic unit"
-msgstr ""
+msgstr "Unidad estratigráfica"
 
 #: gwml2/models/drilling.py:99
 msgid "Depth"
-msgstr ""
+msgstr "Profundidad"
 
 #: gwml2/models/general_information.py:10
 msgid "Original ID"
-msgstr ""
+msgstr "ID original"
 
 #: gwml2/models/general_information.py:11
 msgid "As recorded in the original database."
-msgstr ""
+msgstr "Según consta en la base de datos original."
 
 #: gwml2/models/general_information.py:15
 #: gwml2/templates/groundwater_form/general_information.html:25
 msgid "Location"
-msgstr ""
+msgstr "Ubicación"
 
 #: gwml2/models/general_information.py:16
 msgid "Location of the feature."
-msgstr ""
+msgstr "Ubicación del elemento"
 
 #: gwml2/models/general_information.py:21
 msgid "Ground surface elevation above sea level."
 msgstr ""
+"Elevación del suelo con respecto al nivel "
+"del mar."
 
 #: gwml2/models/general_information.py:23
 msgid "Ground surface elevation"
-msgstr ""
+msgstr "Elevación del suelo"
 
 #: gwml2/models/general_information.py:28
 msgid "Elevation of top of borehole above sea level."
 msgstr ""
+"Elevación de la parte superior del pozo con respecto "
+"al nivel del mar."
 
 #: gwml2/models/general_information.py:30
 msgid "Top of well elevation"
-msgstr ""
+msgstr "Elevación de la parte superior del pozo "
 
 #: gwml2/models/general_information.py:34
 #: gwml2/templates/organisation/list.html:31
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: gwml2/models/general_information.py:40
 msgid "Feature type"
-msgstr ""
+msgstr "Tipo de elemento"
 
 #: gwml2/models/general_information.py:45
 msgid "Address"
