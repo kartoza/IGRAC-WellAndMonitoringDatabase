@@ -697,11 +697,11 @@ msgid ""
 "then simply upload these files. Don't forget to assign permissions on your "
 "data: is it public? which organisations can access the data?"
 msgstr ""
-"La carga por lotes le permite importar un gran número de datos de pozos y de 
-monitoreo simultaneamente. Actualmente, la carga por lotes permite cargar "
+"La carga por lotes le permite importar un gran número de datos de pozos y de "
+"monitoreo simultaneamente. Actualmente, la carga por lotes permite cargar "
 "información general (identificación y ubicación de los puntos de agua) "
 "y datos de monitoreo. Descargue las plantillas, complételas con su datos, "
-y luego simplemente cargue estos archivos. No se olvide de asignar permisos "
+"y luego simplemente cargue estos archivos. No se olvide de asignar permisos "
 "sobre sus datos: ¿Son públicos? ¿Qué organizaciones pueden acceder a ellos?" 
 
 #: gwml2/templates/upload_well_csv.html:157
