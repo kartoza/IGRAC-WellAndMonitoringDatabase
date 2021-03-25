@@ -49,7 +49,7 @@ MONITORING_METHOD = 5
 def create_or_get_well(
         organisation,
         data,
-        additional_data = None):
+        additional_data=None):
     """Create or get a Well object"""
 
     original_id = get_column(data, ID)
@@ -142,7 +142,7 @@ def create_or_get_well(
     return well, created
 
 
-def create_monitoring_data(data, organisation_name, additional_data=None):
+def create_monitoring_data(data, organisation_name, additional_data=None, well=None):
     """Create a monitoring data from dictionary"""
 
     if not additional_data:
@@ -167,15 +167,15 @@ def create_monitoring_data(data, organisation_name, additional_data=None):
         MONITORING_METHOD)
 
     # -- Well
-    if organisation_name:
-        well = Well.objects.get(
-            original_id=well_id,
-            organisation__name=organisation_name)
-    else:
-        well = Well.objects.get(
-            original_id=well_id
-        )
-
+    if not well:
+        if organisation_name:
+            well = Well.objects.get(
+                original_id=well_id,
+                organisation__name=organisation_name)
+        else:
+            well = Well.objects.get(
+                original_id=well_id
+            )
     # -- Date and time ('%Y-%m-%d %H:%M:%S') e.g '2020-10-20 14:00:00'
     date_and_time = datetime.datetime.strptime(
         str(_monitoring_date_and_time).split('.')[0],
@@ -194,16 +194,32 @@ def create_monitoring_data(data, organisation_name, additional_data=None):
     # -- Value & Unit
     value = _monitoring_value
     unit = _monitoring_unit
+    measurement = None
+    try:
+        measurement = WellLevelMeasurement.objects.get(
+            well=well,
+            time=aware_date_and_time,
+            parameter=measurement_parameter
+        )
+    except WellLevelMeasurement.DoesNotExist:
+        pass
+
     if value and unit:
         measurement_unit = (
             Unit.objects.get(
                 name=unit.lower().strip()
             )
         )
-        additional_data['value'] = Quantity.objects.create(
-            value=value,
-            unit=measurement_unit
-        )
+        if measurement and measurement.value:
+            measurement.value.unit = measurement_unit
+            measurement.value.value = value
+            measurement.value.save()
+            additional_data['value'] = measurement.value
+        else:
+            additional_data['value'] = Quantity.objects.create(
+                value=value,
+                unit=measurement_unit
+            )
 
         # -- Method
         method = _monitoring_method

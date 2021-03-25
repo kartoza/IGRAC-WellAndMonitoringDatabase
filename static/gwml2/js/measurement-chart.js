@@ -33,7 +33,7 @@ function formatDate(date) {
     return [year, month, day].join('-');
 }
 
-const FROM_TOP_WALL = 'Water depth [from the top of the well]'
+const FROM_TOP_WELL = 'Water depth [from the top of the well]'
 const FROM_GROUND_LEVEL = 'Water depth [from the ground surface]'
 const FROM_AMSL = 'Water level elevation a.m.s.l.'
 
@@ -41,20 +41,19 @@ function checkLevelParameter(
     parameter_from, parameter_to, value,
     top_borehole_elevation, ground_surface_elevation) {
 
-    if (parameter_to === FROM_TOP_WALL && !top_borehole_elevation || parameter_from === FROM_TOP_WALL && !top_borehole_elevation) {
-        return [parameter_from, null]
-    }
-    if (parameter_to === FROM_GROUND_LEVEL && !ground_surface_elevation || parameter_from === FROM_GROUND_LEVEL && !ground_surface_elevation) {
-        return [parameter_from, null]
-    }
-
     switch (parameter_to) {
         case FROM_AMSL:
             switch (parameter_from) {
-                case FROM_TOP_WALL:
+                case FROM_TOP_WELL:
+                    if (!top_borehole_elevation) {
+                        return [parameter_from, null]
+                    }
                     value = top_borehole_elevation - value;
                     break;
                 case FROM_GROUND_LEVEL:
+                    if (!ground_surface_elevation) {
+                        return [parameter_from, null]
+                    }
                     value = ground_surface_elevation - value;
                     break;
                 default:
@@ -65,10 +64,16 @@ function checkLevelParameter(
 
         case FROM_GROUND_LEVEL:
             switch (parameter_from) {
-                case FROM_TOP_WALL:
+                case FROM_TOP_WELL:
+                    if (!ground_surface_elevation || !top_borehole_elevation) {
+                        return [parameter_from, null]
+                    }
                     value = (top_borehole_elevation - ground_surface_elevation) - value;
                     break;
                 case FROM_AMSL:
+                    if (!ground_surface_elevation) {
+                        return [parameter_from, null]
+                    }
                     value = value - ground_surface_elevation;
                     break;
                 default:
@@ -78,12 +83,18 @@ function checkLevelParameter(
             parameter_from = parameter_to;
             break;
 
-        case FROM_TOP_WALL:
+        case FROM_TOP_WELL:
             switch (parameter_from) {
                 case FROM_GROUND_LEVEL:
+                    if (!ground_surface_elevation || !top_borehole_elevation) {
+                        return [parameter_from, null]
+                    }
                     value = 0 - value - (top_borehole_elevation - ground_surface_elevation);
                     break;
                 case FROM_AMSL:
+                    if (!top_borehole_elevation) {
+                        return [parameter_from, null]
+                    }
                     value = value - top_borehole_elevation;
                     break;
                 default:
@@ -343,10 +354,25 @@ let MeasurementChartObj = function (
     this.unitTo = null;
     this.parameterTo = null;
     this.timeRange = null;
+    this.init = true;
 
     /** Render the chart */
     this.renderChart = function () {
         const data = that.data[this.timeRange]
+        if (this.init) {
+            this.init = false;
+            const $paramOptions = $parameters.find(`option:contains(${data?.data[0]?.par})`);
+            if ($paramOptions.length > 0) {
+                // change the params if the value is not it
+                const shouldBe = $($paramOptions[0]).attr('value');
+                const currentParam = $parameters.val()
+                if (shouldBe !== currentParam) {
+                    $parameters.val(shouldBe);
+                    $parameters.trigger('change')
+                    return false;
+                }
+            }
+        }
         this.$loading.hide();
         if (data.end) {
             this.$loadMore.attr('disabled', 'disabled')

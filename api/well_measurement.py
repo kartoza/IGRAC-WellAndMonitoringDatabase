@@ -89,49 +89,51 @@ class WellLevelMeasurementData(APIView):
                 elif mode == 'yearly':
                     identifier = '{}'.format(measurement.time.strftime('%Y'))
             if identifier:
-                if identifier not in aggr:
-                    aggr[identifier] = {
-                        'data': [],
-                        'parameter': 'Water level elevation a.m.s.l.'
-                    }
-
                 # convert the data
                 value = self.convert_value(measurement.value, unit_to, units)
+                parameter = 'Water level elevation a.m.s.l.'
                 if measurement.parameter.name == 'Water depth [from the top of the well]':
                     if top_borehole_elevation:
                         value = top_borehole_elevation - value
                     else:
-                        value = None
+                        parameter = measurement.parameter.name
                 elif measurement.parameter.name == 'Water depth [from the ground surface]':
                     if ground_surface_elevation:
                         value = ground_surface_elevation - value
                     else:
-                        value = None
+                        parameter = measurement.parameter.name
+
+                # save it to aggregation
                 if value:
-                    aggr[identifier]['data'].append(value)
+                    if identifier not in aggr:
+                        aggr[identifier] = {}
+                    if parameter not in aggr[identifier]:
+                        aggr[identifier][parameter] = []
+                    aggr[identifier][parameter].append(value)
 
         output = []
         for key, value in aggr.items():
-            data = sorted(value['data'])
-            length = len(data)
-            if length > 0:
-                index = (length - 1) // 2
+            for param, data in value.items():
+                data = sorted(data)
+                length = len(data)
+                if length > 0:
+                    index = (length - 1) // 2
 
-                if length % 2:
-                    median = data[index]
-                else:
-                    median = (data[index] + data[index + 1]) / 2.0
-                output.append({
-                    'dt': key,
-                    'par': value['parameter'],
-                    'u': unit_to_str,
-                    'v': {
-                        'min': min(data),
-                        'max': max(data),
-                        'avg': sum(data) / length,
-                        'med': median,
-                    }
-                })
+                    if length % 2:
+                        median = data[index]
+                    else:
+                        median = (data[index] + data[index + 1]) / 2.0
+                    output.append({
+                        'dt': key,
+                        'par': param,
+                        'u': unit_to_str,
+                        'v': {
+                            'min': min(data),
+                            'max': max(data),
+                            'avg': sum(data) / length,
+                            'med': median,
+                        }
+                    })
         return JsonResponse({
             'data': output,
             'page': 1,
