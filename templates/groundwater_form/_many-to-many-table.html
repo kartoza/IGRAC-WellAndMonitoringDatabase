@@ -1,6 +1,7 @@
 {# THIS IS MANY TO MANY HTML #}
 {% load staticfiles %}
 {% load gwml2_forms %}
+{% load i18n %}
 <div id="{{ id }}_table" style="height: 100%; width: 100%">
     <div class="table-wrapper" data-fetchurl="{% relation_list_url well theform %}">
         <table>
@@ -14,7 +15,7 @@
                 </th>
             {% endfor %}
             {% if delete and not read_only %}
-                <th>Action</th>
+                <th>{% trans 'Action' %}</th>
             {% endif %}
             </thead>
             <tbody>

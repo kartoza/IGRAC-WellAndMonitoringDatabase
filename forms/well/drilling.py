@@ -15,13 +15,9 @@ class DrillingForm(WellBaseForm):
 
     def __init__(self, *args, **kwargs):
         super(DrillingForm, self).__init__(*args, **kwargs)
-        self.fields['year_of_drilling'].label = 'Construction year'
         self.fields['year_of_drilling'].widget.attrs['min'] = 1900
         self.fields['year_of_drilling'].widget.attrs['maxlength'] = 4
         self.fields['year_of_drilling'].widget.attrs['max'] = datetime.now().year
-
-        self.fields['drilling_method'].label = 'Excavation method'
-        self.fields['driller'].label = 'Contractor'
 
     @staticmethod
     def make_from_data(instance, data, files):

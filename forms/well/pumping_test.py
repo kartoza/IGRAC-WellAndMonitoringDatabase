@@ -33,7 +33,6 @@ class PumpingTestForm(WellBaseForm):
         self.fields['storativity'].widget.attrs['min'] = 0
         self.fields['specific_capacity'].widget.attrs['min'] = 0
 
-        self.fields['storativity'].label = 'Yield'
         self.fields['porosity'].widget.attrs['maxlength'] = 10
         self.fields['specific_yield'].widget.attrs['maxlength'] = 10
 

@@ -22,7 +22,6 @@ class GeologyForm(WellBaseForm):
 
     def __init__(self, *args, **kwargs):
         super(GeologyForm, self).__init__(*args, **kwargs)
-        self.fields['reference_elevation'].label = 'Total depth reference elevation'
 
     @staticmethod
     def make_from_data(instance, data, files):

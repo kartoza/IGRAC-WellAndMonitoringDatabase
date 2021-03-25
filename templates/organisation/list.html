@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load staticfiles %}
 
 {% block page_title %}
@@ -21,14 +22,14 @@
 
 {% block body %}
     <div class="page-header">
-        <h2>Organisation</h2>
+        <h2>{% trans "Organisation" %}</h2>
     </div>
     <div class="tab-content" id="search-content">
         <table class="table table-striped">
             <thead>
             <tr>
-                <th>Name</th>
-                <th>Description</th>
+                <th>{% trans "Name" %}</th>
+                <th>{% trans "Description" %}</th>
             </tr>
             </thead>
             <tbody>
@@ -39,7 +40,7 @@
                 </tr>
             {% empty %}
                 <tr>
-                    <td colspan="2" class="empty-row">Organisation is empty</td>
+                    <td colspan="2" class="empty-row">{% trans "Organisation is empty" %}</td>
                 </tr>
             {% endfor %}
             </tbody>

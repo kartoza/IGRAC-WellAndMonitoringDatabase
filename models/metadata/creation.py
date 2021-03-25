@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
+from django.utils.translation import ugettext_lazy as _
 
 User = get_user_model()
 
@@ -8,15 +9,19 @@ User = get_user_model()
 class CreationMetadata(models.Model):
     """ Metadata for creations"""
     created_at = models.DateTimeField(
+        _('Created at'),
         default=datetime.now
     )
     created_by = models.IntegerField(
+        _('Created by'),
         null=True, blank=True
     )
     last_edited_at = models.DateTimeField(
+        _('Last edited at'),
         default=datetime.now
     )
     last_edited_by = models.IntegerField(
+        _('Last edited by'),
         null=True, blank=True
     )
 
