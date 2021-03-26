@@ -84,6 +84,8 @@ class GeneralInformationForm(WellBaseForm):
                 data['country'] = Country.objects.get(name__iexact=data['country']).id
             except Country.DoesNotExist:
                 pass
+        except TypeError:
+            pass
 
         return GeneralInformationForm(data, form_files, instance=instance)
 
