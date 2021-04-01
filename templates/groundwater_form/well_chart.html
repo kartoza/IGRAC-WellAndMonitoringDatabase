@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load i18n %}
 <link href="{% static 'css/apexcharts/apexcharts.css' %}" rel="stylesheet">
 <style>
     .well-chart-row:before {
@@ -89,7 +90,7 @@
 <div class="well-chart-row many-to-many">
     <div class="column-50 height-100">
         <div class="charts-header">
-            <h4>Well Chart <i class="fa fa fa-arrows-alt" aria-hidden="true" onclick="toggleFullScreenWellChart(this)"></i></h4>
+            <h4>{% trans "Well Chart" %} <i class="fa fa fa-arrows-alt" aria-hidden="true" onclick="toggleFullScreenWellChart(this)"></i></h4>
         </div>
         <div class="charts" id="well-chart-container">
         </div>
@@ -98,7 +99,7 @@
         <h3>&nbsp;</h3>
         <div id="well-table-container" class="well-table-container" style="max-width: 100% !important; margin-top: -10px;">
             <div class="well-info">
-                <p>Please hover mouse over the chart</p>
+                <p>{% trans "Please hover mouse over the chart" %}</p>
             </div>
         </div>
     </div>
@@ -107,66 +108,66 @@
 <script id="well-charts-table-template" type="text/template">
     <div class="column-50">
         <div class="title" style="width: 100% !important;">
-            <h4>Construction</h4>
+            <h4>{% trans "Construction" %}</h4>
         </div>
         <table>
             <tr>
-                <td>Top depth</td>
+                <td>{% trans "Top depth" %}</td>
                 <td><%= construction.translated_top %> <%= construction.translated_top_depth_unit %>
                 </td>
             </tr>
             <tr>
-                <td>Bottom depth</td>
+                <td>{% trans "Bottom depth" %}</td>
                 <td><%= construction.translated_bottom %> <%= construction.translated_bottom_depth_unit %>
                 </td>
             </tr>
             <tr>
-                <td>Type</td>
+                <td>{% trans "Type" %}</td>
                 <td><%= construction.type %></td>
             </tr>
             <tr>
-                <td>Diameter</td>
+                <td>{% trans "Diameter" %}</td>
                 <td><% if (construction.data) { %><%= construction.data.diameter %><% } else { %>-<% } %></td>
             </tr>
             <tr>
-                <td>Material</td>
+                <td>{% trans "Material" %}</td>
                 <td><% if (construction.data) { %><%= construction.data.material %><% } else { %>-<% } %></td>
             </tr>
         </table>
     </div>
     <div class="column-50" style="margin-bottom: 50px;">
         <div class="title" style="width: 100% !important;">
-            <h4>Stratigraphy</h4>
+            <h4>{% trans "Stratigraphy" %}</h4>
             <table>
                 <tr>
-                    <td width="30%">Top depth</td>
+                    <td width="30%">{% trans "Top depth" %}</td>
                     <td><%= stratigraphy.translated_top %> <%= stratigraphy.translated_top_depth_unit %>
                     </td>
                 </tr>
                 <tr>
-                    <td>Bottom depth</td>
+                    <td>{% trans "Bottom depth" %}</td>
                     <td><%= stratigraphy.translated_bottom %> <%= stratigraphy.translated_bottom_depth_unit %>
                     </td>
                 </tr>
                 <% if (stratigraphy.data) { %>
                 <tr>
-                    <td>Material</td>
+                    <td>{% trans "Material" %}</td>
                     <td>
                         <div style="height: 10px; width: 10px; background-color: <%= stratigraphy.data.material_color %>; float: left; margin-top: 2px; border-radius: 3px; margin-right: 5px;"></div>
                         <%= stratigraphy.data.material %>
                     </td>
                 </tr>
                 <tr>
-                    <td>Stratigraphy Unit</td>
+                    <td>{% trans "Stratigraphy Unit" %}</td>
                     <td><%= stratigraphy.data.unit %></td>
                 </tr>
                 <% } else { %>
                 <tr>
-                    <td>Material</td>
+                    <td>{% trans "Material" %}</td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td>Stratigraphy Unit</td>
+                    <td>{% trans "Stratigraphy Unit" %}</td>
                     <td></td>
                 </tr>
                 <% } %>

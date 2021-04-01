@@ -1,5 +1,6 @@
 from django import forms
 from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.forms.widgets.multi_value import MultiValueInput
 
@@ -29,13 +30,13 @@ class CsvWellForm(forms.Form):
     )
 
     gw_well_file = forms.FileField(
-        label="General Information :",
+        label=_("General information"),
         widget=forms.FileInput(attrs={'class': 'form-control'}),
         required=False
     )
 
     gw_well_monitoring_file = forms.FileField(
-        label="Monitoring data :",
+        label=_("Monitoring data"),
         widget=forms.FileInput(attrs={'class': 'form-control'}),
         required=False
     )

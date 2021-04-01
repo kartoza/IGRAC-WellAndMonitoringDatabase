@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% load staticfiles %}
 
 {% block page_title %}
@@ -58,12 +59,11 @@
                 <form method="POST" id="form" enctype="multipart/form-data">
                     <div id="overlay-loading"></div>
                     <div class="form-title">
-                        {# <span>General Information</span> #}
                         {% if not read_only %}
-                            <button id="form-submit" class="pull-right" type="submit">Submit</button>
+                            <button id="form-submit" class="pull-right" type="submit">{% trans "Submit" %}</button>
                         {% elif user.is_staff %}
                             <a id="form-submit" class="pull-right" href="{% url 'well_form' well.id %}">
-                                Go to form
+                                {% trans "Go to form" %}
                             </a>
                         {% endif %}
                     </div>
@@ -90,57 +90,57 @@
             </div>
             <div class="navigation">
                 <div class="page-header">
-                    <h5>Well and Monitoring <br>Data Record</h5>
+                    <h5>{% trans "Well and Monitoring Data Record" %}</h5>
                 </div>
                 <div class="inner-navigation">
                     <ul class="nav">
                         <li class="nav active">
                             <a data-toggle="tab" href="#general_information" title="General Information">
-                                {% include "svg/general.html" %} <span>General Information</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/general.html" %} <span>{% trans "General Information" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
                             <a data-toggle="tab" href="#drilling-and-construction" title="Drilling and Construction">
-                                {% include "svg/drilling.html" %} <span>Drilling and Construction</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/drilling.html" %} <span>{% trans "Drilling and Construction" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
                             <a data-toggle="tab" href="#hydrogeology" title="Hydrogeology">
-                                {% include "svg/hydrogeology.html" %} <span>Hydrogeology </span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/hydrogeology.html" %} <span>{% trans "Hydrogeology" %}</span><i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
                             <a data-toggle="tab" href="#management" title="Management">
-                                {% include "svg/management.html" %} <span>Management</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/management.html" %} <span>{% trans "Management" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                         <li>
                             <div class="nav">
                                 <a>
-                                    {% include "svg/monitoring.html" %}<span> Monitoring Data</span> <span class="abstract-nav"></span>
+                                    {% include "svg/monitoring.html" %}<span> {% trans "Monitoring Data" %}</span> <span class="abstract-nav"></span>
                                 </a>
                             </div>
                             <ul class="nav sub-nav">
                                 <li class="nav">
                                     <a data-toggle="tab" href="#level-measurement" title="Groundwater Level">
-                                        {% include "svg/measurement-level.html" %} <span>Groundwater Level</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        {% include "svg/measurement-level.html" %} <span>{% trans "Groundwater Level" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
                                     <a data-toggle="tab" href="#quality-measurement" title="Groundwater Quality">
-                                        {% include "svg/measurement-quality.html" %} <span>Groundwater Quality</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        {% include "svg/measurement-quality.html" %} <span>{% trans "Groundwater Quality" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
                                     <a data-toggle="tab" href="#yield-measurement" title="Abstraction / Discharge">
-                                        {% include "svg/measurement-yield.html" %} <span>Abstraction / Discharge</span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                                        {% include "svg/measurement-yield.html" %} <span>{% trans "Abstraction" %} / {% trans "Discharge" %}</span><i class="fa fa-exclamation" aria-hidden="true"></i>
                                     </a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav">
                             <a data-toggle="tab" href="#well_metadata" title="Metadata">
-                                {% include "svg/metadata.html" %} <span>Metadata</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                {% include "svg/metadata.html" %} <span>{% trans "Metadata" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
                             </a>
                         </li>
                     </ul>

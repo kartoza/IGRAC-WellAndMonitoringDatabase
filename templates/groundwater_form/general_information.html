@@ -1,16 +1,16 @@
 {% load gwml2_forms %}
-{# leaflet #}
+{% load i18n %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
 <div id="general_information" class="page-section">
-    <h2 class="section-title">General information</h2>
+    <h2 class="section-title">{% trans "General information" %}</h2>
     <div id="general_information_data" style="width: 100%;min-height: 917px;">
         <table style="width: 100%">
             <tr>
-                <td><h4>Identification</h4></td>
+                <td><h4>{% trans "Identification" %}</h4></td>
             </tr>
             {% field_as_row form.ggis_uid %}
             {% field_as_row form.original_id %}
@@ -22,7 +22,7 @@
             {% field_as_row form.description %}
             <tr>
                 <td>
-                    <h4>Location</h4>
+                    <h4>{% trans "Location" %}</h4>
                 </td>
                 <td></td>
                 <td class="map-wrapper">
@@ -38,7 +38,8 @@
             {% field_as_row form.address %}
         </table>
     </div>
-    {% include "groundwater_form/_many-to-many.html" with id='documents' title='Documents' theform=document help_text='Relevant documents or images can be added here.' delete='yes' %}
+
+    {% include "groundwater_form/_many-to-many.html" with id='documents' title=_('Documents') theform=document help_text=_('Relevant documents or images can be added here.') delete='yes' %}
 </div>
 <script>
     submitFunctions['general_information'] = function () {
@@ -104,7 +105,7 @@
     }
     map.on('draw:created', function (e) {
         layers.clearLayers();
-        var marker = new L.Marker(e.layer.getLatLng(), {draggable: draggable});
+        var marker = new L.Marker(e.layer.getLatLng(), { draggable: draggable });
         marker.on('dragend', onDrag);
         layers.addLayer(marker)
 
@@ -122,7 +123,7 @@
         if (latLng.lat && latLng.lng) {
             let marker = layers.getLayers()[0];
             if (!layers.getLayers()[0]) {
-                marker = new L.Marker(latLng, {draggable: draggable});
+                marker = new L.Marker(latLng, { draggable: draggable });
                 marker.on('dragend', onDrag);
                 layers.addLayer(marker)
             }

@@ -12,7 +12,7 @@ class LicenseMetadata(models.Model):
     license_help_text = _('license of the dataset. this is ID of license in geonode.')
 
     restriction_code_type = models.IntegerField(
-        verbose_name=_('restrictions'),
+        verbose_name=_('Restrictions'),
         help_text=restriction_code_type_help_text,
         null=True,
         blank=True
