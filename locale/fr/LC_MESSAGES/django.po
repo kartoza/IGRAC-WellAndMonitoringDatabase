@@ -50,7 +50,7 @@ msgstr "Informations générales"
 #: gwml2/forms/uploader/csv_well_form.py:39
 #: gwml2/templates/upload_well_csv.html:144
 msgid "Monitoring data"
-msgstr "Suivi de données"
+msgstr "Données de suivi"
 
 #: gwml2/forms/well/document.py:16
 msgid "File type"
@@ -570,7 +570,7 @@ msgstr "Aller au formulaire"
 
 #: gwml2/templates/groundwater_form/main.html:93
 msgid "Well and Monitoring Data Record"
-msgstr "Enregistrement des données de puits et de surveillance"
+msgstr "Enregistrement des données de puits et de suivi"
 
 #: gwml2/templates/groundwater_form/main.html:99
 #: gwml2/templates/upload_well_csv.html:137
@@ -584,7 +584,7 @@ msgstr "Gestion"
 
 #: gwml2/templates/groundwater_form/main.html:120
 msgid "Monitoring Data"
-msgstr "Données piézométriques"
+msgstr "Données de suivi"
 
 #: gwml2/templates/groundwater_form/main.html:131
 #: gwml2/templates/groundwater_form/quality_measurement.html:4
@@ -612,7 +612,7 @@ msgstr "Production"
 
 #: gwml2/templates/groundwater_form/well_chart.html:93
 msgid "Well Chart"
-msgstr "Graphique de puits"
+msgstr "Diagramme de puits"
 
 #: gwml2/templates/groundwater_form/well_chart.html:102
 msgid "Please hover mouse over the chart"
@@ -686,8 +686,8 @@ msgid ""
 "then simply upload these files. Don't forget to assign permissions on your "
 "data: is it public? which organisations can access the data?"
 msgstr ""
-"Le téléchargement par groupe vous permet d'importer plusieurs données de puits et piézométriques en "
-"une fois. Le téléchargement par groupe prend actuellement en charge le téléchargement des informations "
+"Le téléchargement par lot vous permet d'importer plusieurs données de puits et piézométriques en "
+"une fois. Le téléchargement par lot prend actuellement en charge le téléchargement des informations "
 "générales (c'est-à-dire l'identification et l'emplacement de vos points de données) et "
 "données piézométriques. Téléchargez les modèles et remplissez-les avec vos données, "
 "puis téléchargez simplement ces fichiers. N'oubliez pas d'attribuer des autorisations sur vos "
