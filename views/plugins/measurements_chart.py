@@ -16,7 +16,7 @@ xframe_options_exempt_m = method_decorator(
 
 class MeasurementChart(View):
 
-    @xframe_options_sameorigin
+    @xframe_options_exempt_m
     def get(self, request, *args, **kwargs):
         id = kwargs['id']
         model = kwargs['model']
