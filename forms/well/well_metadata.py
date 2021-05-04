@@ -71,6 +71,10 @@ class WellMetadataForm(WellBaseForm):
         :return: Form
         :rtype: GeneralInformationForm
         """
+        if 'public' not in data:
+            data['public'] = True
+        if 'downloadable' not in data:
+            data['downloadable'] = True
         return WellMetadataForm(data, files, instance=instance, organisation=Organisation.objects.all())
 
     @staticmethod
