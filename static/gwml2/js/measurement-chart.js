@@ -279,25 +279,28 @@ function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
     let ctx = document.getElementById(`${identifier}-chart`).getContext("2d");
     let dataset = [];
     let idx = 0;
+    let _trendDataset = null;
 
-    if (currentTimeRange === 'yearly' || currentTimeRange === 'monthly') {
-        let _trendDataset = null;
-        $.each(rawData.data, function (key, value) {
-            const _dataset = {
-                label: key,
-                data: value,
-                backgroundColor: chartColors[idx],
-                borderColor: chartColors[idx],
-                borderWidth: 1,
-                fill: false,
-                lineTension: 0,
-                pointRadius: 1,
-                pointHoverRadius: 5
-            }
+    $.each(rawData.data, function (key, value) {
+        const _dataset = {
+            label: key,
+            data: value,
+            backgroundColor: chartColors[idx],
+            borderColor: chartColors[idx],
+            borderWidth: 1,
+            fill: false,
+            lineTension: 0,
+            pointRadius: 1,
+            pointHoverRadius: 5
+        }
+
+        if (currentTimeRange === 'yearly' || currentTimeRange === 'monthly') {
             if (key === 'average' || key === 'val') {
                 _trendDataset = Object.assign({}, _dataset);
                 _trendDataset['label'] = 'Linear Trend';
-                _trendDataset['data'] = value.map((data, index) => { return { 'x': data.x, 'y': data.y } });
+                _trendDataset['data'] = value.map((data, index) => {
+                    return {'x': data.x, 'y': data.y}
+                });
                 _trendDataset['trendlineLinear'] = {
                     style: '#f39c12',
                     lineStyle: "line",
@@ -309,11 +312,12 @@ function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
             }
             dataset.push(_dataset)
             idx += 1;
-        });
-        if (_trendDataset) {
-            dataset.push(_trendDataset);
-            linearTrendIndex = dataset.length - 1;
         }
+    });
+
+    if (_trendDataset) {
+        dataset.push(_trendDataset);
+        linearTrendIndex = dataset.length - 1;
     }
 
     const options = {
