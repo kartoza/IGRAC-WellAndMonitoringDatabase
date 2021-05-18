@@ -8,6 +8,15 @@ from gwml2.models import Well
 from gwml2.models.general import Unit
 from gwml2.serializer.unit import UnitWithToSerializer
 
+MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
+MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
+MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
+
+MEASUREMENT_YEARLY_MODE = 'yearly'
+MEASUREMENT_WEEKLY_MODE = 'weekly'
+MEASUREMENT_MONTHLY_MODE = 'monthly'
+MEASUREMENT_DAILY_MODE = 'daily'
+
 
 class WellLevelMeasurementData(APIView):
     def convert_value(self, quantity, unit_to, units):
@@ -41,19 +50,19 @@ class WellLevelMeasurementData(APIView):
             return HttpResponseBadRequest('Parameter : mode is required')
         today = datetime.datetime.today()
 
-        if mode == 'daily':
+        if mode == MEASUREMENT_DAILY_MODE:
             _to = today
             _from = _to - timedelta(days=100)
             queryset = queryset.filter(time__gt=_from, time__lte=_to)
-        elif mode == 'weekly':
+        elif mode == MEASUREMENT_WEEKLY_MODE:
             _to = today
             _from = _to.replace(year=_to.year - 1)
             queryset = queryset.filter(time__gt=_from, time__lte=_to)
-        elif mode == 'monthly':
+        elif mode == MEASUREMENT_MONTHLY_MODE:
             _to = today
             _from = _to.replace(year=_to.year - 10)
             queryset = queryset.filter(time__gt=_from, time__lte=_to)
-        elif mode == 'yearly':
+        elif mode == MEASUREMENT_YEARLY_MODE:
             queryset = queryset
         else:
             return HttpResponseBadRequest('Timerange is not recognized')
@@ -79,25 +88,25 @@ class WellLevelMeasurementData(APIView):
         for measurement in queryset:
             identifier = None
             if measurement.value and measurement.value.value:
-                if mode == 'daily':
+                if mode == MEASUREMENT_DAILY_MODE:
                     identifier = measurement.time.strftime("%Y-%m-%d")
-                elif mode == 'weekly':
+                elif mode == MEASUREMENT_WEEKLY_MODE:
                     calendar = measurement.time.isocalendar()
                     identifier = '{} Week {}'.format(calendar[0], ('{}'.format(calendar[1])).zfill(2))
-                elif mode == 'monthly':
+                elif mode == MEASUREMENT_MONTHLY_MODE:
                     identifier = '{}'.format(measurement.time.strftime('%Y %B'))
-                elif mode == 'yearly':
+                elif mode == MEASUREMENT_YEARLY_MODE:
                     identifier = '{}'.format(measurement.time.strftime('%Y'))
             if identifier:
                 # convert the data
                 value = self.convert_value(measurement.value, unit_to, units)
-                parameter = 'Water level elevation a.m.s.l.'
-                if measurement.parameter.name == 'Water depth [from the top of the well]':
+                parameter = MEASUREMENT_PARAMETER_AMSL
+                if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
                     if top_borehole_elevation:
                         value = top_borehole_elevation - value
                     else:
                         parameter = measurement.parameter.name
-                elif measurement.parameter.name == 'Water depth [from the ground surface]':
+                elif measurement.parameter.name == MEASUREMENT_PARAMETER_GROUND:
                     if ground_surface_elevation:
                         value = ground_surface_elevation - value
                     else:
