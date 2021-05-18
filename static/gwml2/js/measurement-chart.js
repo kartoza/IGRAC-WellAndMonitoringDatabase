@@ -267,7 +267,7 @@ function dateParser(mode) {
         case 'monthly':
             return 'YYYY MMMM'
         case 'weekly':
-            return 'YYYY WW'
+            return 'YYYY Week WW'
         case 'daily':
             return 'YYYY-MM-DD'
         default:
@@ -333,9 +333,10 @@ function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
                 xAxes: [{
                     type: 'time',
                     time: {
-                        unit: currentTimeRange.replace('ly', ''),
+                        unit: currentTimeRange !== 'daily' ? currentTimeRange.replace('ly', '') : 'day',
                         parser: dateParser(currentTimeRange),
                         displayFormats: {
+                            'day': 'YYYY-MM-DD',
                             'year': 'YYYY',
                             'month': 'YYYY MMMM',
                             'week': 'YYYY [Week] WW'
