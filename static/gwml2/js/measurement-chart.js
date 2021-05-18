@@ -239,7 +239,7 @@ function convertMeasurementData(
                 }
                 data['average'].push({
                     x: key,
-                    y: value['median'],
+                    y: value['average'],
                     unit: unit_to
                 })
 
@@ -319,6 +319,8 @@ function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
         dataset.push(_trendDataset);
         linearTrendIndex = dataset.length - 1;
     }
+
+    console.log(dataset);
 
     const options = {
         type: 'line',
@@ -455,6 +457,7 @@ let MeasurementChartObj = function (
                 this.ground_surface.u, this.unitTo, this.ground_surface.v
             )
         )
+        console.log(cleanData)
         this.chart = renderMeasurementChart(
             this.identifier, this.chart, cleanData, 'Time', this.parameterTo)
     }
