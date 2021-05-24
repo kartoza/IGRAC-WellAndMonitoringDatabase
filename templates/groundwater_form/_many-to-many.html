@@ -13,6 +13,11 @@
            onclick="toggleFullScreen(this)"
         ></i>
     </h4>
+
+    {% if read_only %}
+        {% include "groundwater_form/_many-to-many-agg-chart.html" %}
+    {% else %}
+        {% include "groundwater_form/_many-to-many-chart.html" %}
+    {% endif %}
     {% include "groundwater_form/_many-to-many-table.html" %}
-    {% include "groundwater_form/_many-to-many-chart.html" %}
 </div>
