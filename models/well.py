@@ -1,6 +1,7 @@
 from datetime import datetime
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.timezone import make_aware
 from django.utils.translation import ugettext_lazy as _
 
@@ -195,9 +196,30 @@ class WellLevelMeasurement(Measurement):
         Well, on_delete=models.CASCADE,
     )
 
+    value_in_m = models.FloatField(
+        editable=False,
+        null=False,
+        blank=False,
+        default=0.0,
+        help_text='Converted value in meters'
+    )
+
     class Meta:
         db_table = 'well_level_measurement'
         ordering = ('-time',)
+
+
+@receiver(post_save, sender=WellLevelMeasurement)
+def update_value_in_m(sender, instance, **kwargs):
+    if not instance.value:
+        return
+    if instance.value.unit.name == 'ft':
+        instance.value_in_m = instance.value.value * 0.3048
+    else:
+        instance.value_in_m = instance.value.value
+    post_save.disconnect(update_value_in_m, sender=WellLevelMeasurement)
+    instance.save()
+    post_save.connect(update_value_in_m, sender=WellLevelMeasurement)
 
 
 class WellQualityMeasurement(Measurement):

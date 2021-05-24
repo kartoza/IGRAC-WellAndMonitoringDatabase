@@ -45,8 +45,11 @@ class MeasurementAdmin(admin.ModelAdmin):
         'value',
     )
 
+class WellLevelMeasurementAdmin(MeasurementAdmin):
+    list_display = ('well', 'time', 'parameter', 'methodology', 'value', 'value_in_m')
+    readonly_fields = ('value_in_m', )
 
-admin.site.register(WellLevelMeasurement, MeasurementAdmin)
+admin.site.register(WellLevelMeasurement, WellLevelMeasurementAdmin)
 admin.site.register(WellQualityMeasurement, MeasurementAdmin)
 admin.site.register(WellYieldMeasurement, MeasurementAdmin)
 
