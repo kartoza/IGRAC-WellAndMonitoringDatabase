@@ -104,7 +104,9 @@ function chartTableToggle(elm, dataID) {
         $(`#${dataID}_chart`).show();
 
         let measurement = measurementCharts[dataID];
-        measurement.refetchData();
+        if (measurement) {
+            measurement.refetchData();
+        }
     } else {
         $(`#${dataID}_table`).show();
         $(`#${dataID}_chart`).hide();
