@@ -1,7 +1,8 @@
 __author__ = 'Irwan Fathurrahman <meomancer@gmail.com>'
 __date__ = '20/10/20'
 
-from django.http import HttpResponse, Http404, JsonResponse
+import os
+from django.http import HttpResponse, Http404, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import View
 from braces.views import StaffuserRequiredMixin
@@ -48,6 +49,23 @@ class WellRelationListView(View):
             'set': set + 1,
             'end': len(output) < STEP
         })
+
+
+class WellMeasurementDataView(View):
+    def get(self, request, id, model, *args, **kwargs):
+        """ Return data of measurement
+        """
+        well = get_object_or_404(Well, id=id)
+        cache_file = well.return_measurement_cache_path(model)
+        if os.path.exists(cache_file):
+            _file = open(cache_file, "rb")
+            compressed_content = _file.read()
+            response = HttpResponse(compressed_content)
+            response['Content-Encoding'] = 'gzip'
+            response['Content-Length'] = str(len(compressed_content))
+            return response
+        else:
+            return HttpResponseBadRequest('Model is not recognized')
 
 
 class WellRelationDeleteView(StaffuserRequiredMixin, WellRelationAPI):

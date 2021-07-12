@@ -4,6 +4,7 @@ from django.dispatch import receiver
 from gwml2.models.well import (
     Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
+from gwml2.tasks.well import generate_measurement_cache
 
 
 # -------------------- WELL --------------------
@@ -92,5 +93,7 @@ def post_save_measurement(sender, instance, **kwargs):
     """
     try:
         instance.well.updated()
+        generate_measurement_cache.delay(
+            instance.well.id, sender.__name__)
     except Well.DoesNotExist:
         pass

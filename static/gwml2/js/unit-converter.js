@@ -4,9 +4,13 @@ function unitConvert(unitFrom, unitTo, value) {
     }
 
     value = parseFloat(value);
-    const formula = unitsDict[unitFrom]?.to[unitTo]
+    const formula = unitsDict[unitFrom]?.to[unitTo];
     if (formula) {
-        value = eval(formula.replace('x', value))
+        value = eval(formula.replace('x', value));
+    } else {
+        if (unitFrom !== unitTo) {
+            return null;
+        }
     }
     return value
 }

@@ -108,235 +108,118 @@ function checkLevelParameter(
 }
 
 function convertMeasurementData(
-    input, unit_to, parameter_to, time_range,
+    input, unit_to, parameter_to,
     top_borehole_elevation, ground_surface_elevation) {
     let data = {};
-    let timeRangeData = {};
-    let isAllSame = true;
     input.map(function (row) {
         let parameter = row.par;
         let unit = row.u;
+        let value = row.v;
+        value = unitConvert(unit, unit_to, value);
 
-        let skip = false;
-        switch (time_range) {
-            case 'hourly': {
-                // this is for hourly
-                let value = row.v;
-                value = unitConvert(unit, unit_to, value);
+        const levelParameter = checkLevelParameter(
+            parameter, parameter_to, value,
+            top_borehole_elevation, ground_surface_elevation);
+        parameter = levelParameter[0];
+        value = levelParameter[1];
 
-                // skip if no value
-                if (value === undefined || value === null) {
-                    skip = true;
-                    break
-                }
-                const levelParameter = checkLevelParameter(
-                    parameter, parameter_to, value,
-                    top_borehole_elevation, ground_surface_elevation);
-                parameter = levelParameter[0];
-                value = levelParameter[1];
-
-                // let's we save it
-                if (value != null) {
-                    if (!data[parameter]) {
-                        data[parameter] = []
-                    }
-                    data[parameter].push({
-                        t: new Date(row.dt * 1000),
-                        y: value,
-                        methodology: row.mt,
-                        unit: unit_to
-                    });
-                }
-                break
+        // let's we save it
+        if (value != null) {
+            if (!data[parameter]) {
+                data[parameter] = []
             }
-            default:
-                const value = checkLevelParameter(
-                    parameter, parameter_to, unitConvert(unit, unit_to, row.v.max),
-                    top_borehole_elevation, ground_surface_elevation)[1]
-                if (value != null) {
-                    timeRangeData[row.dt] = {
-                        'max': checkLevelParameter(
-                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.max),
-                            top_borehole_elevation, ground_surface_elevation)[1],
-                        'min': checkLevelParameter(
-                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.min),
-                            top_borehole_elevation, ground_surface_elevation)[1],
-                        'median': checkLevelParameter(
-                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.med),
-                            top_borehole_elevation, ground_surface_elevation)[1],
-                        'average': checkLevelParameter(
-                            parameter, parameter_to, unitConvert(unit, unit_to, row.v.avg),
-                            top_borehole_elevation, ground_surface_elevation)[1]
-                    };
-                    if (timeRangeData[row.dt].max !== timeRangeData[row.dt].min) {
-                        isAllSame = false
-                    }
-                }
-                break
-        }
-
-        // skip it if skip
-        if (skip) {
-            return
+            data[parameter].unshift(
+                [row.dt * 1000, value]
+            );
         }
     })
-
-    let labels = Object.keys(timeRangeData);
-    if (time_range !== 'yearly') {
-        labels = labels.reverse()
-    }
-    if (labels.length > 0) {
-        // reconstruct data by timeRangeData
-        $.each(labels, function (idx, key) {
-            const value = timeRangeData[key];
-            if (isAllSame) {
-                if (!data['val']) {
-                    data['val'] = []
-                }
-                data['val'].push({
-                    x: key,
-                    y: value['max'],
-                    unit: unit_to
-                })
-            } else {
-                // Max of data
-                if (!data['max']) {
-                    data['max'] = []
-                }
-                data['max'].push({
-                    x: key,
-                    y: value['max'],
-                    unit: unit_to
-                })
-
-                // Min of data
-                if (!data['min']) {
-                    data['min'] = []
-                }
-                data['min'].push({
-                    x: key,
-                    y: value['min'],
-                    unit: unit_to
-                })
-
-                if (!data['average']) {
-                    data['average'] = []
-                }
-                data['average'].push({
-                    x: key,
-                    y: value['median'],
-                    unit: unit_to
-                })
-
-                if (!data['median']) {
-                    data['median'] = []
-                }
-                data['median'].push({
-                    x: key,
-                    y: value['median'],
-                    unit: unit_to
-                })
-            }
-        });
-    }
-    return {
-        data: data,
-        labels: labels
-    }
+    return data
 }
 
-function renderMeasurementChart(identifier, chart, rawData, xLabel, yLabel) {
-    let ctx = document.getElementById(`${identifier}-chart`).getContext("2d");
-    let dataset = [];
-    let idx = 0;
-    $.each(rawData.data, function (key, value) {
-        dataset.push({
-            label: key,
-            data: value,
-            backgroundColor: chartColors[idx],
-            borderColor: chartColors[idx],
-            borderWidth: 1,
-            fill: false,
-            lineTension: 0,
-            pointRadius: 1,
-            pointHoverRadius: 5,
-        })
-        idx += 1;
-    });
+function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, parameterTo) {
+    let title = '';
+    switch (identifier) {
+        case 'WellLevelMeasurement':
+        case 'level_measurement':
+            title = 'Groundwater Level';
+            break;
+        case 'WellQualityMeasurement':
+        case 'quality_measurement':
+            title = 'Groundwater Quality';
+            break;
+        case 'WellYieldMeasurement':
+        case 'yield_measurement':
+            title = 'Abstraction / Discharge';
+            break
+    }
+    if (!data) {
+        data = []
+    }
     const options = {
-        type: 'line',
-        data: {
-            datasets: dataset
+        chart: {
+            zoomType: 'x'
         },
-        options: {
-            legend: {
-                display: false
-            },
-            scales: {
-                xAxes: [{
-                    type: 'time',
-                    scaleLabel: {
-                        display: true,
-                        labelString: xLabel
-                    }
-                }],
-                yAxes: [{
-                    scaleLabel: {
-                        display: true,
-                        labelString: yLabel
-                    }
-                }]
-            },
-            tooltips: {
-                mode: 'index',
-                intersect: false,
-                callbacks: {
-                    label: function (tooltipItem, allData) {
-                        let data = allData.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                        let label = tooltipItem.yLabel + ' ' + data.unit;
-                        if (data.methodology) {
-                            label += ', methodology :' + data.methodology;
-                        }
-                        return ' ' + label;
-                    }
-                }
+        title: {
+            text: title
+        },
+        yAxis: {
+            title: {
+                text: yLabel
             }
-        }
-    };
+        },
+        xAxis: {
+            type: 'datetime',
+            title: {
+                text: xLabel
+            }
+        },
+        legend: {
+            enabled: false
+        },
+        plotOptions: {
+            area: {
+                fillColor: {
+                    linearGradient: {
+                        x1: 0,
+                        y1: 0,
+                        x2: 0,
+                        y2: 1
+                    },
+                    stops: [
+                        [0, Highcharts.getOptions().colors[0]],
+                        [1, Highcharts.color(Highcharts.getOptions().colors[0]).setOpacity(0).get('rgba')]
+                    ]
+                },
+                marker: {
+                    radius: 2
+                },
+                lineWidth: 1,
+                states: {
+                    hover: {
+                        lineWidth: 1
+                    }
+                },
+                threshold: null
+            }
+        },
 
-    // show legend if data is more than 2 dataset
-    // and show it as not time
-    if (Object.keys(rawData.data).length > 1) {
-        options.options.legend.display = true
-    }
-    // if there is label, xAxes turns to be string
-    if (rawData.labels.length > 0) {
-        options.options.scales.xAxes = [{
-            scaleLabel: {
-                display: true,
-                labelString: xLabel
-            },
-            ticks: {
-                maxTicksLimit: 20,
-                display: true,
-            },
+        series: [{
+            type: 'area',
+            name: 'value',
+            data: data
         }]
-        options.data.labels = rawData.labels;
     }
-
     if (!chart) {
-        chart = new Chart(ctx, options);
+        chart = Highcharts.chart(`${identifier}-chart`, options);
     } else {
-        chart.data = options.data;
-        chart.options = options.options;
-        chart.update();
+        chart.update(options);
     }
     return chart;
 }
 
 let MeasurementChartObj = function (
     identifier, top_borehole, ground_surface, url, parameters, units,
-    $loading, $loadMore, $units, $parameters, $timeRange) {
+    $loading, $loadMore, $units, $parameters) {
     this.identifier = identifier;
     this.top_borehole = top_borehole;
     this.ground_surface = ground_surface;
@@ -347,18 +230,18 @@ let MeasurementChartObj = function (
     this.$dataTo = $loadMore.closest('.measurement-chart-plugin').find('#data-to');
     this.$units = $units;
     this.$parameters = $parameters;
-    this.$timeRange = $timeRange;
-
-    this.data = {};
+    this.data = null;
     this.chart = null;
     this.unitTo = null;
     this.parameterTo = null;
-    this.timeRange = null;
     this.init = true;
 
     /** Render the chart */
     this.renderChart = function () {
-        const data = that.data[this.timeRange]
+        const data = that.data
+        if (!data) {
+            return;
+        }
         if (this.init) {
             this.init = false;
             const $paramOptions = $parameters.find(`option:contains(${data?.data[0]?.par})`);
@@ -390,24 +273,26 @@ let MeasurementChartObj = function (
                 : 'no data'
         )
         const cleanData = convertMeasurementData(
-            data.data, this.unitTo, this.parameterTo, this.timeRange,
+            data.data, this.unitTo, this.parameterTo,
             unitConvert(
                 this.top_borehole.u, this.unitTo, this.top_borehole.v
             ),
             unitConvert(
                 this.ground_surface.u, this.unitTo, this.ground_surface.v
             )
-        )
+        );
         this.chart = renderMeasurementChart(
-            this.identifier, this.chart, cleanData, 'Time', this.parameterTo)
+            this.identifier, this.chart,
+            cleanData[this.parameterTo],
+            'Time', this.parameterTo)
     }
 
     this.refetchData = function () {
-        this.fetchData(this.unitTo, this.parameterTo, this.timeRange)
+        this.fetchData(this.unitTo, this.parameterTo)
     }
 
     /** Fetch the data */
-    this.fetchData = function (unitTo, parameterTo, timeRange) {
+    this.fetchData = function (unitTo, parameterTo) {
         this.$loading.show();
         this.$loadMore.attr('disabled', 'disabled')
         if (this.url) {
@@ -416,20 +301,19 @@ let MeasurementChartObj = function (
                 url: url,
                 dataType: 'json',
                 data: {
-                    page: this.data.page,
-                    mode: timeRange
+                    page: this.data ? this.data.page : 1,
                 },
                 success: function (data, textStatus, request) {
-                    if (!that.data[timeRange]) {
-                        that.data[timeRange] = {
+                    if (!that.data) {
+                        that.data = {
                             data: [],
                             page: 1
                         }
                     }
-                    that.data[timeRange].page += 1;
-                    that.data[timeRange].data = that.data[timeRange].data.concat(data.data);
-                    that.data[timeRange].end = data.end;
-                    if (unitTo === that.unitTo && parameterTo === that.parameterTo && timeRange === that.timeRange) {
+                    that.data.page += 1;
+                    that.data.data = that.data.data.concat(data.data);
+                    that.data.end = data.end;
+                    if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
                         that.renderChart();
                         that.$loading.hide();
                     }
@@ -444,16 +328,11 @@ let MeasurementChartObj = function (
     this.selectionChanged = function () {
         let unitTo = $units.find(":selected").text();
         let parameterTo = $parameters.find(":selected").text();
-        let timeRange = $timeRange.val();
-        if (!timeRange) {
-            timeRange = 'hourly'
-        }
-        if (unitTo !== this.unitTo || parameterTo !== this.parameterTo || timeRange !== this.timeRange) {
+        if (unitTo !== this.unitTo || parameterTo !== this.parameterTo) {
             this.unitTo = unitTo;
             this.parameterTo = parameterTo;
-            this.timeRange = timeRange;
-            if (!that.data[timeRange]) {
-                this.fetchData(unitTo, parameterTo, timeRange);
+            if (!that.data) {
+                this.fetchData(unitTo, parameterTo);
             } else {
                 this.renderChart();
             }
@@ -477,14 +356,10 @@ let MeasurementChartObj = function (
     $units.change(function () {
         that.selectionChanged();
     })
-    $timeRange.change(function () {
-        that.selectionChanged();
-    })
     $loadMore.click(function () {
         let unitTo = that.$units.find(":selected").text();
         let parameterTo = that.$parameters.find(":selected").text();
-        let timeRange = that.$timeRange.val();
-        that.fetchData(unitTo, parameterTo, timeRange);
+        that.fetchData(unitTo, parameterTo);
         return false;
     })
     $parameters.trigger('change');

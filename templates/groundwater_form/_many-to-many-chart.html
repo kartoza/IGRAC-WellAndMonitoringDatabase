@@ -16,8 +16,7 @@
                     $('#{{ id }}-cw #loading'),
                     $('#{{ id }}-cw #load-more'),
                     $('#{{ id }}-cw #units'),
-                    $parameters,
-                    $('#{{ id }}-cw #time-range')
+                    $parameters
                 )
                 $("#{{ id }} #load-more").unbind();
                 $("#{{ id }} #load-more").click(function () {
@@ -44,7 +43,7 @@
                             })
                         }
                     })
-                    this.data['hourly'] = data;
+                    this.data = data;
                     that.renderChart()
                 }
             })
