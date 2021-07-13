@@ -1,5 +1,7 @@
+import os
 from django.core.management.base import BaseCommand
-from gwml2.models.well import Well
+from gwml2.models.well import (
+    Well, WellLevelMeasurement, WellYieldMeasurement, WellQualityMeasurement)
 
 
 class Command(BaseCommand):
@@ -16,15 +18,22 @@ class Command(BaseCommand):
             default='',
             help='ID of well')
         parser.add_argument(
-            '-model',
-            '--model',
-            dest='model',
+            '-measurement_name',
+            '--measurement_name',
+            dest='measurement_name',
             default='',
-            help='Model of measurement')
+            help='Name of measurement')
+        parser.add_argument(
+            '-force',
+            '--force',
+            default='',
+            dest='force',
+            help='Force to regenerate')
 
     def handle(self, *args, **options):
         id = options.get('id', None)
-        model = options.get('model', None)
+        measurement_name = options.get('measurement_name', None)
+        force = options.get('force', False)
         if id:
             queryset = Well.objects.filter(id=int(id))
         else:
@@ -32,5 +41,16 @@ class Command(BaseCommand):
 
         count = queryset.count()
         for idx, well in enumerate(queryset):
-            print("Generating {}/{}".format(idx + 1, count))
-            well.generate_measurement_cache(model)
+            for MeasurementModel in \
+                    [WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement]:
+                # skip if measurement filtered
+                if measurement_name and MeasurementModel.__name__ != measurement_name:
+                    continue
+                model = MeasurementModel.__name__
+                if not force:
+                    cache_file = well.return_measurement_cache_path(model)
+                    if os.path.exists(cache_file):
+                        continue
+
+                print("{}/{} : Generating {}, well {}".format(idx + 1, count, model, well.id))
+                well.generate_measurement_cache(model)
