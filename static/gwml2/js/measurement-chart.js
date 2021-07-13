@@ -263,7 +263,6 @@ let MeasurementChartObj = function (
     this.init = true;
 
     const that = this;
-    console.log('test')
 
     this.asyncRenderChart = function () {
         return new Promise(resolve => {
