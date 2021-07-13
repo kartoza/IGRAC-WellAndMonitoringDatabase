@@ -65,7 +65,7 @@ class WellMeasurementDataView(View):
             response['Content-Length'] = str(len(compressed_content))
             return response
         else:
-            return HttpResponseBadRequest('Model is not recognized')
+            return HttpResponseBadRequest('Cache is not exist yet.')
 
 
 class WellRelationDeleteView(StaffuserRequiredMixin, WellRelationAPI):

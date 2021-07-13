@@ -269,7 +269,7 @@ let MeasurementChartObj = function (
             that.$loading.show();
             setTimeout(() => {
                 that._renderChart();
-            }, 500);
+            }, 100);
         });
     }
 
@@ -317,6 +317,13 @@ let MeasurementChartObj = function (
                 this.ground_surface.u, this.unitTo, this.ground_surface.v
             )
         );
+        const chartData = cleanData[this.parameterTo];
+        this.chart = null;
+        if (!chartData || chartData.length === 0) {
+            that.$loading.hide();
+            $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
+            return
+        }
         this.chart = renderMeasurementChart(
             this.identifier, this.chart,
             cleanData[this.parameterTo],
@@ -359,6 +366,8 @@ let MeasurementChartObj = function (
                     }
                 },
                 error: function (error, textStatus, request) {
+                    that.$loading.hide();
+                    $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
                 }
             })
         }
