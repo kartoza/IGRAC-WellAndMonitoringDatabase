@@ -8,7 +8,7 @@ function unitConvert(unitFrom, unitTo, value) {
     if (formula) {
         value = eval(formula.replace('x', value));
     } else {
-        if (unitFrom !== unitTo) {
+        if (unitFrom && unitFrom !== unitTo) {
             return null;
         }
     }
