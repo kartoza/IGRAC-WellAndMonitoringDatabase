@@ -176,6 +176,32 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, paramet
         legend: {
             enabled: false
         },
+        rangeSelector: {
+            buttons: [{
+                type: 'day',
+                count: 3,
+                text: '3d'
+            }, {
+                type: 'week',
+                count: 1,
+                text: '1w'
+            }, {
+                type: 'month',
+                count: 1,
+                text: '1m'
+            }, {
+                type: 'month',
+                count: 6,
+                text: '6m'
+            }, {
+                type: 'year',
+                count: 1,
+                text: '1y'
+            }, {
+                type: 'all',
+                text: 'All'
+            }]
+        },
         plotOptions: {
             area: {
                 fillColor: {
@@ -210,7 +236,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, paramet
         }]
     }
     if (!chart) {
-        chart = Highcharts.chart(`${identifier}-chart`, options);
+        chart = Highcharts.stockChart(`${identifier}-chart`, options);
     } else {
         chart.update(options);
     }
@@ -236,9 +262,20 @@ let MeasurementChartObj = function (
     this.parameterTo = null;
     this.init = true;
 
+    const that = this;
+
+    this.asyncRenderChart = function () {
+        return new Promise(resolve => {
+            that.$loading.show();
+            setTimeout(() => {
+                that._renderChart();
+            }, 500);
+        });
+    }
+
     /** Render the chart */
-    this.renderChart = function () {
-        const data = that.data
+    this._renderChart = function () {
+        const data = that.data;
         if (!data) {
             return;
         }
@@ -256,7 +293,6 @@ let MeasurementChartObj = function (
                 }
             }
         }
-        this.$loading.hide();
         if (data.end) {
             this.$loadMore.attr('disabled', 'disabled')
         } else {
@@ -285,11 +321,16 @@ let MeasurementChartObj = function (
             this.identifier, this.chart,
             cleanData[this.parameterTo],
             'Time', this.parameterTo)
+        this.$loading.hide();
+    };
+
+    this.renderChart = async function () {
+        await that.asyncRenderChart();
     }
 
     this.refetchData = function () {
         this.fetchData(this.unitTo, this.parameterTo)
-    }
+    };
 
     /** Fetch the data */
     this.fetchData = function (unitTo, parameterTo) {
@@ -315,7 +356,6 @@ let MeasurementChartObj = function (
                     that.data.end = data.end;
                     if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
                         that.renderChart();
-                        that.$loading.hide();
                     }
                 },
                 error: function (error, textStatus, request) {
@@ -339,7 +379,6 @@ let MeasurementChartObj = function (
         }
     }
 
-    const that = this;
     $parameters.change(function () {
         const parameter = parameters_chart[$(this).val()];
         const unitVal = parseInt($units.val());
