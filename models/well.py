@@ -207,21 +207,20 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             top_borehole_elevation = convert_value(
                 top_borehole_elevation, unit_to)
 
-        unit_to_str = ''
-        if unit_to:
-            unit_to_str = unit_to.name
-
         for MeasurementModel in \
                 [WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement]:
             if MeasurementModel.__name__ == measurement_name:
                 output = {"data": [], "page": 1, "end": True}
                 for measurement in MeasurementModel.objects.filter(well=self):
-                    unit = unit_to_str
                     quantity = convert_value(measurement.value, unit_to)
                     if not quantity:
                         continue
 
                     value = quantity.value
+                    unit = ''
+                    if quantity.unit:
+                        unit = quantity.unit.name
+
                     parameter = measurement.parameter.name
 
                     if MeasurementModel == WellLevelMeasurement:
