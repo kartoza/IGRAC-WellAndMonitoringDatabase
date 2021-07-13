@@ -1,4 +1,5 @@
 import math
+import typing
 from django.db.models import Q
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.models.general import Unit, UnitConvertion, Quantity
@@ -67,20 +68,23 @@ class temp_disconnect_signal(object):
         )
 
 
-def convert_value(quantity: Quantity, unit_to: Unit) -> Quantity:
+def convert_value(quantity: Quantity, unit_to: Unit) -> typing.Optional[Quantity]:
     """ Get value of quantity
     convert to unit_to
     """
-    value = quantity.value
-    unit = quantity.unit
-    if quantity.unit and quantity.unit != unit_to:
-        try:
-            value = UnitConvertion.objects.get(
-                unit_from=quantity.unit,
-                unit_to=unit_to
-            ).formula.replace('x', '{}'.format(value))
-            unit = unit_to
-        except (UnitConvertion.DoesNotExist, KeyError):
-            pass
-    return Quantity(
-        unit=unit, value=value)
+    if quantity:
+        value = quantity.value
+        unit = quantity.unit
+        if quantity.unit and quantity.unit != unit_to:
+            try:
+                value = UnitConvertion.objects.get(
+                    unit_from=quantity.unit,
+                    unit_to=unit_to
+                ).formula.replace('x', '{}'.format(value))
+                unit = unit_to
+            except (UnitConvertion.DoesNotExist, KeyError):
+                pass
+        return Quantity(
+            unit=unit, value=value)
+    else:
+        return None

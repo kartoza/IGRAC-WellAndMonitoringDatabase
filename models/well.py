@@ -217,7 +217,11 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 output = {"data": [], "page": 1, "end": True}
                 for measurement in MeasurementModel.objects.filter(well=self):
                     unit = unit_to_str
-                    value = convert_value(measurement.value, unit_to).value
+                    quantity = convert_value(measurement.value, unit_to)
+                    if not quantity:
+                        continue
+
+                    value = quantity.value
                     parameter = measurement.parameter.name
 
                     if MeasurementModel == WellLevelMeasurement:
