@@ -77,13 +77,17 @@ def convert_value(quantity: Quantity, unit_to: Unit) -> typing.Optional[Quantity
         unit = quantity.unit
         if quantity.unit and quantity.unit != unit_to:
             try:
-                value = UnitConvertion.objects.get(
-                    unit_from=quantity.unit,
-                    unit_to=unit_to
-                ).formula.replace('x', '{}'.format(value))
+                value = eval(
+                    UnitConvertion.objects.get(
+                        unit_from=quantity.unit,
+                        unit_to=unit_to
+                    ).formula.replace('x', '{}'.format(value))
+                )
                 unit = unit_to
-            except (UnitConvertion.DoesNotExist, KeyError):
+            except (UnitConvertion.DoesNotExist, KeyError) as e:
                 pass
+            except ValueError as e:
+                print(e)
         return Quantity(
             unit=unit, value=value)
     else:
