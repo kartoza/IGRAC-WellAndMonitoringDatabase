@@ -1,4 +1,8 @@
+import gzip
+import json
+import os
 from datetime import datetime
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -17,7 +21,11 @@ from gwml2.models.management import Management
 from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
-from gwml2.utilities import temp_disconnect_signal
+from gwml2.utilities import temp_disconnect_signal, convert_value
+
+MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
+MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
+MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
 
 
 class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
@@ -178,6 +186,87 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         if not self.organisation:
             return False
         return user.id in self.organisation.editors or user.id in self.organisation.admins
+
+    def return_measurement_cache_path(self, measurement_name: str):
+        """
+        Return file path of cache file
+        """
+        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache', '{}'.format(self.id))
+        return os.path.join(folder, '{}.gz'.format(measurement_name))
+
+    def measurement_data(self, measurement_name: str):
+        """ Return measurement data """
+        ground_surface_elevation = self.ground_surface_elevation
+        unit_to = None
+        if ground_surface_elevation:
+            unit_to = ground_surface_elevation.unit
+        top_borehole_elevation = self.top_borehole_elevation
+        if top_borehole_elevation:
+            if not unit_to:
+                unit_to = top_borehole_elevation.unit
+            top_borehole_elevation = convert_value(
+                top_borehole_elevation, unit_to)
+
+        for MeasurementModel in \
+                [WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement]:
+            if MeasurementModel.__name__ == measurement_name:
+                output = {"data": [], "page": 1, "end": True}
+                for measurement in MeasurementModel.objects.filter(well=self):
+                    quantity = convert_value(measurement.value, unit_to)
+                    if not quantity:
+                        continue
+
+                    value = quantity.value
+                    unit = ''
+                    if quantity.unit:
+                        unit = quantity.unit.name
+
+                    parameter = measurement.parameter.name
+
+                    if MeasurementModel == WellLevelMeasurement:
+                        parameter = MEASUREMENT_PARAMETER_AMSL
+                        if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
+                            if top_borehole_elevation:
+                                value = top_borehole_elevation.value - value
+                            else:
+                                parameter = measurement.parameter.name
+                        elif measurement.parameter.name == MEASUREMENT_PARAMETER_GROUND:
+                            if ground_surface_elevation:
+                                value = ground_surface_elevation.value - value
+                            else:
+                                parameter = measurement.parameter.name
+
+                    output['data'].append({
+                        'dt': measurement.time.timestamp(),
+                        'par': parameter,
+                        'u': unit,
+                        'v': value
+                    })
+                return output
+        return None
+
+    def generate_measurement_cache(self, model=None):
+        """ Generate measurement cache """
+        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache', '{}'.format(self.id))
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        for MeasurementModel in \
+                [WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement]:
+            measurement_name = MeasurementModel.__name__
+            if model and measurement_name != model:
+                continue
+            output = self.measurement_data(measurement_name)
+            if output:
+                json_str = json.dumps(output) + "\n"
+                json_bytes = json_str.encode('utf-8')
+
+                filename = self.return_measurement_cache_path(measurement_name)
+                if os.path.exists(filename):
+                    os.remove(filename)
+                file = gzip.open(filename, 'wb')
+                file.write(json_bytes)
+                file.close()
 
 
 # documents

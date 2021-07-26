@@ -2,14 +2,6 @@
     <div style="width: 100%; margin-bottom: 20px" class="measurement-chart-plugin-nav">
         <select id="parameters" class="measurement-chart-nav"></select>
         <select id="units" class="measurement-chart-nav"></select>
-        {% if timeRangeOn %}
-            <select id="time-range" class="measurement-chart-nav">
-                <option value="daily">Daily for last 100 days</option>
-                <option value="weekly">Weekly for 1 year</option>
-                <option value="monthly">Monthly for 10 year</option>
-                <option value="yearly" selected>Yearly for all time</option>
-            </select>
-        {% endif %}
         {% if loadMore %}
             <div class="nav-right">
                 <div style="display:inline-block; font-style: italic; font-size: 14px; margin: 10px">
@@ -19,7 +11,7 @@
         {% endif %}
     </div>
     <div id="canvas">
-        <canvas id="{{ identifier }}-chart"></canvas>
+        <div id="{{ identifier }}-chart"></div>
     </div>
     <div id="loading">
         <div id="loader-wrapper">

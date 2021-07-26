@@ -2,7 +2,7 @@
 {% load staticfiles %}
 {% load gwml2_forms %}
 {% if use_chart and theform.url_chart %}
-    <div id="{{ id }}_chart" class="chart measurement-chart">
-        <iframe width="1000px" height="550px" src="{{ theform.url_chart }}" style="border: none"></iframe>
+    <div id="{{ id }}_chart" class="chart measurement-chart" data-url="{{ theform.url_chart }}" data-init="true">
+        {#        <iframe width="1000px" height="550px" src="{{ theform.url_chart }}" style="border: none"></iframe>#}
     </div>
 {% endif %}

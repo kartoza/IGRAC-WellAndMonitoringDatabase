@@ -7,12 +7,13 @@ from django.db.models import Count, Avg, Max, Min, Aggregate, FloatField, F
 from rest_framework.views import APIView
 
 from gwml2.models import Well
+from gwml2.models.well import (
+    MEASUREMENT_PARAMETER_AMSL,
+    MEASUREMENT_PARAMETER_TOP,
+    MEASUREMENT_PARAMETER_GROUND
+)
 from gwml2.models.general import Unit
 from gwml2.serializer.unit import UnitWithToSerializer
-
-MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
-MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
-MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
 
 MEASUREMENT_YEARLY_MODE = 'yearly'
 MEASUREMENT_WEEKLY_MODE = 'weekly'

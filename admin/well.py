@@ -10,6 +10,11 @@ from gwml2.models.well import (
 User = get_user_model()
 
 
+def regenerate_measurement_cache(modeladmin, request, queryset):
+    for well in queryset:
+        well.generate_measurement_cache()
+
+
 class WellAdmin(admin.ModelAdmin):
     list_display = ('original_id', 'organisation', 'edit', 'public', 'downloadable', 'number_of_measurements')
     list_filter = ('organisation', 'public', 'downloadable')
@@ -21,6 +26,7 @@ class WellAdmin(admin.ModelAdmin):
     )
     list_editable = ('public', 'downloadable')
     search_fields = ('original_id', 'name')
+    actions = [regenerate_measurement_cache]
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])
@@ -45,9 +51,11 @@ class MeasurementAdmin(admin.ModelAdmin):
         'value',
     )
 
+
 class WellLevelMeasurementAdmin(MeasurementAdmin):
     list_display = ('well', 'time', 'parameter', 'methodology', 'value', 'value_in_m')
-    readonly_fields = ('value_in_m', )
+    readonly_fields = ('value_in_m',)
+
 
 admin.site.register(WellLevelMeasurement, WellLevelMeasurementAdmin)
 admin.site.register(WellQualityMeasurement, MeasurementAdmin)
