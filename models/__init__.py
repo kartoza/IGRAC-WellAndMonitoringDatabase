@@ -18,3 +18,4 @@ from gwml2.models.well_management.user import *
 
 # for signals models
 from gwml2.signals import *
+from gwml2.harvesters.models import *
