@@ -5,6 +5,7 @@ import typing
 from abc import ABC, abstractmethod
 from django.contrib.gis.geos import Point
 from django.db.models.signals import post_save
+from gwml2.models.general import Quantity, Unit
 from gwml2.models.term import TermFeatureType
 from gwml2.models.well import (
     Well,
@@ -31,6 +32,7 @@ class BaseHarvester(ABC):
     attributes = {}
 
     def __init__(self, harvester: Harvester):
+        self.unit_m = Unit.objects.get(name='m')
         self.harvester = harvester
         for attribute in harvester.harvesterattribute_set.all():
             self.attributes[attribute.name] = attribute.value
@@ -126,19 +128,40 @@ class BaseHarvester(ABC):
             name: str,
             latitude: float,
             longitude: float,
-            feature_type: typing.Optional[TermFeatureType] = None
+            feature_type: typing.Optional[TermFeatureType] = None,
+            ground_surface_elevation_masl: typing.Optional[float] = None,
+            top_of_well_elevation_masl: typing.Optional[float] = None
     ):
         """ Save well """
-        obj, created = Well.objects.get_or_create(
+        well, created = Well.objects.get_or_create(
             original_id=original_id,
             organisation=self.harvester.organisation,
             defaults={
                 'name': name,
                 'location': Point(longitude, latitude),
-                'feature_type': feature_type if feature_type else self.harvester.feature_type
+                'feature_type': feature_type if feature_type else self.harvester.feature_type,
+                'public': self.harvester.public,
+                'downloadable': self.harvester.downloadable
             }
         )
-        return obj, created
+        if created and ground_surface_elevation_masl:
+            well.ground_surface_elevation = Quantity.objects.create(
+                value=ground_surface_elevation_masl,
+                unit=self.unit_m
+            )
+            if top_of_well_elevation_masl:
+                well.top_borehole_elevation = Quantity.objects.create(
+                    value=top_of_well_elevation_masl,
+                    unit=self.unit_m
+                )
+            well.save()
+
+        # create harvester well
+        harvester_well_data, created = HarvesterWellData.objects.get_or_create(
+            harvester=self.harvester,
+            well=well
+        )
+        return well, harvester_well_data
 
     def _save_measurement(
             self,

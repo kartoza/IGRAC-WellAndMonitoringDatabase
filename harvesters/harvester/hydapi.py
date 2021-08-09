@@ -1,4 +1,3 @@
-
 import pytz
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
@@ -24,7 +23,6 @@ class Hydapi(BaseHarvester):
     parameters = {}
 
     def __init__(self, harvester: Harvester):
-        self.unit_m = Unit.objects.get(name='m')
         self.parameters = {
             1000: {
                 'model': WellLevelMeasurement,
@@ -77,31 +75,15 @@ class Hydapi(BaseHarvester):
         Fetch measurement
         """
         # create well
-        well, created = self._save_well(
+        well, harvester_well_data = self._save_well(
             station['stationId'],
             station['stationName'],
             station['latitude'],
-            station['longitude']
+            station['longitude'],
+            ground_surface_elevation_masl=station['masl']
         )
-        if created:
-            try:
-                ground_surface_elevation = Quantity.objects.create(
-                    value=station['masl'],
-                    unit=self.unit_m
-                )
-            except KeyError:
-                ground_surface_elevation = None
-            well.ground_surface_elevation = ground_surface_elevation
-            well.save()
-
-        # create harvester well
-        harvester_well_data, created = HarvesterWellData.objects.get_or_create(
-            harvester=self.harvester,
-            well=well,
-            defaults={
-                'from_time_data': self.max_oldest_time
-            }
-        )
+        harvester_well_data.from_time_data = self.max_oldest_time
+        harvester_well_data.save()
 
         # check available parameters
         # check start date

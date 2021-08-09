@@ -48,6 +48,16 @@ class Harvester(models.Model):
         default=False,
         help_text=_("Is the harvester running.")
     )
+    public = models.BooleanField(
+        default=True,
+        help_text=_('Default indicator for : well can be viewed by '
+                    'non organisation user.')
+    )
+    downloadable = models.BooleanField(
+        default=True,
+        help_text=_('Default indicator : well can be downloaded.')
+    )
+
 
     class Meta:
         db_table = 'harvester'

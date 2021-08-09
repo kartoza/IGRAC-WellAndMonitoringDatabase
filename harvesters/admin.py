@@ -5,8 +5,10 @@ from gwml2.harvesters.models.harvester import (
 from gwml2.tasks.harvester import run_harvester
 
 HYDAPI = 'gwml2.harvesters.harvester.hydapi.Hydapi'
+SGUAPI = 'gwml2.harvesters.harvester.sgu.SguAPI'
 HARVESTERS = (
     (HYDAPI, HYDAPI),
+    (SGUAPI, SGUAPI),
 )
 
 
