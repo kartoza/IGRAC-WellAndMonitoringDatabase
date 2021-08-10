@@ -59,7 +59,6 @@ class HarvesterAdmin(admin.ModelAdmin):
     form = HarvesterForm
     inlines = [HarvesterAttributeInline, HarvesterLogInline, HarvesterWellDataInline]
     list_display = ('name', 'organisation', 'is_run', 'active', 'harvester_class')
-    readonly_fields = ('is_run',)
     list_editable = ('active',)
     actions = (harvest_data,)
 
