@@ -174,7 +174,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, paramet
             }
         },
         legend: {
-            enabled: false
+            enabled: true
         },
         rangeSelector: {
             buttons: [{
@@ -203,7 +203,16 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, paramet
             }]
         },
         plotOptions: {
-            area: {
+            series: {
+                showInLegend: true
+            }
+        },
+
+        series: [
+            {
+                id: 'value',
+                name: title,
+                data: data,
                 fillColor: {
                     linearGradient: {
                         x1: 0,
@@ -219,21 +228,31 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, paramet
                 marker: {
                     radius: 2
                 },
+                lineWidth: 2,
+                states: {
+                    hover: {
+                        lineWidth: 2
+                    }
+                },
+                threshold: null,
+                color: '#24619d'
+            },
+            {
+                name: 'Trend Line',
+                linkedTo: 'value',
+                type: 'trendline',
+                tooltip: {
+                    valueDecimals: 0
+                },
                 lineWidth: 1,
                 states: {
                     hover: {
                         lineWidth: 1
                     }
                 },
-                threshold: null
+                color: '#F48020'
             }
-        },
-
-        series: [{
-            type: 'area',
-            name: 'value',
-            data: data
-        }]
+        ]
     }
     if (!chart) {
         chart = Highcharts.stockChart(`${identifier}-chart`, options);
