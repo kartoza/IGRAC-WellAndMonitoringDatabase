@@ -98,18 +98,24 @@ $(document).ready(function () {
 })
 
 function chartTableToggle(elm, dataID) {
+    const $chart = $(`#${dataID}_chart`);
+    const $table = $(`#${dataID}_table`);
+    if ($chart.data('init')) {
+        $chart.data('init', false);
+        $chart.html(`<iframe width="1000px" height="500px" src="${$chart.data('url')}" style="border: none"></iframe>`)
+    }
     $(elm).toggleClass('fa-line-chart fa-table');
     if ($(elm).hasClass('fa-table')) {
-        $(`#${dataID}_table`).hide();
-        $(`#${dataID}_chart`).show();
+        $table.hide();
+        $chart.show();
 
         let measurement = measurementCharts[dataID];
         if (measurement) {
             measurement.refetchData();
         }
     } else {
-        $(`#${dataID}_table`).show();
-        $(`#${dataID}_chart`).hide();
+        $table.show();
+        $chart.hide();
     }
 }
 
