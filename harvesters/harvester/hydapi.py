@@ -8,7 +8,7 @@ from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
-    WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
+    Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
 from gwml2.tasks.well import generate_measurement_cache
 
@@ -75,13 +75,17 @@ class Hydapi(BaseHarvester):
         Fetch measurement
         """
         # create well
-        well, harvester_well_data = self._save_well(
-            station['stationId'],
-            station['stationName'],
-            station['latitude'],
-            station['longitude'],
-            ground_surface_elevation_masl=station['masl']
-        )
+        try:
+            well, harvester_well_data = self._save_well(
+                station['stationId'],
+                station['stationName'],
+                station['latitude'],
+                station['longitude'],
+                ground_surface_elevation_masl=station['masl']
+            )
+        except Well.DoesNotExist:
+            return
+
         harvester_well_data.from_time_data = self.max_oldest_time
         harvester_well_data.save()
 

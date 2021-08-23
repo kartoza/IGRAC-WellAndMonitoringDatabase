@@ -11,7 +11,7 @@ from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
-    WellLevelMeasurement
+    Well, WellLevelMeasurement
 )
 from gwml2.tasks.well import generate_measurement_cache
 
@@ -75,52 +75,60 @@ class SguAPI(BaseHarvester):
                     self._update(
                         'Saving {} : well({}/{})'.format(url, well_idx + 1, well_total)
                     )
-                    coordinates = feature['geometry']['coordinates']
-                    point = Point(coordinates[0], coordinates[1], srid=crs)
-                    point.transform(trans)
+                    try:
+                        coordinates = feature['geometry']['coordinates']
+                    except (KeyError, TypeError):
+                        continue
+                    else:
+                        point = Point(coordinates[0], coordinates[1], srid=crs)
+                        point.transform(trans)
 
-                    # check the properties
-                    properties = feature['properties']
-                    original_id = properties['omrade-_och_stationsnummer']
-                    name = properties['stationens_namn']
-                    top_of_well_elevation = properties['referensniva_for_roroverkant_m_o.h.']
-                    height_of_tube = properties['rorhojd_ovan_mark_m']
-                    ground_surface_elevation = top_of_well_elevation - height_of_tube
+                        # check the properties
+                        properties = feature['properties']
+                        original_id = properties['omrade-_och_stationsnummer']
+                        name = properties['stationens_namn']
+                        top_of_well_elevation = properties['referensniva_for_roroverkant_m_o.h.']
+                        height_of_tube = properties['rorhojd_ovan_mark_m']
+                        ground_surface_elevation = top_of_well_elevation - height_of_tube
 
-                    well, harvester_well_data = self._save_well(
-                        original_id=original_id,
-                        name=name,
-                        latitude=point.y,
-                        longitude=point.x,
-                        ground_surface_elevation_masl=ground_surface_elevation,
-                        top_of_well_elevation_masl=top_of_well_elevation
-                    )
-                    measurement_total = len(properties['Mätningar'])
-                    for measurement_idx, measurement in enumerate(properties['Mätningar']):
-                        self._update('Saving {} : well({}/{}) measurement({}/{})'.format(
-                            url, well_idx + 1, well_total, measurement_idx, measurement_total)
-                        )
                         try:
-                            defaults = {
-                                'parameter': self.parameter,
-                                'value_in_m': measurement['grundvattenniva_m_under_markyta']
-                            }
-                            obj = self._save_measurement(
-                                WellLevelMeasurement,
-                                make_aware(parser.parse(measurement['datum_for_matning'])),
-                                defaults,
-                                harvester_well_data
+                            well, harvester_well_data = self._save_well(
+                                original_id=original_id,
+                                name=name,
+                                latitude=point.y,
+                                longitude=point.x,
+                                ground_surface_elevation_masl=ground_surface_elevation,
+                                top_of_well_elevation_masl=top_of_well_elevation
                             )
-                            if not obj.value:
-                                obj.value = Quantity.objects.create(
-                                    unit=self.unit_m,
-                                    value=measurement['grundvattenniva_m_under_markyta']
+                        except Well.DoesNotExist:
+                            continue
+
+                        measurement_total = len(properties['Mätningar'])
+                        for measurement_idx, measurement in enumerate(properties['Mätningar']):
+                            self._update('Saving {} : well({}/{}) measurement({}/{})'.format(
+                                url, well_idx + 1, well_total, measurement_idx, measurement_total)
+                            )
+                            try:
+                                defaults = {
+                                    'parameter': self.parameter,
+                                    'value_in_m': measurement['grundvattenniva_m_under_markyta']
+                                }
+                                obj = self._save_measurement(
+                                    WellLevelMeasurement,
+                                    make_aware(parser.parse(measurement['datum_for_matning'])),
+                                    defaults,
+                                    harvester_well_data
                                 )
-                                obj.save()
-                        except KeyError:
-                            pass
-                    generate_measurement_cache(
-                        well.id, WellLevelMeasurement.__name__)
+                                if not obj.value:
+                                    obj.value = Quantity.objects.create(
+                                        unit=self.unit_m,
+                                        value=measurement['grundvattenniva_m_under_markyta']
+                                    )
+                                    obj.save()
+                            except KeyError:
+                                pass
+                        generate_measurement_cache(
+                            well.id, WellLevelMeasurement.__name__)
             except KeyError as e:
                 pass
             try:

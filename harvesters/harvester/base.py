@@ -133,17 +133,27 @@ class BaseHarvester(ABC):
             top_of_well_elevation_masl: typing.Optional[float] = None
     ):
         """ Save well """
-        well, created = Well.objects.get_or_create(
-            original_id=original_id,
-            organisation=self.harvester.organisation,
-            defaults={
-                'name': name,
-                'location': Point(longitude, latitude),
-                'feature_type': feature_type if feature_type else self.harvester.feature_type,
-                'public': self.harvester.public,
-                'downloadable': self.harvester.downloadable
-            }
-        )
+        if self.harvester.save_missing_well:
+            well, created = Well.objects.get_or_create(
+                original_id=original_id,
+                location=Point(longitude, latitude),
+                defaults={
+                    'name': name,
+                    'organisation': self.harvester.organisation,
+                    'feature_type': feature_type if feature_type else self.harvester.feature_type,
+                    'public': self.harvester.public,
+                    'downloadable': self.harvester.downloadable
+                }
+            )
+        else:
+            well = Well.objects.get(
+                original_id=original_id,
+                location=Point(longitude, latitude)
+            )
+            well.organisation = self.harvester.organisation
+            well.save()
+            created = False
+
         if created and ground_surface_elevation_masl:
             well.ground_surface_elevation = Quantity.objects.create(
                 value=ground_surface_elevation_masl,

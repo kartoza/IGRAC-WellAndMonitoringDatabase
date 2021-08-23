@@ -58,6 +58,10 @@ class Harvester(models.Model):
         help_text=_('Default indicator : well can be downloaded.')
     )
 
+    save_missing_well = models.BooleanField(
+        default=False,
+        help_text=_('Indicate that this harvester saves missing well.')
+    )
 
     class Meta:
         db_table = 'harvester'
