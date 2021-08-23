@@ -130,7 +130,8 @@ class BaseHarvester(ABC):
             longitude: float,
             feature_type: typing.Optional[TermFeatureType] = None,
             ground_surface_elevation_masl: typing.Optional[float] = None,
-            top_of_well_elevation_masl: typing.Optional[float] = None
+            top_of_well_elevation_masl: typing.Optional[float] = None,
+            description: typing.Optional[str] = None
     ):
         """ Save well """
         if self.harvester.save_missing_well:
@@ -142,7 +143,8 @@ class BaseHarvester(ABC):
                     'organisation': self.harvester.organisation,
                     'feature_type': feature_type if feature_type else self.harvester.feature_type,
                     'public': self.harvester.public,
-                    'downloadable': self.harvester.downloadable
+                    'downloadable': self.harvester.downloadable,
+                    'description': description
                 }
             )
         else:

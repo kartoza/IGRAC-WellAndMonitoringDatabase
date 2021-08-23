@@ -6,9 +6,11 @@ from gwml2.tasks.harvester import run_harvester
 
 HYDAPI = 'gwml2.harvesters.harvester.hydapi.Hydapi'
 SGUAPI = 'gwml2.harvesters.harvester.sgu.SguAPI'
+GINGWINFO = 'gwml2.harvesters.harvester.gin_gw_info.GinGWInfo'
 HARVESTERS = (
     (HYDAPI, HYDAPI),
     (SGUAPI, SGUAPI),
+    (GINGWINFO, GINGWINFO),
 )
 
 
@@ -49,7 +51,7 @@ class HarvesterForm(forms.ModelForm):
 
 def harvest_data(modeladmin, request, queryset):
     for harvester in queryset:
-        run_harvester.delay(harvester.id)
+        run_harvester(harvester.id)
 
 
 harvest_data.short_description = 'Harvest data of the harvester'
