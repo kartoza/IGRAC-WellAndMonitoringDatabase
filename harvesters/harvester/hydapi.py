@@ -19,8 +19,9 @@ class Hydapi(BaseHarvester):
     Documentation of API : https://hydapi.nve.no/UserDocumentation/
     """
     api_key = None
-    max_oldest_time = parser.parse('2000-01-01T00:00:00Z')
+    max_oldest_time = parser.parse('1800-01-01T00:00:00Z')
     parameters = {}
+    resolution_time = 1440
 
     def __init__(self, harvester: Harvester, replace: bool = True):
         self.parameters = {
@@ -101,10 +102,11 @@ class Hydapi(BaseHarvester):
             # just get the Instantenous
             parameters.append(series['parameter'])
             for resolution in series['resolutionList']:
-                date_from = parser.parse(resolution['dataFromTime'])
-                if harvester_well_data.from_time_data < date_from:
-                    harvester_well_data.from_time_data = date_from
-                    harvester_well_data.save()
+                if resolution['resTime'] == self.resolution_time:
+                    date_from = parser.parse(resolution['dataFromTime'])
+                    if harvester_well_data.from_time_data < date_from:
+                        harvester_well_data.from_time_data = date_from
+                        harvester_well_data.save()
 
         self.fetch_measurements(station, harvester_well_data, parameters)
 
@@ -144,7 +146,7 @@ class Hydapi(BaseHarvester):
                 params = [
                     'StationId={}'.format(station['stationId']),
                     'Parameter={}'.format(parameter),
-                    'ResolutionTime=1440',
+                    'ResolutionTime={}'.format(self.resolution_time),
                     'ReferenceTime={from_date}/{to_date}'.format(
                         from_date=from_date_str,
                         to_date=to_date_str

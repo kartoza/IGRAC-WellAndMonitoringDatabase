@@ -100,26 +100,33 @@ class GinGWInfo(BaseHarvester):
                 requests.exceptions.HTTPError) as e:
             return
         else:
+            # check latest date
+            latest_measurement = WellLevelMeasurement.objects.filter(
+                well=harvester_well_data.well,
+            ).order_by('-time').first()
+
             tree = ET.fromstring(response.content)
             measurements = tree.findall(f'{self.sos}observationData/{self.om}OM_Observation/{self.om}result/{self.wml2}MeasurementTimeSeries/{self.wml2}point')
             for measurement in measurements:
                 time = measurement.find(f'{self.wml2}MeasurementTVP/{self.wml2}time').text
                 value = measurement.find(f'{self.wml2}MeasurementTVP/{self.wml2}value').text
                 time = parser.parse(time)
+                if not latest_measurement or time > latest_measurement.time:
+                    print(f'save: {time}')
 
-                defaults = {
-                    'parameter': self.parameter,
-                    'value_in_m': value
-                }
-                obj = self._save_measurement(
-                    WellLevelMeasurement,
-                    time,
-                    defaults,
-                    harvester_well_data
-                )
-                if not obj.value:
-                    obj.value = Quantity.objects.create(
-                        unit=self.unit_m,
-                        value=value
+                    defaults = {
+                        'parameter': self.parameter,
+                        'value_in_m': value
+                    }
+                    obj = self._save_measurement(
+                        WellLevelMeasurement,
+                        time,
+                        defaults,
+                        harvester_well_data
                     )
-                    obj.save()
+                    if not obj.value:
+                        obj.value = Quantity.objects.create(
+                            unit=self.unit_m,
+                            value=value
+                        )
+                        obj.save()
