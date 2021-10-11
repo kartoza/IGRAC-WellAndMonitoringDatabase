@@ -32,8 +32,9 @@ class BaseHarvester(ABC):
     """ Abstract class for harvester """
     attributes = {}
 
-    def __init__(self, harvester: Harvester):
+    def __init__(self, harvester: Harvester, replace: bool = True):
         self.unit_m = Unit.objects.get(name='m')
+        self.replace = replace
         self.harvester = harvester
         for attribute in harvester.harvesterattribute_set.all():
             self.attributes[attribute.name] = attribute.value
@@ -154,19 +155,26 @@ class BaseHarvester(ABC):
         else:
             # TODO:
             #  uncomment this if the well is just using location
-            # wells = Well.objects.filter(
-            #     original_id=original_id
-            # )
-            # if wells.count() > 0:
             wells = Well.objects.filter(
-                location__distance_lte=(
-                    Point(longitude, latitude), D(m=5)
-                )
+                original_id=original_id
             )
+            if wells.count() > 0:
+                wells = wells.filter(
+                    location__distance_lte=(
+                        Point(longitude, latitude), D(m=200)
+                    )
+                )
             if wells.count() == 0 or wells.count() > 2:
                 raise Well.DoesNotExist()
 
             well = wells.first()
+
+            if self.replace:
+                WellLevelMeasurement.objects.filter(
+                    well=well,
+                ).delete()
+                well.number_of_measurements = 0
+                well.save()
             print(f'Found well : {well.id}')
             if well.organisation != self.harvester.organisation:
                 well.organisation = self.harvester.organisation

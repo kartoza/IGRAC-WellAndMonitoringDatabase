@@ -27,11 +27,11 @@ class GinGWInfo(BaseHarvester):
     om = '{http://www.opengis.net/om/2.0}'
     wml2 = '{http://www.opengis.net/waterml/2.0}'
 
-    def __init__(self, harvester: Harvester):
+    def __init__(self, harvester: Harvester, replace: bool = True):
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL)
-        super(GinGWInfo, self).__init__(harvester)
+        super(GinGWInfo, self).__init__(harvester, replace)
 
     @staticmethod
     def additional_attributes() -> dict:

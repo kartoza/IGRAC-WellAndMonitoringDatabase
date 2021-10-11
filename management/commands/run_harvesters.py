@@ -13,12 +13,20 @@ class Command(BaseCommand):
             dest='id',
             default='',
             help='ID of harvester')
+        parser.add_argument(
+            '-replace',
+            '--replace',
+            dest='replace',
+            default=False,
+            help='Replace the measurement data')
 
     def handle(self, *args, **options):
         id = options.get('id', None)
+        replace = options.get('replace', False)
+        replace = True if replace in ['True', 'true', 'y'] else replace
         if id:
             queryset = Harvester.objects.filter(id=int(id))
         else:
             queryset = Harvester.objects.all()
         for harvester in queryset:
-            harvester.run()
+            harvester.run(replace)

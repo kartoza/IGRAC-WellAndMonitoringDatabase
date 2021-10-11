@@ -22,7 +22,7 @@ class Hydapi(BaseHarvester):
     max_oldest_time = parser.parse('2000-01-01T00:00:00Z')
     parameters = {}
 
-    def __init__(self, harvester: Harvester):
+    def __init__(self, harvester: Harvester, replace: bool = True):
         self.parameters = {
             5130: {
                 'model': WellLevelMeasurement,
@@ -30,7 +30,7 @@ class Hydapi(BaseHarvester):
                     name=MEASUREMENT_PARAMETER_GROUND)
             }
         }
-        super(Hydapi, self).__init__(harvester)
+        super(Hydapi, self).__init__(harvester, replace)
 
     @staticmethod
     def additional_attributes() -> dict:
