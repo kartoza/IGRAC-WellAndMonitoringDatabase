@@ -152,19 +152,22 @@ class BaseHarvester(ABC):
             #     }
             # )
         else:
+            # TODO:
+            #  uncomment this if the well is just using location
+            # wells = Well.objects.filter(
+            #     original_id=original_id
+            # )
+            # if wells.count() > 0:
             wells = Well.objects.filter(
-                original_id=original_id
-            )
-            if wells.count() > 0:
-                wells = wells.filter(
-                    location__distance_lte=(
-                        Point(longitude, latitude), D(m=100)
-                    )
+                location__distance_lte=(
+                    Point(longitude, latitude), D(m=5)
                 )
+            )
             if wells.count() == 0 or wells.count() > 2:
                 raise Well.DoesNotExist()
 
             well = wells.first()
+            print(f'Found well : {well.id}')
             if well.organisation != self.harvester.organisation:
                 well.organisation = self.harvester.organisation
                 well.save()
