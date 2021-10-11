@@ -70,11 +70,11 @@ class Harvester(models.Model):
     def get_harvester_class(self):
         return import_string(self.harvester_class)
 
-    def run(self, replace=False):
+    def run(self, replace=False, original_id=None):
         """ Run the harvester if active
         """
         if self.active and self.organisation:
-            self.get_harvester_class(self, replace)
+            self.get_harvester_class(self, replace, original_id)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

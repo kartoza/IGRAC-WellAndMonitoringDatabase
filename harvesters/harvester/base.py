@@ -32,9 +32,10 @@ class BaseHarvester(ABC):
     """ Abstract class for harvester """
     attributes = {}
 
-    def __init__(self, harvester: Harvester, replace: bool = True):
+    def __init__(self, harvester: Harvester, replace: bool = True, original_id: str = None):
         self.unit_m = Unit.objects.get(name='m')
         self.replace = replace
+        self.original_id = original_id
         self.harvester = harvester
         for attribute in harvester.harvesterattribute_set.all():
             self.attributes[attribute.name] = attribute.value

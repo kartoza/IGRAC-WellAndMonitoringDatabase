@@ -23,7 +23,7 @@ class Hydapi(BaseHarvester):
     parameters = {}
     resolution_time = 1440
 
-    def __init__(self, harvester: Harvester, replace: bool = True):
+    def __init__(self, harvester: Harvester, replace: bool = True, original_id: str = None):
         self.parameters = {
             5130: {
                 'model': WellLevelMeasurement,
@@ -31,7 +31,7 @@ class Hydapi(BaseHarvester):
                     name=MEASUREMENT_PARAMETER_GROUND)
             }
         }
-        super(Hydapi, self).__init__(harvester, replace)
+        super(Hydapi, self).__init__(harvester, replace, original_id)
 
     @staticmethod
     def additional_attributes() -> dict:
@@ -72,6 +72,8 @@ class Hydapi(BaseHarvester):
         Fetch measurement
         """
         # create well
+        if self.original_id and station['stationId'] != self.original_id:
+            return
         try:
             well, harvester_well_data = self._save_well(
                 station['stationId'],

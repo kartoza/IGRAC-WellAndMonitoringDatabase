@@ -24,11 +24,11 @@ class SguAPI(BaseHarvester):
 
     }
 
-    def __init__(self, harvester: Harvester, replace: bool = True):
+    def __init__(self, harvester: Harvester, replace: bool = True, original_id: str = None):
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL)
-        super(SguAPI, self).__init__(harvester, replace)
+        super(SguAPI, self).__init__(harvester, replace, original_id)
 
     @staticmethod
     def additional_attributes() -> dict:
