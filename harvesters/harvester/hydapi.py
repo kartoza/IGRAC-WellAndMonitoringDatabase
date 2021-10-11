@@ -100,13 +100,14 @@ class Hydapi(BaseHarvester):
         parameters = []
         for series in series_list:
             # just get the Instantenous
-            parameters.append(series['parameter'])
-            for resolution in series['resolutionList']:
-                if resolution['resTime'] == self.resolution_time:
-                    date_from = parser.parse(resolution['dataFromTime'])
-                    if harvester_well_data.from_time_data < date_from:
-                        harvester_well_data.from_time_data = date_from
-                        harvester_well_data.save()
+            if series['parameter'] in self.parameters:
+                parameters.append(series['parameter'])
+                for resolution in series['resolutionList']:
+                    if resolution['resTime'] == self.resolution_time:
+                        date_from = parser.parse(resolution['dataFromTime'])
+                        if harvester_well_data.from_time_data < date_from:
+                            harvester_well_data.from_time_data = date_from
+                            harvester_well_data.save()
 
         self.fetch_measurements(station, harvester_well_data, parameters)
 
