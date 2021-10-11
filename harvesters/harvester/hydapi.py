@@ -8,7 +8,7 @@ from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
-    Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
+    Well, WellLevelMeasurement
 )
 from gwml2.tasks.well import generate_measurement_cache
 
@@ -24,14 +24,10 @@ class Hydapi(BaseHarvester):
 
     def __init__(self, harvester: Harvester):
         self.parameters = {
-            1000: {
+            5130: {
                 'model': WellLevelMeasurement,
                 'parameter': TermMeasurementParameter.objects.get(
                     name=MEASUREMENT_PARAMETER_GROUND)
-            },
-            1003: {
-                'model': WellQualityMeasurement,
-                'parameter': TermMeasurementParameter.objects.get(name='T')
             }
         }
         super(Hydapi, self).__init__(harvester)
@@ -86,7 +82,15 @@ class Hydapi(BaseHarvester):
         except Well.DoesNotExist:
             return
 
-        harvester_well_data.from_time_data = self.max_oldest_time
+        # check latest date
+        latest_measurement = WellLevelMeasurement.objects.filter(
+            well=harvester_well_data.well,
+        ).order_by('-time').first()
+
+        if not latest_measurement:
+            harvester_well_data.from_time_data = self.max_oldest_time
+        else:
+            harvester_well_data.from_time_data = latest_measurement.time
         harvester_well_data.save()
 
         # check available parameters
@@ -97,21 +101,16 @@ class Hydapi(BaseHarvester):
             # just get the Instantenous
             parameters.append(series['parameter'])
             for resolution in series['resolutionList']:
-                if resolution['resTime'] == 0:
-                    date_from = parser.parse(resolution['dataFromTime'])
-                    if harvester_well_data.from_time_data < date_from:
-                        harvester_well_data.from_time_data = date_from
-                        harvester_well_data.save()
+                date_from = parser.parse(resolution['dataFromTime'])
+                if harvester_well_data.from_time_data < date_from:
+                    harvester_well_data.from_time_data = date_from
+                    harvester_well_data.save()
 
         self.fetch_measurements(station, harvester_well_data, parameters)
 
         # generate cache
         generate_measurement_cache(
             well.id, WellLevelMeasurement.__name__)
-        generate_measurement_cache(
-            well.id, WellQualityMeasurement.__name__)
-        generate_measurement_cache(
-            well.id, WellYieldMeasurement.__name__)
 
     def fetch_measurements(
             self,
@@ -145,7 +144,7 @@ class Hydapi(BaseHarvester):
                 params = [
                     'StationId={}'.format(station['stationId']),
                     'Parameter={}'.format(parameter),
-                    'ResolutionTime=0',
+                    'ResolutionTime=1440',
                     'ReferenceTime={from_date}/{to_date}'.format(
                         from_date=from_date_str,
                         to_date=to_date_str
@@ -161,12 +160,18 @@ class Hydapi(BaseHarvester):
                         unit = Unit.objects.get(name=data['unit'])
                         for measurement in data['observations']:
                             if measurement['value'] is not None:
+                                value = measurement['value']
+
+                                # specifically based on parameter
+                                if parameter == 5130:
+                                    value = abs(value)
+
                                 defaults = {
                                     'methodology': method,
                                     'parameter': measurement_parameter['parameter']
                                 }
                                 if model == WellLevelMeasurement:
-                                    defaults['value_in_m'] = measurement['value']
+                                    defaults['value_in_m'] = value
                                 obj = self._save_measurement(
                                     model,
                                     parser.parse(measurement['time']),
@@ -176,7 +181,7 @@ class Hydapi(BaseHarvester):
                                 if not obj.value:
                                     obj.value = Quantity.objects.create(
                                         unit=unit,
-                                        value=measurement['value']
+                                        value=value
                                     )
                                     obj.save()
 

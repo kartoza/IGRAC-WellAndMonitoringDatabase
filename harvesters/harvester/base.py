@@ -3,6 +3,7 @@ import requests
 import traceback
 import typing
 from abc import ABC, abstractmethod
+from django.contrib.gis.measure import D
 from django.contrib.gis.geos import Point
 from django.db.models.signals import post_save
 from gwml2.models.general import Quantity, Unit
@@ -135,25 +136,38 @@ class BaseHarvester(ABC):
     ):
         """ Save well """
         if self.harvester.save_missing_well:
-            well, created = Well.objects.get_or_create(
-                original_id=original_id,
-                location=Point(longitude, latitude),
-                defaults={
-                    'name': name,
-                    'organisation': self.harvester.organisation,
-                    'feature_type': feature_type if feature_type else self.harvester.feature_type,
-                    'public': self.harvester.public,
-                    'downloadable': self.harvester.downloadable,
-                    'description': description
-                }
-            )
+            raise Well.DoesNotExist()
+            # TODO:
+            #  we keep this for further test
+            # well, created = Well.objects.get_or_create(
+            #     original_id=original_id,
+            #     location=Point(longitude, latitude),
+            #     defaults={
+            #         'name': name,
+            #         'organisation': self.harvester.organisation,
+            #         'feature_type': feature_type if feature_type else self.harvester.feature_type,
+            #         'public': self.harvester.public,
+            #         'downloadable': self.harvester.downloadable,
+            #         'description': description
+            #     }
+            # )
         else:
-            well = Well.objects.get(
-                original_id=original_id,
-                location=Point(longitude, latitude)
+            wells = Well.objects.filter(
+                original_id=original_id
             )
-            well.organisation = self.harvester.organisation
-            well.save()
+            if wells.count() > 0:
+                wells = wells.filter(
+                    location__distance_lte=(
+                        Point(longitude, latitude), D(m=100)
+                    )
+                )
+            if wells.count() == 0 or wells.count() > 2:
+                raise Well.DoesNotExist()
+
+            well = wells.first()
+            if well.organisation != self.harvester.organisation:
+                well.organisation = self.harvester.organisation
+                well.save()
             created = False
 
         if created and ground_surface_elevation_masl:

@@ -60,7 +60,7 @@ harvest_data.short_description = 'Harvest data of the harvester'
 class HarvesterAdmin(admin.ModelAdmin):
     form = HarvesterForm
     inlines = [HarvesterAttributeInline, HarvesterLogInline, HarvesterWellDataInline]
-    list_display = ('name', 'organisation', 'is_run', 'active', 'harvester_class')
+    list_display = ('id', 'name', 'organisation', 'is_run', 'active', 'harvester_class')
     list_editable = ('active',)
     actions = (harvest_data,)
 
