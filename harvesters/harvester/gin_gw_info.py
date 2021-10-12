@@ -73,9 +73,11 @@ class GinGWInfo(BaseHarvester):
                             coordinates[1],
                             description=description
                         )
-                        self._measurements(well, harvester_well_data)
-                        generate_measurement_cache(
-                            well.id, WellLevelMeasurement.__name__)
+                        updated = self._measurements(well, harvester_well_data)
+                        if updated:
+                            print(f'{well.original_id} is updated: Generate cache')
+                            generate_measurement_cache(
+                                well.id, WellLevelMeasurement.__name__)
                     except Well.DoesNotExist:
                         continue
                 except AttributeError:
@@ -92,28 +94,37 @@ class GinGWInfo(BaseHarvester):
         self._update(
             'Checking measurements {} : url = {}'.format(well.original_id, url)
         )
+        updated = False
         try:
             response = requests.get(url, headers=self._headers)
             response.raise_for_status()
         except (
                 requests.exceptions.RequestException,
                 requests.exceptions.HTTPError) as e:
-            return
+            return updated
         else:
             # check latest date
             latest_measurement = WellLevelMeasurement.objects.filter(
                 well=harvester_well_data.well,
             ).order_by('-time').first()
 
+            last_time = None
             tree = ET.fromstring(response.content)
             measurements = tree.findall(f'{self.sos}observationData/{self.om}OM_Observation/{self.om}result/{self.wml2}MeasurementTimeSeries/{self.wml2}point')
             for measurement in measurements:
                 time = measurement.find(f'{self.wml2}MeasurementTVP/{self.wml2}time').text
                 value = measurement.find(f'{self.wml2}MeasurementTVP/{self.wml2}value').text
                 time = parser.parse(time)
-                if not latest_measurement or time > latest_measurement.time:
-                    print(f'save: {time}')
 
+                if not latest_measurement or time > latest_measurement.time:
+
+                    # just get per hour
+                    if last_time:
+                        difference = time - last_time
+                        if (difference.seconds // 3600) < 1:
+                            continue
+
+                    last_time = time
                     defaults = {
                         'parameter': self.parameter,
                         'value_in_m': value
@@ -130,3 +141,5 @@ class GinGWInfo(BaseHarvester):
                             value=value
                         )
                         obj.save()
+                    updated = True
+        return updated
