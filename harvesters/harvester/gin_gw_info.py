@@ -127,6 +127,7 @@ class GinGWInfo(BaseHarvester):
                         if (difference.seconds // 3600) < 1:
                             continue
 
+                    print(f'>>> Saving measurement {time}')
                     last_time = time
                     defaults = {
                         'parameter': self.parameter,
