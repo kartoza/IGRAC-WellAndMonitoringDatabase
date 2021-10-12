@@ -124,7 +124,7 @@ class GinGWInfo(BaseHarvester):
                     # just get per hour
                     if last_time:
                         difference = time - last_time
-                        if (difference.seconds // 3600) < 1:
+                        if (difference.seconds // 3600) < 4:
                             continue
 
                     print(f'>>> Saving measurement {time}')
