@@ -92,7 +92,7 @@ class GinGWInfo(BaseHarvester):
             f'REQUEST=GetObservation&VERSION=2.0.0&SERVICE=SOS' \
             f'&offering=GW_LEVEL&featureOfInterest={well.original_id}&observedProperty=urn:ogc:def:phenomenon:OGC:1.0.30:groundwaterlevel'
         self._update(
-            'Checking measurements {} : url = {}'.format(well.original_id, url)
+            '>>> Fetching measurements {} : url = {}'.format(well.original_id, url)
         )
         updated = False
         try:
@@ -103,6 +103,9 @@ class GinGWInfo(BaseHarvester):
                 requests.exceptions.HTTPError) as e:
             return updated
         else:
+            self._update(
+                '>>> Checking measurements {} : url = {}'.format(well.original_id, url)
+            )
             # check latest date
             latest_measurement = WellLevelMeasurement.objects.filter(
                 well=harvester_well_data.well,
