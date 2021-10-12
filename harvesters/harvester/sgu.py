@@ -24,7 +24,7 @@ class SguAPI(BaseHarvester):
 
     }
 
-    def __init__(self, harvester: Harvester, replace: bool = True, original_id: str = None):
+    def __init__(self, harvester: Harvester, replace: bool = False, original_id: str = None):
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL)

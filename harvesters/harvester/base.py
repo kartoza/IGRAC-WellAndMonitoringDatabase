@@ -32,7 +32,7 @@ class BaseHarvester(ABC):
     """ Abstract class for harvester """
     attributes = {}
 
-    def __init__(self, harvester: Harvester, replace: bool = True, original_id: str = None):
+    def __init__(self, harvester: Harvester, replace: bool = False, original_id: str = None):
         self.unit_m = Unit.objects.get(name='m')
         self.replace = replace
         self.original_id = original_id
@@ -154,8 +154,6 @@ class BaseHarvester(ABC):
             #     }
             # )
         else:
-            # TODO:
-            #  uncomment this if the well is just using location
             wells = Well.objects.filter(
                 original_id=original_id
             )
@@ -176,7 +174,8 @@ class BaseHarvester(ABC):
                 ).delete()
                 well.number_of_measurements = 0
                 well.save()
-            print(f'Found well : {well.id}')
+
+            print(f'Found well : {well.id} - {well.original_id}')
             if well.organisation != self.harvester.organisation:
                 well.organisation = self.harvester.organisation
                 well.save()

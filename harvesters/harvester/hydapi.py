@@ -23,7 +23,7 @@ class Hydapi(BaseHarvester):
     parameters = {}
     resolution_time = 1440
 
-    def __init__(self, harvester: Harvester, replace: bool = True, original_id: str = None):
+    def __init__(self, harvester: Harvester, replace: bool = False, original_id: str = None):
         self.parameters = {
             5130: {
                 'model': WellLevelMeasurement,
