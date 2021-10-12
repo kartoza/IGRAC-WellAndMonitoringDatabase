@@ -147,7 +147,8 @@ class BaseHarvester(ABC):
                     Point(longitude, latitude), D(m=200)
                 )
             )
-        if wells.count() > 2:
+        # if the wells is 2 or more found, we skip it
+        if wells.count() >= 2:
             raise Well.DoesNotExist()
 
         well = wells.first()
