@@ -137,37 +137,43 @@ class BaseHarvester(ABC):
             description: typing.Optional[str] = None
     ):
         """ Save well """
-        if self.harvester.save_missing_well:
-            raise Well.DoesNotExist()
-            # TODO:
-            #  we keep this for further test
-            # well, created = Well.objects.get_or_create(
-            #     original_id=original_id,
-            #     location=Point(longitude, latitude),
-            #     defaults={
-            #         'name': name,
-            #         'organisation': self.harvester.organisation,
-            #         'feature_type': feature_type if feature_type else self.harvester.feature_type,
-            #         'public': self.harvester.public,
-            #         'downloadable': self.harvester.downloadable,
-            #         'description': description
-            #     }
-            # )
-        else:
-            wells = Well.objects.filter(
-                original_id=original_id
-            )
-            if wells.count() > 0:
-                wells = wells.filter(
-                    location__distance_lte=(
-                        Point(longitude, latitude), D(m=200)
-                    )
+        created = False
+        wells = Well.objects.filter(
+            original_id=original_id
+        )
+        if wells.count() > 0:
+            wells = wells.filter(
+                location__distance_lte=(
+                    Point(longitude, latitude), D(m=200)
                 )
-            if wells.count() == 0 or wells.count() > 2:
+            )
+        if wells.count() > 2:
+            raise Well.DoesNotExist()
+
+        well = wells.first()
+
+        if self.harvester.save_missing_well:
+            if not well:
+                well, created = Well.objects.get_or_create(
+                    original_id=original_id,
+                    location=Point(longitude, latitude),
+                    defaults={
+                        'name': name,
+                        'organisation': self.harvester.organisation,
+                        'feature_type': feature_type if feature_type else self.harvester.feature_type,
+                        'public': self.harvester.public,
+                        'downloadable': self.harvester.downloadable,
+                        'description': description
+                    }
+                )
+                print(f'Well created : {well.id} - {well.original_id}')
+            else:
+                print(f'Found well : {well.id} - {well.original_id}')
+        else:
+            if not well:
                 raise Well.DoesNotExist()
 
-            well = wells.first()
-
+            print(f'Found well : {well.id} - {well.original_id}')
             if self.replace:
                 WellLevelMeasurement.objects.filter(
                     well=well,
@@ -175,7 +181,6 @@ class BaseHarvester(ABC):
                 well.number_of_measurements = 0
                 well.save()
 
-            print(f'Found well : {well.id} - {well.original_id}')
             if well.organisation != self.harvester.organisation:
                 well.organisation = self.harvester.organisation
                 well.save()
