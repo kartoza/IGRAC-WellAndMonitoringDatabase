@@ -162,8 +162,7 @@ class BaseHarvester(ABC):
                         'organisation': self.harvester.organisation,
                         'feature_type': feature_type if feature_type else self.harvester.feature_type,
                         'public': self.harvester.public,
-                        'downloadable': self.harvester.downloadable,
-                        'description': description
+                        'downloadable': self.harvester.downloadable
                     }
                 )
                 print(f'Well created : {well.id} - {well.original_id}')
