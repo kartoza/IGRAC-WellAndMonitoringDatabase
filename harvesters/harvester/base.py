@@ -3,6 +3,7 @@ import requests
 import traceback
 import typing
 from abc import ABC, abstractmethod
+from django.contrib.auth import get_user_model
 from django.contrib.gis.measure import D
 from django.contrib.gis.geos import Point
 from django.db.models.signals import post_save
@@ -20,6 +21,8 @@ from gwml2.utilities import temp_disconnect_signal
 from ..models.harvester import (
     Harvester, HarvesterLog, RUNNING, ERROR, DONE
 )
+
+User = get_user_model()
 
 
 class HarvestingError(Exception):
@@ -155,6 +158,11 @@ class BaseHarvester(ABC):
 
         if self.harvester.save_missing_well:
             if not well:
+                user_id = None
+                try:
+                    user_id = User.objects.get(username='admin').id
+                except User.DoesNotExist:
+                    pass
                 well, created = Well.objects.get_or_create(
                     original_id=original_id,
                     location=Point(longitude, latitude),
@@ -163,7 +171,9 @@ class BaseHarvester(ABC):
                         'organisation': self.harvester.organisation,
                         'feature_type': feature_type if feature_type else self.harvester.feature_type,
                         'public': self.harvester.public,
-                        'downloadable': self.harvester.downloadable
+                        'downloadable': self.harvester.downloadable,
+                        'created_by': user_id,
+                        'last_edited_by': user_id
                     }
                 )
                 print(f'Well created : {well.id} - {well.original_id}')
