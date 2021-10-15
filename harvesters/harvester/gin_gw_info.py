@@ -112,7 +112,10 @@ class GinGWInfo(BaseHarvester):
             ).order_by('-time').first()
 
             last_time = None
-            tree = ET.fromstring(response.content)
+            try:
+                tree = ET.fromstring(response.content)
+            except ET.ParseError:
+                return updated
             measurements = tree.findall(f'{self.sos}observationData/{self.om}OM_Observation/{self.om}result/{self.wml2}MeasurementTimeSeries/{self.wml2}point')
             for measurement in measurements:
                 time = measurement.find(f'{self.wml2}MeasurementTVP/{self.wml2}time').text
