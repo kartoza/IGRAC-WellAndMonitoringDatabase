@@ -127,3 +127,100 @@
         transform: rotate(360deg);
     }
 }
+
+/* TRENDLINE */
+.measurement-chart-plugin-trendline {
+    display: flex;
+    padding: 10px;
+    font-size: 14px;
+    font-family: nimbus-sans, sans-serif;
+}
+
+.measurement-chart-plugin-trendline i {
+    cursor: pointer;
+}
+
+.measurement-chart-plugin-trendline i:hover {
+    opacity: 0.5;
+}
+
+.measurement-chart-plugin-trendline .step-title {
+    display: inline-block;
+    width: 75px;
+    margin-top: 13px;
+}
+
+.measurement-chart-plugin-trendline .step-title .step-title-input {
+    position: relative;
+}
+
+.measurement-chart-plugin-trendline .step-title .step-title-input input {
+    cursor: pointer;
+    color: rgba(0, 0, 0, 0);
+    background: rgba(255, 255, 255, 0);
+    border: none !important;
+    height: 15px;
+    left: -1px;
+    padding: 0 !important;
+    position: absolute;
+    width: 14px;
+}
+
+.measurement-chart-plugin-trendline .step-title .step-title-input input:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.measurement-chart-plugin-trendline .step-title .step-title-input input:focus {
+    outline: none;
+}
+
+.measurement-chart-plugin-trendline .step-title i {
+    color: green;
+}
+
+.measurement-chart-plugin-trendline .steps-list {
+    width: 95%;
+    flex-grow: 1;
+    display: inline-block;
+    white-space: nowrap;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.measurement-chart-plugin-trendline .steps-list .step-data {
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.measurement-chart-plugin-trendline .steps-list .step-data i {
+    margin-left: 5px;
+    color: red;
+}
+
+.measurement-chart-plugin-trendline .steps-list .step-data input {
+    border: none !important;
+    cursor: pointer;
+    width: 125px;
+}
+
+.measurement-chart-plugin-trendline .steps-list .step-data input:focus {
+    outline: none;
+}
+
+/* SCROLL */
+.measurement-chart-plugin-trendline .steps-list::-webkit-scrollbar {
+    height: 5px;
+}
+
+.measurement-chart-plugin-trendline .steps-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+}
+
+.measurement-chart-plugin-trendline .steps-list::-webkit-scrollbar-track {
+    background: #eee;
+}
+
+.measurement-chart-plugin-trendline .steps-list::-webkit-scrollbar-thumb:hover {
+    background: #888;
+}

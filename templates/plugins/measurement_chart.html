@@ -18,4 +18,14 @@
             <div class="loader">Loading...</div>
         </div>
     </div>
+    <div id="{{ identifier }}-step" class="measurement-chart-plugin-trendline" style="display: none">
+        <div class="step-title">Steps
+            <span class="step-title-input">
+                <input id="{{ identifier }}-step-time" type="text" name="time">
+                <i class="fa fa-plus-square" aria-hidden="true" title="Click to select time in calender to create a step time on the graph."></i>
+            </span>
+        </div>
+        <div id="{{ identifier }}-step-list" class="steps-list">
+        </div>
+    </div>
 </div>
