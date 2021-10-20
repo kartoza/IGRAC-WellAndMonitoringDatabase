@@ -146,13 +146,14 @@ function getTrendlines(chartData, steps) {
         const defaultLastStep = chartData[chartData.length - 1][0] + 10;
 
         // we need to construct steps
-        steps = steps.sort();
         if (steps.length === 0) {
             steps = [defaultFirstStep, defaultLastStep]
         } else {
             steps = [defaultFirstStep].concat(steps).concat([defaultLastStep]);
         }
-        steps = steps.sort();
+        steps = steps.sort(function (a, b) {
+            return a - b;
+        });
 
         let data = []
         let prevStep = null;
@@ -385,7 +386,9 @@ let MeasurementChartObj = function (
             that.steps.push(newStep);
 
             const stepsString = that.stepsString.sort();
-            const steps = that.steps.sort();
+            const steps = that.steps.sort(function (a, b) {
+                return a - b;
+            });
             that.$stepList.html('');
             steps.forEach(function (item, idx) {
                 newStepElement(steps[idx], stepsString[idx]);
