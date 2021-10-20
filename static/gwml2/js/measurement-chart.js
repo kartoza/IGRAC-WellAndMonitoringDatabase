@@ -235,7 +235,10 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, paramet
                     }
                 },
                 threshold: null,
-                color: '#24619d'
+                color: '#24619d',
+                tooltip: {
+                    valueDecimals: 3
+                },
             },
             {
                 name: 'Trend Line',

@@ -93,7 +93,16 @@ def post_save_measurement(sender, instance, **kwargs):
     """
     try:
         instance.well.updated()
-        generate_measurement_cache.delay(
-            instance.well.id, sender.__name__)
     except Well.DoesNotExist:
         pass
+
+
+@receiver(post_save, sender=WellLevelMeasurement)
+@receiver(post_save, sender=WellQualityMeasurement)
+@receiver(post_save, sender=WellYieldMeasurement)
+def post_save_measurement_for_cache(sender, instance, **kwargs):
+    """ when changed
+    :type instance: WellLevelMeasurement
+    """
+    generate_measurement_cache.delay(
+        instance.well.id, sender.__name__)

@@ -11,3 +11,6 @@ from gwml2.admin.well_management import *
 from gwml2.admin.term import *
 from gwml2.admin.well import *
 from gwml2.admin.upload_session import *
+
+# harvesters
+from gwml2.harvesters.admin import *
