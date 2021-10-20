@@ -1,4 +1,4 @@
-from datetime import datetime
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -10,7 +10,7 @@ class CreationMetadata(models.Model):
     """ Metadata for creations"""
     created_at = models.DateTimeField(
         _('Created at'),
-        default=datetime.now
+        default=timezone.now
     )
     created_by = models.IntegerField(
         _('Created by'),
@@ -18,7 +18,7 @@ class CreationMetadata(models.Model):
     )
     last_edited_at = models.DateTimeField(
         _('Last edited at'),
-        default=datetime.now
+        default=timezone.now
     )
     last_edited_by = models.IntegerField(
         _('Last edited by'),

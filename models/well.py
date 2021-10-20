@@ -236,6 +236,11 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                             else:
                                 parameter = measurement.parameter.name
 
+                    try:
+                        value = round(value, 3)
+                    except ValueError:
+                        pass
+
                     output['data'].append({
                         'dt': measurement.time.timestamp(),
                         'par': parameter,
