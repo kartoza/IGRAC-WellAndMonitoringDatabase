@@ -401,7 +401,7 @@ let MeasurementChartObj = function (
         const hour = ("0" + d.getHours()).slice(-2);
         const minute = ("0" + d.getMinutes()).slice(-2);
         const second = ("0" + d.getSeconds()).slice(-2);
-        const newStepString = `${year}-${month}-${day} ${hour}-${minute}-${second}`;
+        const newStepString = `${year}-${month}-${day} ${hour}:${minute}:${second}`;
 
         const newStep = d.getTime();
         if (!that.stepsString.includes(newStepString)) {

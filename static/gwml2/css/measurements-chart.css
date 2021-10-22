@@ -135,30 +135,15 @@
     border: 1px solid #ddd;
 }
 
-.measurement-chart-plugin-trendline .help {
-    background-color: #eee;
-    color: #F48020;
-    padding: 10px;
-    font-size: 14px;
-}
-
 .measurement-chart-plugin-trendline .result {
     color: #28619D;
     border-top: 1px solid #ddd;
     padding: 6px 10px;
 }
 
-.measurement-chart-plugin-trendline i {
-    cursor: pointer;
-}
-
-.measurement-chart-plugin-trendline i:hover {
-    opacity: 0.5;
-}
-
 .measurement-chart-plugin-trendline .step-title {
     display: inline-block;
-    width: 60px;
+    width: 84px;
     height: 26px;
     margin-top: 7px;
 }
@@ -187,8 +172,13 @@
     outline: none;
 }
 
-.measurement-chart-plugin-trendline .step-title i {
+.measurement-chart-plugin-trendline .step-title .fa-plus-square {
     color: green;
+    cursor: pointer;
+}
+
+.measurement-chart-plugin-trendline .step-title .fa-plus-square:hover {
+    opacity: 0.5;
 }
 
 .measurement-chart-plugin-trendline .steps-list {
@@ -209,6 +199,11 @@
 .measurement-chart-plugin-trendline .steps-list .step-data i {
     margin-left: 5px;
     color: red;
+    cursor: pointer;
+}
+
+.measurement-chart-plugin-trendline .steps-list .step-data i:hover {
+    opacity: 0.5;
 }
 
 .measurement-chart-plugin-trendline .steps-list .step-data input {

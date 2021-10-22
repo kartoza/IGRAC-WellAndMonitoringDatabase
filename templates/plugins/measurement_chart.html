@@ -25,14 +25,12 @@
         </div>
     </div>
     <div id="{{ identifier }}-step" class="measurement-chart-plugin-trendline" style="display: none">
-        <div class="help">
-            <span>
-                To use step trendline, click on the graph or [+] button below and select a date of where the step data happens.
-                When a date added, it will show below and the date can be changed by click the date on step list below.
-            </span>
-        </div>
         <div style="display: flex; padding: 1px 10px;padding-top: 4px;">
-            <div class="step-title">Steps
+            <div class="step-title">
+                <i class="fa fa-question-circle" aria-hidden="true"
+                   title="To use step trendline, click on the graph or [+] button below and select a date of where the step data happens. When a date added, it will show below and the date can be changed by click the date on step list below.">
+                </i>
+                Steps &nbsp;
                 <span class="step-title-input">
                 <input id="{{ identifier }}-step-time" type="text" name="time">
                 <i class="fa fa-plus-square" aria-hidden="true" title="Click to select time in calender to create a step time on the graph."></i>
