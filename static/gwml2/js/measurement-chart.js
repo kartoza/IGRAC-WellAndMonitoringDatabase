@@ -157,6 +157,7 @@ function getTrendlines(chartData, steps) {
 
         let data = []
         let prevStep = null;
+        let jumps = [];
         steps.forEach(function (step) {
             if (prevStep) {
                 const filteredData = chartData.filter(function (row) {
@@ -167,18 +168,21 @@ function getTrendlines(chartData, steps) {
                 const cleanData = filteredData.map(item => {
                     return [item[0], average]
                 })
+                if (cleanData[0] && cleanData[cleanData.length - 1]) {
+                    jumps.push([cleanData[0], cleanData[cleanData.length - 1]]);
+                }
                 data = data.concat(cleanData);
             }
             prevStep = step
         });
-        return data
+        return [data, jumps]
     } catch (e) {
         console.log(e)
-        return []
+        return [[], []]
     }
 }
 
-function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries) {
+function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries, onChartClicked) {
     let title = '';
     switch (identifier) {
         case 'WellLevelMeasurement':
@@ -199,7 +203,12 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
     }
     const options = {
         chart: {
-            zoomType: 'x'
+            zoomType: 'x',
+            events: {
+                click: function (event) {
+                    onChartClicked(new Date(event.xAxis[0].value))
+                }
+            }
         },
         title: {
             text: title
@@ -246,10 +255,9 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
         },
         plotOptions: {
             series: {
-                showInLegend: true
+                showInLegend: false
             }
         },
-
         series: [
             {
                 id: 'value',
@@ -362,6 +370,7 @@ let MeasurementChartObj = function (
     this.$dataTo = $loadMore.closest('.measurement-chart-plugin').find('#data-to');
     this.$units = $units;
     this.$parameters = $parameters;
+    this.$trend = $(`#${identifier}-trend`);
     this.data = null;
     this.chart = null;
     this.unitTo = null;
@@ -371,16 +380,30 @@ let MeasurementChartObj = function (
     this.stepsString = [];
     this.$stepTimeSelection = $(`#${identifier}-step-time`);
     this.$stepList = $(`#${identifier}-step-list`);
+    this.$stepDescription = $(`#${identifier}-step-description`);
     this.toggleSeries = {
         value: true,
         trend: true,
         step: false
     };
+    this.isTrendLine = false;
 
     const that = this;
     // The step event initiation
     this.$stepTimeSelection.attr('autocomplete', 'off');
-    const onNewStep = function (newStep, newStepString) {
+    const onNewStep = function (stepInput) {
+        const d = new Date(stepInput)
+        d.setSeconds(0);
+
+        const year = d.getFullYear();
+        const month = ("0" + (d.getMonth() + 1)).slice(-2);
+        const day = ("0" + d.getDate()).slice(-2);
+        const hour = ("0" + d.getHours()).slice(-2);
+        const minute = ("0" + d.getMinutes()).slice(-2);
+        const second = ("0" + d.getSeconds()).slice(-2);
+        const newStepString = `${year}-${month}-${day} ${hour}-${minute}-${second}`;
+
+        const newStep = d.getTime();
         if (!that.stepsString.includes(newStepString)) {
             that.stepsString.push(newStepString);
             that.steps.push(newStep);
@@ -424,7 +447,7 @@ let MeasurementChartObj = function (
                 const newStep = new Date(dp).getTime();
                 const val = $input.val();
                 if (val) {
-                    onNewStep(newStep, val + ':00');
+                    onNewStep(newStep);
                 }
             }
         })
@@ -436,7 +459,7 @@ let MeasurementChartObj = function (
             const newStep = new Date(dp).getTime();
             const val = $input.val();
             if (val) {
-                onNewStep(newStep, val + ':00');
+                onNewStep(newStep);
             }
         }
     })
@@ -502,14 +525,41 @@ let MeasurementChartObj = function (
             $(`#${identifier}-step`).hide();
             return
         }
-        $(`#${identifier}-step`).show();
 
         // calculate the step trendlines
-        const trenlineData = getTrendlines(chartData, this.steps);
+        const trenlineDataOutput = getTrendlines(chartData, this.steps);
+        const trenlineData = trenlineDataOutput[0];
+        const trenlineJumps = trenlineDataOutput[1];
+
+        // create jumps notification
+        const differences = [];
+        trenlineJumps.forEach(function (jump, idx) {
+            try {
+                differences.push((trenlineJumps[idx][0][1] - trenlineJumps[idx - 1][1][1]).toFixed(2));
+            } catch (e) {
+                console.log(e)
+            }
+        })
+        that.$stepDescription.html('');
+        that.$stepDescription.hide();
+        if (differences.length === 1) {
+            that.$stepDescription.html('There is difference : ' + differences.join(', '));
+            that.$stepDescription.show();
+        } else if (differences.length > 1) {
+            that.$stepDescription.html('There are differences : ' + differences.join(', '));
+            that.$stepDescription.show();
+        }
+
         this.chart = renderMeasurementChart(
             this.identifier, this.chart,
             cleanData[this.parameterTo],
-            'Time', this.parameterTo, trenlineData, this.toggleSeries)
+            'Time', this.parameterTo, trenlineData, this.toggleSeries,
+            function (date) {
+                // when chart is clicked
+                if (that.isTrendLine) {
+                    onNewStep(date.getTime());
+                }
+            })
         this.$loading.hide();
     };
 
@@ -593,4 +643,35 @@ let MeasurementChartObj = function (
         return false;
     })
     $parameters.trigger('change');
+
+    this.$trend.change(function () {
+        const chart = that.chart;
+        $(`#${identifier}-step`).hide();
+        that.isTrendLine = false;
+        if (chart) {
+            chart.series[0].show();
+            switch ($(this).val()) {
+                case 'both':
+                    chart.series[1].show();
+                    chart.series[2].show();
+                    $(`#${identifier}-step`).show();
+                    that.isTrendLine = true;
+                    break
+                case 'linear':
+                    chart.series[1].show();
+                    chart.series[2].hide();
+                    break
+                case 'step':
+                    chart.series[1].hide();
+                    chart.series[2].show();
+                    $(`#${identifier}-step`).show();
+                    that.isTrendLine = true;
+                    break
+                case 'no':
+                    chart.series[1].hide();
+                    chart.series[2].hide();
+                    break
+            }
+        }
+    })
 }

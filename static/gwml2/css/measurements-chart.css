@@ -130,10 +130,22 @@
 
 /* TRENDLINE */
 .measurement-chart-plugin-trendline {
-    display: flex;
-    padding: 10px;
     font-size: 14px;
     font-family: nimbus-sans, sans-serif;
+    border: 1px solid #ddd;
+}
+
+.measurement-chart-plugin-trendline .help {
+    background-color: #eee;
+    color: #F48020;
+    padding: 10px;
+    font-size: 14px;
+}
+
+.measurement-chart-plugin-trendline .result {
+    background-color: #28619D;
+    color: white;
+    padding: 10px;
 }
 
 .measurement-chart-plugin-trendline i {
@@ -146,8 +158,9 @@
 
 .measurement-chart-plugin-trendline .step-title {
     display: inline-block;
-    width: 75px;
-    margin-top: 13px;
+    width: 60px;
+    height: 26px;
+    margin-top: 7px;
 }
 
 .measurement-chart-plugin-trendline .step-title .step-title-input {
@@ -184,13 +197,13 @@
     display: inline-block;
     white-space: nowrap;
     overflow-x: auto;
-    padding-bottom: 5px;
 }
 
 .measurement-chart-plugin-trendline .steps-list .step-data {
     display: inline-block;
-    padding: 10px;
+    padding: 5px;
     border: 1px solid #ddd;
+    border-radius: 5px;
 }
 
 .measurement-chart-plugin-trendline .steps-list .step-data i {
