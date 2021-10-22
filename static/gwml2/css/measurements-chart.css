@@ -143,9 +143,9 @@
 }
 
 .measurement-chart-plugin-trendline .result {
-    background-color: #28619D;
-    color: white;
-    padding: 10px;
+    color: #28619D;
+    border-top: 1px solid #ddd;
+    padding: 6px 10px;
 }
 
 .measurement-chart-plugin-trendline i {
