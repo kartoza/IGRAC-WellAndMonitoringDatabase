@@ -32,15 +32,6 @@ class HarvesterLogInline(admin.TabularInline):
         return False
 
 
-class HarvesterWellDataInline(admin.TabularInline):
-    model = HarvesterWellData
-    readonly_fields = ('well', 'measurements_found', 'from_time_data', 'to_time_data')
-    extra = 0
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
 class HarvesterForm(forms.ModelForm):
     harvester_class = forms.ChoiceField(choices=HARVESTERS)
 
@@ -59,10 +50,17 @@ harvest_data.short_description = 'Harvest data of the harvester'
 
 class HarvesterAdmin(admin.ModelAdmin):
     form = HarvesterForm
-    inlines = [HarvesterAttributeInline, HarvesterLogInline, HarvesterWellDataInline]
+    inlines = [HarvesterAttributeInline, HarvesterLogInline]
     list_display = ('id', 'name', 'organisation', 'is_run', 'active', 'harvester_class')
     list_editable = ('active',)
     actions = (harvest_data,)
 
 
+class HarvesterWellDataAdmin(admin.ModelAdmin):
+    list_display = ('harvester', 'well', 'measurements_found', 'from_time_data', 'to_time_data')
+    readonly_fields = ('well', 'measurements_found', 'from_time_data', 'to_time_data')
+    list_filter = ('harvester',)
+
+
 admin.site.register(Harvester, HarvesterAdmin)
+admin.site.register(HarvesterWellData, HarvesterWellDataAdmin)
