@@ -66,6 +66,9 @@ class Harvester(models.Model):
     class Meta:
         db_table = 'harvester'
 
+    def __str__(self):
+        return self.harvester_class
+
     @property
     def get_harvester_class(self):
         return import_string(self.harvester_class)
@@ -179,3 +182,4 @@ class HarvesterWellData(models.Model):
 
     class Meta:
         db_table = 'harvester_well_data'
+        verbose_name_plural = 'Harvester well data'
