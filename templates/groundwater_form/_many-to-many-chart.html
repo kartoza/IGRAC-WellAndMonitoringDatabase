@@ -1,6 +1,11 @@
 {# THIS IS MANY TO MANY HTML #}
 {% load staticfiles %}
 {% load gwml2_forms %}
+<style>
+    #canvas {
+        margin-top: 10px;
+    }
+</style>
 {% if use_chart and theform.url_chart %}
     <div id="{{ id }}_chart" class="chart measurement-chart">
         {% include "plugins/measurement_chart.html" with identifier=id loadMore='yes' %}

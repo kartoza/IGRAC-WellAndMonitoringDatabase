@@ -481,7 +481,11 @@
                 for (var i = 0, elements = (this.currentElements = this.elements()); elements[i]; i++) {
                     if (this.findByName(elements[i].name).length != undefined && this.findByName(elements[i].name).length > 1) {
                         for (var cnt = 0; cnt < this.findByName(elements[i].name).length; cnt++) {
-                            this.check(this.findByName(elements[i].name)[cnt]);
+                            try {
+                                this.check(this.findByName(elements[i].name)[cnt]);
+                            } catch (e) {
+                                console.log(e)
+                            }
                         }
                     } else {
                         this.check(elements[i]);
