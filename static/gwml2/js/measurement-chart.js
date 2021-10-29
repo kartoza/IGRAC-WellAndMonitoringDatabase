@@ -537,7 +537,6 @@ let MeasurementChartObj = function (
             try {
                 differences.push((trenlineJumps[idx][0][1] - trenlineJumps[idx - 1][1][1]).toFixed(2));
             } catch (e) {
-                console.log(e)
             }
         })
         that.$stepDescription.html('');
