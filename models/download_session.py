@@ -8,6 +8,7 @@ import uuid
 from datetime import datetime
 from django.db import models
 from django.dispatch import receiver
+from gwml2.models.well import Well
 
 
 class DownloadSession(models.Model):
@@ -44,6 +45,11 @@ class DownloadSession(models.Model):
 
     obsolete = models.BooleanField(
         default=False
+    )
+
+    well = models.ForeignKey(
+        Well,
+        null=True, blank=True, on_delete=models.CASCADE
     )
 
     # noinspection PyClassicStyleClass

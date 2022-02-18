@@ -61,10 +61,17 @@
                     <div class="form-title">
                         {% if not read_only %}
                             <button id="form-submit" class="pull-right" type="submit">{% trans "Submit" %}</button>
-                        {% elif user.is_staff %}
-                            <a id="form-submit" class="pull-right" href="{% url 'well_form' well.id %}">
-                                {% trans "Go to form" %}
-                            </a>
+                        {% else %}
+                            {% if user.is_staff %}
+                                <a id="form-submit" class="pull-right" href="{% url 'well_form' well.id %}">
+                                    {% trans "Go to form" %}
+                                </a>
+                            {% endif %}
+                            {% if well.downloadable %}
+                                <a id="download-data" class="pull-right">
+                                    {% trans "Download data" %}
+                                </a>
+                            {% endif %}
                         {% endif %}
                     </div>
                     {% csrf_token %}
@@ -180,7 +187,22 @@
                 });
             {% endif %}
             $('.leaflet-control').show()
-            $('#overlay-loading').hide()
+            $('#overlay-loading').hide();
+
+
+            const download_url = "{% url 'one_well_download' well.id %}";
+            $('#download-data').click(function () {
+                $.ajax({
+                    url: download_url,
+                    success: function (data, textStatus, request) {
+                        window.location = "{% url 'download_list_view' %}";
+                    },
+                    error: function (error, textStatus, request) {
+                        window.location = "{% url 'download_list_view' %}";
+                    }
+                })
+                return;
+            })
         });
     </script>
 {% endblock extra_script %}

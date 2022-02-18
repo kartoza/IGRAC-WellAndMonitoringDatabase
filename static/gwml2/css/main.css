@@ -272,7 +272,6 @@ h2.section-title {
     box-sizing: border-box;
     top: 21px;
     right: 29px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .abstract-nav::after {
@@ -284,19 +283,31 @@ h2.section-title {
     margin-bottom: 20px;
 }
 
-#form-submit {
+#form-submit,
+#download-data {
     padding: 10px 30px;
     color: white;
     background: #F48020;
     border: none;
     text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-#form-submit:hover {
+#download-data {
+    background: white;
+    color: #F48020;
+    margin-right: 20px;
+}
+
+#form-submit:hover,
+#download-data:hover {
+    color: white;
     background: #f29e59;
 }
 
-#form-submit:disabled {
+#form-submit:disabled,
+#download-data:disabled {
     cursor: progress;
     opacity: 0.7;
 }

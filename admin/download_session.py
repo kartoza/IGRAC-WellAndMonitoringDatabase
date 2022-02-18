@@ -15,7 +15,8 @@ class DownloadSessionAdmin(admin.ModelAdmin):
         'start_at',
         'filters',
         'progress',
-        'obsolete'
+        'obsolete',
+        'well'
     )
     list_editable = ('obsolete',)
 
