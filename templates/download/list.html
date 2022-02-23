@@ -50,6 +50,7 @@
                 <th>{% trans "Detail" %}</th>
                 <th>{% trans "Downloaded at" %}</th>
                 <th>{% trans "Progress" %} / {% trans "File" %}</th>
+                <th>{% trans "Well" %} </th>
                 <th></th>
             </tr>
             </thead>
@@ -70,8 +71,10 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if object.session.obsolete %}
-                            <span style="font-style: italic; color: red; opacity: 0.7">{% trans "Data out of date" %}</span>
+                        {% if object.session.well %}
+                            <a href="{% url "well_view" object.session.well.id %}">{{ object.session.well }}</a>
+                        {% else %}
+                            All wells
                         {% endif %}
                     </td>
                 </tr>

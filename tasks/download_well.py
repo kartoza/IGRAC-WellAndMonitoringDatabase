@@ -140,7 +140,7 @@ def filter_wells_to_download(filters):
 
 
 @shared_task(bind=True, queue='update')
-def download_well(self, download_session_id, filters=None):
+def download_well(self, download_session_id, filters=None, include_monitoring=False):
     DJANGO_ROOT = os.path.dirname(
         os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
@@ -150,6 +150,11 @@ def download_well(self, download_session_id, filters=None):
 
     logger.debug('----- begin download  -------')
     wells = filter_wells_to_download(filters)
+
+    # if the download session is for specific well
+    if download_session.well:
+        wells = wells.filter(id=download_session.well.id)
+
     total_records = wells.count()
     logger.debug('Found {} wells'.format(total_records))
 
@@ -167,7 +172,6 @@ def download_well(self, download_session_id, filters=None):
     drilling_and_construction_filename = 'drilling_and_construction.xlsx'
     drilling_and_construction_file = os.path.join(folder, drilling_and_construction_filename)
     monitoring_filename = 'monitoring_data.xlsx'
-    monitoring_file = os.path.join(folder, monitoring_filename)
 
     # copy template to actual folder
     copyfile(
@@ -178,10 +182,6 @@ def download_well(self, download_session_id, filters=None):
         os.path.join(
             DJANGO_ROOT, 'gwml2', 'static', 'download_template', drilling_and_construction_filename),
         drilling_and_construction_file)
-    copyfile(
-        os.path.join(
-            DJANGO_ROOT, 'gwml2', 'static', 'download_template', monitoring_filename),
-        monitoring_file)
 
     # open sheet
     well_book = load_workbook(wells_file)
@@ -195,10 +195,22 @@ def download_well(self, download_session_id, filters=None):
     stratigraphic_sheet = drilling_and_construction_book['Stratigraphic Log']
     structure_sheet = drilling_and_construction_book['Structures']
 
-    monitor_book = load_workbook(monitoring_file)
-    level_measurement_sheet = monitor_book['Groundwater Level']
-    quality_measurement_sheet = monitor_book['Groundwater Quality']
-    yield_measurement_sheet = monitor_book['Abstraction-Discharge']
+    # For monitoring data
+    monitor_book = None
+    monitoring_file = None
+    level_measurement_sheet = None
+    quality_measurement_sheet = None
+    yield_measurement_sheet = None
+    if include_monitoring:
+        monitoring_file = os.path.join(folder, monitoring_filename)
+        copyfile(
+            os.path.join(
+                DJANGO_ROOT, 'gwml2', 'static', 'download_template', monitoring_filename),
+            monitoring_file)
+        monitor_book = load_workbook(monitoring_file)
+        level_measurement_sheet = monitor_book['Groundwater Level']
+        quality_measurement_sheet = monitor_book['Groundwater Quality']
+        yield_measurement_sheet = monitor_book['Abstraction-Discharge']
 
     for index, well in enumerate(wells):
         process_percent = (index / total_records) * 100
@@ -325,41 +337,44 @@ def download_well(self, download_session_id, filters=None):
             well.management.license.description if well.management and well.management.license else '',
         ])
 
-        # level
-        for measurement in well.welllevelmeasurement_set.all():
-            level_measurement_sheet.append([
-                well.original_id,
-                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                measurement.parameter.__str__() if measurement.parameter else '',
-                measurement.value.value if measurement.value else '',
-                measurement.value.unit.name if measurement.value and measurement.value.unit else '',
-                measurement.methodology
-            ])
+        if include_monitoring:
+            # level
+            for measurement in well.welllevelmeasurement_set.all():
+                level_measurement_sheet.append([
+                    well.original_id,
+                    measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    measurement.parameter.__str__() if measurement.parameter else '',
+                    measurement.value.value if measurement.value else '',
+                    measurement.value.unit.name if measurement.value and measurement.value.unit else '',
+                    measurement.methodology
+                ])
 
-        # quality
-        for measurement in well.wellqualitymeasurement_set.all():
-            quality_measurement_sheet.append([
-                well.original_id,
-                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                measurement.parameter.__str__() if measurement.parameter else '',
-                measurement.value.value if measurement.value else '',
-                measurement.value.unit.name if measurement.value and measurement.value.unit else '',
-                measurement.methodology
-            ])
-        # yield
-        for measurement in well.wellyieldmeasurement_set.all():
-            yield_measurement_sheet.append([
-                well.original_id,
-                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                measurement.parameter.__str__() if measurement.parameter else '',
-                measurement.value.value if measurement.value else '',
-                measurement.value.unit.name if measurement.value and measurement.value.unit else '',
-                measurement.methodology
-            ])
+            # quality
+            for measurement in well.wellqualitymeasurement_set.all():
+                quality_measurement_sheet.append([
+                    well.original_id,
+                    measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    measurement.parameter.__str__() if measurement.parameter else '',
+                    measurement.value.value if measurement.value else '',
+                    measurement.value.unit.name if measurement.value and measurement.value.unit else '',
+                    measurement.methodology
+                ])
+            # yield
+            for measurement in well.wellyieldmeasurement_set.all():
+                yield_measurement_sheet.append([
+                    well.original_id,
+                    measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                    measurement.parameter.__str__() if measurement.parameter else '',
+                    measurement.value.value if measurement.value else '',
+                    measurement.value.unit.name if measurement.value and measurement.value.unit else '',
+                    measurement.methodology
+                ])
 
     well_book.save(wells_file)
     drilling_and_construction_book.save(drilling_and_construction_file)
-    monitor_book.save(monitoring_file)
+
+    if include_monitoring:
+        monitor_book.save(monitoring_file)
 
     # zipping files
     zip_filename = '{}.zip'.format(str(unique_id))
@@ -369,7 +384,10 @@ def download_well(self, download_session_id, filters=None):
     zip_file = zipfile.ZipFile(zip_file, 'w')
     zip_file.write(wells_file, wells_filename, compress_type=zipfile.ZIP_DEFLATED)
     zip_file.write(drilling_and_construction_file, drilling_and_construction_filename, compress_type=zipfile.ZIP_DEFLATED)
-    zip_file.write(monitoring_file, monitoring_filename, compress_type=zipfile.ZIP_DEFLATED)
+
+    if include_monitoring:
+        zip_file.write(monitoring_file, monitoring_filename, compress_type=zipfile.ZIP_DEFLATED)
+
     zip_file.close()
     shutil.rmtree(folder)
 

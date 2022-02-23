@@ -15,7 +15,7 @@ from gwml2.api.user import UserAutocompleteAPI
 from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.well_relation import WellRelationDeleteView, WellRelationListView, WellMeasurementDataView
 from gwml2.api.well_measurement import WellLevelMeasurementData
-from gwml2.api.well_downloader import WellDownloader
+from gwml2.api.well_downloader import WellDownloader, OneWellDownloader
 from gwml2.views.groundwater_form import WellView, WellFormView, WellFormCreateView
 from gwml2.views.download import DownloadListView
 from gwml2.views.organisation import OrganisationFormView, OrganisationListView
@@ -46,6 +46,9 @@ well_detail_urls = [
     url(r'^edit',
         view=WellFormView.as_view(),
         name='well_form'),
+    url(r'^download/',
+        view=OneWellDownloader.as_view(),
+        name='one_well_download'),
     url(r'^',
         view=WellView.as_view(),
         name='well_view'),

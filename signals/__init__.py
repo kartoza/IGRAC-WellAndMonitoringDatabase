@@ -17,7 +17,11 @@ User = get_user_model()
 @receiver(post_save)
 def gwml2_data_saved(sender, instance, **kwargs):
     if sender._meta.app_label == 'gwml2' and sender._meta.object_name == 'Well':
-        DownloadSession.objects.filter(obsolete=False).update(obsolete=True)
+        # download session is not for specific well
+        DownloadSession.objects.filter(obsolete=False, well__isnull=True).update(obsolete=True)
+
+        # if for specific well
+        DownloadSession.objects.filter(obsolete=False, well=instance).update(obsolete=True)
 
 
 @receiver(post_save, sender=User)
