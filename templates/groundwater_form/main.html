@@ -189,20 +189,21 @@
             $('.leaflet-control').show()
             $('#overlay-loading').hide();
 
-
-            const download_url = "{% url 'one_well_download' well.id %}";
-            $('#download-data').click(function () {
-                $.ajax({
-                    url: download_url,
-                    success: function (data, textStatus, request) {
-                        window.location = "{% url 'download_list_view' %}";
-                    },
-                    error: function (error, textStatus, request) {
-                        window.location = "{% url 'download_list_view' %}";
-                    }
+            {% if well and well.id %}
+                const download_url = "{% url 'one_well_download' well.id %}";
+                $('#download-data').click(function () {
+                    $.ajax({
+                        url: download_url,
+                        success: function (data, textStatus, request) {
+                            window.location = `{% url 'download_list_view' %}?task_id=${data.task_id}`;
+                        },
+                        error: function (error, textStatus, request) {
+                            window.location = "{% url 'download_list_view' %}";
+                        }
+                    })
+                    return;
                 })
-                return;
-            })
+            {% endif %}
         });
     </script>
 {% endblock extra_script %}
