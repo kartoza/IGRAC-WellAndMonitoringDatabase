@@ -160,14 +160,8 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             return False
         if user.is_staff:
             return True
-
-        accessible = user.id in self.organisation.viewers or user.id in self.organisation.editors or user.id in self.organisation.admins
-        if not accessible:
-            """ Check from affiliate organisation """
-            for org in self.affiliate_organisations.all():
-                if user.id in org.viewers or user.id in org.editors or user.id in org.admins:
-                    return True
-        return accessible
+        
+        return self.organisation.is_editor(user)
 
     def editor_permission(self, user):
         """ Return editor permission from user id

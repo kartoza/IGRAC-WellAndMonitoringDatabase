@@ -11,15 +11,14 @@ class Organisation(models.Model):
     description = models.TextField(null=True, blank=True)
 
     # this is for ordering
-    order = models.PositiveIntegerField(default=0, editable=False,
-                                        db_index=True)
+    order = models.PositiveIntegerField(
+        default=0, editable=False, db_index=True
+    )
 
     # for the permission
     admins = ArrayField(
         models.IntegerField(), default=list, null=True)
     editors = ArrayField(
-        models.IntegerField(), default=list, null=True)
-    viewers = ArrayField(
         models.IntegerField(), default=list, null=True)
 
     class Meta:
@@ -31,4 +30,8 @@ class Organisation(models.Model):
 
     def is_admin(self, user):
         """ return if admin """
-        return user.is_staff or user.id in self.admins
+        return user.is_superuser or user.is_staff or user.id in self.admins
+
+    def is_editor(self, user):
+        """ return if editor """
+        return self.is_admin(user) or user.id in self.editors

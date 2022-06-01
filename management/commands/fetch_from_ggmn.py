@@ -175,13 +175,6 @@ class Command(BaseCommand):
                             }
                         )
                     )
-                    if user_obj.id not in organisation_obj.viewers:
-                        organisation_obj.viewers.append(user_obj.id)
-                        organisation_obj.save()
-                        print('User {username} has been added as a viewer to {org}'.format(
-                            username=user_obj.username,
-                            org=organisation_obj.name
-                        ))
 
         if 'next' in organisations and organisations['next']:
             next_url = organisations['next']
