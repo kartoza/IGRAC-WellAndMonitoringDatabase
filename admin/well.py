@@ -19,7 +19,6 @@ class WellAdmin(admin.ModelAdmin):
     list_display = ('original_id', 'organisation', 'edit', 'public', 'downloadable', 'number_of_measurements')
     list_filter = ('organisation', 'public', 'downloadable')
     readonly_fields = ('created_at', 'created_by_user', 'last_edited_at', 'last_edited_by_user', 'ggis_uid')
-    filter_horizontal = ('affiliate_organisations',)
     raw_id_fields = (
         'ground_surface_elevation', 'top_borehole_elevation', 'drilling',
         'geology', 'construction', 'management', 'hydrogeology_parameter'

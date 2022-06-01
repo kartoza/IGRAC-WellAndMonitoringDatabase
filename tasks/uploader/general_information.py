@@ -44,8 +44,7 @@ class GeneralInformationUploader(BaseUploader):
             'well_metadata': {
                 'organisation': self.upload_session.organisation.id,
                 'public': self.upload_session.public,
-                'downloadable': self.upload_session.downloadable,
-                'affiliate_organisations': ','.join(['{}'.format(org.id) for org in self.upload_session.affiliate_organisations.all()])
+                'downloadable': self.upload_session.downloadable
             }
         }
 

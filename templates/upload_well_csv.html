@@ -63,10 +63,6 @@
             background-color: #ffef44;
         }
 
-        #id_affiliate_organisations .ui-autocomplete-input {
-            width: 100%;
-        }
-
         .multivalue .multivalue-selection div {
             float: none !important;
             width: fit-content;
@@ -116,10 +112,6 @@
                                     <label>{% trans "Who can view?" %}</label>
                                     <div style="margin-top: 5px; margin-bottom: 10px">
                                         {{ form.public }} {% trans "Anyone" %}
-                                    </div>
-                                    <div>
-                                        <div style="margin-bottom: 5px">{% trans "The following organisations" %}:</div>
-                                        {{ form.affiliate_organisations }}
                                     </div>
                                     <br>
                                     <label>{% trans "Is it downloadable?" %}</label>

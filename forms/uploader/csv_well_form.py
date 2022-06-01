@@ -23,11 +23,6 @@ class CsvWellForm(forms.Form):
         initial=True,
         required=False
     )
-    affiliate_organisations = forms.ModelMultipleChoiceField(
-        required=False,
-        queryset=Organisation.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
 
     gw_well_file = forms.FileField(
         label=_("General information"),
@@ -47,8 +42,3 @@ class CsvWellForm(forms.Form):
         self.fields['organisation'].empty_label = None
         self.fields['organisation'].required = True
         self.fields['organisation'].widget.attrs['required'] = True
-        self.fields['affiliate_organisations'].widget = MultiValueInput(
-            url=reverse('organisation_autocomplete'), Model=Organisation, attrs={
-                'placeholder': 'Please enter 1 or more character'
-            }
-        )

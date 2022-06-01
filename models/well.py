@@ -78,10 +78,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     )
 
     # metadata
-    affiliate_organisations = models.ManyToManyField(
-        Organisation, null=True, blank=True,
-        related_name='well_affiliate_organisations'
-    )
     public = models.BooleanField(
         default=True,
         help_text=_('Indicate that well can be viewed by '

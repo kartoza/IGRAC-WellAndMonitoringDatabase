@@ -6,7 +6,6 @@ from gwml2.tests.model_factories import OrganisationF, UserF
 
 class OrganisationTest(GWML2Test):
     """Test for Organisation model."""
-    databases = '__all__'
 
     def setUp(self):
         """To setup test."""

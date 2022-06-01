@@ -100,7 +100,6 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     public=form.cleaned_data['public'],
                     downloadable=form.cleaned_data['downloadable']
                 )
-                upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             elif gw_monitoring_file:
                 upload_session = UploadSession.objects.create(
                     organisation=form.cleaned_data['organisation'],
@@ -110,7 +109,6 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     public=form.cleaned_data['public'],
                     downloadable=form.cleaned_data['downloadable']
                 )
-                upload_session.affiliate_organisations.add(*form.cleaned_data['affiliate_organisations'])
             else:
                 return self.form_invalid(form)
 
