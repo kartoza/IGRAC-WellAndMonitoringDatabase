@@ -212,25 +212,8 @@ $(document).ready(function () {
         let template = $(this).closest('.many-to-many').find('template')[0];
         addNewRow($table, template)
     })
-    $('.add-new-many-to-many-csv-input').change(function () {
-        let $table = $(this).closest('.many-to-many').find('table');
-        let template = $(this).closest('.many-to-many').find('template')[0];
-        if (this.files && this.files[0]) {
-            let _file = this.files[0];
-            let reader = new FileReader();
-            reader.addEventListener('load', function (e) {
-                let csvdata = e.target.result;
-                let data = parseCSV(csvdata); // calling function for parse csv data
-                for (let i = 0; i < data.length; i++) {
-                    addNewRow($table, template, data[i])
-                }
-            });
-
-            reader.readAsBinaryString(_file);
-        }
-    });
-
-    $('.table-wrapper').on('scroll', function () {
+    const $tableWrapper =  $('.table-wrapper');
+    $tableWrapper.on('scroll', function () {
         if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
             if (!$(this).attr('disabled')) {
                 const set = $(this).data('set');
@@ -238,7 +221,7 @@ $(document).ready(function () {
             }
         }
     })
-    $('.table-wrapper').each(function () {
+    $tableWrapper.each(function () {
         fetchManyToMany($(this), 1)
     });
 })
