@@ -3,10 +3,10 @@ import shutil
 import zipfile
 from shutil import copyfile
 
-from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Q
+from geonode.celery_app import app
 from openpyxl import load_workbook
 
 from gwml2.models.well import Well
@@ -304,8 +304,12 @@ def generate_downloadable_file(country: Country):
     return 'OK'
 
 
-@shared_task(bind=True, queue='update')
-def generate_downloadable_file_cache(self, country: str, is_from: bool):
+@app.task(
+    bind=True,
+    name='gwml2.tasks.well.generate_measurement_cache'
+)
+def generate_downloadable_file_cache(
+        self, country: str = None, is_from: bool = False):
     countries = Country.objects.order_by('name')
     if country:
         try:
