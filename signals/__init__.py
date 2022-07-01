@@ -1,8 +1,7 @@
-from django.db.utils import ProgrammingError
 from django.contrib.auth import get_user_model
-from gwml2.models.well_management.user import UserUUID
-from gwml2.models.download_session import DownloadSession
+from django.db.utils import ProgrammingError
 
+from gwml2.models.well_management.user import UserUUID
 from .construction import *
 from .document import *
 from .drilling import *
@@ -12,16 +11,6 @@ from .management import *
 from .well import *
 
 User = get_user_model()
-
-
-@receiver(post_save)
-def gwml2_data_saved(sender, instance, **kwargs):
-    if sender._meta.app_label == 'gwml2' and sender._meta.object_name == 'Well':
-        # download session is not for specific well
-        DownloadSession.objects.filter(obsolete=False, well__isnull=True).update(obsolete=True)
-
-        # if for specific well
-        DownloadSession.objects.filter(obsolete=False, well=instance).update(obsolete=True)
 
 
 @receiver(post_save, sender=User)

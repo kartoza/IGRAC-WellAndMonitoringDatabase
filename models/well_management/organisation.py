@@ -35,3 +35,18 @@ class Organisation(models.Model):
     def is_editor(self, user):
         """ return if editor """
         return self.is_admin(user) or user.id in self.editors
+
+
+class OrganisationType(models.Model):
+    """ Organisation type
+    """
+    name = models.CharField(
+        max_length=512, unique=True)
+    description = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'organisation_type'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name

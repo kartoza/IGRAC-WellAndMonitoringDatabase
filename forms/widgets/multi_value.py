@@ -7,6 +7,7 @@ class MultiValueInput(forms.widgets.FileInput):
 
     def __init__(self, url='', Model=None, attrs=None):
         super().__init__(attrs)
+        self.min_length = attrs.get('min_length', None) if attrs else None
         self.url = url
         self.Model = Model
 
@@ -17,6 +18,7 @@ class MultiValueInput(forms.widgets.FileInput):
             value = []
         context['value'] = ','.join(['{}'.format(val) for val in value])
         context['selected'] = self.selected(value)
+        context['min_length'] = self.min_length
         return context
 
     def value_from_datadict(self, data, files, name):
