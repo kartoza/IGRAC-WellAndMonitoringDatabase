@@ -435,7 +435,7 @@ class GenerateDownloadFile(object):
 
 @app.task(
     bind=True,
-    name='gwml2.tasks.well.generate_measurement_cache'
+    name='gwml2.tasks.well.generate_downloadable_file_cache'
 )
 def generate_downloadable_file_cache(
         self, country: str = None, is_from: bool = False):
