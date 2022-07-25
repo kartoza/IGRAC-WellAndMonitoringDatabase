@@ -1,5 +1,6 @@
 import os
 import shutil
+import time
 import zipfile
 from shutil import copyfile
 
@@ -9,299 +10,427 @@ from django.db.models import Q
 from geonode.celery_app import app
 from openpyxl import load_workbook
 
-from gwml2.models.well import Well
-
 logger = get_task_logger(__name__)
 
-from gwml2.models.general import Country
+from gwml2.models.general import Country, Unit
+from gwml2.models.term import (
+    TermFeatureType, TermWellPurpose, TermWellStatus, TermDrillingMethod,
+    TermReferenceElevationType, TermConstructionStructureType,
+    TermAquiferType, TermConfinement, TermGroundwaterUse
+)
+from gwml2.models.well import Well
+from gwml2.models.well_management.organisation import Organisation
+from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 
 GWML2_FOLDER = os.getenv(
-    'GWML_FOLDER',
-    os.path.join(settings.PROJECT_ROOT, 'gwml2-file')
+    'GWML_FOLDER', os.path.join(settings.PROJECT_ROOT, 'gwml2-file')
 )
 DATA_FOLDER = os.path.join(GWML2_FOLDER, 'data')
+DJANGO_ROOT = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+TEMPLATE_FOLDER = os.path.join(
+    DJANGO_ROOT, 'gwml2', 'static', 'download_template'
+)
 
 
-def generate_downloadable_file(country: Country):
-    DJANGO_ROOT = os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        ))
-
-    wells = Well.objects.all()
-    if country:
-        wells = wells.filter(country=country)
-
-    wells = wells.order_by('original_id')
-
-    total_records = wells.count()
-
-    # save it to media
-    unique_id = country.code
-    folder = os.path.join(DATA_FOLDER, str(unique_id))
-
-    print(f'----- begin download : {unique_id}  -------')
-    print('Found {} wells'.format(total_records))
-
-    if os.path.exists(folder):
-        shutil.rmtree(folder)
-
-    os.makedirs(folder)
-
-    # create file
+class GenerateDownloadFile(object):
+    current_time = None
     wells_filename = 'wells.xlsx'
-    wells_file = os.path.join(folder, wells_filename)
-    drilling_and_construction_filename = 'drilling_and_construction.xlsx'
-    drilling_and_construction_file = os.path.join(
-        folder, drilling_and_construction_filename)
-    monitoring_filename = 'monitoring_data.xlsx'
+    drill_filename = 'drilling_and_construction.xlsx'
+    monitor_filename = 'monitoring_data.xlsx'
 
-    # copy template to actual folder
-    copyfile(
-        os.path.join(
-            DJANGO_ROOT, 'gwml2', 'static', 'download_template',
-            wells_filename),
-        wells_file
-    )
-    copyfile(
-        os.path.join(
-            DJANGO_ROOT, 'gwml2', 'static', 'download_template',
-            drilling_and_construction_filename),
-        drilling_and_construction_file
-    )
+    # cache
+    feature_types = {}
+    purposes = {}
+    status = {}
+    units = {}
+    drillings = {}
+    reference_elevations = {}
+    structures_types = {}
+    aquifer_types = {}
+    confinements = {}
+    organisations = {}
+    groundwater_uses = {}
+    measurement_parameters = {}
 
-    monitoring_file = os.path.join(folder, monitoring_filename)
-    copyfile(
-        os.path.join(
-            DJANGO_ROOT, 'gwml2', 'static', 'download_template',
-            monitoring_filename),
-        monitoring_file)
+    def __init__(self, country):
+        print(f'----- begin download : {country.code}  -------')
+        self.current_time = time.time()
 
-    # open sheets and start filling it
-    start_index = 0
-    step = 50
-    end_index = step
-    while start_index < total_records:
-        well_book = load_workbook(wells_file)
-        general_information_sheet = well_book['General Information']
-        hydrogeology_sheet = well_book['Hydrogeology']
-        management_sheet = well_book['Management']
+        # Prepare files
+        self.country = country
+        self.folder = os.path.join(DATA_FOLDER, str(country.code))
+        if os.path.exists(self.folder):
+            shutil.rmtree(self.folder)
+        os.makedirs(self.folder)
 
-        drilling_and_construction_book = load_workbook(
-            drilling_and_construction_file)
-        drilling_and_construction_sheet = drilling_and_construction_book[
-            'Drilling and Construction']
-        water_strike_sheet = drilling_and_construction_book['Water Strike']
-        stratigraphic_sheet = drilling_and_construction_book[
-            'Stratigraphic Log']
-        structure_sheet = drilling_and_construction_book['Structures']
+        self.wells_file = os.path.join(self.folder, self.wells_filename)
+        self.drill_file = os.path.join(self.folder, self.drill_filename)
+        self.monitor_file = os.path.join(self.folder, self.monitor_filename)
 
-        # monitoring files
-        process_percent = (start_index / total_records) * 100
-        print(
-            f'Progress : {process_percent}% '
-            f'({start_index}/{total_records})'
+        # copy files
+        copyfile(
+            os.path.join(TEMPLATE_FOLDER, self.wells_filename), self.wells_file
         )
-        for index, well in enumerate(wells[start_index:end_index]):
-            # General Information
-            general_information_sheet.append([
-                well.original_id,
-                well.name,
-                well.feature_type.__str__() if well.feature_type else '',
-                well.purpose.__str__() if well.purpose else '',
-                well.status.__str__() if well.status else '',
-                well.description,
-                well.location.y,
-                well.location.x,
-                well.ground_surface_elevation.value if well.ground_surface_elevation else '',
-                well.ground_surface_elevation.unit.name if well.ground_surface_elevation and well.ground_surface_elevation.unit else '',
-                well.top_borehole_elevation.value if well.top_borehole_elevation else '',
-                well.top_borehole_elevation.unit.name if well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
-                well.country.code if well.country else '',
-                well.address,
-            ])
+        copyfile(
+            os.path.join(TEMPLATE_FOLDER, self.drill_filename), self.drill_file
+        )
+        copyfile(
+            os.path.join(TEMPLATE_FOLDER, self.monitor_filename),
+            self.monitor_file
+        )
+        self.run_wells()
 
-            # drilling and construction
-            drilling_and_construction_sheet.append([
-                well.original_id,
-                well.geology.total_depth.value if well.geology and well.geology.total_depth else '',
-                well.geology.total_depth.unit.__str__() if well.geology and well.geology.total_depth and well.geology.total_depth.unit else '',
-                well.drilling.drilling_method.__str__() if well.drilling and well.drilling.drilling_method else '',
-                well.drilling.driller if well.drilling else '',
-                (
-                    'Yes' if well.drilling.successful else 'No') if well.drilling and well.drilling.successful is not None else '',
-                well.drilling.cause_of_failure if well.drilling else '',
-                well.drilling.year_of_drilling if well.drilling else '',
-                well.construction.pump_installer if well.construction else '',
-                well.construction.pump_description if well.construction else '',
-            ])
+    def log(self, text):
+        """ Print time """
+        new_time = time.time()
+        print(f'{(new_time - self.current_time)} seconds : {text}')
+        self.current_time = new_time
 
-            if well.drilling:
-                # water strike
-                for water_strike in well.drilling.waterstrike_set.all():
-                    water_strike_sheet.append([
-                        well.original_id,
-                        water_strike.depth.value if water_strike.depth else '',
-                        water_strike.depth.unit.__str__() if water_strike.depth and water_strike.depth.unit else '',
-                        water_strike.reference_elevation.__str__() if water_strike.reference_elevation else ''
-                    ])
+    def get_data(self, id, cache, Term):
+        """ Get data that on cache or not. """
+        if not id:
+            return ''
+        if id not in cache:
+            try:
+                value = Term.objects.get(id=id).__str__()
+            except TermFeatureType.DoesNotExist:
+                value = ''
+            cache[id] = value
+            return value
+        return cache[id]
 
-                # stratigraphic
-                for stratigraphiclog in well.drilling.stratigraphiclog_set.all():
-                    stratigraphic_sheet.append([
-                        well.original_id,
-                        stratigraphiclog.reference_elevation.__str__() if stratigraphiclog.reference_elevation else '',
-                        stratigraphiclog.top_depth.value if stratigraphiclog.top_depth else '',
-                        stratigraphiclog.top_depth.unit.__str__() if stratigraphiclog.top_depth and stratigraphiclog.top_depth.unit else '',
-                        stratigraphiclog.bottom_depth.value if stratigraphiclog.bottom_depth else '',
-                        stratigraphiclog.bottom_depth.unit.__str__() if stratigraphiclog.top_depth and stratigraphiclog.bottom_depth.unit else '',
-                        stratigraphiclog.material,
-                        stratigraphiclog.stratigraphic_unit,
-                    ])
-            if well.construction:
-                # structures
-                for structure in well.construction.constructionstructure_set.all():
-                    structure_sheet.append([
-                        well.original_id,
-                        structure.type.__str__() if structure.type else '',
-                        structure.reference_elevation.__str__() if structure.reference_elevation else '',
-                        structure.top_depth.value if structure.top_depth else '',
-                        structure.top_depth.unit.__str__() if structure.top_depth and structure.top_depth.unit else '',
-                        structure.bottom_depth.value if structure.bottom_depth else '',
-                        structure.bottom_depth.unit.__str__() if structure.top_depth and structure.bottom_depth.unit else '',
-                        structure.diameter.value if structure.diameter else '',
-                        structure.diameter.unit.__str__() if structure.diameter and structure.diameter.unit else '',
-                        structure.material,
-                        structure.description
-                    ])
+    def run_wells(self):
+        """ Run wells """
+        wells = Well.objects.all()
+        if self.country:
+            wells = wells.filter(country=self.country)
+        total_records = wells.count()
+        self.log(f'Found {total_records} wells')
 
-            # Hydrogeology
-            hydrogeology_sheet.append([
-                well.original_id,
-                well.hydrogeology_parameter.aquifer_name if well.hydrogeology_parameter else '',
-                well.hydrogeology_parameter.aquifer_material if well.hydrogeology_parameter else '',
-                well.hydrogeology_parameter.aquifer_type.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_type else '',
-                well.hydrogeology_parameter.aquifer_thickness if well.hydrogeology_parameter and well.hydrogeology_parameter.aquifer_thickness else '',
-                well.hydrogeology_parameter.confinement.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.confinement else '',
-                well.hydrogeology_parameter.degree_of_confinement if well.hydrogeology_parameter else '',
+        well_book = load_workbook(self.wells_file)
+        drilling_book = load_workbook(self.drill_file)
+        monitor_book = load_workbook(self.monitor_file)
 
-                well.hydrogeology_parameter.pumping_test.porosity if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test else '',
+        # Start check wells
+        self.log('Start')
+        for index, well in enumerate(wells):
+            self.general_information(well_book, well)
+            self.hydrogeology(well_book, well)
+            self.management(well_book, well)
+            self.drilling_and_construction(drilling_book, well)
+            self.measurements(monitor_book, well)
 
-                # hydraulic conductivity
-                well.hydrogeology_parameter.pumping_test.hydraulic_conductivity.value if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.hydraulic_conductivity else '',
-                well.hydrogeology_parameter.pumping_test.hydraulic_conductivity.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.hydraulic_conductivity and well.hydrogeology_parameter.pumping_test.hydraulic_conductivity.unit else '',
+        self.log('Finish')
+        well_book.save(self.wells_file)
+        drilling_book.save(self.drill_file)
 
-                # transmisivity
-                well.hydrogeology_parameter.pumping_test.transmissivity.value if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.transmissivity else '',
-                well.hydrogeology_parameter.pumping_test.transmissivity.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.transmissivity and well.hydrogeology_parameter.pumping_test.transmissivity.unit else '',
+        # -------------------------------------------------------------------------
+        # zipping files
+        # -------------------------------------------------------------------------
+        zip_filename = '{}.zip'.format(str(self.country.code))
+        zip_file = os.path.join(DATA_FOLDER, zip_filename)
+        if os.path.exists(zip_file):
+            os.remove(zip_file)
 
-                # specific storage
-                well.hydrogeology_parameter.pumping_test.specific_storage.value if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_storage else '',
-                well.hydrogeology_parameter.pumping_test.specific_storage.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_storage and well.hydrogeology_parameter.pumping_test.specific_storage.unit else '',
+        zip_file = zipfile.ZipFile(zip_file, 'w')
+        zip_file.write(
+            self.wells_file, self.wells_filename,
+            compress_type=zipfile.ZIP_DEFLATED)
+        zip_file.write(
+            self.drill_file,
+            self.drill_filename,
+            compress_type=zipfile.ZIP_DEFLATED)
 
-                # specific capacity
-                well.hydrogeology_parameter.pumping_test.specific_capacity.value if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_capacity else '',
-                well.hydrogeology_parameter.pumping_test.specific_capacity.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.specific_capacity and well.hydrogeology_parameter.pumping_test.specific_capacity.unit else '',
+        zip_file.write(
+            self.monitor_file, self.monitor_filename,
+            compress_type=zipfile.ZIP_DEFLATED)
 
-                # specific capacity
-                well.hydrogeology_parameter.pumping_test.storativity.value if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.storativity else '',
-                well.hydrogeology_parameter.pumping_test.storativity.unit.__str__() if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test and well.hydrogeology_parameter.pumping_test.storativity and well.hydrogeology_parameter.pumping_test.storativity.unit else '',
+        zip_file.close()
+        shutil.rmtree(self.folder)
 
-                well.hydrogeology_parameter.pumping_test.test_type if well.hydrogeology_parameter and well.hydrogeology_parameter.pumping_test else '',
-            ])
+    def general_information(self, book, well):
+        """ General Information of well"""
+        general_information_sheet = book['General Information']
+        general_information_sheet.append([
+            well.original_id,
+            well.name,
+            self.get_data(
+                well.feature_type_id, self.feature_types, TermFeatureType
+            ),
+            self.get_data(well.purpose_id, self.purposes, TermWellPurpose),
+            self.get_data(well.status_id, self.status, TermWellStatus),
+            well.description,
+            well.location.y,
+            well.location.x,
 
-            # Management
-            management_sheet.append([
-                well.original_id,
-                well.organisation.name if well.organisation else '',
-                well.management.manager if well.management else '',
-                well.management.description if well.management else '',
-                well.management.groundwater_use.__str__() if well.management and well.management.groundwater_use else '',
-                well.management.number_of_users if well.management else '',
+            # Ground surface elevation
+            well.ground_surface_elevation.value if well.ground_surface_elevation else '',
+            self.get_data(
+                well.ground_surface_elevation.unit_id, self.units, Unit)
+            if well.ground_surface_elevation else '',
 
-                well.management.license.number if well.management and well.management.license else '',
-                well.management.license.valid_from.strftime(
-                    '%Y-%m-%d') if well.management and well.management.license and well.management.license.valid_from else '',
-                well.management.license.valid_until.strftime(
-                    '%Y-%m-%d') if well.management and well.management.license and well.management.license.valid_until else '',
-                well.management.license.description if well.management and well.management.license else '',
-            ])
+            # Top borehole elevation
+            well.top_borehole_elevation.value if well.top_borehole_elevation else '',
+            self.get_data(
+                well.top_borehole_elevation.unit_id, self.units, Unit)
+            if well.top_borehole_elevation else '',
+            self.country.code,
+            well.address,
+        ])
 
-            # Monitoring
-            # LEVEL Measurement
-            measurements = well.welllevelmeasurement_set.all()
-            monitor_book = load_workbook(monitoring_file)
-            sheets = monitor_book['Groundwater Level']
-            for measurement in measurements:
-                sheets.append([
+    def drilling_and_construction(self, book, well):
+        """ Drilling and construction of well"""
+        drilling_and_construction_sheet = book['Drilling and Construction']
+        geology = well.geology if well.geology else None
+        drilling = well.drilling if well.drilling else None
+        construction = well.construction if well.construction else None
+
+        drilling_and_construction_sheet.append([
+            well.original_id,
+
+            # Total depth
+            geology.total_depth.value if geology and geology.total_depth else '',
+            self.get_data(geology.total_depth.unit_id, self.units, Unit)
+            if geology and geology.total_depth else '',
+
+            # Drilling
+            self.get_data(
+                drilling.drilling_method_id, self.drillings, TermDrillingMethod
+            )
+            if drilling and drilling.drilling_method else '',
+            drilling.driller if drilling else '',
+            (
+                'Yes' if drilling.successful else 'No'
+            ) if drilling and drilling.successful is not None else '',
+            drilling.cause_of_failure if drilling else '',
+            drilling.year_of_drilling if drilling else '',
+            construction.pump_installer if construction else '',
+            construction.pump_description if construction else '',
+        ])
+
+        # --------------------------------------------------------------------------
+        # For drilling data
+        if drilling:
+            water_strike_sheet = book['Water Strike']
+            stratigraphic_sheet = book['Stratigraphic Log']
+
+            # water strike
+            for water_strike in well.drilling.waterstrike_set.all():
+                depth = water_strike.depth
+                water_strike_sheet.append([
                     well.original_id,
-                    measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                    measurement.parameter.__str__() if measurement.parameter else '',
-                    measurement.value.value if measurement.value else '',
-                    measurement.value.unit.name if measurement.value and measurement.value.unit else '',
-                    measurement.methodology
-                ])
-            monitor_book.save(monitoring_file)
 
-            # quality
-            measurements = well.wellqualitymeasurement_set.all()
-            monitor_book = load_workbook(monitoring_file)
-            sheets = monitor_book['Groundwater Quality']
-            for measurement in measurements:
-                sheets.append([
+                    # Depth
+                    depth.value if depth else '',
+                    self.get_data(
+                        depth.unit_id, self.units, Unit
+                    ) if depth else '',
+                    self.get_data(
+                        water_strike.reference_elevation_id,
+                        self.reference_elevations, TermReferenceElevationType
+                    ),
+                ])
+
+            # stratigraphic
+            for log in well.drilling.stratigraphiclog_set.all():
+                top_depth = log.top_depth
+                bottom_depth = log.bottom_depth
+                stratigraphic_sheet.append([
                     well.original_id,
-                    measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                    measurement.parameter.__str__() if measurement.parameter else '',
-                    measurement.value.value if measurement.value else '',
-                    measurement.value.unit.name if measurement.value and measurement.value.unit else '',
-                    measurement.methodology
-                ])
-            monitor_book.save(monitoring_file)
 
-            # yield
-            measurements = well.wellyieldmeasurement_set.all()
-            monitor_book = load_workbook(monitoring_file)
-            sheets = monitor_book['Abstraction-Discharge']
-            for measurement in measurements:
-                sheets.append([
+                    # Reference elevation
+                    self.get_data(
+                        log.reference_elevation_id, self.reference_elevations,
+                        TermReferenceElevationType
+                    ),
+
+                    # Top depth
+                    top_depth.value if top_depth else '',
+                    self.get_data(top_depth.unit_id, self.units, Unit)
+                    if top_depth else '',
+
+                    # Bottom depth
+                    bottom_depth.value if bottom_depth else '',
+                    self.get_data(bottom_depth.unit_id, self.units, Unit)
+                    if bottom_depth else '',
+                    log.material,
+                    log.stratigraphic_unit,
+                ])
+        # --------------------------------------------------------------------------
+        # For Construction Data
+        if construction:
+            structure_sheet = book['Structures']
+            for structure in well.construction.constructionstructure_set.all():
+                top_depth = structure.top_depth
+                bottom_depth = structure.bottom_depth
+                diameter = structure.diameter
+                structure_sheet.append([
                     well.original_id,
-                    measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                    measurement.parameter.__str__() if measurement.parameter else '',
-                    measurement.value.value if measurement.value else '',
-                    measurement.value.unit.name if measurement.value and measurement.value.unit else '',
-                    measurement.methodology
+
+                    # Structure
+                    self.get_data(
+                        structure.type_id, self.structures_types,
+                        TermConstructionStructureType
+                    ),
+                    self.get_data(
+                        structure.reference_elevation_id,
+                        self.reference_elevations,
+                        TermReferenceElevationType
+                    ),
+
+                    # Top depth
+                    top_depth.value if top_depth else '',
+                    self.get_data(top_depth.unit_id, self.units, Unit)
+                    if top_depth else '',
+
+                    # Bottom depth
+                    bottom_depth.value if bottom_depth else '',
+                    self.get_data(bottom_depth.unit_id, self.units, Unit)
+                    if bottom_depth else '',
+
+                    # Diameter
+                    diameter.value if diameter else '',
+                    self.get_data(diameter.unit_id, self.units, Unit)
+                    if diameter else '',
+                    structure.material,
+                    structure.description
                 ])
-            monitor_book.save(monitoring_file)
 
-        well_book.save(wells_file)
-        drilling_and_construction_book.save(drilling_and_construction_file)
+    def hydrogeology(self, book, well):
+        """ Hydrogeology of well"""
+        hydrogeology_sheet = book['Hydrogeology']
+        hydrogeology = well.hydrogeology_parameter
+        pumping_test = hydrogeology.pumping_test if hydrogeology else None
+        hydraulic_conductivity = pumping_test.hydraulic_conductivity if pumping_test else None
+        transmissivity = pumping_test.transmissivity if pumping_test else None
+        specific_storage = pumping_test.specific_storage if pumping_test else None
+        specific_capacity = pumping_test.specific_capacity if pumping_test else None
+        storativity = pumping_test.storativity if pumping_test else None
 
-        start_index = end_index
-        end_index += step
+        hydrogeology_sheet.append([
+            well.original_id,
+            hydrogeology.aquifer_name if hydrogeology else '',
+            hydrogeology.aquifer_material if hydrogeology else '',
 
-    # -------------------------------------------------------------------------
-    # zipping files
-    # -------------------------------------------------------------------------
-    zip_filename = '{}.zip'.format(str(unique_id))
-    zip_file = os.path.join(DATA_FOLDER, zip_filename)
-    if os.path.exists(zip_file):
-        os.remove(zip_file)
+            # Aquifer type
+            self.get_data(
+                hydrogeology.aquifer_type_id, self.aquifer_types,
+                TermAquiferType
+            )
+            if hydrogeology else '',
 
-    zip_file = zipfile.ZipFile(zip_file, 'w')
-    zip_file.write(
-        wells_file, wells_filename, compress_type=zipfile.ZIP_DEFLATED)
-    zip_file.write(
-        drilling_and_construction_file,
-        drilling_and_construction_filename,
-        compress_type=zipfile.ZIP_DEFLATED)
+            hydrogeology.aquifer_thickness
+            if hydrogeology and hydrogeology.aquifer_thickness else '',
 
-    zip_file.write(
-        monitoring_file, monitoring_filename,
-        compress_type=zipfile.ZIP_DEFLATED)
+            # Aquifer confinement
+            self.get_data(
+                hydrogeology.confinement_id, self.confinements,
+                TermConfinement
+            )
+            if hydrogeology else '',
 
-    zip_file.close()
-    shutil.rmtree(folder)
-    return 'OK'
+            hydrogeology.degree_of_confinement if hydrogeology else '',
+
+            # Pumping test
+            pumping_test.porosity if pumping_test else '',
+
+            hydraulic_conductivity.value if hydraulic_conductivity else '',
+            self.get_data(hydraulic_conductivity.unit_id, self.units, Unit)
+            if hydraulic_conductivity else '',
+
+            # transmisivity
+            transmissivity.value if transmissivity else '',
+            self.get_data(transmissivity.unit_id, self.units, Unit)
+            if transmissivity else '',
+
+            # specific storage
+            specific_storage.value if specific_storage else '',
+            self.get_data(specific_storage.unit_id, self.units, Unit)
+            if specific_storage else '',
+
+            # specific capacity
+            specific_capacity.value if specific_capacity else '',
+            self.get_data(specific_capacity.unit_id, self.units, Unit)
+            if specific_capacity else '',
+
+            # specific capacity
+            storativity.value if storativity else '',
+            self.get_data(storativity.unit_id, self.units, Unit)
+            if storativity else '',
+
+            pumping_test.test_type if pumping_test else '',
+        ])
+
+    def management(self, book, well):
+        """ Management of well"""
+        management_sheet = book['Management']
+        management = well.management
+        license = management.license if management else None
+
+        management_sheet.append([
+            well.original_id,
+            self.get_data(
+                well.organisation_id, self.organisations, Organisation
+            ),
+
+            # management
+            management.manager if management else '',
+            management.description if management else '',
+            self.get_data(
+                management.groundwater_use_id, self.groundwater_uses,
+                TermGroundwaterUse
+            ) if management else '',
+            management.number_of_users if management else '',
+
+            license.number if license else '',
+            license.valid_from.strftime('%Y-%m-%d')
+            if license and license.valid_from else '',
+            license.valid_until.strftime('%Y-%m-%d')
+            if management and license and license.valid_until else '',
+            license.description if license else '',
+        ])
+
+    def measurement_data(self, sheets, measurements, original_id):
+        """ Measurements of well """
+        for measurement in measurements:
+            value = measurement.value
+            sheets.append([
+                original_id,
+
+                # measurement
+                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
+                self.get_data(
+                    measurement.parameter_id, self.measurement_parameters,
+                    TermMeasurementParameter
+                ),
+
+                # value
+                value.value if value else '',
+                self.get_data(value.unit_id, self.units, Unit)
+                if value else '',
+                measurement.methodology
+            ])
+
+    def measurements(self, book, well):
+        """ Measurements of well """
+        self.measurement_data(
+            book['Groundwater Level'],
+            well.welllevelmeasurement_set.all(),
+            well.original_id
+        )
+        self.measurement_data(
+            book['Groundwater Quality'],
+            well.wellqualitymeasurement_set.all(),
+            well.original_id
+        )
+        self.measurement_data(
+            book['Abstraction-Discharge'],
+            well.wellyieldmeasurement_set.all(),
+            well.original_id
+        )
+        book.save(self.monitor_file)
 
 
 @app.task(
@@ -317,12 +446,14 @@ def generate_downloadable_file_cache(
                 Q(name__iexact=country) | Q(code__iexact=country)
             )
             if not is_from:
-                generate_downloadable_file(country)
+                GenerateDownloadFile(country)
+
             else:
                 for country in countries.filter(name__gte=country.name):
-                    generate_downloadable_file(country)
+                    GenerateDownloadFile(country)
+
         except Country.DoesNotExist:
             print('Country not found')
     else:
         for country in countries:
-            generate_downloadable_file(country)
+            GenerateDownloadFile(country)
