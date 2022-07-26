@@ -113,6 +113,7 @@ class GenerateDownloadFile(object):
 
         # Start check wells
         self.log('Start')
+        is_error = False
         for index, well in enumerate(wells):
             try:
                 print(f'Progress {index}/{total_records} : {well.original_id}')
@@ -136,8 +137,12 @@ class GenerateDownloadFile(object):
                 print(error)
                 error_file.write(error + '\n')
                 error_file.close()
+                is_error = True
 
         self.log('Finish')
+        if is_error:
+            self.log('Finish with error')
+            return
 
         # -------------------------------------------------------------------------
         # zipping files
@@ -454,9 +459,8 @@ def generate_downloadable_file_cache(
     countries = Country.objects.order_by('name')
     if country:
         try:
-            country = countries.get(
-                Q(name__iexact=country) | Q(code__iexact=country)
-            )
+            country = countries.get(Q(code__iexact=country)
+                                    )
             if not is_from:
                 GenerateDownloadFile(country)
 
