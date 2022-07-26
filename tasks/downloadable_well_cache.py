@@ -39,6 +39,7 @@ class GenerateDownloadFile(object):
     wells_filename = 'wells.xlsx'
     drill_filename = 'drilling_and_construction.xlsx'
     monitor_filename = 'monitoring_data.xlsx'
+    error_filename = 'error'
 
     # cache
     feature_types = {}
@@ -68,6 +69,7 @@ class GenerateDownloadFile(object):
         self.wells_file = os.path.join(self.folder, self.wells_filename)
         self.drill_file = os.path.join(self.folder, self.drill_filename)
         self.monitor_file = os.path.join(self.folder, self.monitor_filename)
+        self.error_file = os.path.join(self.folder, self.error_filename)
 
         # copy files
         copyfile(
@@ -109,22 +111,33 @@ class GenerateDownloadFile(object):
         total_records = wells.count()
         self.log(f'Found {total_records} wells')
 
-        well_book = load_workbook(self.wells_file)
-        drilling_book = load_workbook(self.drill_file)
-        monitor_book = load_workbook(self.monitor_file)
-
         # Start check wells
         self.log('Start')
         for index, well in enumerate(wells):
-            self.general_information(well_book, well)
-            self.hydrogeology(well_book, well)
-            self.management(well_book, well)
-            self.drilling_and_construction(drilling_book, well)
-            self.measurements(monitor_book, well)
+            try:
+                print(f'Progress {index}/{total_records} : {well.original_id}')
+                well_book = load_workbook(self.wells_file)
+
+                self.general_information(well_book, well)
+                self.hydrogeology(well_book, well)
+                self.management(well_book, well)
+                well_book.save(self.wells_file)
+
+                drilling_book = load_workbook(self.drill_file)
+                self.drilling_and_construction(drilling_book, well)
+                drilling_book.save(self.drill_file)
+
+                monitor_book = load_workbook(self.monitor_file)
+                self.measurements(monitor_book, well)
+                monitor_book.save(self.monitor_file)
+            except Exception as e:
+                error_file = open(self.error_file, 'a')
+                error = f'{well.original_id} : {e}'
+                print(error)
+                error_file.write(error + '\n')
+                error_file.close()
 
         self.log('Finish')
-        well_book.save(self.wells_file)
-        drilling_book.save(self.drill_file)
 
         # -------------------------------------------------------------------------
         # zipping files
@@ -430,7 +443,6 @@ class GenerateDownloadFile(object):
             well.wellyieldmeasurement_set.all(),
             well.original_id
         )
-        book.save(self.monitor_file)
 
 
 @app.task(
