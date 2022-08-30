@@ -4,13 +4,30 @@ from gwml2.harvesters.models.harvester import (
     Harvester, HarvesterAttribute, HarvesterLog, HarvesterWellData)
 from gwml2.tasks.harvester import run_harvester
 
-HYDAPI = 'gwml2.harvesters.harvester.hydapi.Hydapi'
-SGUAPI = 'gwml2.harvesters.harvester.sgu.SguAPI'
-GINGWINFO = 'gwml2.harvesters.harvester.gin_gw_info.GinGWInfo'
+AZULBHD = (
+    'gwml2.harvesters.harvester.azul_bdh.AzulBdh',
+    'Institute of Plains Hydrology - IHLLA '
+    '(http://www.azul.bdh.org.ar/bdh3/leaflet/index.html)'
+)
+GINGWINFO = (
+    'gwml2.harvesters.harvester.gin_gw_info.GinGWInfo',
+    'Canadian Groundwater Information (https://gin.gw-info.net/)'
+)
+HYDAPI = (
+    'gwml2.harvesters.harvester.hydapi.Hydapi',
+    'The Norwegian Water Resources and Energy Directorate '
+    '(https://hydapi.nve.no/)'
+)
+SGUAPI = (
+    'gwml2.harvesters.harvester.sgu.SguAPI',
+    'Groundwater in Sweden '
+    '(https://apps.sgu.se/grundvattennivaer-rest/stationer)'
+)
 HARVESTERS = (
-    (HYDAPI, HYDAPI),
-    (SGUAPI, SGUAPI),
-    (GINGWINFO, GINGWINFO),
+    AZULBHD,
+    GINGWINFO,
+    HYDAPI,
+    SGUAPI,
 )
 
 

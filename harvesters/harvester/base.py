@@ -82,8 +82,7 @@ class BaseHarvester(ABC):
         Attributes that needs to be saved on database
         The value is the default value for the attribute
         """
-        return {
-        }
+        return {}
 
     @abstractmethod
     def _process(self):
