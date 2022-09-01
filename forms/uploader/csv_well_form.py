@@ -38,6 +38,7 @@ class CsvWellForm(forms.Form):
     )
     constraints_other = forms.CharField(
         required=False,
+        label=_('Restrictions other'),
         widget=forms.Textarea(attrs={'class': 'form-control'})
     )
 
