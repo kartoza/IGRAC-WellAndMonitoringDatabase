@@ -71,11 +71,9 @@
                                     {% trans "Go to form" %}
                                 </a>
                             {% endif %}
-                            {% if well.downloadable %}
-                                <a id="download-data" class="pull-right">
-                                    {% trans "Download data" %}
-                                </a>
-                            {% endif %}
+{#                            <a id="download-data" class="pull-right">#}
+{#                                {% trans "Download data" %}#}
+{#                            </a>#}
                         {% endif %}
                     </div>
                     {% csrf_token %}

@@ -43,9 +43,10 @@ class GeneralInformationUploader(BaseUploader):
             'general_information': data,
             'well_metadata': {
                 'organisation': self.upload_session.organisation.id,
-                'public': self.upload_session.public,
-                'downloadable': self.upload_session.downloadable
-            }
+                'license': self.upload_session.license,
+                'restriction_code_type': self.upload_session.restriction_code_type,
+                'constraints_other': self.upload_session.constraints_other
+            },
         }
 
     def get_object(self, sheet_name, well, record):

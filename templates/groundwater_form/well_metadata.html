@@ -17,33 +17,7 @@
             <tr>
                 <td>
                     <br><br>
-                    <h4>{% trans "Permissions" %}</h4>
-                </td>
-            </tr>
-            <tr class="input-column">
-                <td>
-                    {% trans "Who can view?" %} {% render_help_text form.public %}
-                </td>
-                <td>
-                    <div class="input">
-                        <div class="public-input" style="float: left; margin-right: 8px;">{{ form.public }}</div>
-                        <div class="public-indicator" style="padding-top: 5px;">
-                            <span>{% trans "Anyone" %}</span>
-                        </div>
-                    </div>
-                </td>
-            </tr>
-            <tr class="input-column">
-                <td>
-                    {% trans "Is it downloadable?" %} {% render_help_text form.downloadable %}
-                </td>
-                <td>
-                    <div class="input">
-                        <div class="downloadable-input" style="float: left; margin-right: 8px;">{{ form.downloadable }}</div>
-                        <div class="downloadable-indicator" style="padding-top: 5px;">
-                            <span>{% trans "Downloadable" %}</span>
-                        </div>
-                    </div>
+                    <h4>{% trans "License" %}</h4>
                 </td>
             </tr>
             {% field_as_row form.license %}

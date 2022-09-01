@@ -77,17 +77,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         verbose_name=_('Organisation')
     )
 
-    # metadata
-    public = models.BooleanField(
-        default=True,
-        help_text=_('Indicate that well can be viewed by '
-                    'non organisation user.')
-    )
-    downloadable = models.BooleanField(
-        default=True,
-        help_text=_('Indicate that well can be downloaded.')
-    )
-
     # number of measurement
     number_of_measurements = models.IntegerField(
         default=0,
@@ -148,8 +137,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         :return: permission
         :rtype: bool
         """
-        if self.public:
-            return True
         if not self.organisation:
             return True
         if not user:

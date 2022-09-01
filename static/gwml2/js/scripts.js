@@ -148,16 +148,6 @@ function makeReadOnly() {
             return `<span name="${$(this).prop("name")}" class="input-data" style="${style}">${value}</span>`;
         });
         $('#form select').not('.measurement-chart-nav').hide();
-
-        // this is for permissions section
-        $('#id_public, .public-input').hide();
-        if (!$('#id_public').attr('checked')) {
-            $('.public-indicator span').html('Not anyone')
-        }
-        $('#id_downloadable, .downloadable-input').hide();
-        if (!$('#id_downloadable').attr('checked')) {
-            $('.downloadable-indicator span').html('Not downloadable')
-        }
     }
 }
 

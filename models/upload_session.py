@@ -11,6 +11,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from gwml2.models.well_management.organisation import Organisation
+from gwml2.models.metadata.license_metadata import LicenseMetadata
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
@@ -24,7 +25,7 @@ UPLOAD_SESSION_CATEGORY = (
 User = get_user_model()
 
 
-class UploadSession(models.Model):
+class UploadSession(LicenseMetadata):
     """Upload session model
     """
     organisation = models.ForeignKey(
@@ -77,17 +78,6 @@ class UploadSession(models.Model):
 
     is_canceled = models.BooleanField(
         default=False
-    )
-
-    # for permissions
-    public = models.BooleanField(
-        default=True,
-        help_text='indicate that well can be viewed by '
-                  'non organisation user'
-    )
-    downloadable = models.BooleanField(
-        default=True,
-        help_text='indicate that well can be downloaded'
     )
 
     # noinspection PyClassicStyleClass

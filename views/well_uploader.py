@@ -97,8 +97,9 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     category=UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
                     upload_file=gw_well_file,
                     uploader=request.user.id,
-                    public=form.cleaned_data['public'],
-                    downloadable=form.cleaned_data['downloadable']
+                    license=form.cleaned_data['license'],
+                    restriction_code_type=form.cleaned_data['restriction_code_type'],
+                    constraints_other=form.cleaned_data['constraints_other'],
                 )
             elif gw_monitoring_file:
                 upload_session = UploadSession.objects.create(
@@ -106,8 +107,6 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     category=UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
                     upload_file=gw_monitoring_file,
                     uploader=request.user.id,
-                    public=form.cleaned_data['public'],
-                    downloadable=form.cleaned_data['downloadable']
                 )
             else:
                 return self.form_invalid(form)

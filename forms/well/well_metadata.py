@@ -34,7 +34,6 @@ class WellMetadataForm(WellBaseForm):
         fields = (
             'organisation', 'created_by', 'created_at',
             'last_edited_by', 'last_edited_at',
-            'public', 'downloadable',
             'license', 'restriction_code_type', 'constraints_other')
 
     def __init__(self, *args, **kwargs):
@@ -66,10 +65,6 @@ class WellMetadataForm(WellBaseForm):
         :return: Form
         :rtype: GeneralInformationForm
         """
-        if 'public' not in data:
-            data['public'] = True
-        if 'downloadable' not in data:
-            data['downloadable'] = True
         return WellMetadataForm(data, files, instance=instance, organisation=Organisation.objects.all())
 
     @staticmethod
