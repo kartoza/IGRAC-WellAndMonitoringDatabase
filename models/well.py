@@ -137,14 +137,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         :return: permission
         :rtype: bool
         """
-        if not self.organisation:
-            return True
-        if not user:
-            return False
-        if user.is_staff:
-            return True
-        
-        return self.organisation.is_editor(user)
+        return True
 
     def editor_permission(self, user):
         """ Return editor permission from user id
