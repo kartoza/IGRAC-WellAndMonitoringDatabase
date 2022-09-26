@@ -48,6 +48,14 @@ class Harvester(models.Model):
         default=False,
         help_text=_("Is the harvester running.")
     )
+
+    save_missing_well = models.BooleanField(
+        default=False,
+        help_text=_('Indicate that this harvester saves missing well.')
+    )
+
+    # TODO:
+    #  We remove this after permissions has been merged
     public = models.BooleanField(
         default=True,
         help_text=_('Default indicator for : well can be viewed by '
@@ -56,11 +64,6 @@ class Harvester(models.Model):
     downloadable = models.BooleanField(
         default=True,
         help_text=_('Default indicator : well can be downloaded.')
-    )
-
-    save_missing_well = models.BooleanField(
-        default=False,
-        help_text=_('Indicate that this harvester saves missing well.')
     )
 
     class Meta:

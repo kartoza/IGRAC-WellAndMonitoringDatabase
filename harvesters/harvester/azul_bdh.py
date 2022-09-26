@@ -172,18 +172,14 @@ class AzulBdh(BaseHarvester):
                     defaults = {
                         'parameter': self.parameter
                     }
-                    obj = self._save_measurement(
+                    self._save_measurement(
                         WellLevelMeasurement,
                         date_time,
                         defaults,
-                        harvester_well_data
+                        harvester_well_data,
+                        value,
+                        self.unit_m
                     )
-                    if not obj.value:
-                        obj.value = Quantity.objects.create(
-                            unit=self.unit_m,
-                            value=value
-                        )
-                        obj.save()
                 except (ValueError, IndexError):
                     pass
         return measurements
