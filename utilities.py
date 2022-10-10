@@ -21,7 +21,7 @@ def get_organisations_as_viewer(user):
         return Organisation.objects.all().order_by('id')
     else:
         return Organisation.objects.filter(
-            Q(editors__contains=[user.id]) | Q(admins__contains=[user.id]) | Q(viewers__contains=[user.id])
+            Q(editors__contains=[user.id]) | Q(admins__contains=[user.id])
         ).order_by('id')
 
 

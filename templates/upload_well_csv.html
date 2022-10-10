@@ -19,7 +19,6 @@
         .form-group p, .form-group .p {
             border: 1px solid lightgrey;
             padding: 15px;
-            margin-top: 20px;
         }
 
         .form-group p:hover {
@@ -63,7 +62,12 @@
             background-color: #ffef44;
         }
 
-        #id_affiliate_organisations .ui-autocomplete-input {
+        select {
+            cursor: pointer;
+        }
+
+        select,
+        textarea {
             width: 100%;
         }
 
@@ -112,21 +116,22 @@
                                     {{ form.organisation.label_tag }}
                                     {{ form.organisation }}
                                 </p>
-                                <div id="permission" class="p">
-                                    <label>{% trans "Who can view?" %}</label>
-                                    <div style="margin-top: 5px; margin-bottom: 10px">
-                                        {{ form.public }} {% trans "Anyone" %}
-                                    </div>
-                                    <div>
-                                        <div style="margin-bottom: 5px">{% trans "The following organisations" %}:</div>
-                                        {{ form.affiliate_organisations }}
-                                    </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <p>
+                                    {{ form.license.label_tag }}
+                                    {{ form.license }}
                                     <br>
-                                    <label>{% trans "Is it downloadable?" %}</label>
-                                    <div style="margin-top: 5px; margin-bottom: 10px">
-                                        {{ form.downloadable }} {% trans "Downloadable" %}
-                                    </div>
-                                </div>
+                                    <br>
+                                    {{ form.restriction_code_type.label_tag }}
+                                    {{ form.restriction_code_type }}
+                                    <br>
+                                    <br>
+                                    {{ form.constraints_other.label_tag }}
+                                    {{ form.constraints_other }}
+                                </p>
                             </div>
                         </div>
 

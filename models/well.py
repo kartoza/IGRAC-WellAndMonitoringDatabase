@@ -77,21 +77,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         verbose_name=_('Organisation')
     )
 
-    # metadata
-    affiliate_organisations = models.ManyToManyField(
-        Organisation, null=True, blank=True,
-        related_name='well_affiliate_organisations'
-    )
-    public = models.BooleanField(
-        default=True,
-        help_text=_('Indicate that well can be viewed by '
-                    'non organisation user.')
-    )
-    downloadable = models.BooleanField(
-        default=True,
-        help_text=_('Indicate that well can be downloaded.')
-    )
-
     # number of measurement
     number_of_measurements = models.IntegerField(
         default=0,
@@ -152,22 +137,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         :return: permission
         :rtype: bool
         """
-        if self.public:
-            return True
-        if not self.organisation:
-            return True
-        if not user:
-            return False
-        if user.is_staff:
-            return True
-
-        accessible = user.id in self.organisation.viewers or user.id in self.organisation.editors or user.id in self.organisation.admins
-        if not accessible:
-            """ Check from affiliate organisation """
-            for org in self.affiliate_organisations.all():
-                if user.id in org.viewers or user.id in org.editors or user.id in org.admins:
-                    return True
-        return accessible
+        return True
 
     def editor_permission(self, user):
         """ Return editor permission from user id

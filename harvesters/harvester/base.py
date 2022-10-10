@@ -170,8 +170,6 @@ class BaseHarvester(ABC):
                         'name': name,
                         'organisation': self.harvester.organisation,
                         'feature_type': feature_type if feature_type else self.harvester.feature_type,
-                        'public': self.harvester.public,
-                        'downloadable': self.harvester.downloadable,
                         'created_by': user_id,
                         'last_edited_by': user_id
                     }

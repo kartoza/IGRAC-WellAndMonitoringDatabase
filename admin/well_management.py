@@ -1,8 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from gwml2.models.well_management.organisation import Organisation
-from gwml2.models.well_management.user import UserUUID
+
 from gwml2.forms.organisation import OrganisationFormAdmin
+from gwml2.models.well_management.organisation import (
+    Organisation, OrganisationType
+)
+from gwml2.models.well_management.user import UserUUID
 
 User = get_user_model()
 
@@ -41,3 +44,4 @@ class UserUUIDAdmin(admin.ModelAdmin):
 
 admin.site.register(Organisation, OrganisationAdmin)
 admin.site.register(UserUUID, UserUUIDAdmin)
+admin.site.register(OrganisationType, admin.ModelAdmin)

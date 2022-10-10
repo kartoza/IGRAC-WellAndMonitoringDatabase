@@ -152,7 +152,7 @@ class BaseUploader(WellEditing):
                     status=json.dumps(progress)
                 )
 
-                # finish
+        # finish
         self.upload_session.update_progress(
             finished=True,
             progress=100,
