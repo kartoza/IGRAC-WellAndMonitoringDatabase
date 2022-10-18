@@ -21,6 +21,14 @@ EPAWEBAPP = (
     None
 )
 
+# USA
+CIDA_USGS = (
+    'gwml2.harvesters.harvester.cida.CidaUsgs',
+    'National Ground-Water Monitoring Network (United States) '
+    '(https://cida.usgs.gov/ngwmn/index.jsp)',
+    None
+)
+
 # Canada
 GINGWINFO = (
     'gwml2.harvesters.harvester.gin_gw_info.GinGWInfo',
@@ -50,6 +58,7 @@ HARVESTERS = (
     HYDAPI,
     SGUAPI,
     EPAWEBAPP,
+    CIDA_USGS
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS
@@ -79,7 +88,7 @@ class HarvesterForm(forms.ModelForm):
 
     class Meta:
         model = Harvester
-        fields = '__all__'
+        exclude = ('public', 'downloadable')
 
 
 def harvest_data(modeladmin, request, queryset):

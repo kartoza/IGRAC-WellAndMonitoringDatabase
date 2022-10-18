@@ -142,7 +142,6 @@ class BaseHarvester(ABC):
             description: typing.Optional[str] = None
     ):
         """ Save well """
-        created = False
         wells = Well.objects.filter(
             original_id=original_id
         )
@@ -197,14 +196,13 @@ class BaseHarvester(ABC):
             if well.organisation != self.harvester.organisation:
                 well.organisation = self.harvester.organisation
                 well.save()
-            created = False
 
-        if created and ground_surface_elevation_masl:
+        if not well.ground_surface_elevation and ground_surface_elevation_masl:
             well.ground_surface_elevation = Quantity.objects.create(
                 value=ground_surface_elevation_masl,
                 unit=self.unit_m
             )
-            if top_of_well_elevation_masl:
+            if not well.top_borehole_elevation and top_of_well_elevation_masl:
                 well.top_borehole_elevation = Quantity.objects.create(
                     value=top_of_well_elevation_masl,
                     unit=self.unit_m
