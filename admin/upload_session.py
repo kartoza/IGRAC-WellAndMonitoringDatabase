@@ -16,7 +16,6 @@ class UploadSessionAdmin(admin.ModelAdmin):
         'is_processed',
         'is_canceled'
     )
-    filter_horizontal = ('affiliate_organisations',)
 
 
 admin.site.register(UploadSession, UploadSessionAdmin)

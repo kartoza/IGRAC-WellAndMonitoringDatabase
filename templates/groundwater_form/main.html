@@ -7,48 +7,50 @@
 {% endblock page_title %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}">
-    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'gwml2/css/measurements-chart.css' %}">
     <link rel="stylesheet" href="{% static 'gwml2/font/stylesheet.css' %}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{% static 'js/jquery-validate/1.19.2/jquery.validate.js' %}"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
     <script>
-        const valElmt = function ($element) {
-            if ($element.is('select')) {
-                return $element.find('option:selected').text()
-            } else if ($element.is('input')) {
-                return $element.val()
-            } else {
-                return $element.text()
-            }
+      const valElmt = function ($element) {
+        if ($element.is('select')) {
+          return $element.find('option:selected').text()
+        } else if ($element.is('input')) {
+          return $element.val()
+        } else {
+          return $element.text()
         }
+      }
 
-        let measurementCharts = {};
-        let submitFunctions = {};
-        let submitFunctionsManyToMany = {};
-        let parameters ={{ parameters|safe }};
-        let parameters_chart ={{ parameters_chart|safe }};
-        let units = {{ units|safe }};
-        let unitsDict = {};
-        for (var key in units) {
-            const unit = units[key]
-            unitsDict[unit.name] = unit;
-        }
+      let measurementCharts = {};
+      let submitFunctions = {};
+      let submitFunctionsManyToMany = {};
+      let parameters ={{ parameters|safe }};
+      let parameters_chart ={{ parameters_chart|safe }};
+      let units = {{ units|safe }};
+      let unitsDict = {};
+      for (var key in units) {
+        const unit = units[key]
+        unitsDict[unit.name] = unit;
+      }
 
-        let referenceElevations = {{ reference_elevations|safe }};
-        let mainData = {};
-        let top_borehole_elevation = {{ top_borehole_elevation|safe }};
-        let ground_surface_elevation = {{ ground_surface_elevation|safe }};
-        const ELEVATION_TOPBOREHOLE = 'Top of Borehole';
-        const ELEVATION_GROUNDSURFACE = 'Ground Surface Level ASL';
-        {% if read_only %}
-            const readOnly = true;
-        {% else %}
-            const readOnly = false;
-        {% endif %}
+      let referenceElevations = {{ reference_elevations|safe }};
+      let mainData = {};
+      let top_borehole_elevation = {{ top_borehole_elevation|safe }};
+      let ground_surface_elevation = {{ ground_surface_elevation|safe }};
+      const ELEVATION_TOPBOREHOLE = 'Top of Borehole';
+      const ELEVATION_GROUNDSURFACE = 'Ground Surface Level ASL';
+      {% if read_only %}
+        const readOnly = true;
+      {% else %}
+        const readOnly = false;
+      {% endif %}
     </script>
 {% endblock %}
 
@@ -60,18 +62,18 @@
                     <div id="overlay-loading"></div>
                     <div class="form-title">
                         {% if not read_only %}
-                            <button id="form-submit" class="pull-right" type="submit">{% trans "Submit" %}</button>
+                            <button id="form-submit" class="pull-right"
+                                    type="submit">{% trans "Submit" %}</button>
                         {% else %}
                             {% if user.is_staff %}
-                                <a id="form-submit" class="pull-right" href="{% url 'well_form' well.id %}">
+                                <a id="form-submit" class="pull-right"
+                                   href="{% url 'well_form' well.id %}">
                                     {% trans "Go to form" %}
                                 </a>
                             {% endif %}
-                            {% if well.downloadable %}
-                                <a id="download-data" class="pull-right">
-                                    {% trans "Download data" %}
-                                </a>
-                            {% endif %}
+{#                            <a id="download-data" class="pull-right">#}
+{#                                {% trans "Download data" %}#}
+{#                            </a>#}
                         {% endif %}
                     </div>
                     {% csrf_token %}
@@ -102,52 +104,89 @@
                 <div class="inner-navigation">
                     <ul class="nav">
                         <li class="nav active">
-                            <a data-toggle="tab" href="#general_information" title="General Information">
-                                {% include "svg/general.html" %} <span>{% trans "General Information" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            <a data-toggle="tab" href="#general_information"
+                               title="General Information">
+                                {% include "svg/general.html" %}
+                                <span>{% trans "General Information" %}</span>
+                                <i class="fa fa-exclamation"
+                                   aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
-                            <a data-toggle="tab" href="#drilling-and-construction" title="Drilling and Construction">
-                                {% include "svg/drilling.html" %} <span>{% trans "Drilling and Construction" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            <a data-toggle="tab"
+                               href="#drilling-and-construction"
+                               title="Drilling and Construction">
+                                {% include "svg/drilling.html" %}
+                                <span>{% trans "Drilling and Construction" %}</span>
+                                <i class="fa fa-exclamation"
+                                   aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
-                            <a data-toggle="tab" href="#hydrogeology" title="Hydrogeology">
-                                {% include "svg/hydrogeology.html" %} <span>{% trans "Hydrogeology" %}</span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                            <a data-toggle="tab" href="#hydrogeology"
+                               title="Hydrogeology">
+                                {% include "svg/hydrogeology.html" %}
+                                <span>{% trans "Hydrogeology" %}</span><i
+                                    class="fa fa-exclamation"
+                                    aria-hidden="true"></i>
                             </a>
                         </li>
                         <li class="nav">
-                            <a data-toggle="tab" href="#management" title="Management">
-                                {% include "svg/management.html" %} <span>{% trans "Management" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            <a data-toggle="tab" href="#management"
+                               title="Management">
+                                {% include "svg/management.html" %}
+                                <span>{% trans "Management" %}</span> <i
+                                    class="fa fa-exclamation"
+                                    aria-hidden="true"></i>
                             </a>
                         </li>
                         <li>
                             <div class="nav">
                                 <a>
-                                    {% include "svg/monitoring.html" %}<span> {% trans "Monitoring Data" %}</span> <span class="abstract-nav"></span>
+                                    {% include "svg/monitoring.html" %}<span> {% trans "Monitoring Data" %}</span>
+                                    <span class="abstract-nav"></span>
                                 </a>
                             </div>
                             <ul class="nav sub-nav">
                                 <li class="nav">
-                                    <a data-toggle="tab" href="#level-measurement" title="Groundwater Level">
-                                        {% include "svg/measurement-level.html" %} <span>{% trans "Groundwater Level" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    <a data-toggle="tab"
+                                       href="#level-measurement"
+                                       title="Groundwater Level">
+                                        {% include "svg/measurement-level.html" %}
+                                        <span>{% trans "Groundwater Level" %}</span>
+                                        <i class="fa fa-exclamation"
+                                           aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
-                                    <a data-toggle="tab" href="#quality-measurement" title="Groundwater Quality">
-                                        {% include "svg/measurement-quality.html" %} <span>{% trans "Groundwater Quality" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    <a data-toggle="tab"
+                                       href="#quality-measurement"
+                                       title="Groundwater Quality">
+                                        {% include "svg/measurement-quality.html" %}
+                                        <span>{% trans "Groundwater Quality" %}</span>
+                                        <i class="fa fa-exclamation"
+                                           aria-hidden="true"></i>
                                     </a>
                                 </li>
                                 <li class="nav">
-                                    <a data-toggle="tab" href="#yield-measurement" title="Abstraction / Discharge">
-                                        {% include "svg/measurement-yield.html" %} <span>{% trans "Abstraction" %} / {% trans "Discharge" %}</span><i class="fa fa-exclamation" aria-hidden="true"></i>
+                                    <a data-toggle="tab"
+                                       href="#yield-measurement"
+                                       title="Abstraction / Discharge">
+                                        {% include "svg/measurement-yield.html" %}
+                                        <span>{% trans "Abstraction" %} / {% trans "Discharge" %}</span><i
+                                            class="fa fa-exclamation"
+                                            aria-hidden="true"></i>
                                     </a>
                                 </li>
                             </ul>
                         </li>
                         <li class="nav">
-                            <a data-toggle="tab" href="#well_metadata" title="Metadata">
-                                {% include "svg/metadata.html" %} <span>{% trans "Metadata" %}</span> <i class="fa fa-exclamation" aria-hidden="true"></i>
+                            <a data-toggle="tab" href="#well_metadata"
+                               title="Metadata">
+                                {% include "svg/metadata.html" %}
+                                <span>{% trans "Metadata" %}</span> <i
+                                    class="fa fa-exclamation"
+                                    aria-hidden="true"></i>
                             </a>
                         </li>
                     </ul>
@@ -159,10 +198,12 @@
 {% endblock %}
 
 {% block extra_script %}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.js"></script>
 
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css"
+          rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
     <script src="{% static "js/highcharts/9.1.2/stock/highstock.js" %}"></script>
@@ -178,32 +219,34 @@
     <script src="{% static 'gwml2/js/many-to-many-script.js' %}"></script>
 
     <script>
-        $(document).ready(function () {
-            {% if read_only %}
-                makeReadOnly();
-            {% else %}
-                $("#wrap select").select2({
-                    tags: false
-                });
-            {% endif %}
-            $('.leaflet-control').show()
-            $('#overlay-loading').hide();
+      $(document).ready(function () {
+        {% if read_only %}
+          makeReadOnly();
+        {% else %}
+          $("#wrap select").select2({
+            tags: false
+          });
+        {% endif %}
+        $('.leaflet-control').show()
+        $('#overlay-loading').hide();
 
-            {% if well and well.id %}
-                const download_url = "{% url 'one_well_download' well.id %}";
-                $('#download-data').click(function () {
-                    $.ajax({
-                        url: download_url,
-                        success: function (data, textStatus, request) {
-                            window.location = `{% url 'download_list_view' %}?task_id=${data.task_id}`;
-                        },
-                        error: function (error, textStatus, request) {
-                            window.location = "{% url 'download_list_view' %}";
-                        }
-                    })
-                    return;
-                })
-            {% endif %}
-        });
+        {# TODO :#}
+        {# we need to fix this#}
+        {#            {% if well and well.id %}#}
+        {#                const download_url = "{% url 'one_well_download' well.id %}";#}
+        {#                $('#download-data').click(function () {#}
+        {#                    $.ajax({#}
+        {#                        url: download_url,#}
+        {#                        success: function (data, textStatus, request) {#}
+        {#                            window.location = `{% url 'download_list_view' %}?task_id=${data.task_id}`;#}
+        {#                        },#}
+        {#                        error: function (error, textStatus, request) {#}
+        {#                            window.location = "{% url 'download_list_view' %}";#}
+        {#                        }#}
+        {#                    })#}
+        {#                    return;#}
+        {#                })#}
+        {#            {% endif %}#}
+      });
     </script>
 {% endblock extra_script %}

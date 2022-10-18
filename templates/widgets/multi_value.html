@@ -2,6 +2,7 @@
     .multivalue .multivalue-selection {
         margin-top: 5px;
         margin-bottom: 5px;
+        display: flex;
     }
 
     .multivalue .multivalue-selection div {
@@ -9,7 +10,6 @@
         border-radius: 5px;
         border: 1px solid #aaa;
         width: auto;
-        float: left;
         margin-right: 3px;
     }
 
@@ -56,7 +56,7 @@
                 },
             });
         },
-        minLength: 1,
+        minLength: {% if min_length %}{{ min_length }}{% else %}1{% endif %},
         select: function (event, ui) {
             if (ui.item.id) {
                 {# select it #}
