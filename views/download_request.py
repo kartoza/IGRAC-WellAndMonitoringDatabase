@@ -1,6 +1,5 @@
 import os
 
-from braces.views import LoginRequiredMixin
 from django.http import HttpResponse
 from django.shortcuts import (
     render, redirect, reverse, get_object_or_404, Http404
@@ -11,11 +10,13 @@ from gwml2.forms.download_request import DownloadRequestForm
 from gwml2.models.download_request import DownloadRequest
 
 
-class DownloadRequestFormView(LoginRequiredMixin, View):
+class DownloadRequestFormView(View):
     template_name = 'download/form.html'
 
     def get(self, request, *args, **kwargs):
-        user = request.user
+        user = None
+        if request.user.is_authenticated:
+            user = request.user
         name = user.first_name if user else None
         surname = user.last_name if user else None
         email = user.email if user else None
