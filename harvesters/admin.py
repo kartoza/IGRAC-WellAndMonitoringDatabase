@@ -8,38 +8,38 @@ from gwml2.tasks.harvester import run_harvester
 # Argentine
 AZULBHD = (
     'gwml2.harvesters.harvester.azul_bdh.AzulBdh',
-    'Institute of Plains Hydrology - IHLLA '
+    '(Argentine) Institute of Plains Hydrology - IHLLA '
     '(http://www.azul.bdh.org.ar/bdh3/leaflet/index.html)',
-    None
-)
-
-# Ireland
-EPAWEBAPP = (
-    'gwml2.harvesters.harvester.epawebapp.Epawebapp',
-    'Groundwater in Ireland '
-    '(https://epawebapp.epa.ie/hydronet/#Groundwater)',
-    None
-)
-
-# USA
-CIDA_USGS = (
-    'gwml2.harvesters.harvester.cida.CidaUsgs',
-    'National Ground-Water Monitoring Network (United States) '
-    '(https://cida.usgs.gov/ngwmn/index.jsp)',
     None
 )
 
 # Canada
 GINGWINFO = (
     'gwml2.harvesters.harvester.gin_gw_info.GinGWInfo',
-    'Canadian Groundwater Information (https://gin.gw-info.net/)',
+    '(Canada) Canadian Groundwater Information (https://gin.gw-info.net/)',
     'Geological Survey Canada (Canada)'
+)
+
+# France
+HUBEAU = (
+    'gwml2.harvesters.harvester.hubeau.Hubeau',
+    '(France) French Geological Survey '
+    '(https://hubeau.eaufrance.fr/page/api-piezometrie)',
+    'French Geological Survey (France)'
+)
+
+# Ireland
+EPAWEBAPP = (
+    'gwml2.harvesters.harvester.epawebapp.Epawebapp',
+    '(Ireland) Groundwater in Ireland '
+    '(https://epawebapp.epa.ie/hydronet/#Groundwater)',
+    None
 )
 
 # Norway
 HYDAPI = (
     'gwml2.harvesters.harvester.hydapi.Hydapi',
-    'The Norwegian Water Resources and Energy Directorate '
+    '(Norway) The Norwegian Water Resources and Energy Directorate '
     '(https://hydapi.nve.no/)',
     'Norwegian Water Resources and Energy Directorate NVE (Norway)'
 )
@@ -47,17 +47,26 @@ HYDAPI = (
 # Sweden
 SGUAPI = (
     'gwml2.harvesters.harvester.sgu.SguAPI',
-    'Groundwater in Sweden '
+    '(Sweden) Groundwater in Sweden '
     '(https://apps.sgu.se/grundvattennivaer-rest/stationer)',
     'Geological Survey of Sweden (Sweden)'
+)
+
+# USA
+CIDA_USGS = (
+    'gwml2.harvesters.harvester.cida.CidaUsgs',
+    '(United States) National Ground-Water Monitoring Network (United States) '
+    '(https://cida.usgs.gov/ngwmn/index.jsp)',
+    None
 )
 
 HARVESTERS = (
     AZULBHD,
     GINGWINFO,
+    HUBEAU,
+    EPAWEBAPP,
     HYDAPI,
     SGUAPI,
-    EPAWEBAPP,
     CIDA_USGS
 )
 HARVESTERS_CHOICES = (

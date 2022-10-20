@@ -94,7 +94,7 @@ class CidaUsgs(BaseHarvester):
                     continue
             try:
                 site_name = self.value_by_tag(member, 'ngwmn:site_name')
-                latitiude = float(
+                latitude = float(
                     self.value_by_tag(member, 'ngwmn:dec_lat_va')
                 )
                 longitude = float(
@@ -116,7 +116,7 @@ class CidaUsgs(BaseHarvester):
                     'site_id': site_id,
                     'site_no': site_no,
                     'site_name': site_name,
-                    'latitiude': latitiude,
+                    'latitude': latitude,
                     'longitude': longitude,
                     'altitude': altitude,
                     'agency_name': agency_name,
@@ -127,7 +127,7 @@ class CidaUsgs(BaseHarvester):
                 well, harvester_well_data = self._save_well(
                     original_id=site_no,
                     name=site_name,
-                    latitude=latitiude,
+                    latitude=latitude,
                     longitude=longitude,
                     ground_surface_elevation_masl=altitude
                 )

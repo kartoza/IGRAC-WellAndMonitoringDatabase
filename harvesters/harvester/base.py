@@ -130,18 +130,8 @@ class BaseHarvester(ABC):
         self.log.note = message
         self.log.save()
 
-    def _save_well(
-            self,
-            original_id: str,
-            name: str,
-            latitude: float,
-            longitude: float,
-            feature_type: typing.Optional[TermFeatureType] = None,
-            ground_surface_elevation_masl: typing.Optional[float] = None,
-            top_of_well_elevation_masl: typing.Optional[float] = None,
-            description: typing.Optional[str] = None
-    ):
-        """ Save well """
+    def get_well(self, original_id, latitude, longitude):
+        """Return well."""
         wells = Well.objects.filter(
             original_id=original_id
         )
@@ -155,8 +145,21 @@ class BaseHarvester(ABC):
         if wells.count() >= 2:
             raise Well.DoesNotExist()
 
-        well = wells.first()
+        return wells.first()
 
+    def _save_well(
+            self,
+            original_id: str,
+            name: str,
+            latitude: float,
+            longitude: float,
+            feature_type: typing.Optional[TermFeatureType] = None,
+            ground_surface_elevation_masl: typing.Optional[float] = None,
+            top_of_well_elevation_masl: typing.Optional[float] = None,
+            description: typing.Optional[str] = None
+    ):
+        """ Save well """
+        well = self.get_well(original_id, latitude=latitude, longitude=longitude)
         if self.harvester.save_missing_well:
             if not well:
                 user_id = None

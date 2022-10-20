@@ -1,10 +1,12 @@
 from django.core.management.base import BaseCommand
+
 from gwml2.harvesters.models.harvester import Harvester
 
 
 class Command(BaseCommand):
     """ Run all harvester
     """
+    true_str = ['true', 'y', 'yes']
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -14,23 +16,25 @@ class Command(BaseCommand):
             default='',
             help='ID of harvester')
         parser.add_argument(
-            '-replace',
-            '--replace',
-            dest='replace',
-            default=False,
-            help='Replace the measurement data')
-        parser.add_argument(
             '-original_id',
             '--original_id',
             dest='original_id',
             default=None,
             help='Filter just original id')
+        parser.add_argument(
+            '-replace',
+            '--replace',
+            dest='replace',
+            default='f',
+            help='Replace the measurement data')
 
     def handle(self, *args, **options):
         id = options.get('id', None)
-        replace = options.get('replace', False)
         original_id = options.get('original_id', None)
-        replace = True if replace in ['True', 'true', 'y'] else replace
+
+        replace = options.get('replace', 'f')
+        replace = True if replace.lower() in self.true_str else False
+
         if id:
             queryset = Harvester.objects.filter(id=int(id))
         else:
