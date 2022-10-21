@@ -36,6 +36,14 @@ EPAWEBAPP = (
     None
 )
 
+# New Zealand
+GNSCRI = (
+    'gwml2.harvesters.harvester.gns_cri.GnsCri',
+    '(New Zealand) GNS Science, Te Pū Ao '
+    '(https://data.gns.cri.nz/)',
+    'GNS Science, Te Pū Ao (New Zealand)'
+)
+
 # Norway
 HYDAPI = (
     'gwml2.harvesters.harvester.hydapi.Hydapi',
@@ -65,6 +73,7 @@ HARVESTERS = (
     GINGWINFO,
     HUBEAU,
     EPAWEBAPP,
+    GNSCRI,
     HYDAPI,
     SGUAPI,
     CIDA_USGS
