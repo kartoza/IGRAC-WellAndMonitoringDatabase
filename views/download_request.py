@@ -14,7 +14,9 @@ class DownloadRequestFormView(View):
     template_name = 'download/form.html'
 
     def get(self, request, *args, **kwargs):
-        user = request.user
+        user = None
+        if request.user.is_authenticated:
+            user = request.user
         name = user.first_name if user else None
         surname = user.last_name if user else None
         email = user.email if user else None
