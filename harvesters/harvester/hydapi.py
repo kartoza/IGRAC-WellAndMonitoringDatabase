@@ -193,40 +193,44 @@ class Hydapi(BaseHarvester):
             url = 'https://hydapi.nve.no/api/v1/Observations?{}'.format(
                 '&'.join(params)
             )
-            response = self._request_api(url)
-            for data in response['data']:
-                method = data['method']
-                try:
-                    unit = Unit.objects.get(name=data['unit'])
-                    for measurement in data['observations']:
-                        if measurement['value'] is not None:
-                            value = measurement['value']
+            try:
+                response = self._request_api(url)
+                for data in response['data']:
+                    method = data['method']
+                    try:
+                        unit = Unit.objects.get(name=data['unit'])
+                        for measurement in data['observations']:
+                            if measurement['value'] is not None:
+                                value = measurement['value']
 
-                            # specifically based on parameter
-                            if parameter == 5130:
-                                value = abs(value)
+                                # specifically based on parameter
+                                if parameter == 5130:
+                                    value = abs(value)
 
-                            defaults = {
-                                'methodology': method,
-                                'parameter': measurement_parameter['parameter']
-                            }
-                            if model == WellLevelMeasurement:
-                                defaults['value_in_m'] = value
-                            obj = self._save_measurement(
-                                model,
-                                parser.parse(measurement['time']),
-                                defaults,
-                                harvester_well_data
-                            )
-                            if not obj.value:
-                                obj.value = Quantity.objects.create(
-                                    unit=unit,
-                                    value=value
+                                defaults = {
+                                    'methodology': method,
+                                    'parameter': measurement_parameter[
+                                        'parameter']
+                                }
+                                if model == WellLevelMeasurement:
+                                    defaults['value_in_m'] = value
+                                obj = self._save_measurement(
+                                    model,
+                                    parser.parse(measurement['time']),
+                                    defaults,
+                                    harvester_well_data
                                 )
-                                obj.save()
+                                if not obj.value:
+                                    obj.value = Quantity.objects.create(
+                                        unit=unit,
+                                        value=value
+                                    )
+                                    obj.save()
 
-                except Unit.DoesNotExist as e:
-                    print(f'{e}')
+                    except Unit.DoesNotExist as e:
+                        print(f'{e}')
+            except Exception:
+                pass
             harvester_well_data.from_time_data = to_date
             harvester_well_data.save()
 
