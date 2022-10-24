@@ -181,5 +181,5 @@ class GnsCri(BaseHarvester):
                         value,
                         unit
                     )
-                except (KeyError, TypeError, Unit.DoesNotExist) as e:
+                except (KeyError, TypeError, ValueError, Unit.DoesNotExist):
                     pass

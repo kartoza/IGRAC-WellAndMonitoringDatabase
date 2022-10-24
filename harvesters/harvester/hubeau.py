@@ -61,6 +61,9 @@ class Hubeau(BaseHarvester):
             data = response.json()
             stations = data['data']
             for station in stations:
+                if not station['geometry'] \
+                        or station['geometry']['coordinates']:
+                    continue
                 original_id = station['bss_id']
                 latitude = station['geometry']['coordinates'][1]
                 longitude = station['geometry']['coordinates'][0]
