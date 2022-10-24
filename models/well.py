@@ -90,6 +90,17 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         db_table = 'well'
         ordering = ['original_id']
 
+    def assign_country(self):
+        """Assign country to the well."""
+        from gwml2.models.general_information import Country
+        if not self.country:
+            country = Country.objects.filter(
+                geometry__contains=self.location
+            ).first()
+            if country:
+                self.country = country
+                self.save()
+
     def updated(self):
         """ update time updated when well updated """
         from gwml2.signals.well import update_well
@@ -100,7 +111,10 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         ):
             self.last_edited_at = make_aware(datetime.now())
             if self.organisation:
-                self.ggis_uid = '{}-{}'.format(self.organisation.name, self.original_id)
+                self.ggis_uid = '{}-{}'.format(
+                    self.organisation.name, self.original_id
+                )
+            self.assign_country()
             try:
                 self.save()
             except (ValueError, KeyError):
