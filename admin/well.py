@@ -16,8 +16,8 @@ def regenerate_measurement_cache(modeladmin, request, queryset):
 
 
 class WellAdmin(admin.ModelAdmin):
-    list_display = ('original_id', 'organisation', 'edit', 'number_of_measurements')
-    list_filter = ('organisation', )
+    list_display = ('original_id', 'organisation', 'edit', 'number_of_measurements', 'country')
+    list_filter = ('organisation', 'country')
     readonly_fields = ('created_at', 'created_by_user', 'last_edited_at', 'last_edited_by_user', 'ggis_uid')
     raw_id_fields = (
         'ground_surface_elevation', 'top_borehole_elevation', 'drilling',
