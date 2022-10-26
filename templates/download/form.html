@@ -135,6 +135,7 @@
         }
         {
           const placeholder = "Select an organization type or more or create by typing new one.";
+          console.log($('#id_organization_types select').val())
           $('#id_organization_types select').select2({
             placeholder: placeholder,
             tags: true,
