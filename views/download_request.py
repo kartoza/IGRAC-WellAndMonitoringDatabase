@@ -10,6 +10,8 @@ from gwml2.forms.download_request import DownloadRequestForm
 from gwml2.models.download_request import (
     DownloadRequest, WELL_AND_MONITORING_DATA
 )
+from gwml2.models.general import Country
+from igrac.models.profile import IgracProfile
 
 
 class DownloadRequestFormView(View):
@@ -24,6 +26,19 @@ class DownloadRequestFormView(View):
         email = user.email if user else None
         organization = user.organization if user else None
         country = user.country if user else None
+        organization_types = None
+        try:
+            organization_types = [
+                _type.strip()
+                for _type in user.igracprofile.organization_types.split(',')
+            ]
+        except (AttributeError, IgracProfile.DoesNotExist):
+            pass
+        if country:
+            try:
+                country = Country.objects.get(code=country)
+            except Country.DoesNotExist:
+                country = None
         data_type = request.GET.get('data_type', WELL_AND_MONITORING_DATA)
         context = {
             'form': DownloadRequestForm(
@@ -31,6 +46,7 @@ class DownloadRequestFormView(View):
                     first_name=first_name,
                     last_name=last_name, email=email,
                     organization=organization, country=country,
+                    organization_types=organization_types,
                     data_type=data_type
                 )
             )

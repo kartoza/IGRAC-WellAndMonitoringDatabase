@@ -28,20 +28,31 @@ class DownloadRequestForm(forms.ModelForm):
             (country.id, country.name) for
             country in Country.objects.all() if
             country.name]
+
+        types = [_type.name for _type in OrganisationType.objects.all()]
         self.fields['organization_types'].choices = [
             (_type.name, _type.name)
             for _type in OrganisationType.objects.all()]
         self.fields['organization_types'].label = _('Type of organization')
 
+        # From POST data
         try:
-            if self.data['organization_types']:
-                self.fields['organization_types'].choices += [
-                    (
-                        self.data['organization_types'],
-                        self.data['organization_types']
-                    )
-                ]
-        except KeyError:
+            for _type in self.data.getlist('organization_types'):
+                if _type not in types:
+                    self.fields['organization_types'].choices += [
+                        (_type, _type)
+                    ]
+        except (AttributeError, KeyError):
+            pass
+
+        # From initial
+        try:
+            for _type in self.initial['organization_types']:
+                if _type not in types:
+                    self.fields['organization_types'].choices += [
+                        (_type, _type)
+                    ]
+        except (AttributeError, KeyError, TypeError):
             pass
 
     def clean_organization_types(self):
