@@ -35,6 +35,7 @@ TEMPLATE_FOLDER = os.path.join(
 
 
 class GenerateDownloadFile(object):
+    data_type = None
     current_time = None
     wells_filename = 'wells.xlsx'
     drill_filename = 'drilling_and_construction.xlsx'
@@ -55,13 +56,14 @@ class GenerateDownloadFile(object):
     groundwater_uses = {}
     measurement_parameters = {}
 
-    def __init__(self, country):
-        print(f'----- begin download : {country.code}  -------')
+    def __init__(self, country, data_type):
+        print(f'----- begin download {data_type} : {country.code}  -------')
         self.current_time = time.time()
+        self.data_type = data_type
 
         # Prepare files
         self.country = country
-        self.folder = os.path.join(DATA_FOLDER, str(country.code))
+        self.folder = os.path.join(DATA_FOLDER, data_type, str(country.code))
         if os.path.exists(self.folder):
             shutil.rmtree(self.folder)
         os.makedirs(self.folder)
@@ -105,9 +107,14 @@ class GenerateDownloadFile(object):
 
     def run_wells(self):
         """ Run wells """
+        from gwml2.models.download_request import GGMN
         wells = Well.objects.all()
         if self.country:
             wells = wells.filter(country=self.country)
+        if self.data_type == GGMN:
+            wells = wells.filter(number_of_measurements__gt=0)
+            wells = wells.filter(organisation__isnull=False)
+
         total_records = wells.count()
         self.log(f'Found {total_records} wells')
 
@@ -147,7 +154,7 @@ class GenerateDownloadFile(object):
         # -------------------------------------------------------------------------
         # zipping files
         # -------------------------------------------------------------------------
-        zip_filename = '{}.zip'.format(str(self.country.code))
+        zip_filename = f'{str(self.country.code)} - {self.data_type}.zip'
         zip_file = os.path.join(DATA_FOLDER, zip_filename)
         if os.path.exists(zip_file):
             os.remove(zip_file)
@@ -456,20 +463,24 @@ class GenerateDownloadFile(object):
 )
 def generate_downloadable_file_cache(
         self, country: str = None, is_from: bool = False):
+    from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
     countries = Country.objects.order_by('name')
     if country:
         try:
-            country = countries.get(Q(code__iexact=country)
-                                    )
+            country = countries.get(Q(code__iexact=country))
             if not is_from:
-                GenerateDownloadFile(country)
-
+                GenerateDownloadFile(
+                    country, data_type=WELL_AND_MONITORING_DATA)
+                GenerateDownloadFile(country, data_type=GGMN)
             else:
                 for country in countries.filter(name__gte=country.name):
-                    GenerateDownloadFile(country)
+                    GenerateDownloadFile(
+                        country, data_type=WELL_AND_MONITORING_DATA)
+                    GenerateDownloadFile(country, data_type=GGMN)
 
         except Country.DoesNotExist:
             print('Country not found')
     else:
         for country in countries:
-            GenerateDownloadFile(country)
+            GenerateDownloadFile(country, data_type=WELL_AND_MONITORING_DATA)
+            GenerateDownloadFile(country, data_type=GGMN)
