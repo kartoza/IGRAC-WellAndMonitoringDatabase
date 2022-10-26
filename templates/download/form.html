@@ -10,6 +10,8 @@
 
 {% block extra_head %}
     <link rel="stylesheet" type="text/css"
+          href="{% static 'css/form-select2.css' %}"/>
+    <link rel="stylesheet" type="text/css"
           href="{% static 'admin/css/widgets.css' %}"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
@@ -20,79 +22,41 @@
     <script type="text/javascript"
             src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
     <style>
-        .multiselect-native-select {
-            display: block;
+        .form-group {
+            margin-bottom: 25px;
         }
 
-        .multiselect-native-select .btn-group,
-        .multiselect-native-select button {
+        form .row {
+            margin: 0;
+        }
+
+        form .row {
+            display: flex;
+        }
+
+        form .col {
             width: 100%;
+            padding: 0 5px;
         }
 
-        .multiselect-all {
-            padding: 0;
+        form .row .col:first-child {
+            padding-left: 0;
         }
 
-        .multiselect-container .multiselect-all:hover,
-        .multiselect-container .multiselect-all:focus,
-        .multiselect-container .multiselect-all:active {
-            background-color: white !important;
-        }
-
-        .multiselect-container a {
-            background-color: white !important;
-            color: black !important;
-            font-weight: 700;
-            padding: 3px 0 !important;
-        }
-
-        li.multiselect-all {
-            border-bottom: 1px solid #ddd;
-            padding: 3px 0 !important;
-        }
-
-        li.multiselect-all.active {
-            background-color: white !important;
-        }
-
-        .multiselect-container .active label {
-            font-weight: 700;
+        form .row .col:last-child {
+            padding-right: 0;
         }
 
         .helptext {
-            margin: 40px 0 20px 0;
+            margin: 0 0 20px 0;
         }
 
-        .select2-container .select2-selection--multiple .select2-selection__rendered {
-            display: flex;
-            padding: 5px;
-            flex-wrap: wrap;
-        }
-
-        .select2-container input {
-            margin-top: 8px !important;
-        }
-
-        #id_organisation_types .select2-container input {
+        #id_organization_types .select2-container input {
             min-width: 411px !important;
         }
 
         #id_countries .select2-container input {
             min-width: 138px !important;
-        }
-
-        .select2-container li {
-            display: block !important;
-            float: unset !important;
-        }
-
-        .select2-selection__choice {
-            padding: 2px 10px 0 25px !important;
-            overflow: unset !important;
-        }
-
-        .select2-selection__choice__remove {
-            padding-top: 2px !important;
         }
 
         .form-actions button {
@@ -103,24 +67,44 @@
 
 {% block body_outer %}
     <div class="page-header">
-        <h1>Request Download Well Data</h1>
+        <h1>Data Request</h1>
     </div>
     <div class="row">
         <form method="post" autocomplete="off">
             <fieldset>
                 {% csrf_token %}
-                {{ form.countries|field_as_bootstrap }}
                 <div class="helptext">
-                    Before downloading the data, please identify yourself.
-                    This helps GGIS administrators and data providers in
-                    providing adequate data and services.
+                    In order to download the data, please indicate which for
+                    countries you request the data,
+                    and identify yourself unless you are already signed in.
+                    This information helps GGIS administrator and data
+                    providers
+                    with providing adequate data and services.
                 </div>
-                {{ form.name|field_as_bootstrap }}
-                {{ form.surname|field_as_bootstrap }}
-                {{ form.organisation|field_as_bootstrap }}
-                {{ form.organisation_types|field_as_bootstrap }}
-                {{ form.position|field_as_bootstrap }}
+                {{ form.countries|field_as_bootstrap }}
+                {{ form.data_type|field_as_bootstrap }}
                 {{ form.email|field_as_bootstrap }}
+                <div class="group">
+                    <div class="row">
+                        <div class="col">
+                            {{ form.first_name|field_as_bootstrap }}
+                        </div>
+                        <div class="col">
+                            {{ form.last_name|field_as_bootstrap }}
+                        </div>
+                    </div>
+                </div>
+                <div class="group">
+                    <div class="row">
+                        <div class="col">
+                            {{ form.organization|field_as_bootstrap }}
+                        </div>
+                        <div class="col">
+                            {{ form.organization_types|field_as_bootstrap }}
+                        </div>
+                    </div>
+                </div>
+                {{ form.country|field_as_bootstrap }}
                 <div class="helptext">
                     Open license apply to some of data, in which case they are
                     specified in the download file.
@@ -150,8 +134,8 @@
           });
         }
         {
-          const placeholder = "Select an organisation type or create by typing new one.";
-          $('#id_organisation_types select').select2({
+          const placeholder = "Select an organization type or more or create by typing new one.";
+          $('#id_organization_types select').select2({
             placeholder: placeholder,
             tags: true,
             createTag: function (params) {
@@ -170,7 +154,7 @@
               return $result;
             }
           }).on('select2:open', function (e) {
-            $('#id_organisation_types input.select2-search__field').prop('placeholder', placeholder);
+            $('#id_organization_types input.select2-search__field').prop('placeholder', placeholder);
           });
         }
       });

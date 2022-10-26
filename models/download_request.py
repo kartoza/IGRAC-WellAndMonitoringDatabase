@@ -9,6 +9,9 @@ from django.utils.translation import ugettext_lazy as _
 from gwml2.models.general import Country
 from gwml2.tasks.downloadable_well_cache import GWML2_FOLDER, DATA_FOLDER
 
+WELL_AND_MONITORING_DATA = 'Well and Monitoring Data'
+GGMN = 'GGMN'
+
 
 class DownloadRequest(models.Model):
     """Request data to download the well data."""
@@ -18,31 +21,44 @@ class DownloadRequest(models.Model):
         editable=False
     )
     request_at = models.DateTimeField(
-        _('Uploaded at'),
+        _('Requested at'),
         default=datetime.now, blank=True
     )
+    data_type = models.CharField(
+        _('Data type'),
+        default='Well and Monitoring Data',
+        choices=(
+            (WELL_AND_MONITORING_DATA, WELL_AND_MONITORING_DATA),
+            (GGMN, GGMN),
+        ),
+        max_length=512
+    )
+    user_id = models.IntegerField(null=True, blank=True)
+    email = models.EmailField(_('email address'), blank=True)
     countries = models.ManyToManyField(
         Country,
-        null=True, blank=True
+        null=True, blank=True,
+        related_name='download_country_data_request'
     )
-    name = models.CharField(
-        _('Name'), max_length=512
+    first_name = models.CharField(
+        _('First Name'), max_length=512
     )
-    surname = models.CharField(
-        _('Surname'), null=True, blank=True, max_length=512
+    last_name = models.CharField(
+        _('Last Name'), null=True, blank=True, max_length=512
     )
-    organisation = models.CharField(
+    organization = models.CharField(
         _('Organization'),
         max_length=512,
     )
-    position = models.CharField(
-        max_length=512
-    )
-    organisation_types = models.CharField(
+    organization_types = models.CharField(
         _('Type of organization'),
         max_length=512,
     )
-    email = models.EmailField(_('email address'), blank=True)
+    country = models.ForeignKey(
+        Country,
+        null=True, blank=True,
+        on_delete=models.SET_NULL
+    )
 
     def generate_file(self):
         """Generate file to be downloaded."""
@@ -58,7 +74,7 @@ class DownloadRequest(models.Model):
         zip_file = zipfile.ZipFile(request_file, 'w')
         for country in self.countries.all():
             unique_id = country.code
-            data_file_name = '{}.zip'.format(str(unique_id))
+            data_file_name = f'{unique_id} - {self.data_type}.zip'
             data_file = os.path.join(
                 DATA_FOLDER, data_file_name)
             if os.path.exists(data_file):

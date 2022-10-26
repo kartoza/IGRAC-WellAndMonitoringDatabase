@@ -7,7 +7,9 @@ from django.shortcuts import (
 from django.views.generic.list import View
 
 from gwml2.forms.download_request import DownloadRequestForm
-from gwml2.models.download_request import DownloadRequest
+from gwml2.models.download_request import (
+    DownloadRequest, WELL_AND_MONITORING_DATA
+)
 
 
 class DownloadRequestFormView(View):
@@ -17,16 +19,19 @@ class DownloadRequestFormView(View):
         user = None
         if request.user.is_authenticated:
             user = request.user
-        name = user.first_name if user else None
-        surname = user.last_name if user else None
+        first_name = user.first_name if user else None
+        last_name = user.last_name if user else None
         email = user.email if user else None
-        organisation = user.organization if user else None
-        position = user.position if user else None
+        organization = user.organization if user else None
+        country = user.country if user else None
+        data_type = request.GET.get('data_type', WELL_AND_MONITORING_DATA)
         context = {
             'form': DownloadRequestForm(
                 instance=DownloadRequest(
-                    name=name, surname=surname, email=email,
-                    organisation=organisation, position=position
+                    first_name=first_name,
+                    last_name=last_name, email=email,
+                    organization=organization, country=country,
+                    data_type=data_type
                 )
             )
         }
@@ -39,6 +44,8 @@ class DownloadRequestFormView(View):
         if form.is_valid():
             download_request = form.save(commit=False)
             countries = form.cleaned_data['countries']
+            if request.user.is_authenticated:
+                download_request.user_id = request.user.id
             download_request.save()
             download_request.countries.add(*countries)
             download_request.generate_file()
