@@ -21,6 +21,7 @@ from gwml2.models.term import (
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
+from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 
 GWML2_FOLDER = os.getenv(
     'GWML_FOLDER', os.path.join(settings.PROJECT_ROOT, 'gwml2-file')
@@ -35,7 +36,6 @@ TEMPLATE_FOLDER = os.path.join(
 
 
 class GenerateDownloadFile(object):
-    data_type = None
     current_time = None
     wells_filename = 'wells.xlsx'
     drill_filename = 'drilling_and_construction.xlsx'
@@ -56,34 +56,43 @@ class GenerateDownloadFile(object):
     groundwater_uses = {}
     measurement_parameters = {}
 
-    def __init__(self, country, data_type):
-        print(f'----- begin download {data_type} : {country.code}  -------')
+    def folder_by_type(self, data_type):
+        """Return folder by type."""
+        return os.path.join(self.folder, data_type)
+
+    def file_by_type(self, filename, data_type):
+        """Get file of on folder."""
+        return os.path.join(self.folder_by_type(data_type), filename)
+
+    def copy_template(self, filename):
+        """Copy template."""
+        copyfile(
+            os.path.join(TEMPLATE_FOLDER, filename),
+            self.file_by_type(filename, WELL_AND_MONITORING_DATA)
+        )
+        copyfile(
+            os.path.join(TEMPLATE_FOLDER, filename),
+            self.file_by_type(filename, GGMN)
+        )
+
+    def __init__(self, country):
+        print(f'----- begin download : {country.code}  -------')
         self.current_time = time.time()
-        self.data_type = data_type
 
         # Prepare files
         self.country = country
-        self.folder = os.path.join(DATA_FOLDER, data_type, str(country.code))
+        self.folder = os.path.join(DATA_FOLDER, str(country.code))
         if os.path.exists(self.folder):
             shutil.rmtree(self.folder)
-        os.makedirs(self.folder)
+        os.makedirs(os.path.join(self.folder, WELL_AND_MONITORING_DATA))
+        os.makedirs(os.path.join(self.folder, GGMN))
 
-        self.wells_file = os.path.join(self.folder, self.wells_filename)
-        self.drill_file = os.path.join(self.folder, self.drill_filename)
-        self.monitor_file = os.path.join(self.folder, self.monitor_filename)
         self.error_file = os.path.join(self.folder, self.error_filename)
 
         # copy files
-        copyfile(
-            os.path.join(TEMPLATE_FOLDER, self.wells_filename), self.wells_file
-        )
-        copyfile(
-            os.path.join(TEMPLATE_FOLDER, self.drill_filename), self.drill_file
-        )
-        copyfile(
-            os.path.join(TEMPLATE_FOLDER, self.monitor_filename),
-            self.monitor_file
-        )
+        self.copy_template(self.wells_filename)
+        self.copy_template(self.drill_filename)
+        self.copy_template(self.monitor_filename)
         self.run_wells()
 
     def log(self, text):
@@ -105,15 +114,19 @@ class GenerateDownloadFile(object):
             return value
         return cache[id]
 
+    def return_well_and_ggmn_files(self, well, filename):
+        """Return well and ggmn files"""
+        well_file = self.file_by_type(filename, WELL_AND_MONITORING_DATA)
+        ggmn_file = None
+        if well.number_of_measurements > 0 and well.organisation:
+            ggmn_file = self.file_by_type(filename, GGMN)
+        return well_file, ggmn_file
+
     def run_wells(self):
         """ Run wells """
-        from gwml2.models.download_request import GGMN
         wells = Well.objects.all()
         if self.country:
             wells = wells.filter(country=self.country)
-        if self.data_type == GGMN:
-            wells = wells.filter(number_of_measurements__gt=0)
-            wells = wells.filter(organisation__isnull=False)
 
         total_records = wells.count()
         self.log(f'Found {total_records} wells')
@@ -124,20 +137,49 @@ class GenerateDownloadFile(object):
         for index, well in enumerate(wells):
             try:
                 print(f'Progress {index}/{total_records} : {well.original_id}')
-                well_book = load_workbook(self.wells_file)
+                wells_file, wells_ggmn_file = self.return_well_and_ggmn_files(
+                    well, self.wells_filename
+                )
+                well_book = load_workbook(wells_file)
+                well_book_ggmn = load_workbook(
+                    wells_ggmn_file
+                ) if wells_ggmn_file else None
 
-                self.general_information(well_book, well)
-                self.hydrogeology(well_book, well)
-                self.management(well_book, well)
-                well_book.save(self.wells_file)
+                # General information
+                self.general_information(well_book, well_book_ggmn, well)
+                self.hydrogeology(well_book, well_book_ggmn, well)
+                self.management(well_book, well_book_ggmn, well)
+                well_book.save(wells_file)
+                if well_book_ggmn:
+                    well_book_ggmn.save(wells_ggmn_file)
 
-                drilling_book = load_workbook(self.drill_file)
-                self.drilling_and_construction(drilling_book, well)
-                drilling_book.save(self.drill_file)
+                # Drill
+                drill_file, drill_ggmn_file = self.return_well_and_ggmn_files(
+                    well, self.drill_filename
+                )
+                drilling_book = load_workbook(drill_file)
+                drilling_ggmn_book = load_workbook(
+                    drill_ggmn_file
+                ) if drill_ggmn_file else None
+                self.drilling_and_construction(
+                    drilling_book, drilling_ggmn_book, well
+                )
+                drilling_book.save(drill_file)
+                if drilling_ggmn_book:
+                    drilling_ggmn_book.save(drill_ggmn_file)
 
-                monitor_book = load_workbook(self.monitor_file)
-                self.measurements(monitor_book, well)
-                monitor_book.save(self.monitor_file)
+                # Monitor
+                monitor_file, monitor_ggmn_file = self.return_well_and_ggmn_files(
+                    well, self.monitor_filename
+                )
+                monitor_book = load_workbook(monitor_file)
+                monitor_ggmn_book = load_workbook(
+                    monitor_ggmn_file
+                ) if monitor_ggmn_file else None
+                self.measurements(monitor_book, monitor_ggmn_book, well)
+                monitor_book.save(monitor_file)
+                if monitor_ggmn_book:
+                    monitor_ggmn_book.save(monitor_ggmn_file)
             except Exception as e:
                 error_file = open(self.error_file, 'a')
                 error = f'{well.original_id} : {e}'
@@ -154,31 +196,35 @@ class GenerateDownloadFile(object):
         # -------------------------------------------------------------------------
         # zipping files
         # -------------------------------------------------------------------------
-        zip_filename = f'{str(self.country.code)} - {self.data_type}.zip'
-        zip_file = os.path.join(DATA_FOLDER, zip_filename)
-        if os.path.exists(zip_file):
-            os.remove(zip_file)
+        for data_type in [WELL_AND_MONITORING_DATA, GGMN]:
+            zip_filename = f'{str(self.country.code)} - {data_type}.zip'
+            zip_file = os.path.join(DATA_FOLDER, zip_filename)
+            if os.path.exists(zip_file):
+                os.remove(zip_file)
 
-        zip_file = zipfile.ZipFile(zip_file, 'w')
-        zip_file.write(
-            self.wells_file, self.wells_filename,
-            compress_type=zipfile.ZIP_DEFLATED)
-        zip_file.write(
-            self.drill_file,
-            self.drill_filename,
-            compress_type=zipfile.ZIP_DEFLATED)
+            well_file = self.file_by_type(self.wells_filename, data_type)
+            drill_file = self.file_by_type(self.drill_filename, data_type)
+            monitor_file = self.file_by_type(self.monitor_filename, data_type)
+            zip_file = zipfile.ZipFile(zip_file, 'w')
+            zip_file.write(
+                well_file, self.wells_filename,
+                compress_type=zipfile.ZIP_DEFLATED)
+            zip_file.write(
+                drill_file,
+                self.drill_filename,
+                compress_type=zipfile.ZIP_DEFLATED)
 
-        zip_file.write(
-            self.monitor_file, self.monitor_filename,
-            compress_type=zipfile.ZIP_DEFLATED)
+            zip_file.write(
+                monitor_file, self.monitor_filename,
+                compress_type=zipfile.ZIP_DEFLATED)
 
-        zip_file.close()
+            zip_file.close()
         shutil.rmtree(self.folder)
 
-    def general_information(self, book, well):
+    def general_information(self, book, ggmn_book, well):
         """ General Information of well"""
-        general_information_sheet = book['General Information']
-        general_information_sheet.append([
+        sheetname = 'General Information'
+        data = [
             well.original_id,
             well.name,
             self.get_data(
@@ -203,16 +249,22 @@ class GenerateDownloadFile(object):
             if well.top_borehole_elevation else '',
             self.country.code,
             well.address,
-        ])
+        ]
+        sheet = book[sheetname]
+        sheet.append(data)
 
-    def drilling_and_construction(self, book, well):
+        # If has ggmn book
+        if ggmn_book:
+            sheet = ggmn_book[sheetname]
+            sheet.append(data)
+
+    def drilling_and_construction(self, book, ggmn_book, well):
         """ Drilling and construction of well"""
-        drilling_and_construction_sheet = book['Drilling and Construction']
         geology = well.geology if well.geology else None
         drilling = well.drilling if well.drilling else None
         construction = well.construction if well.construction else None
 
-        drilling_and_construction_sheet.append([
+        data = [
             well.original_id,
 
             # Total depth
@@ -233,18 +285,24 @@ class GenerateDownloadFile(object):
             drilling.year_of_drilling if drilling else '',
             construction.pump_installer if construction else '',
             construction.pump_description if construction else '',
-        ])
+        ]
+        sheetname = 'Drilling and Construction'
+        sheet = book[sheetname]
+        sheet.append(data)
+
+        # If has ggmn book
+        if ggmn_book:
+            sheet = ggmn_book[sheetname]
+            sheet.append(data)
 
         # --------------------------------------------------------------------------
         # For drilling data
         if drilling:
-            water_strike_sheet = book['Water Strike']
-            stratigraphic_sheet = book['Stratigraphic Log']
-
             # water strike
+            sheetname = 'Water Strike'
             for water_strike in well.drilling.waterstrike_set.all():
                 depth = water_strike.depth
-                water_strike_sheet.append([
+                data = [
                     well.original_id,
 
                     # Depth
@@ -256,13 +314,21 @@ class GenerateDownloadFile(object):
                         water_strike.reference_elevation_id,
                         self.reference_elevations, TermReferenceElevationType
                     ),
-                ])
+                ]
+                sheet = book[sheetname]
+                sheet.append(data)
+
+                # If has ggmn book
+                if ggmn_book:
+                    sheet = ggmn_book[sheetname]
+                    sheet.append(data)
 
             # stratigraphic
+            sheetname = 'Stratigraphic Log'
             for log in well.drilling.stratigraphiclog_set.all():
                 top_depth = log.top_depth
                 bottom_depth = log.bottom_depth
-                stratigraphic_sheet.append([
+                data = [
                     well.original_id,
 
                     # Reference elevation
@@ -282,16 +348,23 @@ class GenerateDownloadFile(object):
                     if bottom_depth else '',
                     log.material,
                     log.stratigraphic_unit,
-                ])
+                ]
+                sheet = book[sheetname]
+                sheet.append(data)
+
+                # If has ggmn book
+                if ggmn_book:
+                    sheet = ggmn_book[sheetname]
+                    sheet.append(data)
         # --------------------------------------------------------------------------
         # For Construction Data
         if construction:
-            structure_sheet = book['Structures']
+            sheetname = 'Structures'
             for structure in well.construction.constructionstructure_set.all():
                 top_depth = structure.top_depth
                 bottom_depth = structure.bottom_depth
                 diameter = structure.diameter
-                structure_sheet.append([
+                data = [
                     well.original_id,
 
                     # Structure
@@ -321,11 +394,17 @@ class GenerateDownloadFile(object):
                     if diameter else '',
                     structure.material,
                     structure.description
-                ])
+                ]
+                sheet = book[sheetname]
+                sheet.append(data)
 
-    def hydrogeology(self, book, well):
+                # If has ggmn book
+                if ggmn_book:
+                    sheet = ggmn_book[sheetname]
+                    sheet.append(data)
+
+    def hydrogeology(self, book, ggmn_book, well):
         """ Hydrogeology of well"""
-        hydrogeology_sheet = book['Hydrogeology']
         hydrogeology = well.hydrogeology_parameter
         pumping_test = hydrogeology.pumping_test if hydrogeology else None
         hydraulic_conductivity = pumping_test.hydraulic_conductivity if pumping_test else None
@@ -334,7 +413,7 @@ class GenerateDownloadFile(object):
         specific_capacity = pumping_test.specific_capacity if pumping_test else None
         storativity = pumping_test.storativity if pumping_test else None
 
-        hydrogeology_sheet.append([
+        data = [
             well.original_id,
             hydrogeology.aquifer_name if hydrogeology else '',
             hydrogeology.aquifer_material if hydrogeology else '',
@@ -386,15 +465,21 @@ class GenerateDownloadFile(object):
             if storativity else '',
 
             pumping_test.test_type if pumping_test else '',
-        ])
+        ]
+        sheetname = 'Hydrogeology'
+        sheet = book[sheetname]
+        sheet.append(data)
 
-    def management(self, book, well):
+        # If has ggmn book
+        if ggmn_book:
+            sheet = ggmn_book[sheetname]
+            sheet.append(data)
+
+    def management(self, book, ggmn_book, well):
         """ Management of well"""
-        management_sheet = book['Management']
         management = well.management
         license = management.license if management else None
-
-        management_sheet.append([
+        data = [
             well.original_id,
             self.get_data(
                 well.organisation_id, self.organisations, Organisation
@@ -415,13 +500,22 @@ class GenerateDownloadFile(object):
             license.valid_until.strftime('%Y-%m-%d')
             if management and license and license.valid_until else '',
             license.description if license else '',
-        ])
+        ]
 
-    def measurement_data(self, sheets, measurements, original_id):
+        sheetname = 'Management'
+        sheet = book[sheetname]
+        sheet.append(data)
+
+        # If has ggmn book
+        if ggmn_book:
+            sheet = ggmn_book[sheetname]
+            sheet.append(data)
+
+    def measurement_data(self, sheets, ggmn_sheet, measurements, original_id):
         """ Measurements of well """
         for measurement in measurements:
             value = measurement.value
-            sheets.append([
+            data = [
                 original_id,
 
                 # measurement
@@ -436,22 +530,28 @@ class GenerateDownloadFile(object):
                 self.get_data(value.unit_id, self.units, Unit)
                 if value else '',
                 measurement.methodology
-            ])
+            ]
+            sheets.append(data)
+            if ggmn_sheet:
+                ggmn_sheet.append(data)
 
-    def measurements(self, book, well):
+    def measurements(self, book, ggmn_book, well):
         """ Measurements of well """
         self.measurement_data(
             book['Groundwater Level'],
+            ggmn_book['Groundwater Level'] if ggmn_book else None,
             well.welllevelmeasurement_set.all(),
             well.original_id
         )
         self.measurement_data(
             book['Groundwater Quality'],
+            ggmn_book['Groundwater Quality'] if ggmn_book else None,
             well.wellqualitymeasurement_set.all(),
             well.original_id
         )
         self.measurement_data(
             book['Abstraction-Discharge'],
+            ggmn_book['Abstraction-Discharge'] if ggmn_book else None,
             well.wellyieldmeasurement_set.all(),
             well.original_id
         )
@@ -463,24 +563,18 @@ class GenerateDownloadFile(object):
 )
 def generate_downloadable_file_cache(
         self, country: str = None, is_from: bool = False):
-    from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
     countries = Country.objects.order_by('name')
     if country:
         try:
             country = countries.get(Q(code__iexact=country))
             if not is_from:
-                GenerateDownloadFile(
-                    country, data_type=WELL_AND_MONITORING_DATA)
-                GenerateDownloadFile(country, data_type=GGMN)
+                GenerateDownloadFile(country)
             else:
                 for country in countries.filter(name__gte=country.name):
-                    GenerateDownloadFile(
-                        country, data_type=WELL_AND_MONITORING_DATA)
-                    GenerateDownloadFile(country, data_type=GGMN)
+                    GenerateDownloadFile(country)
 
         except Country.DoesNotExist:
             print('Country not found')
     else:
         for country in countries:
-            GenerateDownloadFile(country, data_type=WELL_AND_MONITORING_DATA)
-            GenerateDownloadFile(country, data_type=GGMN)
+            GenerateDownloadFile(country)

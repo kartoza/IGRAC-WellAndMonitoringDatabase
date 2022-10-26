@@ -7,7 +7,6 @@ from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from gwml2.models.general import Country
-from gwml2.tasks.downloadable_well_cache import GWML2_FOLDER, DATA_FOLDER
 
 WELL_AND_MONITORING_DATA = 'Well and Monitoring Data'
 GGMN = 'GGMN'
@@ -62,6 +61,9 @@ class DownloadRequest(models.Model):
 
     def generate_file(self):
         """Generate file to be downloaded."""
+        from gwml2.tasks.downloadable_well_cache import (
+            GWML2_FOLDER, DATA_FOLDER
+        )
         output_folder = os.path.join(
             GWML2_FOLDER, 'request'
         )
@@ -85,6 +87,7 @@ class DownloadRequest(models.Model):
 
     def file(self):
         """Return file."""
+        from gwml2.tasks.downloadable_well_cache import GWML2_FOLDER
         file = os.path.join(
             GWML2_FOLDER, 'request', '{}.zip'.format(str(self.uuid))
         )
