@@ -29,6 +29,11 @@ MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
 MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
 
 
+class WellManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(organisation__active=True)
+
+
 class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     """
     7.6.38 GW_Well
@@ -83,6 +88,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         default=0,
         help_text=_('Indicate how many measurement this well has.')
     )
+    objects = WellManager()
 
     def __str__(self):
         return self.original_id
