@@ -1,3 +1,5 @@
+import time
+
 import pytz
 from dateutil import parser
 from dateutil.relativedelta import relativedelta
@@ -11,7 +13,6 @@ from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
     Well, WellLevelMeasurement, WellYieldMeasurement, WellQualityMeasurement
 )
-from gwml2.tasks.well import generate_measurement_cache
 
 
 class Hydapi(BaseHarvester):
@@ -132,7 +133,11 @@ class Hydapi(BaseHarvester):
             if not latest_measurement:
                 harvester_well_data.from_time_data = self.max_oldest_time
             else:
-                harvester_well_data.from_time_data = latest_measurement.time
+                if not harvester_well_data.from_time_data:
+                    harvester_well_data.from_time_data = latest_measurement.time
+
+                if latest_measurement.time > harvester_well_data.from_time_data:
+                    harvester_well_data.from_time_data = latest_measurement.time
 
             # CHeck if from date is less than the series
             for resolution in series['resolutionList']:
@@ -149,7 +154,7 @@ class Hydapi(BaseHarvester):
             )
 
         # generate cache
-        generate_measurement_cache(well.id, WellLevelMeasurement.__name__)
+        self.post_processing_well(well)
 
     def _fetch_measurements(
             self,
@@ -164,7 +169,7 @@ class Hydapi(BaseHarvester):
             model = measurement_parameter['model']
 
             # check from and to date
-            to_date = from_date + relativedelta(months=1)
+            to_date = from_date + relativedelta(months=2)
 
             is_last = False
             now = timezone.now()
@@ -182,7 +187,6 @@ class Hydapi(BaseHarvester):
                 f"{station['stationId']} : {parameter} "
                 f"- {from_date_str} - {to_date_str}"
             )
-
             # Fetch measurements data
             params = [
                 f"StationId={station['stationId']}",
@@ -235,6 +239,7 @@ class Hydapi(BaseHarvester):
             harvester_well_data.save()
 
             if not is_last:
+                time.sleep(1)
                 self._fetch_measurements(
                     station, harvester_well_data, to_date, series
                 )
