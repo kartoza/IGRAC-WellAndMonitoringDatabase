@@ -64,8 +64,10 @@ class WellView(ViewWellFormMixin, View):
                     'name': measurement.name
                 } for measurement in TermMeasurementParameter.objects.all()
             },
-            'units': {unit.id: UnitSerializer(unit).data for unit in
-                      Unit.objects.order_by('id')},
+            'units': {
+                unit.id: UnitSerializer(unit).data for unit in
+                Unit.objects.order_by('id')
+            },
             'reference_elevations': {
                 type.id: type.name for type in
                 TermReferenceElevationType.objects.all()
@@ -140,21 +142,21 @@ class WellEditing(object):
 
         # create new well if well is not provided
         if not well:
-            general_information = GeneralInformationCreateForm(Well(), data,
-                                                               FILES)
+            general_information = GeneralInformationCreateForm(
+                Well(), data, FILES)
             general_information.save()
             well = general_information.form.instance
 
-        self.general_information = GeneralInformationCreateForm(well, data,
-                                                                FILES)
+        self.general_information = GeneralInformationCreateForm(
+            well, data, FILES)
         self.geology = GeologyCreateForm(well, data, FILES)
         self.drilling = DrillingCreateForm(well, data, FILES)
         self.construction = ConstructionCreateForm(well, data, FILES)
         self.hydrogeology = HydrogeologyCreateForm(well, data, FILES)
         self.management = ManagementCreateForm(well, data, FILES)
         self.yield_measurement = YieldMeasurementCreateForm(well, data, FILES)
-        self.quality_measurement = QualityMeasurementCreateForm(well, data,
-                                                                FILES)
+        self.quality_measurement = QualityMeasurementCreateForm(
+            well, data, FILES)
         self.level_measurement = LevelMeasurementCreateForm(well, data, FILES)
 
         if not well.created_by:

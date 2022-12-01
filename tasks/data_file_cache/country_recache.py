@@ -4,9 +4,9 @@ import shutil
 import time
 import zipfile
 
+from celery import shared_task
 from django.conf import settings
 from django.db.models import Q
-from geonode.celery_app import app
 from openpyxl import load_workbook
 
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
@@ -23,6 +23,7 @@ DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
 TEMPLATE_FOLDER = os.path.join(DJANGO_ROOT, 'static', 'download_template')
+
 
 
 class GenerateCountryCacheFile(WellCacheFileBase):
@@ -166,10 +167,7 @@ class GenerateCountryCacheFile(WellCacheFileBase):
                 target_sheet_2.append(row)
 
 
-@app.task(
-    bind=True,
-    name='gwml2.tasks.well.generate_data_country_cache'
-)
+@shared_task(bind=True, queue='update')
 def generate_data_country_cache(self, country_code: str):
     try:
         country = Country.objects.get(Q(code__iexact=country_code))

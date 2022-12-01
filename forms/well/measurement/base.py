@@ -38,8 +38,6 @@ class BaseMeasurementForm(WellBaseForm):
         self.fields['parameter'].empty_label = None
         self.fields['parameter'].required = True
         self.fields['parameter'].widget.attrs['required'] = True
-        self.fields['value'].widget.attrs['min'] = 0
-        self.fields['value'].widget.attrs['data-min'] = 0
         self.fields['time'].label = _('Date and Time')
 
     @staticmethod

@@ -2,6 +2,8 @@ import os
 import time
 from shutil import copyfile
 
+from celery.utils.log import get_task_logger
+
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.term import TermFeatureType
 
@@ -9,6 +11,8 @@ DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
 TEMPLATE_FOLDER = os.path.join(DJANGO_ROOT, 'static', 'download_template')
+
+logger = get_task_logger(__name__)
 
 
 def zipdir(path, ziph):
@@ -97,4 +101,5 @@ class WellCacheFileBase(object):
         """Print time."""
         new_time = time.time()
         print(f'{text} - {(new_time - self.current_time)} seconds')
+        logger.debug(f'{text} - {(new_time - self.current_time)} seconds')
         self.current_time = new_time

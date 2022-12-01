@@ -4,8 +4,9 @@ import shutil
 import time
 from shutil import copyfile
 
+from celery import shared_task
+from celery.utils.log import get_task_logger
 from django.conf import settings
-from geonode.celery_app import app
 from openpyxl import load_workbook
 
 from gwml2.models.general import Country
@@ -32,6 +33,8 @@ DJANGO_ROOT = os.path.dirname(
 )
 TEMPLATE_FOLDER = os.path.join(DJANGO_ROOT, 'static', 'download_template')
 
+logger = get_task_logger(__name__)
+
 
 class GenerateWellCacheFile(object):
     current_time = None
@@ -57,6 +60,7 @@ class GenerateWellCacheFile(object):
         """Print time."""
         new_time = time.time()
         print(f'{(new_time - self.current_time)} seconds : {text}')
+        logger.debug(f'{(new_time - self.current_time)} seconds : {text}')
         self.current_time = new_time
 
     @property
@@ -84,7 +88,7 @@ class GenerateWellCacheFile(object):
         done_file = self._file('done')
         if not force_regenerate and os.path.exists(done_file):
             return
-        print(f'----- Begin cache : id = {self.well.id}  -------')
+        self.log(f'----- Begin cache : id = {self.well.id}  -------')
 
         # Prepare files
         if os.path.exists(self.folder):
@@ -428,10 +432,7 @@ class GenerateWellCacheFile(object):
         )
 
 
-@app.task(
-    bind=True,
-    name='gwml2.tasks.well.generate_data_well_cache'
-)
+@shared_task(bind=True, queue='update')
 def generate_data_well_cache(
         self, well_id: int, force_regenerate: bool = True,
         generate_country_cache: bool = True
