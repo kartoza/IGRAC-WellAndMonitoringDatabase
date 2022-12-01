@@ -17,6 +17,7 @@ class Hubeau(BaseHarvester):
     Harvester for https://hubeau.eaufrance.fr/page/api-piezometrie
     """
     domain = 'https://hubeau.eaufrance.fr/api/v1/niveaux_nappes'
+    original_id_key = 'code_bss'
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -56,26 +57,25 @@ class Hubeau(BaseHarvester):
 
         After it is finished, do the next url.
         """
+        print(f'Process {url}')
         response = requests.get(url)
         if response.status_code in [200, 206]:
             data = response.json()
             stations = data['data']
             for station in stations:
-                if not station['geometry'] \
-                        or station['geometry']['coordinates']:
+                geometry = station['geometry']
+                if not geometry or not geometry['coordinates']:
                     continue
-                original_id = station['bss_id']
-                latitude = station['geometry']['coordinates'][1]
-                longitude = station['geometry']['coordinates'][0]
+                latitude = geometry['coordinates'][1]
+                longitude = geometry['coordinates'][0]
 
                 params = {
-                    'bss_id': original_id
+                    'bss_id': station['bss_id']
                 }
+                original_id = station[self.original_id_key]
                 well = self.get_well(original_id, latitude, longitude)
                 if well:
-                    last_measurement = well.welllevelmeasurement_set.order_by(
-                        '-time'
-                    ).first()
+                    last_measurement = well.welllevelmeasurement_set.first()
                     if last_measurement:
                         last_date = last_measurement.time.strftime("%Y-%m-%d")
                         params.update(
@@ -84,9 +84,15 @@ class Hubeau(BaseHarvester):
                             }
                         )
 
+                # Process measurement
                 self._process_measurements(
                     self._measurement_url(params), station, None
                 )
+
+                # Generate cache
+                well = self.get_well(original_id, latitude, longitude)
+                if well:
+                    self.post_processing_well(well)
             if data['next']:
                 self._process_stations(data['next'])
         else:
@@ -101,7 +107,7 @@ class Hubeau(BaseHarvester):
         """
         response = requests.get(url)
         if response.status_code in [200, 206]:
-            original_id = station['bss_id']
+            original_id = station[self.original_id_key]
             site_name = station['nom_commune']
             altitude = float(station['altitude_station'])
             latitude = station['geometry']['coordinates'][1]

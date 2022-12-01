@@ -129,9 +129,9 @@ class BaseHarvester(ABC):
 
     def _update(self, message=''):
         """ Update note for the log """
-        print(message)
         self.log.note = message
         self.log.save()
+        print(message)
 
     def get_well(self, original_id, latitude, longitude):
         """Return well."""
