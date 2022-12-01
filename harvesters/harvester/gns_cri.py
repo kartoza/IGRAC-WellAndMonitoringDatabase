@@ -18,6 +18,7 @@ class GnsCri(BaseHarvester):
     """
     Harvester for https://data.gns.cri.nz/gwp/index.html?map=NGMP
     """
+    updated = False
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -103,6 +104,7 @@ class GnsCri(BaseHarvester):
         stations = self._request_api(url)
         count = len(stations['features'])
         for idx, station in enumerate(stations['features']):
+            self.updated = False
             properties = station['properties']
             original_id = properties['feature']
             self._update(f'Processing {original_id} - {idx}/{count}')
@@ -185,8 +187,9 @@ class GnsCri(BaseHarvester):
                         value,
                         unit
                     )
+                    self.updated = True
                 except (KeyError, TypeError, ValueError, Unit.DoesNotExist):
                     pass
 
-        if harvester_well_data:
+        if harvester_well_data and self.updated:
             self.post_processing_well(harvester_well_data.well)

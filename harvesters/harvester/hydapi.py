@@ -24,6 +24,7 @@ class Hydapi(BaseHarvester):
     max_oldest_time = parser.parse('1800-01-01T00:00:00Z')
     parameters = {}
     resolution_time = 1440
+    updated = False
 
     def __init__(self, harvester: Harvester, replace: bool = False,
                  original_id: str = None):
@@ -88,6 +89,7 @@ class Hydapi(BaseHarvester):
         """
         # check available parameters
         # check start date
+        self.updated = False
         parameter_ids = [
             series['parameter'] for series in station['seriesList']
         ]
@@ -154,7 +156,8 @@ class Hydapi(BaseHarvester):
             )
 
         # generate cache
-        self.post_processing_well(well)
+        if self.updated:
+            self.post_processing_well(well)
 
     def _fetch_measurements(
             self,
@@ -230,6 +233,7 @@ class Hydapi(BaseHarvester):
                                         value=value
                                     )
                                     obj.save()
+                                self.updated = True
 
                     except Unit.DoesNotExist as e:
                         print(f'{e}')

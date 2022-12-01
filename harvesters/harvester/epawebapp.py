@@ -22,6 +22,7 @@ class Epawebapp(BaseHarvester):
     Harvester for https://epawebapp.epa.ie/
     """
     url = 'https://epawebapp.epa.ie/Hydronet/output/'
+    updated = False
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -61,6 +62,7 @@ class Epawebapp(BaseHarvester):
             stations = self._request_api(self.url + layer_link)
             count = len(stations)
             for idx, station in enumerate(stations):
+                self.updated = False
                 try:
                     print(f'Processing --- {idx}/{count}')
                     station_data = stations_in_dict[
@@ -73,7 +75,7 @@ class Epawebapp(BaseHarvester):
                         latitude=float(station['metadata_station_latitude']),
                         longitude=float(station['metadata_station_longitude'])
                     )
-                    if well:
+                    if well and self.updated:
                         self.post_processing_well(well)
 
                 except (ValueError, KeyError):
@@ -151,6 +153,7 @@ class Epawebapp(BaseHarvester):
                                 self.unit_m
                             )
                             last_date_time = date_time
+                            self.updated = True
                     # If #Timestamp, the next is data
                     if row[0] == '#Timestamp':
                         is_data = True

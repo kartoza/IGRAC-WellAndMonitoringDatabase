@@ -18,6 +18,7 @@ class Hubeau(BaseHarvester):
     """
     domain = 'https://hubeau.eaufrance.fr/api/v1/niveaux_nappes'
     original_id_key = 'code_bss'
+    updated = False
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -63,6 +64,7 @@ class Hubeau(BaseHarvester):
             data = response.json()
             stations = data['data']
             for station in stations:
+                self.updated = False
                 geometry = station['geometry']
                 if not geometry or not geometry['coordinates']:
                     continue
@@ -92,7 +94,7 @@ class Hubeau(BaseHarvester):
 
                     # Generate cache
                     well = self.get_well(original_id, latitude, longitude)
-                    if well:
+                    if well and self.updated:
                         self.post_processing_well(well)
                 except Well.DoesNotExist:
                     pass
@@ -144,6 +146,7 @@ class Hubeau(BaseHarvester):
                         measurement['profondeur_nappe'],
                         self.unit_m
                     )
+                    self.updated = True
                 if data['next']:
                     self._process_measurements(
                         data['next'], station, harvester_well_data

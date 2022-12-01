@@ -24,6 +24,7 @@ class CidaUsgs(BaseHarvester):
     Harvester for https://cida.usgs.gov/ngwmn/index.jsp
     """
     units = {}
+    updated = False
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -77,6 +78,7 @@ class CidaUsgs(BaseHarvester):
         count = len(members)
         skip = True if self.original_id else False
         for idx, member in enumerate(members):
+            self.updated = False
             site_no = self.value_by_tag(member, 'ngwmn:site_no')
             site_id = self.value_by_tag(member, 'ngwmn:my_siteid')
             message = f'{idx + 1}/{count} - {site_id}'
@@ -191,7 +193,8 @@ class CidaUsgs(BaseHarvester):
                 self.get_measurements(well_data, harvester_well_data)
 
                 # Generate cache
-                self.post_processing_well(well)
+                if self.updated:
+                    self.post_processing_well(well)
             except (KeyError, Well.DoesNotExist):
                 pass
             except Exception as e:
@@ -244,5 +247,6 @@ class CidaUsgs(BaseHarvester):
                         value,
                         unit
                     )
+                    self.updated = True
                 except (ValueError, KeyError):
                     pass
