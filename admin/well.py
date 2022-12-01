@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils.html import format_html
+
 from gwml2.models.well import (
     Well, WellDocument,
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
@@ -10,27 +11,52 @@ from gwml2.models.well import (
 User = get_user_model()
 
 
+def assign_country(modeladmin, request, queryset):
+    for well in queryset:
+        well.assign_country(force=True)
+
+
 def regenerate_measurement_cache(modeladmin, request, queryset):
     for well in queryset:
         well.generate_measurement_cache()
 
 
 class WellAdmin(admin.ModelAdmin):
-    list_display = ('original_id', 'organisation', 'edit', 'number_of_measurements', 'country')
+    list_display = (
+        'original_id', 'organisation', 'number_of_measurements',
+        'country', 'id', 'last_measurement', 'edit'
+    )
     list_filter = ('organisation', 'country')
-    readonly_fields = ('created_at', 'created_by_user', 'last_edited_at', 'last_edited_by_user', 'ggis_uid')
+    readonly_fields = (
+        'created_at', 'created_by_user', 'last_edited_at',
+        'last_edited_by_user',
+        'ggis_uid'
+    )
     raw_id_fields = (
         'ground_surface_elevation', 'top_borehole_elevation', 'drilling',
         'geology', 'construction', 'management', 'hydrogeology_parameter'
     )
     search_fields = ('original_id', 'name')
-    actions = [regenerate_measurement_cache]
+    actions = [regenerate_measurement_cache, assign_country]
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])
         return format_html(
-            '<a href="{}" target="_blank">click here to edit well</a>',
+            '<a href="{}" target="_blank">Edit well</a>',
             url)
+
+    def last_measurement(self, obj: Well):
+        last_data = {}
+        query = obj.welllevelmeasurement_set.all()
+        if query.count():
+            last_data['level'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
+        query = obj.wellyieldmeasurement_set.all()
+        if query.count():
+            last_data['yield'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
+        query = obj.wellqualitymeasurement_set.all()
+        if query.count():
+            last_data['quality'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
+        return last_data
 
     def created_by_user(self, obj):
         return obj.created_by_username()
@@ -51,7 +77,8 @@ class MeasurementAdmin(admin.ModelAdmin):
 
 
 class WellLevelMeasurementAdmin(MeasurementAdmin):
-    list_display = ('well', 'time', 'parameter', 'methodology', 'value', 'value_in_m')
+    list_display = (
+        'well', 'time', 'parameter', 'methodology', 'value', 'value_in_m')
     readonly_fields = ('value_in_m',)
 
 

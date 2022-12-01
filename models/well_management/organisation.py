@@ -14,6 +14,10 @@ class Organisation(models.Model):
     order = models.PositiveIntegerField(
         default=0, editable=False, db_index=True
     )
+    active = models.BooleanField(
+        default=True,
+        help_text='If not active, all well under it will be hidden'
+    )
 
     # for the permission
     admins = ArrayField(

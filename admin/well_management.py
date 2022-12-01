@@ -6,11 +6,24 @@ from gwml2.models.well_management.organisation import (
     Organisation, OrganisationType
 )
 from gwml2.models.well_management.user import UserUUID
+from gwml2.tasks.data_file_cache.country_recache import (
+    generate_data_country_cache
+)
 
 User = get_user_model()
 
 
+def rerun_cache(modeladmin, request, queryset):
+    for org in queryset:
+        codes = list(set(org.well_set.values_list('country__code', flat=True)))
+        for country_code in codes:
+            generate_data_country_cache(country_code=country_code)
+
+
 class OrganisationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'active')
+    list_editable = ('active',)
+    actions = (rerun_cache,)
     form = OrganisationFormAdmin
 
 
@@ -43,5 +56,4 @@ class UserUUIDAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Organisation, OrganisationAdmin)
-admin.site.register(UserUUID, UserUUIDAdmin)
 admin.site.register(OrganisationType, admin.ModelAdmin)

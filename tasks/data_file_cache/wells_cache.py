@@ -59,8 +59,8 @@ class GenerateWellCacheFile(object):
     def log(self, text):
         """Print time."""
         new_time = time.time()
-        print(f'{(new_time - self.current_time)} seconds : {text}')
-        logger.debug(f'{(new_time - self.current_time)} seconds : {text}')
+        print(f'{text} - {(new_time - self.current_time)} seconds')
+        logger.debug(f'{text} - {(new_time - self.current_time)} seconds')
         self.current_time = new_time
 
     @property

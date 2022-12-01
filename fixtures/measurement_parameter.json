@@ -261,7 +261,8 @@
     "units": [
       "m³/day",
       "m³/h",
-      "m³/min"
+      "m³/min",
+      "m³/s"
     ]
   },
   "Spring discharge": {
@@ -272,7 +273,8 @@
     "units": [
       "m³/day",
       "m³/h",
-      "m³/min"
+      "m³/min",
+      "m³/s"
     ]
   }
 }

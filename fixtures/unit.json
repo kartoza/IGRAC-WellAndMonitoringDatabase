@@ -41,6 +41,11 @@
       "length^3 / time"
     ]
   },
+  "m³/s": {
+    "groups": [
+      "length^3 / time"
+    ]
+  },
   "%": {
     "description": "Percent",
     "groups": [
