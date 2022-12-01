@@ -9,6 +9,9 @@ from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models.signals import post_save
 
+from gwml2.harvesters.models.harvester import (
+    Harvester, HarvesterLog, RUNNING, ERROR, DONE
+)
 from gwml2.harvesters.models.harvester import HarvesterWellData
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term import TermFeatureType
@@ -19,10 +22,9 @@ from gwml2.models.well import (
     WellYieldMeasurement
 )
 from gwml2.signals.well import post_save_measurement_for_cache
+from gwml2.tasks.data_file_cache import generate_data_well_cache
+from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal
-from ..models.harvester import (
-    Harvester, HarvesterLog, RUNNING, ERROR, DONE
-)
 
 User = get_user_model()
 
@@ -115,6 +117,7 @@ class BaseHarvester(ABC):
         self.log.status = ERROR
         self.log.note = '{}'.format(message)
         self.log.save()
+        print(self.log.note)
 
     def _done(self, message=''):
         self.harvester.is_run = False
@@ -159,7 +162,9 @@ class BaseHarvester(ABC):
             description: typing.Optional[str] = None
     ):
         """ Save well """
-        well = self.get_well(original_id, latitude=latitude, longitude=longitude)
+        well = self.get_well(
+            original_id, latitude=latitude, longitude=longitude
+        )
         if self.harvester.save_missing_well:
             if not well:
                 user_id = None
@@ -246,3 +251,9 @@ class BaseHarvester(ABC):
                 )
                 obj.save()
         return obj
+
+    def post_processing_well(self, well:Well):
+        """Specifically for processing cache after procesing well."""
+        print(f'Generate cache for {well.original_id}')
+        generate_measurement_cache(well.id)
+        generate_data_well_cache(well.id)

@@ -6,7 +6,7 @@ from dateutil.parser import parse
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import Harvester
-from gwml2.models.general import Unit, Quantity, Country
+from gwml2.models.general import Unit, Quantity
 from gwml2.models.geology import Geology
 from gwml2.models.management import Management
 from gwml2.models.term import (
@@ -45,12 +45,6 @@ class CidaUsgs(BaseHarvester):
             )
         except TermWellPurpose.DoesNotExist:
             self.purpose = None
-        try:
-            self.country = Country.objects.get(
-                code='USA'
-            )
-        except Country.DoesNotExist:
-            self.country = None
         super(CidaUsgs, self).__init__(harvester, replace, original_id)
 
     def _process(self):
@@ -180,7 +174,6 @@ class CidaUsgs(BaseHarvester):
                     f'https://cida.usgs.gov/ngwmn/provider/'
                     f'{well_data["agency_code"]}/site/{well_data["site_no"]}/'
                 )
-                well.country = self.country
                 if not well.purpose:
                     well.purpose = self.purpose
                 if not well.description:
@@ -194,7 +187,11 @@ class CidaUsgs(BaseHarvester):
                     well.management = management
                 well.save()
 
+                # Save measurements
                 self.get_measurements(well_data, harvester_well_data)
+
+                # Generate cache
+                self.post_processing_well(well)
             except (KeyError, Well.DoesNotExist):
                 pass
             except Exception as e:
@@ -212,19 +209,21 @@ class CidaUsgs(BaseHarvester):
         else:
             xml = BeautifulSoup(response.content, "lxml")
             samples = xml.findAll('sample')
-            print(f'Measurements found : {len(samples)}')
+            count = len(samples)
+            print(f'Measurements found : {count}')
             last_time = None
             last_data = harvester_well_data.well.welllevelmeasurement_set.all().first()
             if last_data:
                 last_time = last_data.time
 
-            for measurement in samples:
+            for idx, measurement in enumerate(samples):
                 try:
                     time = self.value_by_tag(measurement, 'time')
                     time = parse(time)
                     if last_time and time < last_time:
                         continue
 
+                    print(f'{idx}/{count} - {time}')
                     unit = self.units[
                         self.value_by_tag(measurement, 'unit').lower()
                     ]
@@ -233,9 +232,7 @@ class CidaUsgs(BaseHarvester):
                             measurement, 'from-landsurface-value'
                         )
                     )
-                    value, unit = self.change_value_to_meter(
-                        value, unit
-                    )
+                    value, unit = self.change_value_to_meter(value, unit)
                     defaults = {
                         'parameter': self.parameter
                     }

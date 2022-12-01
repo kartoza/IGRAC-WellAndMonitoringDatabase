@@ -2,6 +2,7 @@ import gzip
 import json
 import os
 from datetime import datetime
+
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
@@ -9,16 +10,16 @@ from django.dispatch import receiver
 from django.utils.timezone import make_aware
 from django.utils.translation import ugettext_lazy as _
 
+from gwml2.models.construction import Construction
 from gwml2.models.document import Document
+from gwml2.models.drilling import Drilling
 from gwml2.models.general_information import GeneralInformation
 from gwml2.models.geology import Geology
-from gwml2.models.drilling import Drilling
-from gwml2.models.construction import Construction
+from gwml2.models.hydrogeology import HydrogeologyParameter
+from gwml2.models.management import Management
+from gwml2.models.measurement import Measurement
 from gwml2.models.metadata.creation import CreationMetadata
 from gwml2.models.metadata.license_metadata import LicenseMetadata
-from gwml2.models.measurement import Measurement
-from gwml2.models.management import Management
-from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import temp_disconnect_signal, convert_value
@@ -90,10 +91,10 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         db_table = 'well'
         ordering = ['original_id']
 
-    def assign_country(self):
+    def assign_country(self, force=False):
         """Assign country to the well."""
         from gwml2.models.general_information import Country
-        if not self.country:
+        if not self.country or force:
             country = Country.objects.filter(
                 geometry__contains=self.location
             ).first()
@@ -175,7 +176,8 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         """
         Return file path of cache file
         """
-        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache', '{}'.format(self.id))
+        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache',
+                              '{}'.format(self.id))
         return os.path.join(folder, '{}.gz'.format(measurement_name))
 
     def measurement_data(self, measurement_name: str):
@@ -192,7 +194,8 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 top_borehole_elevation, unit_to)
 
         for MeasurementModel in \
-                [WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement]:
+                [WellLevelMeasurement, WellQualityMeasurement,
+                 WellYieldMeasurement]:
             if MeasurementModel.__name__ == measurement_name:
                 output = {"data": [], "page": 1, "end": True}
                 for measurement in MeasurementModel.objects.filter(well=self):
@@ -236,12 +239,14 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
 
     def generate_measurement_cache(self, model=None):
         """ Generate measurement cache """
-        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache', '{}'.format(self.id))
+        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache',
+                              '{}'.format(self.id))
         if not os.path.exists(folder):
             os.makedirs(folder)
 
         for MeasurementModel in \
-                [WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement]:
+                [WellLevelMeasurement, WellQualityMeasurement,
+                 WellYieldMeasurement]:
             measurement_name = MeasurementModel.__name__
             if model and measurement_name != model:
                 continue
