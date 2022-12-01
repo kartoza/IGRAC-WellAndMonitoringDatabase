@@ -59,35 +59,28 @@ class Epawebapp(BaseHarvester):
         else:
             # Check for all stations
             stations = self._request_api(self.url + layer_link)
-            for station in stations:
+            count = len(stations)
+            for idx, station in enumerate(stations):
                 try:
+                    print(f'Processing --- {idx}/{count}')
                     station_data = stations_in_dict[
                         station['metadata_station_id']]
+                    self.fetch_measurement(None, station, station_data)
 
-                    # Save well
-                    well, harvester_well_data = self._save_well(
-                        original_id=station['metadata_station_no'],
-                        name=station['metadata_station_name'],
-                        description=station['metadata_Web_Desc'],
+                    # Regenerate cache
+                    well = self.get_well(
+                        station['metadata_station_no'],
                         latitude=float(station['metadata_station_latitude']),
-                        longitude=float(station['metadata_station_longitude']),
-                        ground_surface_elevation_masl=station[
-                            'metadata_GWREF_DATUM']
+                        longitude=float(station['metadata_station_longitude'])
                     )
-                    if well.management:
-                        management = well.management
-                    else:
-                        management = Management.objects.create(
-                            manager=station['metadata_STATION_OWNER']
-                        )
-                    well.management = management
-                    well.save()
-                    self.fetch_measurement(harvester_well_data, station_data)
+                    if well:
+                        self.post_processing_well(well)
+
                 except (ValueError, KeyError):
                     pass
             self._done('Done')
 
-    def fetch_measurement(self, harvester_well_data, station_data):
+    def fetch_measurement(self, harvester_well_data, station, station_data):
         """Fetch measurements."""
         # Measurements
         url_measurements = self.url + station_data[
@@ -113,6 +106,39 @@ class Epawebapp(BaseHarvester):
                         if not last_date_time or (
                                 date_time - last_date_time
                         ).seconds / 3600 >= 6:
+                            if not harvester_well_data:
+                                # Save well
+                                well, harvester_well_data = self._save_well(
+                                    original_id=station['metadata_station_no'],
+                                    name=station[
+                                        'metadata_station_name'],
+                                    description=station[
+                                        'metadata_Web_Desc'],
+                                    latitude=float(
+                                        station['metadata_station_latitude']
+                                    ),
+                                    longitude=float(
+                                        station['metadata_station_longitude']
+                                    ),
+                                    ground_surface_elevation_masl=station[
+                                        'metadata_GWREF_DATUM']
+                                )
+                                if well.management:
+                                    management = well.management
+                                else:
+                                    management = Management.objects.create(
+                                        manager=station[
+                                            'metadata_STATION_OWNER']
+                                    )
+                                well.management = management
+                                well.save()
+                                last_data = harvester_well_data.well.welllevelmeasurement_set.first()
+                                if last_data:
+                                    last_date_time = last_data.time
+
+                            if last_date_time and date_time < last_date_time:
+                                continue
+
                             defaults = {
                                 'parameter': self.parameter
                             }

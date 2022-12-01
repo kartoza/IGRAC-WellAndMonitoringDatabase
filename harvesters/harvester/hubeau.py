@@ -33,7 +33,8 @@ class Hubeau(BaseHarvester):
 
         # Process the stations
         self._process_stations(
-            f'https://hubeau.eaufrance.fr/api/v1/niveaux_nappes/stations?code_bss=0024%2FS&code_bss=00353X0073%2FP&code_bss=00512X0001%2FP1&code_bss=00771X0030%2FP&code_bss=01277X0192%2FS1&code_bss=01551X1006%2FS1&code_bss=03152X0027%2FF&code_bss=03212X0021%2FP&code_bss=03276X0009%2FP&code_bss=03375X0013%2FP1&code_bss=04987X0022%2FP&code_bss=05867X0152%2FSR1&code_bss=07155X0016%2FP1&code_bss=07475X0008%2FF3&code_bss=07844X0076%2FP1&code_bss=08266X0136%2FF&code_bss=09503X0057%2FF2&code_bss=09655X0265%2FCLOS&code_bss=10247X0096%2FP&code_bss=10592X0012%2FAEP&format=json&size=20'
+            f'{self.domain}/stations?'
+            'format=json&nb_mesures_piezo_min=2&size=100'
         )
         self._done('Done')
 
@@ -82,9 +83,6 @@ class Hubeau(BaseHarvester):
                                 'date_debut_mesure': last_date
                             }
                         )
-                else:
-                    if not self.harvester.save_missing_well:
-                        continue
 
                 # Process measurement
                 try:

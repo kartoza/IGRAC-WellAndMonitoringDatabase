@@ -1,5 +1,6 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
+
 from gwml2.harvesters.models.harvester import Harvester
 
 logger = get_task_logger(__name__)
@@ -14,7 +15,11 @@ def run_harvester(self, harvester_id: int):
         logger.debug('Harvester {} does not exists'.format(harvester_id))
 
 
-@shared_task(bind=True, queue='update')
+@shared_task(
+    bind=True,
+    name='gwml2.tasks.harvester.run_all_harvester',
+    queue='geoserver.events')
 def run_all_harvester(self):
+    """Run All harvesters."""
     for harvester in Harvester.objects.all():
         harvester.run()
