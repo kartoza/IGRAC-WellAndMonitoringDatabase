@@ -101,10 +101,11 @@ class GnsCri(BaseHarvester):
             f'&typeNames=ggw:NationalGroundwaterMonitoringProgramme'
         )
         stations = self._request_api(url)
+        count = len(stations['features'])
         for idx, station in enumerate(stations['features']):
             properties = station['properties']
             original_id = properties['feature']
-            self._update(f'Processing {original_id}')
+            self._update(f'Processing {original_id} - {idx}/{count}')
             self._process_measurement(station)
 
         self._done('Done')
@@ -124,33 +125,36 @@ class GnsCri(BaseHarvester):
             f'FEATURE={original_id}'
         )
         response = requests.get(csv_url)
+        harvester_well_data = None
         if response.status_code == 200:
-
-            # -----------------------------------
-            # Save the well
-            try:
-                well, harvester_well_data = self._save_well(
-                    original_id,
-                    name,
-                    latitude=latitude,
-                    longitude=longitude
-                )
-            except Well.DoesNotExist:
-                return
-
-            # Save management
-            if not well.management:
-                management = Management.objects.create(manager=manager)
-                well.management = management
-
-            well.description = description
-            well.save()
-
             # Parse the measurements
             buff = io.StringIO(response.text)
             data = csv.DictReader(buff)
             for row in data:
                 try:
+                    # Just save well if there are measurements
+                    if not harvester_well_data:
+                        # -----------------------------------
+                        # Save the well
+                        try:
+                            well, harvester_well_data = self._save_well(
+                                original_id,
+                                name,
+                                latitude=latitude,
+                                longitude=longitude
+                            )
+                        except Well.DoesNotExist:
+                            return
+
+                        # Save management
+                        if not well.management:
+                            management = Management.objects.create(
+                                manager=manager)
+                            well.management = management
+
+                        well.description = description
+                        well.save()
+
                     param_type = row['Param Type']
                     param = self.parameters[param_type]
                     date_time = make_aware(
@@ -183,3 +187,6 @@ class GnsCri(BaseHarvester):
                     )
                 except (KeyError, TypeError, ValueError, Unit.DoesNotExist):
                     pass
+
+        if harvester_well_data:
+            self.post_processing_well(harvester_well_data.well)
