@@ -61,11 +61,11 @@ class DownloadRequest(models.Model):
 
     def generate_file(self):
         """Generate file to be downloaded."""
-        from gwml2.tasks.downloadable_well_cache import (
+        from gwml2.tasks.data_file_cache.country_recache import (
             GWML2_FOLDER, DATA_FOLDER
         )
         output_folder = os.path.join(
-            GWML2_FOLDER, 'request'
+            GWML2_FOLDER, 'requests'
         )
         if not os.path.exists(output_folder):
             os.makedirs(output_folder)
@@ -87,9 +87,9 @@ class DownloadRequest(models.Model):
 
     def file(self):
         """Return file."""
-        from gwml2.tasks.downloadable_well_cache import GWML2_FOLDER
+        from gwml2.tasks.data_file_cache.country_recache import GWML2_FOLDER
         file = os.path.join(
-            GWML2_FOLDER, 'request', '{}.zip'.format(str(self.uuid))
+            GWML2_FOLDER, 'requests', '{}.zip'.format(str(self.uuid))
         )
         if os.path.exists(file):
             return file
