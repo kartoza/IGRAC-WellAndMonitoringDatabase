@@ -223,7 +223,7 @@ class CidaUsgs(BaseHarvester):
                 try:
                     time = self.value_by_tag(measurement, 'time')
                     time = parse(time)
-                    if last_time and time < last_time:
+                    if last_time and time <= last_time:
                         continue
 
                     print(f'{idx}/{count} - {time}')

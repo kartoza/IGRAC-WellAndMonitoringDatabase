@@ -138,7 +138,7 @@ class Epawebapp(BaseHarvester):
                                 if last_data:
                                     last_date_time = last_data.time
 
-                            if last_date_time and date_time < last_date_time:
+                            if last_date_time and date_time <= last_date_time:
                                 continue
 
                             defaults = {
