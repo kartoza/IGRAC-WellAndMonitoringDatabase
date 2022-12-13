@@ -199,9 +199,11 @@ class BaseHarvester(ABC):
                 well.number_of_measurements = 0
                 well.save()
 
-            if well.organisation != self.harvester.organisation:
-                well.organisation = self.harvester.organisation
-                well.save()
+            # TODO:
+            #  We give option for harvester to force change the organisation
+            # if well.organisation != self.harvester.organisation:
+            #     well.organisation = self.harvester.organisation
+            #     well.save()
 
         if not well.ground_surface_elevation and ground_surface_elevation_masl:
             well.ground_surface_elevation = Quantity.objects.create(
