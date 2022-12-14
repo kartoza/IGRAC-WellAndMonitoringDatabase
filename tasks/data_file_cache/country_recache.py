@@ -113,15 +113,27 @@ class GenerateCountryCacheFile(WellCacheFileBase):
                 self.drill_filename,
                 compress_type=zipfile.ZIP_DEFLATED)
 
+            original_ids_found = {}
             for well in wells:
                 well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
                 measurement_file = os.path.join(
                     well_folder, self.monitor_filename
                 )
                 if os.path.exists(measurement_file):
+                    original_id = well.original_id
+                    try:
+                        _filename = (
+                            f'monitoring/{original_id} '
+                            f'({original_ids_found[original_id]+1}).xlsx'
+                        )
+                        original_ids_found[original_id] += 1
+                    except KeyError:
+                        _filename = f'monitoring/{original_id}.xlsx'
+                        original_ids_found[original_id] = 0
+
                     zip_file.write(
                         measurement_file,
-                        f'monitoring/{well.original_id} ({well.id}).xlsx',
+                        _filename,
                         compress_type=zipfile.ZIP_DEFLATED
                     )
 
@@ -139,6 +151,9 @@ class GenerateCountryCacheFile(WellCacheFileBase):
                 os.path.join(well_folder, filename),
                 well_book, ggmn_book, sheetname
             )
+        well_book.active = 0
+        if ggmn_book:
+            ggmn_book.active = 0
 
     def merge_data_between_sheets(
             self, source_file, target_book, target_book_2, sheetname

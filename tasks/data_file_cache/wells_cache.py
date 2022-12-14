@@ -124,6 +124,7 @@ class GenerateWellCacheFile(object):
         monitor_file = self._file(self.monitor_filename)
         monitor_book = load_workbook(monitor_file)
         self.measurements(monitor_book, well)
+        monitor_book.active = 0
         monitor_book.save(monitor_file)
 
     def write_json(self, folder, sheetname, data):
