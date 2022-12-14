@@ -103,6 +103,8 @@ class GenerateWellCacheFile(object):
         with open(done_file, 'w') as f:
             f.write('Done')
 
+        self.log(f'----- End cache : id = {self.well.id}  -------')
+
     def run(self):
         """ Run wells """
         well = self.well
