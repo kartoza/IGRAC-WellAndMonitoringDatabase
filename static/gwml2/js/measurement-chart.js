@@ -118,11 +118,22 @@ function convertMeasurementData(
         let value = row.v;
         value = unitConvert(unit, unit_to, value);
 
-        const levelParameter = checkLevelParameter(
-            parameter, parameter_to, value,
-            top_borehole_elevation, ground_surface_elevation);
-        parameter = levelParameter[0];
-        value = levelParameter[1];
+        // ------------------------------------------------
+        // Just groundwater level params
+        let level_parameters = []
+        if(parameters_chart['Groundwater Level']) {
+            $.each(parameters_chart['Groundwater Level'], function (idx, param) {
+                level_parameters.push(param.name)
+            })
+        }
+        if (level_parameters.includes(parameter)){
+            const levelParameter = checkLevelParameter(
+                parameter, parameter_to, value,
+                top_borehole_elevation, ground_surface_elevation);
+            parameter = levelParameter[0];
+            value = levelParameter[1];
+        }
+        // ------------------------------------------------
 
         // let's we save it
         if (value != null) {
@@ -359,12 +370,12 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
 }
 
 let MeasurementChartObj = function (
-    identifier, top_borehole, ground_surface, url, parameters, units,
+    identifier, top_borehole, ground_surface, urls, parameters, units,
     $loading, $loadMore, $units, $parameters) {
     this.identifier = identifier;
     this.top_borehole = top_borehole;
     this.ground_surface = ground_surface;
-    this.url = url;
+    this.urls = urls;
     this.$loading = $loading;
     this.$loadMore = $loadMore;
     this.$dataFrom = $loadMore.closest('.measurement-chart-plugin').find('#data-from');
@@ -575,33 +586,39 @@ let MeasurementChartObj = function (
     this.fetchData = function (unitTo, parameterTo) {
         this.$loading.show();
         this.$loadMore.attr('disabled', 'disabled')
-        if (this.url) {
+        if (this.urls) {
             const that = this;
-            $.ajax({
-                url: url,
-                dataType: 'json',
-                data: {
-                    page: this.data ? this.data.page : 1,
-                },
-                success: function (data, textStatus, request) {
-                    if (!that.data) {
-                        that.data = {
-                            data: [],
-                            page: 1
-                        }
-                    }
-                    that.data.page += 1;
-                    that.data.data = that.data.data.concat(data.data);
-                    that.data.end = data.end;
-                    if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
-                        that.renderChart();
-                    }
-                },
-                error: function (error, textStatus, request) {
-                    that.$loading.hide();
-                    $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
+            $.each(this.urls, function (idx, url) {
+                if (!url) {
+                    return
                 }
-            })
+                $.ajax({
+                    url: url,
+                    dataType: 'json',
+                    data: {
+                        page: this.data ? this.data.page : 1,
+                    },
+                    success: function (data, textStatus, request) {
+                        if (!that.data) {
+                            that.data = {
+                                data: [],
+                                page: 1
+                            }
+                        }
+                        that.data.page += 1;
+                        that.data.data = that.data.data.concat(data.data);
+                        that.data.end = data.end;
+                        if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
+                            that.renderChart();
+                        }
+                        console.log(that.data.data)
+                    },
+                    error: function (error, textStatus, request) {
+                        that.$loading.hide();
+                        $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
+                    }
+                })
+            });
         }
     }
 
@@ -621,7 +638,13 @@ let MeasurementChartObj = function (
     }
 
     $parameters.change(function () {
-        const parameter = parameters_chart[$(this).val()];
+        let parameter = null;
+        const paramValue = $(this).val()
+        $.each(parameters_chart, function (header_name, parameters) {
+            if(parameters[paramValue]){
+                parameter = parameters[paramValue]
+            }
+        });
         const unitVal = parseInt($units.val());
         $units.html('');
         $.each(parameter.units, function (index, id) {

@@ -13,14 +13,14 @@
             {# This is chart section#}
             $(document).ready(function () {
                 {# save parameters #}
-                const $parameters = $('#{{ id }}-cw #parameters');
+                const $parameters = $('#{{ id }}-cw .parameters');
                 const template = $('#{{ id }} template').prop('content');
                 $parameters.html($(template).find('#id_parameter').html())
                 measurementCharts['{{ id }}'] = new MeasurementChartObj(
-                    '{{ id }}', top_borehole_elevation, ground_surface_elevation, '{{ url }}', parameters_chart, units,
+                    '{{ id }}', top_borehole_elevation, ground_surface_elevation, ['{{ url }}'], parameters_chart, units,
                     $('#{{ id }}-cw #loading'),
                     $('#{{ id }}-cw #load-more'),
-                    $('#{{ id }}-cw #units'),
+                    $('#{{ id }}-cw .units'),
                     $parameters
                 )
                 $("#{{ id }} #load-more").unbind();

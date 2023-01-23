@@ -245,7 +245,7 @@ class BaseHarvester(ABC):
             harvester_well_data.save()
 
         # Save value if not none
-        if value is not None and unit is not None:
+        if value is not None:
             if not obj.value:
                 obj.value = Quantity.objects.create(
                     unit=unit,

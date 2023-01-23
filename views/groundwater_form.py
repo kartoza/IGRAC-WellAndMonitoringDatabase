@@ -9,7 +9,9 @@ from django.views.generic.base import View
 from gwml2.mixin import ViewWellFormMixin, EditWellFormMixin
 from gwml2.models.general import Unit
 from gwml2.models.reference_elevation import TermReferenceElevationType
-from gwml2.models.term_measurement_parameter import TermMeasurementParameter
+from gwml2.models.term_measurement_parameter import (
+    TermMeasurementParameter, TermMeasurementParameterGroup
+)
 from gwml2.models.well import Well
 from gwml2.serializer.unit import UnitSerializer
 from gwml2.tasks.data_file_cache.wells_cache import generate_data_well_cache
@@ -50,6 +52,22 @@ class WellView(ViewWellFormMixin, View):
     read_only = True
 
     def get_context(self, well):
+        groups = {
+            'Level Measurement': 'Groundwater Level',
+            'Quality Measurement': 'Groundwater Quality',
+            'Yield Measurement': 'Groundwater Yield',
+        }
+        parameters = {}
+        for group_name, group_header in groups.items():
+            parameters[group_header] = {
+                measurement.id: {
+                    'units': [
+                        unit.id for unit in measurement.units.all()],
+                    'name': measurement.name
+                } for measurement in TermMeasurementParameterGroup.objects.get(
+                    name=group_name).parameters.all()
+            }
+
         context = {
             'read_only': self.read_only,
             'well': well,
@@ -57,13 +75,7 @@ class WellView(ViewWellFormMixin, View):
                 measurement.id: [unit.name for unit in measurement.units.all()]
                 for measurement in TermMeasurementParameter.objects.all()
             },
-            'parameters_chart': {
-                measurement.id: {
-                    'units': [
-                        unit.id for unit in measurement.units.all()],
-                    'name': measurement.name
-                } for measurement in TermMeasurementParameter.objects.all()
-            },
+            'parameters_chart': parameters,
             'units': {
                 unit.id: UnitSerializer(unit).data for unit in
                 Unit.objects.order_by('id')

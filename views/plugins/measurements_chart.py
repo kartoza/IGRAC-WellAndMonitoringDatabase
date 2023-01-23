@@ -31,7 +31,7 @@ class MeasurementChart(View):
         except Well.DoesNotExist:
             error = "Well does not found"
 
-        if model != 'WellLevelMeasurement' and model != 'WellQualityMeasurement' and model != 'WellYieldMeasurement':
+        if model != 'WellLevelMeasurement' and model != 'WellQualityMeasurement' and model != 'WellYieldMeasurement' and model != 'WellMeasurement':
             error = "Model is not measurements"
 
         if error:
@@ -40,35 +40,54 @@ class MeasurementChart(View):
                 'plugins/measurements_chart_error.html',
                 {'error': error})
 
-        if model == 'WellLevelMeasurement':
+        groups = {}
+        if model == 'WellLevelMeasurement' or model == 'WellMeasurement':
             group_name = 'Level Measurement'
-        elif model == 'WellQualityMeasurement':
+            groups[group_name] = 'Groundwater Level'
+        if model == 'WellQualityMeasurement' or model == 'WellMeasurement':
             group_name = 'Quality Measurement'
-        elif model == 'WellYieldMeasurement':
+            groups[group_name] = 'Groundwater Quality'
+        if model == 'WellYieldMeasurement' or model == 'WellMeasurement':
             group_name = 'Yield Measurement'
-        else:
-            group_name = ''
+            groups[group_name] = 'Groundwater Yield'
 
-        parameters = {
-            measurement.id: {
-                'units': [
-                    unit.id for unit in measurement.units.all()],
-                'name': measurement.name
-            } for measurement in TermMeasurementParameterGroup.objects.get(name=group_name).parameters.all()
-        }
+        parameters = {}
+        for group_name, group_header in groups.items():
+            parameters[group_header] = {
+                measurement.id: {
+                    'units': [
+                        unit.id for unit in measurement.units.all()],
+                    'name': measurement.name
+                } for measurement in TermMeasurementParameterGroup.objects.get(
+                    name=group_name).parameters.all()
+            }
 
         units = {unit.id: UnitSerializer(unit).data for unit in Unit.objects.order_by('id')}
 
+        # Return data url
+        urls = [
+            reverse('well-measurement-chart-data', kwargs={
+                'id': id,
+                'model': model
+            })
+        ]
+        if model == 'WellMeasurement':
+            urls = [
+                reverse('well-measurement-chart-data', kwargs={
+                    'id': id,
+                    'model': model
+                })
+                for model in [
+                    'WellLevelMeasurement', 'WellQualityMeasurement',
+                    'WellYieldMeasurement'
+                ]]
         return render(
             request,
             'plugins/measurements_chart_page.html',
             {
                 'id': id,
                 'identifier': model,
-                'url': reverse('well-measurement-chart-data', kwargs={
-                    'id': id,
-                    'model': model
-                }),
+                'urls': urls,
                 'top_borehole_elevation': {
                     'u': well.top_borehole_elevation.unit.name if
                     well.top_borehole_elevation and well.top_borehole_elevation.unit else '',
