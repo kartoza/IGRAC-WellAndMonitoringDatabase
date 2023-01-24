@@ -193,8 +193,7 @@ function getTrendlines(chartData, steps) {
     }
 }
 
-function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries, onChartClicked) {
-    let title = '';
+function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries, onChartClicked, title = '') {
     switch (identifier) {
         case 'WellLevelMeasurement':
         case 'level_measurement':
@@ -533,7 +532,7 @@ let MeasurementChartObj = function (
         this.chart = null;
         if (!chartData || chartData.length === 0) {
             that.$loading.hide();
-            $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>');
+            $(`#${identifier}-chart`).html('<div class="Error">No data found</div>');
             $(`#${identifier}-step`).hide();
             return
         }
@@ -561,6 +560,16 @@ let MeasurementChartObj = function (
             that.$stepDescription.show();
         }
 
+        let title = ''
+        const paramValue = this.parameterTo
+        $.each(parameters_chart, function (header_name, parameters) {
+            $.each(parameters, function (idx, param) {
+                if (param.name === paramValue) {
+                    title = header_name
+                }
+            })
+        });
+
         this.chart = renderMeasurementChart(
             this.identifier, this.chart,
             cleanData[this.parameterTo],
@@ -570,7 +579,9 @@ let MeasurementChartObj = function (
                 if (that.isTrendLine) {
                     onNewStep(date.getTime());
                 }
-            })
+            },
+            title
+        )
         this.$loading.hide();
     };
 
@@ -611,7 +622,6 @@ let MeasurementChartObj = function (
                         if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
                             that.renderChart();
                         }
-                        console.log(that.data.data)
                     },
                     error: function (error, textStatus, request) {
                         that.$loading.hide();

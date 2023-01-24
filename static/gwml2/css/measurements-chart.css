@@ -263,6 +263,7 @@ input:disabled, textarea:disabled, select:disabled,
     border: 1px solid #ddd !important;
     background-color: rgba(239, 239, 239, 0.3) !important;
 }
+
 #wrap select {
     -webkit-appearance: none;
     -moz-appearance: window;
@@ -304,4 +305,10 @@ input:disabled, textarea:disabled, select:disabled,
 
 .select2-container--default .select2-search--dropdown .select2-search__field:focus {
     outline: none;
+}
+
+.Error {
+    text-align: center;
+    color: red;
+    padding: 3rem;
 }
