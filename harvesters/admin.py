@@ -121,9 +121,15 @@ class HarvesterAdmin(admin.ModelAdmin):
     form = HarvesterForm
     inlines = [HarvesterAttributeInline, HarvesterLogInline]
     list_display = (
-        'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class')
+        'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class', 'last_run')
     list_editable = ('active',)
     actions = (harvest_data,)
+
+    def last_run(self, obj: Harvester):
+        last_log = obj.harvesterlog_set.first()
+        if not last_log:
+            return '-'
+        return last_log.start_time
 
 
 class HarvesterWellDataAdmin(admin.ModelAdmin):
