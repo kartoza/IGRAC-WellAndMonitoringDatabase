@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
     views = """
             CREATE VIEW vw_well AS
             select w.id,
-                   w.number_of_measurements                                                    as "number_of_measurements",
+                   w.number_of_measurements                                    as "number_of_measurements",
                    w.ggis_uid                                                  as "ggis_uid",
                    w.original_id                                               as "original_id",
                    w.name                                                      as "name",
@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
             DROP TRIGGER IF EXISTS trigger_organisation ON organisation;
             DROP TRIGGER IF EXISTS trigger_user_uuid ON user_uuid;
             DROP TRIGGER IF EXISTS trigger_well ON well;
-            DROP FUNCTION update_mv();
+            DROP FUNCTION IF EXISTS update_mv();
             
             CREATE FUNCTION update_mv() RETURNS trigger AS
             $update_mv$
@@ -66,7 +66,7 @@ class Migration(migrations.Migration):
             END;
             $update_mv$ LANGUAGE plpgsql;
             
-            CREATE TRIGGER trigger_well AFTER INSERT ON well FOR EACH ROW EXECUTE FUNCTION update_mv();
+            CREATE TRIGGER trigger_well AFTER INSERT ON well FOR EACH ROW EXECUTE PROCEDURE update_mv();
     """
 
     operations = [

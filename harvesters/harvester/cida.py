@@ -248,5 +248,5 @@ class CidaUsgs(BaseHarvester):
                         unit
                     )
                     self.updated = True
-                except (ValueError, KeyError):
+                except (ValueError, KeyError, TypeError) as e:
                     pass
