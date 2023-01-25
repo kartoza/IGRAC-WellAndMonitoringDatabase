@@ -217,17 +217,18 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                     parameter = measurement.parameter.name
 
                     if MeasurementModel == WellLevelMeasurement:
-                        parameter = MEASUREMENT_PARAMETER_AMSL
-                        if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
-                            if top_borehole_elevation:
-                                value = top_borehole_elevation.value - value
-                            else:
-                                parameter = measurement.parameter.name
-                        elif measurement.parameter.name == MEASUREMENT_PARAMETER_GROUND:
-                            if ground_surface_elevation:
-                                value = ground_surface_elevation.value - value
-                            else:
-                                parameter = measurement.parameter.name
+                        if parameter in [MEASUREMENT_PARAMETER_AMSL, MEASUREMENT_PARAMETER_TOP, MEASUREMENT_PARAMETER_GROUND]:
+                            parameter = MEASUREMENT_PARAMETER_AMSL
+                            if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
+                                if top_borehole_elevation:
+                                    value = top_borehole_elevation.value - value
+                                else:
+                                    parameter = measurement.parameter.name
+                            elif measurement.parameter.name == MEASUREMENT_PARAMETER_GROUND:
+                                if ground_surface_elevation:
+                                    value = ground_surface_elevation.value - value
+                                else:
+                                    parameter = measurement.parameter.name
 
                     try:
                         value = round(value, 3)
