@@ -316,4 +316,9 @@ input:disabled, textarea:disabled, select:disabled,
 .select2-results__option--group {
     color: #24619d;
     font-weight: 600;
+    padding: 0 !important;
+}
+
+.select2-results__group {
+    padding: 14px 6px !important;
 }
