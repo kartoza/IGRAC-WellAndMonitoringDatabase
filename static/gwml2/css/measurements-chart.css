@@ -312,3 +312,8 @@ input:disabled, textarea:disabled, select:disabled,
     color: red;
     padding: 3rem;
 }
+
+.select2-results__option--group {
+    color: #24619d;
+    font-weight: 600;
+}

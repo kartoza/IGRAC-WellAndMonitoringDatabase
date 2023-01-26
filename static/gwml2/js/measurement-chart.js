@@ -515,7 +515,7 @@ let MeasurementChartObj = function (
         // Hide non found one
         $parameters.find('option').each(function(index) {
             if (parameters.includes($(this).text())) {
-                $(this).show()
+                $(this).removeAttr('hidden')
             } else {
                 $(this).attr('hidden', true)
             }
@@ -637,43 +637,54 @@ let MeasurementChartObj = function (
         this.fetchData(this.unitTo, this.parameterTo)
     };
 
+    const fetchData = (url) => {
+        return new Promise(function(resolve, reject) {
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                data: {
+                    page: that.data ? that.data.page : 1,
+                },
+                success: function (data, textStatus, request) {
+                    resolve(data)
+                },
+                error: function (error, textStatus, request) {
+                    reject(error)
+                }
+            })
+        });
+    }
+
     /** Fetch the data */
-    this.fetchData = function (unitTo, parameterTo) {
+    this.fetchData = async function (unitTo, parameterTo) {
         this.$loading.show();
         this.$loadMore.attr('disabled', 'disabled')
         if (this.urls) {
-            const that = this;
-            $.each(this.urls, function (idx, url) {
-                if (!url) {
-                    return
-                }
-                $.ajax({
-                    url: url,
-                    dataType: 'json',
-                    data: {
-                        page: this.data ? this.data.page : 1,
-                    },
-                    success: function (data, textStatus, request) {
-                        if (!that.data) {
-                            that.data = {
-                                data: [],
-                                page: 1
-                            }
+            for (const url of this.urls.filter(url => !!url)) {
+                try {
+                    const data = await fetchData(url)
+                    if (!that.data) {
+                        that.data = {
+                            data: [],
+                            page: 1
                         }
-                        that.data.page += 1;
-                        that.data.data = that.data.data.concat(data.data);
-                        that.data.end = data.end;
-                        if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
-                            that.renderChart();
-                        }
-                    },
-                    error: function (error, textStatus, request) {
-                        that.$loading.hide();
-                        $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
-                        updateSelection( that.data)
                     }
-                })
-            });
+                    that.data.page += 1;
+                    that.data.data = that.data.data.concat(data.data);
+                    that.data.end = data.end;
+                } catch(err) {
+                    console.log(err)
+                }
+            }
+            updateSelection(that.data)
+            if (!that.data?.data?.length) {
+                that.$loading.hide()
+                $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
+            } else {
+                if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
+                    that.renderChart();
+                }
+            }
         }
     }
 
