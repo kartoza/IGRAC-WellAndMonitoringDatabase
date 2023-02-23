@@ -8,7 +8,7 @@ class GeneralInformation(models.Model):
     """ Abstract model for General Information """
     original_id = models.CharField(
         _("Original ID"),
-        max_length=64, help_text=_('As recorded in the original database.'))
+        max_length=512, help_text=_('As recorded in the original database.'))
 
     # geometry information
     location = models.PointField(

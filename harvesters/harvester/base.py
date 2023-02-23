@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.db.models.signals import post_save
+from django.utils import timezone
 
 from gwml2.harvesters.models.harvester import (
     Harvester, HarvesterLog, RUNNING, ERROR, DONE
@@ -113,7 +114,7 @@ class BaseHarvester(ABC):
     def _error(self, message):
         self.harvester.is_run = False
         self.harvester.save()
-        self.log.end_time = datetime.datetime.now()
+        self.log.end_time = timezone.now()
         self.log.status = ERROR
         self.log.note = '{}'.format(message)
         self.log.save()
@@ -122,7 +123,7 @@ class BaseHarvester(ABC):
     def _done(self, message=''):
         self.harvester.is_run = False
         self.harvester.save()
-        self.log.end_time = datetime.datetime.now()
+        self.log.end_time = timezone.now()
         self.log.status = DONE
         self.log.note = message
         self.log.save()
@@ -254,7 +255,7 @@ class BaseHarvester(ABC):
                 obj.save()
         return obj
 
-    def post_processing_well(self, well:Well):
+    def post_processing_well(self, well: Well):
         """Specifically for processing cache after procesing well."""
         print(f'Generate cache for {well.original_id}')
         generate_measurement_cache(well.id)

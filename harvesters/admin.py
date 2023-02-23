@@ -68,6 +68,14 @@ CIDA_USGS = (
     None
 )
 
+# EHYD
+EHYD = (
+    'gwml2.harvesters.harvester.ehyd.EHYD',
+    '(Austria) Electronic Hydrographic Data '
+    '(https://www.ehyd.gv.at/)',
+    None
+)
+
 HARVESTERS = (
     AZULBHD,
     GINGWINFO,
@@ -76,7 +84,8 @@ HARVESTERS = (
     GNSCRI,
     HYDAPI,
     SGUAPI,
-    CIDA_USGS
+    CIDA_USGS,
+    EHYD
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS
@@ -111,7 +120,7 @@ class HarvesterForm(forms.ModelForm):
 
 def harvest_data(modeladmin, request, queryset):
     for harvester in queryset:
-        run_harvester.delay(harvester.id)
+        run_harvester(harvester.id)
 
 
 harvest_data.short_description = 'Harvest data of the harvester'
