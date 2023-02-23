@@ -19,7 +19,6 @@ from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_AMSL, Well, WellLevelMeasurement
 )
-from gwml2.tasks.well import generate_measurement_cache
 
 
 class EHYD(BaseHarvester):
@@ -155,12 +154,7 @@ class EHYD(BaseHarvester):
                                     obj.save()
                                 updated = True
                             if updated:
-                                print(
-                                    f'{well.original_id} '
-                                    f'is updated: Generate cache'
-                                )
-                                generate_measurement_cache(
-                                    well.id, WellLevelMeasurement.__name__)
+                                self.post_processing_well(well)
 
                         except KeyError:
                             pass

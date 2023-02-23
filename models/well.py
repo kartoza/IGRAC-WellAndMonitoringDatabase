@@ -246,8 +246,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
 
     def generate_measurement_cache(self, model=None):
         """ Generate measurement cache """
-        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache',
-                              '{}'.format(self.id))
+        folder = os.path.join(
+            settings.MEDIA_ROOT, 'measurement-cache', '{}'.format(self.id)
+        )
         if not os.path.exists(folder):
             os.makedirs(folder)
 
