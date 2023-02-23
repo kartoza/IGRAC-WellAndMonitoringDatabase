@@ -120,6 +120,7 @@ class EHYD(BaseHarvester):
                             y = data['Y']
                             point = Point(float(y), float(x), srid=31287)
                             point.transform(trans)
+                            self._update(f'Saving well {data["Ort"]}')
                             well, harvester_well_data = self._save_well(
                                 data['Ort'],
                                 '',

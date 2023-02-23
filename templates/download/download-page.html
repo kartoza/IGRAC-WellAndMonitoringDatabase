@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load static %}
 {% load staticfiles %}
 {% load bootstrap_tags %}
 {% load igrac_bootstrap_tags %}
@@ -18,7 +19,7 @@
     <div class="row">
         Thank you for the request. Your file is ready :
         <a id="download-button"
-           href="{% url 'well_download_request_file' uuid %}"
+           href="{% get_media_prefix %}request/{{ uuid }}.zip"
            target="_blank">{{ uuid }}.zip
         </a>
     </div>
