@@ -68,6 +68,14 @@ CIDA_USGS = (
     None
 )
 
+# EHYD
+EHYD = (
+    'gwml2.harvesters.harvester.ehyd.EHYD',
+    '(Austria) Electronic Hydrographic Data '
+    '(https://www.ehyd.gv.at/)',
+    None
+)
+
 HARVESTERS = (
     AZULBHD,
     GINGWINFO,
@@ -76,7 +84,8 @@ HARVESTERS = (
     GNSCRI,
     HYDAPI,
     SGUAPI,
-    CIDA_USGS
+    CIDA_USGS,
+    EHYD
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS

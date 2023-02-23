@@ -3,6 +3,7 @@ import zipfile
 from datetime import datetime
 from uuid import uuid4
 
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 
@@ -59,19 +60,16 @@ class DownloadRequest(models.Model):
         on_delete=models.SET_NULL
     )
 
+    output_folder = os.path.join(settings.MEDIA_ROOT, 'request')
+
     def generate_file(self):
         """Generate file to be downloaded."""
-        from gwml2.tasks.data_file_cache.country_recache import (
-            GWML2_FOLDER, DATA_FOLDER
-        )
-        output_folder = os.path.join(
-            GWML2_FOLDER, 'requests'
-        )
-        if not os.path.exists(output_folder):
-            os.makedirs(output_folder)
+        from gwml2.tasks.data_file_cache.country_recache import DATA_FOLDER
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
 
         request_file = os.path.join(
-            output_folder, '{}.zip'.format(str(self.uuid))
+            self.output_folder, '{}.zip'.format(str(self.uuid))
         )
         zip_file = zipfile.ZipFile(request_file, 'w')
         for country in self.countries.all():
@@ -87,9 +85,8 @@ class DownloadRequest(models.Model):
 
     def file(self):
         """Return file."""
-        from gwml2.tasks.data_file_cache.country_recache import GWML2_FOLDER
         file = os.path.join(
-            GWML2_FOLDER, 'requests', '{}.zip'.format(str(self.uuid))
+            self.output_folder, '{}.zip'.format(str(self.uuid))
         )
         if os.path.exists(file):
             return file
