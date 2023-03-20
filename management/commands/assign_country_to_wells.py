@@ -9,7 +9,8 @@ class Command(BaseCommand):
     help = 'Assign country of wells.'
 
     def handle(self, *args, **options):
-        total = Well.objects.count()
-        for idx, well in enumerate(Well.objects.all()):
+        query = Well.objects.filter(country__isnull=True)
+        total = query.count()
+        for idx, well in enumerate(query):
             print(f'{idx}/{total}')
             well.assign_country()

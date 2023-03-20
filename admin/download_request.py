@@ -5,13 +5,15 @@ from gwml2.models.download_request import DownloadRequest
 
 class DownloadRequestAdmin(admin.ModelAdmin):
     list_display = (
-        'first_name', 'last_name', 'organization', 'organization_types',
+        'uuid', 'first_name', 'last_name', 'organization',
+        'organization_types',
         'email', 'country', 'request_at'
     )
     filter_horizontal = ('countries',)
     search_fields = (
         'first_name', 'last_name', 'organization', 'email', 'country'
     )
+    readonly_fields = ('uuid',)
 
 
 admin.site.register(DownloadRequest, DownloadRequestAdmin)

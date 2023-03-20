@@ -23,9 +23,13 @@
     "°C": "value + 273.15",
     "°F": "((value - 273.15) * 9 / 5) + 32"
   },
+  "ppm": {
+    "mg/L": "value * 1"
+  },
   "mg/L": {
     "μg/L": "value * 1000",
-    "ng/L": "value * 1000 * 1000"
+    "ng/L": "value * 1000 * 1000",
+    "ppm": "value * 1"
   },
   "μg/L": {
     "mg/L": "value / 1000",
@@ -34,5 +38,31 @@
   "ng/L": {
     "mg/L": "value / (1000 * 1000)",
     "μg/L": "value / 1000"
+  },
+  "S/m": {
+    "μS/cm": "value * 10000"
+  },
+  "μS/cm": {
+    "S/m": "value / 10000"
+  },
+  "m³/day": {
+    "m³/h": "value / 24",
+    "m³/min": "value / (24*60)",
+    "m³/s": "value / (24*60*60)"
+  },
+  "m³/h": {
+    "m³/day": "value * 24",
+    "m³/min": "value / 60",
+    "m³/s": "value / (60*60)"
+  },
+  "m³/min": {
+    "m³/day": "value * 24 * 60",
+    "m³/h": "value * 60",
+    "m³/s": "value / 60"
+  },
+  "m³/s": {
+    "m³/day": "value * 24 * 60 * 60",
+    "m³/h": "value * 60 * 60",
+    "m³/min": "value * 60"
   }
 }

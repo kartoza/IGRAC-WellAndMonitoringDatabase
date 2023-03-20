@@ -32,6 +32,22 @@ function formatDate(date) {
 
     return [year, month, day].join('-');
 }
+/** Get param group **/
+function getParamGroup (paramInput) {
+    let group = ''
+    $.each(parameters_chart, function (header_name, parameters) {
+        $.each(parameters, function (idx, param) {
+            if (param.name === paramInput) {
+                group = header_name;
+                return false;
+            }
+        })
+        if (group) {
+            return false;
+        }
+    });
+    return group
+}
 
 const FROM_TOP_WELL = 'Water depth [from the top of the well]'
 const FROM_GROUND_LEVEL = 'Water depth [from the ground surface]'
@@ -41,7 +57,6 @@ const measurementAverage = arr => arr.reduce((p, c) => p + c[1], 0) / arr.length
 function checkLevelParameter(
     parameter_from, parameter_to, value,
     top_borehole_elevation, ground_surface_elevation) {
-
     switch (parameter_to) {
         case FROM_AMSL:
             switch (parameter_from) {
@@ -118,11 +133,17 @@ function convertMeasurementData(
         let value = row.v;
         value = unitConvert(unit, unit_to, value);
 
-        const levelParameter = checkLevelParameter(
-            parameter, parameter_to, value,
-            top_borehole_elevation, ground_surface_elevation);
-        parameter = levelParameter[0];
-        value = levelParameter[1];
+        // ------------------------------------------------
+        // Just groundwater level params
+        let level_parameters = [FROM_AMSL, FROM_GROUND_LEVEL, FROM_TOP_WELL]
+        if (level_parameters.includes(parameter)){
+            const levelParameter = checkLevelParameter(
+                parameter, parameter_to, value,
+                top_borehole_elevation, ground_surface_elevation);
+            parameter = levelParameter[0];
+            value = levelParameter[1];
+        }
+        // ------------------------------------------------
 
         // let's we save it
         if (value != null) {
@@ -182,8 +203,7 @@ function getTrendlines(chartData, steps) {
     }
 }
 
-function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries, onChartClicked) {
-    let title = '';
+function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries, onChartClicked, title = '') {
     switch (identifier) {
         case 'WellLevelMeasurement':
         case 'level_measurement':
@@ -359,12 +379,12 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
 }
 
 let MeasurementChartObj = function (
-    identifier, top_borehole, ground_surface, url, parameters, units,
+    identifier, top_borehole, ground_surface, urls, parameters, units,
     $loading, $loadMore, $units, $parameters) {
     this.identifier = identifier;
     this.top_borehole = top_borehole;
     this.ground_surface = ground_surface;
-    this.url = url;
+    this.urls = urls;
     this.$loading = $loading;
     this.$loadMore = $loadMore;
     this.$dataFrom = $loadMore.closest('.measurement-chart-plugin').find('#data-from');
@@ -474,18 +494,60 @@ let MeasurementChartObj = function (
         });
     }
 
+    /** Update selection **/
+    const updateSelection = (data) => {
+        if (!data) {
+            data = {data: []}
+        }
+
+        // check the param options
+        const parameters = Array.from(new Set(data.data.map(row => row.par)));
+        if (parameters.includes(FROM_TOP_WELL) || parameters.includes(FROM_GROUND_LEVEL) || parameters.includes(FROM_AMSL)) {
+            if (that.top_borehole?.v) {
+                parameters.push(FROM_TOP_WELL)
+                parameters.push(FROM_AMSL)
+            }
+            if (that.ground_surface?.u) {
+                parameters.push(FROM_GROUND_LEVEL)
+                parameters.push(FROM_AMSL)
+            }
+        }
+        // Hide non found one
+        $parameters.find('option').each(function(index) {
+            if (parameters.includes($(this).text())) {
+                $(this).removeAttr('hidden')
+            } else {
+                $(this).attr('hidden', true)
+            }
+        });
+        const parameterGroups = []
+        parameters.map(param => {
+            parameterGroups.push(getParamGroup(param))
+        })
+        $parameters.find('optgroup').each(function(index) {
+            if (parameterGroups.includes($(this).attr('label'))) {
+                $(this).show()
+            } else {
+                $(this).attr('hidden', true)
+            }
+        });
+    }
+
     /** Render the chart */
     this._renderChart = function () {
         const data = that.data;
+        updateSelection(data)
         if (!data) {
             return;
         }
+
+        // Autoselect the first options
         if (this.init) {
             this.init = false;
-            const $paramOptions = $parameters.find(`option:contains(${data?.data[0]?.par})`);
-            if ($paramOptions.length > 0) {
+            const $params = $($parameters.find('option:not(option[hidden])')[0])
+            if ($params?.length) {
                 // change the params if the value is not it
-                const shouldBe = $($paramOptions[0]).attr('value');
+                const shouldBe = $params.attr('value');
                 const currentParam = $parameters.val()
                 if (shouldBe !== currentParam) {
                     $parameters.val(shouldBe);
@@ -494,6 +556,7 @@ let MeasurementChartObj = function (
                 }
             }
         }
+
         if (data.end) {
             this.$loadMore.attr('disabled', 'disabled')
         } else {
@@ -522,7 +585,7 @@ let MeasurementChartObj = function (
         this.chart = null;
         if (!chartData || chartData.length === 0) {
             that.$loading.hide();
-            $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>');
+            $(`#${identifier}-chart`).html('<div class="Error">No data found</div>');
             $(`#${identifier}-step`).hide();
             return
         }
@@ -550,6 +613,7 @@ let MeasurementChartObj = function (
             that.$stepDescription.show();
         }
 
+        let title = getParamGroup(this.parameterTo)
         this.chart = renderMeasurementChart(
             this.identifier, this.chart,
             cleanData[this.parameterTo],
@@ -559,7 +623,9 @@ let MeasurementChartObj = function (
                 if (that.isTrendLine) {
                     onNewStep(date.getTime());
                 }
-            })
+            },
+            title
+        )
         this.$loading.hide();
     };
 
@@ -571,19 +637,32 @@ let MeasurementChartObj = function (
         this.fetchData(this.unitTo, this.parameterTo)
     };
 
-    /** Fetch the data */
-    this.fetchData = function (unitTo, parameterTo) {
-        this.$loading.show();
-        this.$loadMore.attr('disabled', 'disabled')
-        if (this.url) {
-            const that = this;
+    const fetchData = (url) => {
+        return new Promise(function(resolve, reject) {
             $.ajax({
                 url: url,
                 dataType: 'json',
                 data: {
-                    page: this.data ? this.data.page : 1,
+                    page: that.data ? that.data.page : 1,
                 },
                 success: function (data, textStatus, request) {
+                    resolve(data)
+                },
+                error: function (error, textStatus, request) {
+                    reject(error)
+                }
+            })
+        });
+    }
+
+    /** Fetch the data */
+    this.fetchData = async function (unitTo, parameterTo) {
+        this.$loading.show();
+        this.$loadMore.attr('disabled', 'disabled')
+        if (this.urls) {
+            for (const url of this.urls.filter(url => !!url)) {
+                try {
+                    const data = await fetchData(url)
                     if (!that.data) {
                         that.data = {
                             data: [],
@@ -593,15 +672,19 @@ let MeasurementChartObj = function (
                     that.data.page += 1;
                     that.data.data = that.data.data.concat(data.data);
                     that.data.end = data.end;
-                    if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
-                        that.renderChart();
-                    }
-                },
-                error: function (error, textStatus, request) {
-                    that.$loading.hide();
-                    $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
+                } catch(err) {
+                    console.log(err)
                 }
-            })
+            }
+            updateSelection(that.data)
+            if (!that.data?.data?.length) {
+                that.$loading.hide()
+                $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
+            } else {
+                if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
+                    that.renderChart();
+                }
+            }
         }
     }
 
@@ -621,7 +704,13 @@ let MeasurementChartObj = function (
     }
 
     $parameters.change(function () {
-        const parameter = parameters_chart[$(this).val()];
+        let parameter = null;
+        const paramValue = $(this).val()
+        $.each(parameters_chart, function (header_name, parameters) {
+            if(parameters[paramValue]){
+                parameter = parameters[paramValue]
+            }
+        });
         const unitVal = parseInt($units.val());
         $units.html('');
         $.each(parameter.units, function (index, id) {

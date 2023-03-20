@@ -224,7 +224,13 @@
           makeReadOnly();
         {% else %}
           $("#wrap select").select2({
-            tags: false
+            tags: false,
+            templateResult: function(option) {
+              if(option.element && (option.element).hasAttribute('hidden')){
+                 return null;
+              }
+              return option.text;
+           }
           });
         {% endif %}
         $('.leaflet-control').show()

@@ -1,6 +1,8 @@
 import os
+
 from django.db.models.signals import post_save, post_delete, pre_save
 from django.dispatch import receiver
+
 from gwml2.models.well import (
     Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
@@ -105,4 +107,5 @@ def post_save_measurement_for_cache(sender, instance, **kwargs):
     :type instance: WellLevelMeasurement
     """
     generate_measurement_cache.delay(
-        instance.well.id, sender.__name__)
+        instance.well.id, sender.__name__
+    )
