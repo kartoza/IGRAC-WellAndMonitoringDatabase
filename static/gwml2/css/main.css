@@ -209,7 +209,8 @@ h2.section-title {
 }
 
 .navigation li.nav a:hover {
-    opacity: 0.6;
+    color: #ff6b0d;
+    background: linear-gradient(to bottom, #1b5289 0, #1b5289 100%) !important;
 }
 
 .navigation .nav a:hover, .navigation .nav a:focus {
@@ -270,7 +271,7 @@ h2.section-title {
     position: absolute;
     z-index: 1001;
     box-sizing: border-box;
-    top: 21px;
+    top: 27px;
     right: 29px;
 }
 
@@ -967,7 +968,7 @@ input[type="checkbox"] {
 .page-header {
     color: #fff;
     background: #24619d;
-    border-bottom: 1px solid #17497b;
+    border-bottom: 1px solid #17497b !important;
 }
 
 
