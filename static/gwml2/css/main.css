@@ -142,7 +142,7 @@ input[type=number] {
 }
 
 h2.section-title {
-    font-size: 20px;
+    font-size: 20px !important;
     color: #24619d;
     margin-bottom: 36px;
     background: #ececec;
@@ -208,9 +208,13 @@ h2.section-title {
     display: inline-block;
 }
 
+.navigation li.nav.active a:hover {
+    opacity: 1 !important;
+    color: #F48020 !important;
+}
 .navigation li.nav a:hover {
-    color: #ff6b0d;
-    background: linear-gradient(to bottom, #1b5289 0, #1b5289 100%) !important;
+    opacity: 0.6 !important;
+    color: white !important;
 }
 
 .navigation .nav a:hover, .navigation .nav a:focus {
@@ -237,6 +241,7 @@ h2.section-title {
 
 .navigation a:hover, .navigation a:focus {
     background: none !important;
+    color: white !important;
 }
 
 .navigation .active a:hover {
@@ -330,10 +335,11 @@ h3 {
 }
 
 h4 {
-    color: #0a66b7;
-    margin-bottom: 15px;
-    margin-top: 0;
-    font-size: 16px;
+    color: #0a66b7 !important;
+    margin-bottom: 15px !important;
+    margin-top: 0 !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
 }
 
 table {
@@ -341,8 +347,8 @@ table {
 }
 
 table td {
-    vertical-align: top;
-    padding-bottom: 10px;
+    vertical-align: top !important;
+    padding-bottom: 10px !important;
 }
 
 table tr td:first-child {
@@ -379,7 +385,7 @@ table tr td:first-child {
     max-width: 160px;
     background: #fff;
     padding: 5px;
-    border: 1px solid #cac8c8;
+    border: 1px solid #cac8c8 !important;
     margin-bottom: 7px;;
 }
 
@@ -432,7 +438,7 @@ select {
 }
 
 .select2-container .select2-selection--single {
-    height: 30px !important;
+    height: 31px !important;
 }
 
 input:disabled, textarea:disabled, select:disabled,
