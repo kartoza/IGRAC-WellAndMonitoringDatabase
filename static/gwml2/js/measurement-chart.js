@@ -240,6 +240,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
         },
         xAxis: {
             type: 'datetime',
+            ordinal: false,
             title: {
                 text: xLabel
             }
