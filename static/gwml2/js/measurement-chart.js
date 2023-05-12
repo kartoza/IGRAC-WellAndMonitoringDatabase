@@ -240,6 +240,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
         },
         xAxis: {
             type: 'datetime',
+            ordinal: false,
             title: {
                 text: xLabel
             }
@@ -585,7 +586,7 @@ let MeasurementChartObj = function (
         this.chart = null;
         if (!chartData || chartData.length === 0) {
             that.$loading.hide();
-            $(`#${identifier}-chart`).html('<div class="Error">No data found</div>');
+            $(`#${identifier}-chart`).html('<div class="error-data">No data found</div>');
             $(`#${identifier}-step`).hide();
             return
         }
@@ -679,7 +680,7 @@ let MeasurementChartObj = function (
             updateSelection(that.data)
             if (!that.data?.data?.length) {
                 that.$loading.hide()
-                $(`#${identifier}-chart`).html('<div style="text-align: center; color: red">No data found</div>')
+                $(`#${identifier}-chart`).html('<div class="error-data">No data found</div>')
             } else {
                 if (unitTo === that.unitTo && parameterTo === that.parameterTo) {
                     that.renderChart();

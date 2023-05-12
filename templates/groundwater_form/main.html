@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 
 {% block page_title %}
     <h1>Well form.</h1>
@@ -235,24 +235,15 @@
         {% endif %}
         $('.leaflet-control').show()
         $('#overlay-loading').hide();
-
-        {# TODO :#}
-        {# we need to fix this#}
-        {#            {% if well and well.id %}#}
-        {#                const download_url = "{% url 'one_well_download' well.id %}";#}
-        {#                $('#download-data').click(function () {#}
-        {#                    $.ajax({#}
-        {#                        url: download_url,#}
-        {#                        success: function (data, textStatus, request) {#}
-        {#                            window.location = `{% url 'download_list_view' %}?task_id=${data.task_id}`;#}
-        {#                        },#}
-        {#                        error: function (error, textStatus, request) {#}
-        {#                            window.location = "{% url 'download_list_view' %}";#}
-        {#                        }#}
-        {#                    })#}
-        {#                    return;#}
-        {#                })#}
-        {#            {% endif %}#}
+        $('.dropdown-submenu .dropdown-toggle').click(function () {
+          const $parent = $(this).closest('.dropdown-submenu')
+          if ($parent.hasClass('open')) {
+            $parent.removeClass('open')
+          } else {
+            $parent.addClass('open')
+          }
+          return false
+        })
       });
     </script>
 {% endblock extra_script %}

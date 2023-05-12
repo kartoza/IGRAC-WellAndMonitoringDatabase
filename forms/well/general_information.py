@@ -40,8 +40,8 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['photo'].widget.attrs['accept'] = 'image/gif, image/png, image/jpeg, image/jpg'
         self.fields['description'].widget.attrs['maxlength'] = 1000
         self.fields['address'].widget.attrs['maxlength'] = 200
-        self.fields['original_id'].widget.attrs['maxlength'] = 20
-        self.fields['name'].widget.attrs['maxlength'] = 20
+        self.fields['original_id'].widget.attrs['maxlength'] = 256
+        self.fields['name'].widget.attrs['maxlength'] = 64
 
     @staticmethod
     def make_from_data(instance, data, files):

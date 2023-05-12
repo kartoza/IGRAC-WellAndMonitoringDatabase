@@ -255,7 +255,7 @@
 }
 
 .select2-container .select2-selection--single {
-    height: 30px !important;
+    height: 31px !important;
 }
 
 input:disabled, textarea:disabled, select:disabled,

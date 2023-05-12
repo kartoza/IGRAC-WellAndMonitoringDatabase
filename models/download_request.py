@@ -1,4 +1,5 @@
 import os
+import shutil
 import zipfile
 from datetime import datetime
 from uuid import uuid4
@@ -68,20 +69,53 @@ class DownloadRequest(models.Model):
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
 
+        is_world = False
+        if self.countries.count() == Country.objects.count():
+            is_world = True
+
         request_file = os.path.join(
             self.output_folder, '{}.zip'.format(str(self.uuid))
         )
+
+        # If world, we need to check the file is latest or not
+        # If there is file is latest than cache, regenerate
+        if is_world:
+            is_latest = True
+            world_file_name = f'WORLD - {self.data_type}.zip'
+            world_file = os.path.join(DATA_FOLDER, world_file_name)
+            if os.path.exists(world_file):
+                world_time = os.path.getmtime(world_file)
+
+                # We check if data is updated
+                for country in self.countries.all():
+                    data_file_name = f'{country.code} - {self.data_type}.zip'
+                    data_file = os.path.join(DATA_FOLDER, data_file_name)
+                    if os.path.exists(data_file):
+                        data_time = os.path.getmtime(data_file)
+                        if world_time < data_time:
+                            is_latest = False
+
+                # If world is still latest, just use cache
+                if is_latest:
+                    shutil.copyfile(world_file, request_file)
+                    return
+
         zip_file = zipfile.ZipFile(request_file, 'w')
         for country in self.countries.all():
-            unique_id = country.code
-            data_file_name = f'{unique_id} - {self.data_type}.zip'
-            data_file = os.path.join(
-                DATA_FOLDER, data_file_name)
+            data_file_name = f'{country.code} - {self.data_type}.zip'
+            data_file = os.path.join(DATA_FOLDER, data_file_name)
             if os.path.exists(data_file):
                 zip_file.write(
                     data_file, data_file_name,
-                    compress_type=zipfile.ZIP_DEFLATED)
+                    compress_type=zipfile.ZIP_DEFLATED
+                )
         zip_file.close()
+
+        # if is_world
+        if is_world:
+            data_file_name = f'WORLD - {self.data_type}.zip'
+            data_file = os.path.join(DATA_FOLDER, data_file_name)
+            shutil.copyfile(request_file, data_file)
 
     def file(self):
         """Return file."""

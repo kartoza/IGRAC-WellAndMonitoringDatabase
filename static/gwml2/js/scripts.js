@@ -46,7 +46,7 @@ $(document).ready(function () {
         var href = $(this).attr("href"),
             offsetTop = href === "#" ? 0 : $(href).position().top + $singlePage.scrollTop();
         $singlePage.stop().animate({
-            scrollTop: offsetTop
+            scrollTop: offsetTop + 1
         }, 300, function () {
             scrollOnClick = false;
         });

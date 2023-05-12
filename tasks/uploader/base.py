@@ -1,18 +1,31 @@
 import json
+
+from celery.utils.log import get_task_logger
+from django.db.models.signals import post_save
 from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
-from celery.utils.log import get_task_logger
 
 from gwml2.models.general import Unit, Country
 from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus,
 )
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.models.well import Well
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
+from gwml2.models.well import (
+    Well,
+    WellLevelMeasurement,
+    WellQualityMeasurement,
+    WellYieldMeasurement
+)
+from gwml2.tasks.data_file_cache import generate_data_well_cache
+from gwml2.tasks.data_file_cache.country_recache import (
+    generate_data_country_cache
+)
+from gwml2.tasks.uploader.well import get_column
+from gwml2.tasks.well import generate_measurement_cache
+from gwml2.utilities import temp_disconnect_signal
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.groundwater_form import WellEditing
-from gwml2.tasks.uploader.well import get_column
 
 logger = get_task_logger(__name__)
 
@@ -32,6 +45,7 @@ class BaseUploader(WellEditing):
     WELL_AUTOCREATE = False
 
     def __init__(self, upload_session: UploadSession):
+        from gwml2.signals.well import post_save_measurement_for_cache
         self.upload_session = upload_session
         _file = self.upload_session.upload_file
 
@@ -58,7 +72,24 @@ class BaseUploader(WellEditing):
                     )
                     return
         self.records = records
-        self.process()
+
+        # Disconnect
+        with temp_disconnect_signal(
+                signal=post_save,
+                receiver=post_save_measurement_for_cache,
+                sender=WellLevelMeasurement
+        ):
+            with temp_disconnect_signal(
+                    signal=post_save,
+                    receiver=post_save_measurement_for_cache,
+                    sender=WellYieldMeasurement
+            ):
+                with temp_disconnect_signal(
+                        signal=post_save,
+                        receiver=post_save_measurement_for_cache,
+                        sender=WellQualityMeasurement
+                ):
+                    self.process()
 
     def process(self):
         """ Process records """
@@ -71,11 +102,15 @@ class BaseUploader(WellEditing):
             'error': 0,
             'skipped': 0,
         }
+        wells_id = []
+        countries_code = []
+        # For checking records
         index = 0
         for sheet_name, records in self.records.items():
             for row, raw_record in enumerate(records):
                 index += 1
-                process_percent = (index / total_records) * 100
+                # for saving records, 50%
+                process_percent = (index / total_records) * 50
                 error = {}
                 skipped = False
                 try:
@@ -97,7 +132,13 @@ class BaseUploader(WellEditing):
                     if self.get_object(sheet_name, well, record):
                         skipped = True
                     else:
-                        self.edit_well(well, record, {}, self.upload_session.get_uploader())
+                        well = self.edit_well(
+                            well, record, {},
+                            self.upload_session.get_uploader(),
+                            generate_cache=False
+                        )
+                        wells_id.append(well.id)
+                        countries_code.append(well.country.code)
                 except Well.DoesNotExist:
                     error = {
                         'original_id': 'Well does not exist'
@@ -151,6 +192,34 @@ class BaseUploader(WellEditing):
                     progress=int(process_percent),
                     status=json.dumps(progress)
                 )
+
+        # Run the data cache
+        for index, well_id in enumerate(list(set(wells_id))):
+            process_percent = ((index / len(wells_id)) * 25) + 50
+            self.upload_session.update_progress(
+                progress=int(process_percent),
+                status=json.dumps(progress)
+            )
+            generate_measurement_cache(
+                well_id=well_id, model=WellLevelMeasurement.__name__
+            )
+            generate_measurement_cache(
+                well_id=well_id, model=WellYieldMeasurement.__name__
+            )
+            generate_measurement_cache(
+                well_id=well_id, model=WellQualityMeasurement.__name__
+            )
+            generate_data_well_cache(
+                well_id=well_id, generate_country_cache=False
+            )
+        # Run the country cache
+        for index, country_code in enumerate(list(set(countries_code))):
+            process_percent = ((index / len(countries_code)) * 25) + 75
+            self.upload_session.update_progress(
+                progress=int(process_percent),
+                status=json.dumps(progress)
+            )
+            generate_data_country_cache(country_code)
 
         # finish
         self.upload_session.update_progress(
