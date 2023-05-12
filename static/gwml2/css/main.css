@@ -1,4 +1,3 @@
-
 html,
 body {
     height: 100%;
@@ -8,6 +7,14 @@ body {
 body {
     padding-top: 0;
     width: 100%;
+}
+
+.msgapi .gn-footer {
+    z-index: 999;
+}
+
+.msgapi .gn-search-bar .form-control {
+    border: none !important;
 }
 
 /* Chrome, Safari, Edge, Opera */
@@ -34,7 +41,7 @@ input[type=number] {
 }
 
 .row {
-    margin: 0;
+    margin: 0 !important;
 }
 
 #wrap sup {
@@ -43,7 +50,7 @@ input[type=number] {
 
 #wrap {
     padding-top: 50px;
-    padding-bottom: 35px;
+    padding-bottom: 100px !important;
     height: 100%;
     margin-top: 0 !important;
 }
@@ -51,7 +58,6 @@ input[type=number] {
 .wrapper {
     position: absolute;
     top: 0;
-    padding-top: 2px;
     left: 0;
     height: 100%;
     width: 100%;
@@ -212,6 +218,7 @@ h2.section-title {
     opacity: 1 !important;
     color: #F48020 !important;
 }
+
 .navigation li.nav a:hover {
     opacity: 0.6 !important;
     color: white !important;
