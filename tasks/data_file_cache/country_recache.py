@@ -115,7 +115,7 @@ class GenerateCountryCacheFile(WellCacheFileBase):
 
             original_ids_found = {}
             for well in wells:
-                if data_type == GGMN and well.number_of_measurements == 0:
+                if well.number_of_measurements == 0:
                     continue
                 well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
                 measurement_file = os.path.join(

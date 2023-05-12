@@ -136,7 +136,7 @@ class WellEditing(object):
     well_metadata = None
 
     @transaction.atomic
-    def edit_well(self, well, data, FILES, user):
+    def edit_well(self, well, data, FILES, user, generate_cache=True):
         """ Edit well with data and FILES
 
         :param well: well that will be edited
@@ -192,7 +192,8 @@ class WellEditing(object):
         self.general_information.save()
         self.well_metadata.save()
 
-        generate_data_well_cache.delay(well_id=well.id)
+        if generate_cache:
+            generate_data_well_cache.delay(well_id=well.id)
         return well
 
 
