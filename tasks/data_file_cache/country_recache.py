@@ -25,7 +25,6 @@ DJANGO_ROOT = os.path.dirname(
 TEMPLATE_FOLDER = os.path.join(DJANGO_ROOT, 'static', 'download_template')
 
 
-
 class GenerateCountryCacheFile(WellCacheFileBase):
     @property
     def country(self) -> Country:
@@ -71,7 +70,7 @@ class GenerateCountryCacheFile(WellCacheFileBase):
         drilling_ggmn_book = load_workbook(drilling_ggmn_file)
 
         # Save the data
-        wells = Well.objects.filter(country=self.country).order_by('id')
+        wells = Well.objects.filter(country=self.country).order_by('-id')
         for well in wells:
             self.merge_data_per_well(
                 well, self.wells_filename, well_book,
@@ -126,9 +125,9 @@ class GenerateCountryCacheFile(WellCacheFileBase):
                     try:
                         _filename = (
                             f'monitoring/{original_id} '
-                            f'({original_ids_found[original_id]+1}).xlsx'
+                            f'({original_ids_found[original_id] + 1}).xlsx'
                         )
-                        original_ids_found[original_id] += 1
+                        continue
                     except KeyError:
                         _filename = f'monitoring/{original_id}.xlsx'
                         original_ids_found[original_id] = 0
