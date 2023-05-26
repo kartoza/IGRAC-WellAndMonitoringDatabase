@@ -235,15 +235,6 @@
         {% endif %}
         $('.leaflet-control').show()
         $('#overlay-loading').hide();
-        $('.dropdown-submenu .dropdown-toggle').click(function () {
-          const $parent = $(this).closest('.dropdown-submenu')
-          if ($parent.hasClass('open')) {
-            $parent.removeClass('open')
-          } else {
-            $parent.addClass('open')
-          }
-          return false
-        })
       });
     </script>
 {% endblock extra_script %}
