@@ -13,6 +13,10 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            '-id',
+            '--id'
+        )
+        parser.add_argument(
             '-from_id',
             '--from_id',
             dest='from_id',
@@ -33,12 +37,15 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        id = options.get('id', False)
         from_id = options.get('from_id', False)
         country_code = options.get('country_code', False)
         force = options.get('force', False)
 
         # Filter by from_id
-        if from_id:
+        if id:
+            wells = Well.objects.filter(id=id)
+        elif from_id:
             wells = Well.objects.filter(id__gte=from_id)
         else:
             wells = Well.objects.all()

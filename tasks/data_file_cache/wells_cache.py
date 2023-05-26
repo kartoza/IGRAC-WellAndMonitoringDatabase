@@ -7,10 +7,10 @@ from shutil import copyfile
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from geonode.base.models import License, RestrictionCodeType
 from openpyxl import load_workbook
 
-from gwml2.models.general import Country
-from gwml2.models.general import Unit
+from gwml2.models.general import Country, Unit
 from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus, TermDrillingMethod,
     TermReferenceElevationType, TermConstructionStructureType,
@@ -145,6 +145,19 @@ class GenerateWellCacheFile(object):
     def general_information(self, folder, well):
         """General Information of well."""
         sheetname = 'General Information'
+        license = ''
+        if well.license:
+            try:
+                license = License.objects.get(id=well.license).name
+            except License.DoesNotExist:
+                pass
+        restriction_code_type = ''
+        if well.restriction_code_type:
+            try:
+                restriction_code_type = RestrictionCodeType.objects.get(
+                    id=well.restriction_code_type).description
+            except RestrictionCodeType.DoesNotExist:
+                pass
         data = [
             well.original_id,
             well.name,
@@ -169,6 +182,8 @@ class GenerateWellCacheFile(object):
             if well.top_borehole_elevation else '',
             self.country.code if self.country else '',
             well.address,
+            license,
+            restriction_code_type,
         ]
         self.write_json(folder, sheetname, [data])
 
