@@ -322,3 +322,10 @@ input:disabled, textarea:disabled, select:disabled,
 .select2-results__group {
     padding: 14px 6px !important;
 }
+
+.error-data {
+    color: #555;
+    padding-top: 5rem;
+    text-align: center;
+    width: 100%;
+}
