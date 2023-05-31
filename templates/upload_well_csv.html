@@ -118,22 +118,6 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <p>
-                                    {{ form.license.label_tag }}
-                                    {{ form.license }}
-                                    <br>
-                                    <br>
-                                    {{ form.restriction_code_type.label_tag }}
-                                    {{ form.restriction_code_type }}
-                                    <br>
-                                    <br>
-                                    {{ form.constraints_other.label_tag }}
-                                    {{ form.constraints_other }}
-                                </p>
-                            </div>
-                        </div>
 
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item">
@@ -153,11 +137,23 @@
                             <div class="tab-pane fade" id="well-descriptor"
                                  role="tabpanel" aria-labelledby="home-tab">
                                 <p>
+                                    {{ form.license.label_tag }}
+                                    {{ form.license }}
+                                    <br>
+                                    <br>
+                                    {{ form.restriction_code_type.label_tag }}
+                                    {{ form.restriction_code_type }}
+                                    <br>
+                                    <br>
+                                    {{ form.constraints_other.label_tag }}
+                                    {{ form.constraints_other }}
+                                    <br>
+                                    <br>
                                     {{ form.gw_well_file.label_tag }}
                                     {{ form.gw_well_file }}
                                 </p>
                                 <div class="template-indicator">
-                                    {% trans "The Batch Upload allows you to import several Well and Monitoring Data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points) and Monitoring Data. Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
+                                    {% trans "This Batch Upload allows you to import several Well data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points). Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
 
                                     {% trans "Template" %} : <a href="{% static 'upload_template/well.xlsx' %}">{% trans "here" %}</a>
                                 </div>
@@ -170,7 +166,7 @@
                                     {{ form.gw_well_monitoring_file }}
                                 </p>
                                 <div class="template-indicator">
-                                    {% trans "The Batch Upload allows you to import several Well and Monitoring Data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points) and Monitoring Data. Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
+                                    {% trans "This Batch Upload allows you to import several Monitoring Data at one time. Upload the well information before using this form. Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
 
                                     {% trans "Template" %} : <a href="{% static 'upload_template/monitoring_data.xlsx' %}">{% trans "here" %}</a>
                                 </div>
