@@ -6,6 +6,7 @@ from django.urls import include
 
 from gwml2.api.authentication import TokenAuth
 from gwml2.api.country import CountryAutocompleteAPI
+from gwml2.api.group import GroupAutocompleteAPI
 from gwml2.api.mobile.minimized_well import (
     WellListMinimizedAPI,
     WellMeasurementListMinimizedAPI
@@ -15,8 +16,7 @@ from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.upload_session import UploadSessionApiView
-from gwml2.api.user import UserAutocompleteAPI
-from gwml2.api.user import UserUUIDAPI
+from gwml2.api.user import (UserAutocompleteAPI, UserUUIDAPI)
 from gwml2.api.well_measurement import WellLevelMeasurementData
 from gwml2.api.well_relation import (
     WellRelationDeleteView,
@@ -128,6 +128,9 @@ api_url = [
     url(r'^user/autocomplete',
         view=UserAutocompleteAPI.as_view(),
         name='user_autocomplete'),
+    url(r'^group/autocomplete',
+        view=GroupAutocompleteAPI.as_view(),
+        name='group_autocomplete'),
     url(r'^country/autocomplete',
         view=CountryAutocompleteAPI.as_view(),
         name='country_autocomplete'),
