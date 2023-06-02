@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load bootstrap_tags %}
+{% load igrac_bootstrap_tags %}
+
+{% block page_title %}
+    <h1>Download Form.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" type="text/css"
+          href="{% static 'css/form-select2.css' %}"/>
+    <link rel="stylesheet" type="text/css"
+          href="{% static 'admin/css/widgets.css' %}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet"
+          href="{% static 'js/select2/4.1.0-rc.0/select2.min.css' %}"
+          type="text/css" media="screen, projection"/>
+    <script type="text/javascript"
+            src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
+    <style>
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        form .row {
+            margin: 0;
+        }
+
+        form .row {
+            display: flex;
+        }
+
+        form .col {
+            width: 100%;
+            padding: 0 5px;
+        }
+
+        form .row .col:first-child {
+            padding-left: 0;
+        }
+
+        form .row .col:last-child {
+            padding-right: 0;
+        }
+
+        .helptext {
+            margin: 0 0 20px 0;
+        }
+
+        .help-text {
+            color: #888;
+        }
+
+        #id_organization_types .select2-container input {
+            min-width: 411px !important;
+        }
+
+        #id_countries .select2-container input {
+            min-width: 138px !important;
+        }
+
+        .form-actions button {
+            width: 100%;
+        }
+
+        #submit[disabled] {
+            background-color: #999 !important;
+        }
+    </style>
+{% endblock %}
+
+{% block body_outer %}
+    <div class="page-header">
+        <h1>Duplicate Well and Monitoring Layer</h1>
+    </div>
+    <div class="row">
+        <form method="post" autocomplete="off">
+            <fieldset>
+                {% csrf_token %}
+                <div class="helptext">
+                    Create duplication of Well and Measurement data based on
+                    the selected group.
+                    Selected group will be used for the indicator to filter the
+                    data.
+                    Filter is done by checking well that has organisation under
+                    selected group.
+                    <br>
+                    <br>
+                    You can modify groups for an organisation in
+                    <a href="{% url "organisation_list" %}">this link</a>.
+                </div>
+                {{ form.name|field_as_bootstrap }}
+                {{ form.well_type|field_as_bootstrap }}
+                {{ form.group|field_as_bootstrap }}
+                <div class="form-actions">
+                    <button id="submit" type="submit" class="btn btn-primary">
+                        {% trans "Create" %}
+                    </button>
+                </div>
+                <br>
+                <br>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+      $(document).ready(function () {
+        $('form').submit(function (e) {
+          $('#submit').attr('disabled', 'disabled');
+        })
+      });
+    </script>
+{% endblock %}
