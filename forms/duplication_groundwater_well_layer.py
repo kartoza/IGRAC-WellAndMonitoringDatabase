@@ -2,14 +2,17 @@ import xml.etree.ElementTree as ET
 
 import requests
 from django import forms
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.core.management import call_command
-from geonode.geoserver.helpers import gs_catalog
-from geonode.groups.models import GroupProfile
-from geonode.layers.models import Dataset
+from django.urls import reverse
 from geoserver.support import build_url
 
+from geonode.geoserver.helpers import gs_catalog
+from geonode.layers.models import Dataset
+from gwml2.forms.widgets.multi_value import MultiValueInput
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
+from gwml2.models.well_management.organisation import Organisation
 
 User = get_user_model()
 
@@ -26,13 +29,23 @@ class DuplicationGroundwaterWellLayerForm(forms.Form):
         )
     )
     name = forms.CharField(help_text='The layer name that will be created.')
-    group = forms.ModelChoiceField(
-        GroupProfile.objects.all(),
+    organisations = forms.ModelMultipleChoiceField(
+        Organisation.objects.all(),
+        widget=FilteredSelectMultiple('organisations', False),
         help_text=(
-            'Group that will used to filter the data '
-            'based on organisation under it '
+            'Organisation that will used to filter the data. '
+            'Type minimum 3 character to show the list of organisation.'
         )
     )
+
+    def __init__(self, *args, **kwargs):
+        super(DuplicationGroundwaterWellLayerForm, self).__init__(
+            *args, **kwargs
+        )
+        # init widget
+        self.fields['organisations'].widget = MultiValueInput(
+            url=reverse('organisation_autocomplete'), Model=Organisation
+        )
 
     def target_layer_name(self, name):
         """Return target layer name"""
@@ -75,8 +88,8 @@ class DuplicationGroundwaterWellLayerForm(forms.Form):
             )
         return name
 
-    def clean_group(self):
-        return self.cleaned_data['group']
+    def clean_organisations(self):
+        return self.cleaned_data['organisations']
 
     def run(self):
         """Run it for duplication data."""
@@ -95,11 +108,12 @@ class DuplicationGroundwaterWellLayerForm(forms.Form):
         tree.find(
             'metadata/entry/virtualTable/name').text = target_layer_name
         tree.find('title').text = name
+        organisations = [f'{organisation.pk}' for organisation in self.cleaned_data['organisations']]
         sql = (
                 "select id, ggis_uid, original_id, name, feature_type,purpose, status,organisation, country, year_of_drilling, aquifer_name, aquifer_type,manager, detail, location, created_at, created_by, last_edited_at, last_edited_by "
-                "from mv_well where groups@>'{" +
-                f"{self.cleaned_data['group'].pk}" +
-                "}' order by created_at DESC"
+                "from mv_well where organisation_id IN (" +
+                f"{','.join(organisations)}" +
+                ") order by created_at DESC"
         )
         tree.find('metadata/entry/virtualTable/sql').text = sql
         xml = ET.tostring(

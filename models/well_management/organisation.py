@@ -24,8 +24,6 @@ class Organisation(models.Model):
         models.IntegerField(), default=list, null=True)
     editors = ArrayField(
         models.IntegerField(), default=list, null=True)
-    groups = ArrayField(
-        models.IntegerField(), default=list, null=True)
 
     class Meta:
         db_table = 'organisation'
@@ -41,15 +39,6 @@ class Organisation(models.Model):
     def is_editor(self, user):
         """ return if editor """
         return self.is_admin(user) or user.id in self.editors
-
-    @property
-    def group_names(self):
-        """ return if editor """
-        from geonode.groups.models import GroupProfile
-        return list(
-            GroupProfile.objects.filter(
-                id__in=self.groups).values_list('title', flat=True)
-        )
 
 
 class OrganisationType(models.Model):

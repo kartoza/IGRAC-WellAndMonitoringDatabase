@@ -5,7 +5,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('gwml2', '0070_organisation_groups'),
+        ('gwml2', '0069_view_well'),
     ]
 
     # TODO:
@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                    purpose.name                                                as "purpose",
                    status.name                                                 as "status",
                    org.name                                                    as "organisation",
-                   '{0}' || org.groups                                         as "groups",
+                   org.id                                                      as "organisation_id",
                    c.name                                                      as "country",
                    drill.year_of_drilling                                      as "year_of_drilling",
                    hp.aquifer_name                                             as "aquifer_name",
@@ -48,8 +48,8 @@ class Migration(migrations.Migration):
                    LEFT JOIN user_uuid last_edited_by ON w.last_edited_by = last_edited_by.user_id
             WHERE org.active = True;
                    
-            CREATE MATERIALIZED VIEW mv_well_ggmn AS select DISTINCT ON (id) id, organisation || '-' || original_id AS ggis_uid, original_id, name, feature_type,purpose, status,organisation, groups, country, year_of_drilling, aquifer_name, aquifer_type,manager, detail, location, created_at, created_by, last_edited_at, last_edited_by from vw_well where number_of_measurements > 0 and organisation is not null;
-            CREATE MATERIALIZED VIEW mv_well AS select DISTINCT ON (id) id, organisation || '-' || original_id AS ggis_uid, original_id, name, feature_type,purpose, status,organisation, groups, country, year_of_drilling, aquifer_name, aquifer_type,manager, detail, location, created_at, created_by, last_edited_at, last_edited_by from vw_well;
+            CREATE MATERIALIZED VIEW mv_well_ggmn AS select DISTINCT ON (id) id, organisation || '-' || original_id AS ggis_uid, original_id, name, feature_type,purpose, status, organisation, organisation_id, country, year_of_drilling, aquifer_name, aquifer_type,manager, detail, location, created_at, created_by, last_edited_at, last_edited_by from vw_well where number_of_measurements > 0 and organisation is not null;
+            CREATE MATERIALIZED VIEW mv_well AS select DISTINCT ON (id) id, organisation || '-' || original_id AS ggis_uid, original_id, name, feature_type,purpose, status, organisation, organisation_id, country, year_of_drilling, aquifer_name, aquifer_type,manager, detail, location, created_at, created_by, last_edited_at, last_edited_by from vw_well;
         """
 
     functions = """
@@ -67,8 +67,7 @@ class Migration(migrations.Migration):
             END;
             $update_mv$ LANGUAGE plpgsql;
             
-            CREATE TRIGGER trigger_well AFTER INSERT OR UPDATE ON well FOR EACH ROW EXECUTE PROCEDURE update_mv();
-            CREATE TRIGGER trigger_organisation AFTER INSERT OR UPDATE ON organisation FOR EACH ROW EXECUTE PROCEDURE update_mv();
+            CREATE TRIGGER trigger_well AFTER INSERT ON well FOR EACH ROW EXECUTE PROCEDURE update_mv();
     """
 
     operations = [

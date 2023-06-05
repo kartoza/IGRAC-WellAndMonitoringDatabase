@@ -6,7 +6,6 @@ from django.urls import include
 
 from gwml2.api.authentication import TokenAuth
 from gwml2.api.country import CountryAutocompleteAPI
-from gwml2.api.group import GroupAutocompleteAPI
 from gwml2.api.mobile.minimized_well import (
     WellListMinimizedAPI,
     WellMeasurementListMinimizedAPI
@@ -131,9 +130,6 @@ api_url = [
     url(r'^user/autocomplete',
         view=UserAutocompleteAPI.as_view(),
         name='user_autocomplete'),
-    url(r'^group/autocomplete',
-        view=GroupAutocompleteAPI.as_view(),
-        name='group_autocomplete'),
     url(r'^country/autocomplete',
         view=CountryAutocompleteAPI.as_view(),
         name='country_autocomplete'),
