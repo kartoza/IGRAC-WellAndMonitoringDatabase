@@ -28,9 +28,6 @@ from gwml2.views.download_request import (
     DownloadRequestDownloadView,
     DownloadRequestDownloadFile
 )
-from gwml2.views.duplication_groundwater_well_layer import (
-    DuplicationGroundwaterWellLayerFormView
-)
 from gwml2.views.groundwater_form import (
     WellView, WellFormView,
     WellFormCreateView
@@ -145,9 +142,6 @@ urlpatterns = [
     url(r'^progress-upload',
         view=get_progress_upload,
         name='progress_upload'),
-    url(r'^duplicate-well-layer$',
-        view=DuplicationGroundwaterWellLayerFormView.as_view(),
-        name='duplicate_well_layer'),
     url(r'^task/(?P<task_id>.+)/progress/',
         view=TaskProgress.as_view(),
         name='task_progress'),
