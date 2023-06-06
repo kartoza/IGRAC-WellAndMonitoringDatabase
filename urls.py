@@ -15,8 +15,7 @@ from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.upload_session import UploadSessionApiView
-from gwml2.api.user import UserAutocompleteAPI
-from gwml2.api.user import UserUUIDAPI
+from gwml2.api.user import (UserAutocompleteAPI, UserUUIDAPI)
 from gwml2.api.well_measurement import WellLevelMeasurementData
 from gwml2.api.well_relation import (
     WellRelationDeleteView,

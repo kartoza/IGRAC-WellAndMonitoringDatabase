@@ -1,7 +1,8 @@
 from django import forms
-from django.contrib.auth import get_user_model
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth import get_user_model
 from django.urls import reverse
+
 from gwml2.forms.widgets.multi_value import MultiValueInput
 from gwml2.models.well_management.organisation import Organisation
 
