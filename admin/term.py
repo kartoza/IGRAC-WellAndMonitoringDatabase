@@ -12,8 +12,9 @@ from gwml2.models.term_measurement_parameter import (
 
 
 class TermMeasurementParameterAdmin(SortableAdmin):
-    list_display = ('name', 'unit_list')
+    list_display = ('name', 'unit_list', 'default_unit')
     filter_horizontal = ('units',)
+    list_editable = ('default_unit',)
 
     def unit_list(self, obj):
         """

@@ -1,5 +1,6 @@
-from django.contrib.gis.db import models
 from adminsortable.models import Sortable
+from django.contrib.gis.db import models
+
 from gwml2.models.general import Unit
 from gwml2.models.term import _Term
 
@@ -9,6 +10,10 @@ class TermMeasurementParameter(_Term):
 
     units = models.ManyToManyField(
         Unit, null=True, blank=True
+    )
+    default_unit = models.ForeignKey(
+        Unit, blank=True, null=True, on_delete=models.CASCADE,
+        related_name='term_measurement_parameter_default_unit'
     )
 
     def __str__(self):

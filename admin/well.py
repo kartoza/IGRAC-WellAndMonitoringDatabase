@@ -24,7 +24,9 @@ def regenerate_measurement_cache(modeladmin, request, queryset):
 class WellAdmin(admin.ModelAdmin):
     list_display = (
         'original_id', 'organisation', 'number_of_measurements',
-        'country', 'id', 'last_measurement', 'edit'
+        'country', 'id', 'last_measurements',
+        'first_measurement', 'last_measurement',
+        'edit',
     )
     list_filter = ('organisation', 'country')
     readonly_fields = (
@@ -45,7 +47,7 @@ class WellAdmin(admin.ModelAdmin):
             '<a href="{}" target="_blank">Edit well</a>',
             url)
 
-    def last_measurement(self, obj: Well):
+    def last_measurements(self, obj: Well):
         last_data = {}
         query = obj.welllevelmeasurement_set.all()
         if query.count():
@@ -64,12 +66,21 @@ class WellAdmin(admin.ModelAdmin):
     def last_edited_by_user(self, obj):
         return obj.last_edited_by_username()
 
+    def first_measurement(self, obj):
+        return obj.first_time_measurement
+
+    def last_measurement(self, obj):
+        return obj.last_time_measurement
+
 
 admin.site.register(Well, WellAdmin)
 
 
 class MeasurementAdmin(admin.ModelAdmin):
-    list_display = ('well', 'time', 'parameter', 'methodology', 'value')
+    list_display = (
+        'well', 'time', 'parameter', 'methodology', 'value',
+        'default_unit', 'default_value'
+    )
     search_fields = ('well__original_id',)
     raw_id_fields = (
         'value',
@@ -78,7 +89,9 @@ class MeasurementAdmin(admin.ModelAdmin):
 
 class WellLevelMeasurementAdmin(MeasurementAdmin):
     list_display = (
-        'well', 'time', 'parameter', 'methodology', 'value', 'value_in_m')
+        'well', 'time', 'parameter', 'methodology', 'value', 'value_in_m',
+        'default_unit', 'default_value'
+    )
     readonly_fields = ('value_in_m',)
 
 
