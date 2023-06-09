@@ -48,61 +48,69 @@ WHERE org.active = True;
 
 -- WELL VIEW --
 
-CREATE MATERIALIZED VIEW mv_well_ggmn AS
-select DISTINCT ON (id) id,
-                        organisation || '-' || original_id AS ggis_uid,
-                        original_id,
-                        name,
-                        feature_type,
-                        purpose,
-                        status,
-                        organisation,
-                        organisation_id,
-                        country,
-                        year_of_drilling,
-                        aquifer_name,
-                        aquifer_type,
-                        manager,
-                        detail,
-                        location,
-                        created_at,
-                        created_by,
-                        last_edited_at,
-                        last_edited_by
+CREATE
+MATERIALIZED VIEW mv_well_ggmn AS
+select DISTINCT
+ON (id) id,
+    organisation || '-' || original_id AS ggis_uid,
+    original_id,
+    name,
+    feature_type,
+    purpose,
+    status,
+    organisation,
+    organisation_id,
+    country,
+    year_of_drilling,
+    aquifer_name,
+    aquifer_type,
+    manager,
+    detail,
+    location,
+    created_at,
+    created_by,
+    last_edited_at,
+    last_edited_by
 from vw_well
-where number_of_measurements > 0
+where number_of_measurements
+    > 0
   and organisation is not null;
-CREATE MATERIALIZED VIEW mv_well AS
-select DISTINCT ON (id) id,
-                        organisation || '-' || original_id AS ggis_uid,
-                        original_id,
-                        name,
-                        feature_type,
-                        purpose,
-                        status,
-                        organisation,
-                        organisation_id,
-                        country,
-                        year_of_drilling,
-                        aquifer_name,
-                        aquifer_type,
-                        manager,
-                        detail,
-                        location,
-                        created_at,
-                        created_by,
-                        last_edited_at,
-                        last_edited_by
+CREATE
+MATERIALIZED VIEW mv_well AS
+select DISTINCT
+ON (id) id,
+    organisation || '-' || original_id AS ggis_uid,
+    original_id,
+    name,
+    feature_type,
+    purpose,
+    status,
+    organisation,
+    organisation_id,
+    country,
+    year_of_drilling,
+    aquifer_name,
+    aquifer_type,
+    manager,
+    detail,
+    location,
+    created_at,
+    created_by,
+    last_edited_at,
+    last_edited_by
 from vw_well;
 
 -- WELL FOR ISTSOS MEASUREMENT --
 CREATE VIEW vw_well_measurement AS
-select id, time, well_id, default_unit_id, default_value, parameter_id
-from (SELECT id, time, well_id, default_unit_id, default_value, parameter_id
-      from well_level_measurement
-      UNION
-      SELECT id, time, well_id, default_unit_id, default_value, parameter_id
-      from well_quality_measurement
-      UNION
-      SELECT id, time, well_id, default_unit_id, default_value, parameter_id
-      from well_yield_measurement) as measurement;
+select id,
+        time, well_id, default_unit_id, default_value, parameter_id
+        from (
+        SELECT id, time, well_id, default_unit_id, default_value, parameter_id
+        from well_level_measurement where default_value IS NOT NULL
+        UNION
+        SELECT id, time, well_id, default_unit_id, default_value, parameter_id
+        from well_quality_measurement where default_value IS NOT NULL
+        UNION
+        SELECT id, time, well_id, default_unit_id, default_value, parameter_id
+        from well_yield_measurement where default_value IS NOT NULL
+        ) as measurement;

@@ -7,7 +7,7 @@ from gwml2.migrations.sql.utils import load_sql
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('gwml2', '0072_auto_20230608_0322'),
+        ('gwml2', '0071_auto_20230608_0322'),
     ]
 
     gwml_default = load_sql('gwml', 'default.sql')
