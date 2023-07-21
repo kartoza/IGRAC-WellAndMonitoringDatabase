@@ -59,3 +59,6 @@ class Measurement(CreationMetadata):
                     if value and value.unit != self.default_unit:
                         self.default_unit = value.unit
                         self.default_value = value.value
+                elif not self.default_unit:
+                    self.default_unit = self.parameter.default_unit
+                    self.default_value = self.value
