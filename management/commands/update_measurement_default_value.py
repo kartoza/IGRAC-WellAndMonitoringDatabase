@@ -11,11 +11,11 @@ from gwml2.signals.well import (
 from gwml2.utilities import Signal, temp_disconnect_signals
 
 
-def update_measurement_default_db(query):
+def update_measurement_default_db(query, init):
     total = query.count()
     for idx, measurement in enumerate(query):
         print(f'{idx}/{total}')
-        measurement.set_default_value()
+        measurement.set_default_value(init)
         measurement.save()
 
 
@@ -64,10 +64,18 @@ class Command(BaseCommand):
             dest='force',
             help='Force to recreate the data'
         )
+        parser.add_argument(
+            '-init',
+            '--init',
+            action='store_true',
+            dest='init',
+            help='Init data'
+        )
 
     def handle(self, *args, **options):
         id = options.get('id', False)
         from_id = options.get('from_id', False)
+        init = options.get('init', False)
 
         # Filter by from_id
         if id:
@@ -110,9 +118,11 @@ class Command(BaseCommand):
                 well.save()
 
                 update_measurement_default_db(
-                    well.welllevelmeasurement_set.all())
+                    well.welllevelmeasurement_set.all(), init
+                )
                 update_measurement_default_db(
-                    well.wellyieldmeasurement_set.all())
+                    well.wellyieldmeasurement_set.all(), init
+                )
                 update_measurement_default_db(
-                    well.wellqualitymeasurement_set.all()
+                    well.wellqualitymeasurement_set.all(), init
                 )

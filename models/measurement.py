@@ -45,8 +45,10 @@ class Measurement(CreationMetadata):
     class Meta:
         abstract = True
 
-    def set_default_value(self):
+    def set_default_value(self, init=False):
         """Set default."""
+        if init and self.default_unit:
+            return
         if self.value:
             if not self.parameter.default_unit:
                 self.default_unit = None
