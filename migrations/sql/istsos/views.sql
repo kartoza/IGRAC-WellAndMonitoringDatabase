@@ -147,8 +147,13 @@ SELECT well.id          as id,
        unit.name        as elevation_unit,
        well.original_id as original_id,
        well.ggis_uid    as ggis_uid,
-       well.name        as name
+       well.name        as name,
+       well.license     as license,
+       well.restriction_code_type   as restriction_code_type,
+       well.constraints_other       as constraints_other,
+       country.name     as country
 from well
-         LEFT JOIN quantity ground
-                   on ground.id = well.ground_surface_elevation_id
-         LEFT JOIN unit on unit.id = ground.unit_id;
+       LEFT JOIN quantity ground
+            on ground.id = well.ground_surface_elevation_id
+       LEFT JOIN unit on unit.id = ground.unit_id
+       LEFT JOIN country on country.id = well.country_id;
