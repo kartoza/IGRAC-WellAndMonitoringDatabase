@@ -3,38 +3,6 @@
 import django
 from django.db import migrations, models
 
-from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.models.well import Well
-
-
-def assign_first_last(query, well: Well):
-    first = query.order_by('time').first()
-    if first and (
-            not well.first_time_measurement or
-            first.time < well.first_time_measurement
-    ):
-        well.first_time_measurement = first.time
-
-    last = query.order_by('time').last()
-    if last and (
-            not well.first_time_measurement or
-            last.time > well.first_time_measurement
-    ):
-        well.last_time_measurement = last.time
-    return well
-
-
-def run(apps, schema_editor):
-    for well in Well.objects.all():
-        well = assign_first_last(well.welllevelmeasurement_set.all(), well)
-        well = assign_first_last(well.wellyieldmeasurement_set.all(), well)
-        well = assign_first_last(well.wellqualitymeasurement_set.all(), well)
-        well.save()
-
-    for param in TermMeasurementParameter.objects.all():
-        param.default_unit = param.units.first()
-        param.save()
-
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -98,5 +66,4 @@ class Migration(migrations.Migration):
             name='default_value',
             field=models.FloatField(blank=True, null=True),
         ),
-        migrations.RunPython(run, migrations.RunPython.noop),
     ]
