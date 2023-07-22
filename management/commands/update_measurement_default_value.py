@@ -11,12 +11,13 @@ from gwml2.signals.well import (
 from gwml2.utilities import Signal, temp_disconnect_signals
 
 
-def update_measurement_default_db(query, init):
+def update_measurement_default_db(id, query, init):
     total = query.count()
     for idx, measurement in enumerate(query):
-        print(f'{idx}/{total}')
-        measurement.set_default_value(init)
-        measurement.save()
+        output = measurement.set_default_value(init)
+        if not output:
+            print(f'{id} - {idx}/{total}')
+            measurement.save()
 
 
 def assign_first_last(query, well: Well):
@@ -118,11 +119,11 @@ class Command(BaseCommand):
                 well.save()
 
                 update_measurement_default_db(
-                    well.welllevelmeasurement_set.all(), init
+                    well.id, well.welllevelmeasurement_set.all(), init
                 )
                 update_measurement_default_db(
-                    well.wellyieldmeasurement_set.all(), init
+                    well.id, well.wellyieldmeasurement_set.all(), init
                 )
                 update_measurement_default_db(
-                    well.wellqualitymeasurement_set.all(), init
+                    well.id, well.wellqualitymeasurement_set.all(), init
                 )

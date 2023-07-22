@@ -48,7 +48,7 @@ class Measurement(CreationMetadata):
     def set_default_value(self, init=False):
         """Set default."""
         if init and self.default_unit:
-            return
+            return 'skip'
         if self.value:
             if not self.parameter.default_unit:
                 self.default_unit = None
