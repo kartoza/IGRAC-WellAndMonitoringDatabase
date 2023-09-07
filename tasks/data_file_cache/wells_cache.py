@@ -7,9 +7,9 @@ from shutil import copyfile
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
-from geonode.base.models import License, RestrictionCodeType
 from openpyxl import load_workbook
 
+from geonode.base.models import License, RestrictionCodeType
 from gwml2.models.general import Country, Unit
 from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus, TermDrillingMethod,
@@ -24,9 +24,7 @@ from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
 
-GWML2_FOLDER = os.getenv(
-    'GWML_FOLDER', os.path.join(settings.PROJECT_ROOT, 'gwml2-file')
-)
+GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
 DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -14,9 +14,7 @@ from gwml2.models.general import Country
 from gwml2.models.well import Well
 from gwml2.tasks.data_file_cache.base_cache import WellCacheFileBase
 
-GWML2_FOLDER = os.getenv(
-    'GWML_FOLDER', os.path.join(settings.PROJECT_ROOT, 'gwml2-file')
-)
+GWML2_FOLDER = settings.GWML2_FOLDER
 DATA_FOLDER = os.path.join(GWML2_FOLDER, 'data')
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
 DJANGO_ROOT = os.path.dirname(

@@ -10,8 +10,7 @@ from django.conf import settings
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.geos import Point
 
-from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.harvester.base import HarvestingError
+from gwml2.harvesters.harvester.base import BaseHarvester, HarvestingError
 from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.drilling import Drilling
 from gwml2.models.general import Quantity, Unit
@@ -26,9 +25,7 @@ class EHYD(BaseHarvester):
     Harvester for file sftp that they push to it
     """
     updated = False
-    folder = os.getenv(
-        'SFTP_FOLDER', os.path.join(settings.PROJECT_ROOT, 'sftp')
-    )
+    folder = settings.SFTP_FOLDER
 
     def __init__(
             self, harvester: Harvester,
