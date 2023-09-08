@@ -46,6 +46,7 @@ from gwml2.views.form_group.well_metadata import (
 from gwml2.views.form_group.yield_measurement import (
     YieldMeasurementGetForms, YieldMeasurementCreateForm
 )
+from igrac_api.tasks.cache_istsos import cache_istsos
 
 
 class WellView(ViewWellFormMixin, View):
@@ -194,6 +195,7 @@ class WellEditing(object):
 
         if generate_cache:
             generate_data_well_cache.delay(well_id=well.id)
+            cache_istsos.delay()
         return well
 
 

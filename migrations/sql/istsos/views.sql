@@ -151,9 +151,11 @@ SELECT well.id          as id,
        well.license     as license,
        well.restriction_code_type   as restriction_code_type,
        well.constraints_other       as constraints_other,
-       country.name     as country
+       country.name     as country,
+       organisation.name        as organisation
 from well
        LEFT JOIN quantity ground
             on ground.id = well.ground_surface_elevation_id
        LEFT JOIN unit on unit.id = ground.unit_id
-       LEFT JOIN country on country.id = well.country_id;
+       LEFT JOIN country on country.id = well.country_id
+       LEFT JOIN organisation on well.organisation_id = organisation.id;

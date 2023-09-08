@@ -79,7 +79,6 @@ def pre_save_measurement(sender, instance, **kwargs):
     """ when changed
     :type instance: WellLevelMeasurement
     """
-    print('pre_save_measurement')
     try:
         if not instance.id:
             instance.well.number_of_measurements += 1
@@ -103,7 +102,6 @@ def post_save_measurement(sender, instance, **kwargs):
     """ when changed
     :type instance: WellLevelMeasurement
     """
-    print('post_save_measurement')
     try:
         instance.well.updated()
     except Well.DoesNotExist:
@@ -117,7 +115,6 @@ def post_save_measurement_for_cache(sender, instance, **kwargs):
     """ when changed
     :type instance: WellLevelMeasurement
     """
-    print('post_save_measurement_for_cache')
     generate_measurement_cache.delay(
         instance.well.id, sender.__name__
     )
