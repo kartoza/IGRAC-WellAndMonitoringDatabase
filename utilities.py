@@ -1,8 +1,11 @@
 import math
 import typing
+from typing import List
+
 from django.db.models import Q
-from gwml2.models.well_management.organisation import Organisation
+
 from gwml2.models.general import Unit, UnitConvertion, Quantity
+from gwml2.models.well_management.organisation import Organisation
 
 
 def convert_size(size_bytes):
@@ -30,7 +33,8 @@ def get_organisations_as_admin(user):
     if user.is_staff:
         return Organisation.objects.all().order_by('id')
     else:
-        return Organisation.objects.filter(admins__contains=[user.id]).order_by('id')
+        return Organisation.objects.filter(
+            admins__contains=[user.id]).order_by('id')
 
 
 def get_organisations_as_editor(user):
@@ -68,7 +72,38 @@ class temp_disconnect_signal(object):
         )
 
 
-def convert_value(quantity: Quantity, unit_to: Unit) -> typing.Optional[Quantity]:
+class Signal(object):
+    """Signal object."""
+
+    def __init__(self, signal, receiver, sender):
+        self.signal = signal
+        self.receiver = receiver
+        self.sender = sender
+
+
+class temp_disconnect_signals(object):
+    """ Temporarily disconnect signals in list """
+
+    def __init__(self, signals: List[Signal]):
+        self.signals = signals
+
+    def __enter__(self):
+        for signal in self.signals:
+            signal.signal.disconnect(
+                receiver=signal.receiver,
+                sender=signal.sender
+            )
+
+    def __exit__(self, type, value, traceback):
+        for signal in self.signals:
+            signal.signal.connect(
+                receiver=signal.receiver,
+                sender=signal.sender
+            )
+
+
+def convert_value(quantity: Quantity, unit_to: Unit) -> typing.Optional[
+    Quantity]:
     """ Get value of quantity
     convert to unit_to
     """

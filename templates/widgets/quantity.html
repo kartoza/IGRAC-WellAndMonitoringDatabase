@@ -11,7 +11,6 @@
             name="{{ widget.name }}_value"
             {% if value != None %} value="{{ value }}" {% endif %}
             id="{{ widget.attrs.id }}_value"
-            maxlength="10"
             placeholder=""
             class="quantity-value"
             {% include "django/forms/widgets/attrs.html" %}

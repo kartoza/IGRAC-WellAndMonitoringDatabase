@@ -88,6 +88,16 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         default=0,
         help_text=_('Indicate how many measurement this well has.')
     )
+
+    # First and last measurement time
+    first_time_measurement = models.DateTimeField(
+        _('Time'),
+        null=True, blank=True
+    )
+    last_time_measurement = models.DateTimeField(
+        _('Time'),
+        null=True, blank=True
+    )
     objects = WellManager()
 
     def __str__(self):

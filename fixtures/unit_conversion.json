@@ -64,5 +64,11 @@
     "m³/day": "value * 24 * 60 * 60",
     "m³/h": "value * 60 * 60",
     "m³/min": "value * 60"
+  },
+  "cfu per 100 ml": {
+    "cfu per mL": "value * 100"
+  },
+  "cfu per mL": {
+    "cfu per 100 ml": "value / 100"
   }
 }
