@@ -24,14 +24,14 @@ def assign_first_last(query, well: Well):
     first = query.order_by('time').first()
     if first and (
             not well.first_time_measurement or
-            first.time < well.first_time_measurement
+            first.time <= well.first_time_measurement
     ):
         well.first_time_measurement = first.time
 
     last = query.order_by('time').last()
     if last and (
-            not well.first_time_measurement or
-            last.time > well.first_time_measurement
+            not well.last_time_measurement or
+            last.time >= well.first_time_measurement
     ):
         well.last_time_measurement = last.time
     return well
@@ -90,7 +90,7 @@ class Command(BaseCommand):
             param.default_unit = param.units.first()
             param.save()
 
-        for well in wells:
+        for well in wells.filter(first_time_measurement__isnull=True).order_by('number_of_measurements', 'id'):
             with temp_disconnect_signals(
                     [
                         Signal(pre_save, pre_save_measurement,
@@ -113,11 +113,6 @@ class Command(BaseCommand):
                                WellQualityMeasurement),
                     ]
             ):
-                assign_first_last(well.welllevelmeasurement_set.all(), well)
-                assign_first_last(well.wellyieldmeasurement_set.all(), well)
-                assign_first_last(well.wellqualitymeasurement_set.all(), well)
-                well.save()
-
                 update_measurement_default_db(
                     well.id, well.welllevelmeasurement_set.all(), init
                 )
@@ -127,3 +122,8 @@ class Command(BaseCommand):
                 update_measurement_default_db(
                     well.id, well.wellqualitymeasurement_set.all(), init
                 )
+                
+                assign_first_last(well.welllevelmeasurement_set.all(), well)
+                assign_first_last(well.wellyieldmeasurement_set.all(), well)
+                assign_first_last(well.wellqualitymeasurement_set.all(), well)
+                well.save()

@@ -312,7 +312,7 @@ class WellLevelMeasurement(Measurement):
 
 @receiver(post_save, sender=WellLevelMeasurement)
 def update_value_in_m(sender, instance, **kwargs):
-    if not instance.value:
+    if not instance.value or not instance.value.unit:
         return
     if instance.value.unit.name == 'ft':
         instance.value_in_m = instance.value.value * 0.3048
