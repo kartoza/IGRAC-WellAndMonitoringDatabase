@@ -214,7 +214,7 @@ $(document).ready(function () {
     })
     const $tableWrapper =  $('.table-wrapper');
     $tableWrapper.on('scroll', function () {
-        if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight) {
+        if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 2) {
             if (!$(this).attr('disabled')) {
                 const set = $(this).data('set');
                 fetchManyToMany($(this), set)
