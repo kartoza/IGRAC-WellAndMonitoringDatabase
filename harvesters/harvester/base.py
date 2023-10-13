@@ -11,9 +11,9 @@ from django.db.models.signals import post_save
 from django.utils import timezone
 
 from gwml2.harvesters.models.harvester import (
-    Harvester, HarvesterLog, RUNNING, ERROR, DONE
+    Harvester, HarvesterLog, RUNNING,
+    ERROR, DONE, HarvesterWellData
 )
-from gwml2.harvesters.models.harvester import HarvesterWellData
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term import TermFeatureType
 from gwml2.models.well import (
@@ -236,14 +236,26 @@ class BaseHarvester(ABC):
             unit: Unit = None
     ):
         """ Save measurement """
-        obj, created = model.objects.get_or_create(
-            well=harvester_well_data.well,
-            time=time,
-            defaults=defaults
-        )
-        if created:
-            harvester_well_data.measurements_found += 1
-            harvester_well_data.save()
+        try:
+            obj, created = model.objects.get_or_create(
+                well=harvester_well_data.well,
+                time=time,
+                parameter=defaults.get('parameter', None),
+                defaults=defaults
+            )
+            if created:
+                harvester_well_data.measurements_found += 1
+                harvester_well_data.save()
+        except (
+                WellLevelMeasurement.MultipleObjectsReturned,
+                WellQualityMeasurement.MultipleObjectsReturned,
+                WellYieldMeasurement.MultipleObjectsReturned,
+        ):
+            obj = model.objects.filter(
+                well=harvester_well_data.well,
+                time=time,
+                parameter=defaults.get('parameter', None)
+            ).last()
 
         # Save value if not none
         if value is not None:

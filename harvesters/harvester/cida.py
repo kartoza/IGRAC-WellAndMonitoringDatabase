@@ -195,7 +195,10 @@ class CidaUsgs(BaseHarvester):
                 # Generate cache
                 if self.updated:
                     self.post_processing_well(well)
-            except (KeyError, Well.DoesNotExist):
+            except (
+                    KeyError, Well.DoesNotExist,
+                    requests.exceptions.ConnectionError
+            ):
                 pass
             except Exception as e:
                 raise Exception(f'{site_id} : {e}')
