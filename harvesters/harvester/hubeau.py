@@ -96,7 +96,9 @@ class Hubeau(BaseHarvester):
                     well = self.get_well(original_id, latitude, longitude)
                     if well and self.updated:
                         self.post_processing_well(well)
-                except Well.DoesNotExist:
+                except (
+                        Well.DoesNotExist, requests.exceptions.ConnectionError
+                ):
                     pass
             if data['next']:
                 self._process_stations(data['next'])
