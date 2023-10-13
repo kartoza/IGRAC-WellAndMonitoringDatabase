@@ -3,15 +3,19 @@
 
 """
 import json
-import os
 import ntpath
+import os
 import uuid
 from datetime import datetime
+
+import openpyxl
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-from gwml2.models.well_management.organisation import Organisation
+from openpyxl.styles import PatternFill, Font
+
 from gwml2.models.metadata.license_metadata import LicenseMetadata
+from gwml2.models.well_management.organisation import Organisation
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
@@ -19,7 +23,8 @@ UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
 # make choices
 UPLOAD_SESSION_CATEGORY = (
     (UPLOAD_SESSION_CATEGORY_WELL_UPLOAD, UPLOAD_SESSION_CATEGORY_WELL_UPLOAD),
-    (UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD, UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD),
+    (UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
+     UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD),
 )
 
 User = get_user_model()
@@ -110,7 +115,8 @@ class UploadSession(LicenseMetadata):
         """
         try:
             _file = open(os.path.join(
-                settings.MEDIA_ROOT, 'gwml2', 'upload', 'progress', str(self.token)
+                settings.MEDIA_ROOT, 'gwml2', 'upload', 'progress',
+                str(self.token)
             ))
             return json.loads(_file.read())
         except Exception:
@@ -159,6 +165,36 @@ class UploadSession(LicenseMetadata):
         self.status = status
         self.save()
 
+    def create_report_excel(self):
+        """Created excel that will contain reports."""
+        _file = self.upload_file.path
+        _report_file = _file.replace('.xls', '.report.xls')
+        if os.path.exists(_report_file):
+            os.remove(_report_file)
+        workbook = openpyxl.load_workbook(_file)
+
+        query = self.uploadsessionrowstatus_set.filter(status=1)
+        status_column = {}
+        for sheetname in workbook.sheetnames:
+            sheet_query = query.filter(sheet_name=sheetname)
+            worksheet = workbook[sheetname]
+            total = sheet_query.count()
+
+            # We need to check latest column
+            row = worksheet[1]
+            try:
+                status_column_idx = status_column[sheetname]
+            except KeyError:
+                status_column_idx = len(row) + 1
+                status_column[sheetname] = status_column_idx
+
+            print(f'{total}')
+            for idx, row_status in enumerate(sheet_query):
+                print(f'{idx} / {total}')
+                row_status.update_sheet(worksheet, status_column_idx)
+        workbook.save(_report_file)
+        os.chmod(_report_file, 0o0777)
+
 
 RowStatus = [
     (0, 'Added'),
@@ -185,3 +221,33 @@ class UploadSessionRowStatus(models.Model):
         verbose_name = 'Upload session row status'
         db_table = 'upload_session_row_status'
         unique_together = ['upload_session', 'sheet_name', 'row', 'column']
+
+    def update_sheet(self, worksheet, status_column_idx):
+        """Update the sheet."""
+        try:
+            row = worksheet[self.row]
+            cell = row[self.column]
+            status = ''
+            if self.status == 0:
+                cell.fill = PatternFill(
+                    start_color='00FF00', end_color='00FF00', fill_type='solid'
+                )
+                status = 'Added'
+            elif self.status == 1:
+                cell.fill = PatternFill(
+                    start_color='FF0000', end_color='FF0000', fill_type='solid'
+                )
+                cell.font = Font(color="FFFFFF")
+                status = 'Error'
+                cell.value = self.note
+            elif self.status == 2:
+                cell.fill = PatternFill(
+                    start_color='FFFF00', end_color='FFFF00', fill_type='solid'
+                )
+                status = 'Skipped'
+            worksheet.cell(
+                row=self.row, column=status_column_idx
+            ).value = status
+        except Exception as e:
+            print(f'{e}')
+            pass

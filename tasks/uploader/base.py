@@ -1,5 +1,7 @@
 import json
+import os
 
+import openpyxl
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
 from pyexcel_xls import get_data as xls_get
@@ -44,10 +46,17 @@ class BaseUploader(WellEditing):
     RECORD_FORMAT = {}
     WELL_AUTOCREATE = False
 
+    status_column = {}
+
     def __init__(self, upload_session: UploadSession):
         from gwml2.signals.well import post_save_measurement_for_cache
         self.upload_session = upload_session
         _file = self.upload_session.upload_file
+        _filename = _file.path
+        _report_file = _filename.replace('.xls', '.report.xls')
+        if os.path.exists(_report_file):
+            os.remove(_report_file)
+        self.workbook = openpyxl.load_workbook(_filename)
 
         self.total_records = 0
         records = {}
@@ -90,6 +99,9 @@ class BaseUploader(WellEditing):
                         sender=WellQualityMeasurement
                 ):
                     self.process()
+
+        self.workbook.save(_report_file)
+        os.chmod(_report_file, 0o0777)
 
     def process(self):
         """ Process records """
@@ -153,6 +165,7 @@ class BaseUploader(WellEditing):
                     }
 
                 # update progress
+                row_idx = row + self.START_ROW + 1
                 if error:
                     progress['error'] += 1
 
@@ -164,27 +177,44 @@ class BaseUploader(WellEditing):
                             column = 0
                         if type(value) is list:
                             value = '<br>'.join(value)
-                        UploadSessionRowStatus.objects.get_or_create(
+                        row_obj, created = UploadSessionRowStatus.objects.get_or_create(
                             upload_session=self.upload_session,
                             sheet_name=sheet_name,
-                            row=row + self.START_ROW + 1,
+                            row=row_idx,
                             column=column,
                             status=1,
                             defaults={
                                 'note': value
                             }
                         )
+
+                        worksheet = self.workbook[sheet_name]
+                        row = worksheet[row_idx]
+                        try:
+                            status_column_idx = self.status_column[sheet_name]
+                        except KeyError:
+                            status_column_idx = len(row) + 1
+                            self.status_column[sheet_name] = status_column_idx
+                        row_obj.update_sheet(worksheet, status_column_idx)
                 elif skipped:
                     progress['skipped'] += 1
 
                     # create progress status per row
-                    UploadSessionRowStatus.objects.get_or_create(
+                    row_obj, created = UploadSessionRowStatus.objects.get_or_create(
                         upload_session=self.upload_session,
                         sheet_name=sheet_name,
-                        row=row + self.START_ROW + 1,
+                        row=row_idx,
                         column=0,
                         status=2
                     )
+                    worksheet = self.workbook[sheet_name]
+                    row = worksheet[row_idx]
+                    try:
+                        status_column_idx = self.status_column[sheet_name]
+                    except KeyError:
+                        status_column_idx = len(row) + 1
+                        self.status_column[sheet_name] = status_column_idx
+                    row_obj.update_sheet(worksheet, status_column_idx)
                 else:
                     progress['added'] += 1
 

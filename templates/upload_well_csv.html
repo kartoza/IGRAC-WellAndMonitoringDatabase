@@ -231,7 +231,7 @@
 
                 }
                 $pastUpload.append(`
-                 <div class="well well-sm past-upload ${value.category}" style="border: 1px solid ${color}" data-id="${value.id}">
+                 <div class="well well-sm past-upload ${value.category}" style="border: 1px solid ${color}" data-id="${value.id}" data-report="${value.report_filename}">
                     <div class="container-fluid row" style="padding-top: 10px;">
                         <div class="col-xs-2">
                             <p>Filename</p>
@@ -249,7 +249,7 @@
                 </div>`)
             });
             $('.well').click(function () {
-                window.open(`/groundwater/upload-session/${$(this).data('id')}/detail`, '_blank')
+                window.open($(this).data('report'), '_blank')
             })
 
             {# update the form #}
