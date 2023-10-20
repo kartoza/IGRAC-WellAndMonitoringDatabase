@@ -64,17 +64,16 @@ class EHYD(BaseHarvester):
                         try:
                             x = row['X (Lambert cone right)']
                             y = row['Y (Lambert cone high)']
-                            point = Point(float(y), float(x), srid=31287)
+                            point = Point(float(x), float(y), srid=31287)
                             point.transform(trans)
                             date = parser.parse(
                                 row['date of construction']
                             )
-
                             well, harvester_well_data = self._save_well(
                                 row['ID'],
                                 row['name'],
-                                longitude=point.coords[1],
-                                latitude=point.coords[0],
+                                longitude=point.coords[0],
+                                latitude=point.coords[1],
                                 ground_surface_elevation_masl=row[
                                     'ground level (m above Adriatic Sea)'
                                 ]
