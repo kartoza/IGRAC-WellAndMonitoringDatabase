@@ -1,5 +1,4 @@
 import os
-import shutil
 import zipfile
 from datetime import datetime
 from uuid import uuid4
@@ -60,6 +59,7 @@ class DownloadRequest(models.Model):
         null=True, blank=True,
         on_delete=models.SET_NULL
     )
+    is_ready = models.BooleanField(default=False)
 
     output_folder = os.path.join(settings.MEDIA_ROOT, 'request')
 
@@ -69,36 +69,9 @@ class DownloadRequest(models.Model):
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
 
-        is_world = False
-        if self.countries.count() == Country.objects.count():
-            is_world = True
-
         request_file = os.path.join(
             self.output_folder, '{}.zip'.format(str(self.uuid))
         )
-
-        # If world, we need to check the file is latest or not
-        # If there is file is latest than cache, regenerate
-        if is_world:
-            is_latest = True
-            world_file_name = f'WORLD - {self.data_type}.zip'
-            world_file = os.path.join(DATA_FOLDER, world_file_name)
-            if os.path.exists(world_file):
-                world_time = os.path.getmtime(world_file)
-
-                # We check if data is updated
-                for country in self.countries.all():
-                    data_file_name = f'{country.code} - {self.data_type}.zip'
-                    data_file = os.path.join(DATA_FOLDER, data_file_name)
-                    if os.path.exists(data_file):
-                        data_time = os.path.getmtime(data_file)
-                        if world_time < data_time:
-                            is_latest = False
-
-                # If world is still latest, just use cache
-                if is_latest:
-                    shutil.copyfile(world_file, request_file)
-                    return
 
         zip_file = zipfile.ZipFile(request_file, 'w')
         for country in self.countries.all():
@@ -111,11 +84,9 @@ class DownloadRequest(models.Model):
                 )
         zip_file.close()
 
-        # if is_world
-        if is_world:
-            data_file_name = f'WORLD - {self.data_type}.zip'
-            data_file = os.path.join(DATA_FOLDER, data_file_name)
-            shutil.copyfile(request_file, data_file)
+        # Make this downloader done
+        self.is_ready = True
+        self.save()
 
     def file(self):
         """Return file."""

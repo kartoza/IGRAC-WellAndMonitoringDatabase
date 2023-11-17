@@ -1,8 +1,8 @@
-import os
+import json
 
 from django.http import HttpResponse
 from django.shortcuts import (
-    render, redirect, reverse, get_object_or_404, Http404
+    render, redirect, reverse, get_object_or_404
 )
 from django.views.generic.list import View
 
@@ -11,6 +11,7 @@ from gwml2.models.download_request import (
     DownloadRequest, WELL_AND_MONITORING_DATA
 )
 from gwml2.models.general import Country
+from gwml2.tasks.downloader import prepare_download_file
 from igrac.models.profile import IgracProfile
 
 
@@ -64,7 +65,7 @@ class DownloadRequestFormView(View):
                 download_request.user_id = request.user.id
             download_request.save()
             download_request.countries.add(*countries)
-            download_request.generate_file()
+            prepare_download_file.delay(download_request.id)
             return redirect(
                 reverse(
                     "well_download_request_download",
@@ -80,36 +81,20 @@ class DownloadRequestDownloadView(View):
     def get(self, request, uuid, *args, **kwargs):
         download_request = get_object_or_404(DownloadRequest, uuid=uuid)
         file = download_request.file()
-        if not file:
-            return redirect("well_download_request_not_exist")
         return render(
             request, self.template_name, {
-                'uuid': uuid
+                'uuid': uuid,
+                'is_ready': download_request.is_ready,
+                'has_file': file is not None
             }
         )
 
 
-class DownloadRequestDownloadFile(View):
+class DownloadRequestDownloadStatus(View):
+
     def get(self, request, uuid, *args, **kwargs):
         download_request = get_object_or_404(DownloadRequest, uuid=uuid)
-        file = download_request.file()
-        if not file or not os.path.exists(file):
-            raise Http404("File does not exist")
-        with open(file, 'rb') as fh:
-            response = HttpResponse(
-                fh.read(), content_type="application/zip"
-            )
-            response['Content-Disposition'] = (
-                    'inline; filename=' + os.path.basename(file)
-            )
-        os.remove(file)
-        return response
-
-
-class DownloadRequestDownloadNotExist(View):
-    template_name = 'download/not-exist.html'
-
-    def get(self, request, *args, **kwargs):
-        return render(
-            request, self.template_name, {}
+        return HttpResponse(
+            json.dumps({'result': download_request.is_ready}),
+            content_type="application/json"
         )

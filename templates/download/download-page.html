@@ -9,17 +9,70 @@
 {% endblock page_title %}
 
 {% block extra_head %}
+    <style>
+      .download-wrapper .ready,
+      .download-wrapper .not-exist,
+      .download-wrapper .not-ready {
+        display: none;
+      }
+
+      .download-wrapper.ready .ready,
+      .download-wrapper.not-exist .not-exist,
+      .download-wrapper.not-ready .not-ready {
+        display: block;
+      }
+    </style>
 {% endblock %}
 
 {% block body_outer %}
-    <div class="page-header">
-        <h1>Your file request is ready.</h1>
+    <div class="download-wrapper {% if is_ready and has_file %}ready{% elif is_ready and not has_file %}not-exist{% else %}not-ready{% endif %}">
+        <div class="page-header">
+            <h1 class="not-exist">File not found</h1>
+            <h1 class="ready">Your file request is ready.</h1>
+            <h1 class="not-ready">
+                <div id="gn-search-bar-loading" class="gn-spinner">
+                    <div></div>
+                </div>
+                Your file request is generating.
+            </h1>
+        </div>
+        <div class="row">
+            <div class="ready">
+                Thank you for the request. Your file is ready :
+                <a id="download-button"
+                   href="{% get_media_prefix %}request/{{ uuid }}.zip"
+                   target="_blank">{{ uuid }}.zip
+                </a>
+            </div>
+            <div class="not-exist">
+                Your file does not exist anymore. Please request new
+                file on
+                <a href="{% url 'well_download_request' %}">
+                    Request Download
+                </a>
+            </div>
+            <div class="not-ready">
+                Thank you for the request. Please wait, your file is
+                generating.
+            </div>
+        </div>
     </div>
-    <div class="row">
-        Thank you for the request. Your file is ready :
-        <a id="download-button"
-           href="{% get_media_prefix %}request/{{ uuid }}.zip"
-           target="_blank">{{ uuid }}.zip
-        </a>
-    </div>
+
+    {% if not is_ready %}
+        <script>
+          async function check() {
+            const response = await fetch(window.location.href + '/status');
+            const status = await response.json();
+            if (status.result) {
+              $('.download-wrapper').removeClass('not-ready').addClass('ready')
+            } else {
+              setTimeout(function () {
+                check()
+              }, 1000);
+            }
+          }
+
+          check()
+        </script>
+    {% endif %}
 {% endblock %}

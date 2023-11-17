@@ -24,9 +24,8 @@ from gwml2.api.well_relation import (
 )
 from gwml2.views.download_request import (
     DownloadRequestFormView,
-    DownloadRequestDownloadNotExist,
     DownloadRequestDownloadView,
-    DownloadRequestDownloadFile
+    DownloadRequestDownloadStatus
 )
 from gwml2.views.groundwater_form import (
     WellView, WellFormView,
@@ -70,12 +69,9 @@ well_detail_urls = [
 ]
 
 well_url = [
-    url(r'^download-request/not-exist$',
-        view=DownloadRequestDownloadNotExist.as_view(),
-        name='well_download_request_not_exist'),
-    url(r'^download-request/(?P<uuid>[0-9a-f-]+)/file$',
-        view=DownloadRequestDownloadFile.as_view(),
-        name='well_download_request_file'),
+    url(r'^download-request/(?P<uuid>[0-9a-f-]+)/status$',
+        view=DownloadRequestDownloadStatus.as_view(),
+        name='well_download_request_status'),
     url(r'^download-request/(?P<uuid>[0-9a-f-]+)$',
         view=DownloadRequestDownloadView.as_view(),
         name='well_download_request_download'),
