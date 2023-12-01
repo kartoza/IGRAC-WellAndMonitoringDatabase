@@ -21,10 +21,6 @@
 {% block content %}
     <div class="g-d-c">
         <div class="grp-group">
-            <h2>{% blocktrans %}Are you sure you want to delete the selected
-                {{ objects_name }}? All of the following objects and their
-                related items will be deleted:{% endblocktrans %}
-            </h2>
             <div class="grp-module grp-collapse grp-open">
                 <h3 class="grp-collapse-handler">Summary</h3>
                 <div class="grp-module">
@@ -48,25 +44,51 @@
                 </div>
             </div>
         </div>
-        <form action="{% url 'delete-well-confirmation-view' %}"
-              method="post" novalidate>
-            {% csrf_token %}
-            <div id="submit"
-                 class="grp-module grp-submit-row grp-fixed-footer">
-                <input type="hidden" name="data" value="{{ data_in_json }}"/>
-                <input type="hidden" name="ids" value="{{ ids }}"/>
-                <ul>
-                    <li class="grp-float-left">
-                        <a href="."
-                           class="grp-button grp-cancel-link">{% trans "Cancel" %}
-                        </a>
-                    </li>
-                    <li><input type="submit"
-                               value="{% trans "Yes, I'm sure" %}"
-                               class="grp-button grp-default"/></li>
-                </ul>
-                <input type="hidden" name="post" value="yes"/>
+        {% if not isProgress %}
+            <form action="{% url 'delete-well-confirmation-view' %}"
+                  method="post" novalidate>
+                {% csrf_token %}
+                <div id="submit"
+                     class="grp-module grp-submit-row grp-fixed-footer">
+                    <input type="hidden" name="data"
+                           value="{{ data_in_json }}"/>
+                    <input type="hidden" name="ids" value="{{ ids }}"/>
+                    <ul>
+                        <li class="grp-float-left">
+                            <a href="."
+                               class="grp-button grp-cancel-link">
+                                {% trans "Cancel" %}
+                            </a>
+                        </li>
+                        <li>
+                            <input
+                                    type="submit"
+                                    value="{% trans "Yes, I'm sure" %}"
+                                    class="grp-button grp-default"
+                            />
+                        </li>
+                    </ul>
+                    <input type="hidden" name="post" value="yes"/>
+                </div>
+            </form>
             </div>
-        </form>
-    </div>
+        {% endif %}
+    <script>
+      {% if isProgress %}
+        async function getData() {
+          const response = await fetch("{% url 'delete-well-progress-data' uuid=uuid %}");
+          const data = await response.json();
+
+          if (data.progress < 100) {
+            $('#grp-content-title h1').html(`Deleting progress ${data.progress}%`)
+            setTimeout(function () {
+              getData()
+            }, 1000);
+          } else {
+            $('#grp-content-title h1').html('Deleting progress 100%')
+          }
+        }
+        getData()
+      {% endif %}
+    </script>
 {% endblock %}

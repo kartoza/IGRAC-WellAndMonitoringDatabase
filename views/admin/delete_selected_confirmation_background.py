@@ -9,9 +9,8 @@ from django.contrib.admin.sites import AdminSite
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count
 from django.http import HttpResponse
-from django.shortcuts import (
-    render, get_object_or_404
-)
+from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.generic.list import View
 
@@ -21,6 +20,7 @@ from gwml2.models.well import (
     WellLevelMeasurement, WellYieldMeasurement, WellQualityMeasurement
 )
 from gwml2.models.well_deletion import WellDeletion
+from gwml2.tasks.well import run_well_deletion
 
 
 def delete_well_in_background(modeladmin, request, queryset):
@@ -82,14 +82,14 @@ class DeleteWellPostView(View):
         data = request.POST.copy()
         detail = json.loads(data['data'])
         ids = json.loads(data['ids'])
-        WellDeletion.objects.create(
+        obj = WellDeletion.objects.create(
             user=request.user.id,
             data=detail,
             ids=ids
         )
-        return render(
-            request, 'admin/delete_selected_confirmation_background.html',
-            {}
+        run_well_deletion.delay(obj.id)
+        return redirect(
+            reverse("delete-well-progress-view", args=[obj.identifier])
         )
 
 
@@ -110,7 +110,8 @@ class DeleteWellProgressView(View):
             'action_checkbox_name': helpers.ACTION_CHECKBOX_NAME,
             'media': modeladmin.media,
             'data': progress.data,
-            'isProgress': True
+            'uuid': uuid,
+            'isProgress': True,
         }
 
         request.current_app = modeladmin.admin_site.name
