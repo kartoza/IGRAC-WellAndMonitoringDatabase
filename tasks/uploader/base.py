@@ -122,6 +122,7 @@ class BaseUploader(WellEditing):
             status = json.loads(self.upload_session.status)
             resumed_index = status['added'] + status['error'] + status[
                 'skipped']
+            progress = status
         except Exception:
             pass
 

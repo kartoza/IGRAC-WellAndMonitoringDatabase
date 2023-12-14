@@ -115,7 +115,7 @@ class UploadSession(LicenseMetadata):
 
     @property
     def filename(self):
-        return self.upload_file.name
+        return ntpath.basename(self.upload_file.name)
 
     def get_uploader(self):
         """ return user of uploader """
@@ -123,10 +123,6 @@ class UploadSession(LicenseMetadata):
             return User.objects.get(id=self.uploader)
         except User.DoesNotExist:
             return None
-
-    def filename(self):
-        """ return filename """
-        return ntpath.basename(self.upload_file.name)
 
     def progress_status(self):
         """
@@ -217,8 +213,7 @@ class UploadSession(LicenseMetadata):
         """Run the uploader in background."""
         from gwml2.tasks import well_batch_upload
         if self.task_status != TaskStatus.RUNNING:
-            self.task_id = well_batch_upload.delay(self.id)
-            self.save()
+            well_batch_upload.delay(self.id)
 
     def run(self):
         """Run the upload."""
