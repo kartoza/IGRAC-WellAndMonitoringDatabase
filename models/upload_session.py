@@ -211,11 +211,7 @@ class UploadSession(LicenseMetadata):
                 for task in running_tasks:
                     if task["id"] == self.task_id:
                         return TaskStatus.RUNNING
-
-            # If task not found, meaning stopped
-            return TaskStatus.STOP
-        else:
-            return None
+        return TaskStatus.STOP
 
     def run_in_background(self):
         """Run the uploader in background."""

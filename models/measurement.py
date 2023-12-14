@@ -24,7 +24,9 @@ class Measurement(CreationMetadata):
         _('Methodology'),
         null=True, blank=True, max_length=200,
         help_text=_(
-            "Explain the methodology used to collect the data, in the field and eventually in the lab.")
+            "Explain the methodology used to collect the data, "
+            "in the field and eventually in the lab."
+        )
     )
     value = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
