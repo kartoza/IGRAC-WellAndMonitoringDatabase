@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% load i18n %}
-
+{% csrf_token %}
 {% block page_title %}
     <h1>Upload Excel File For Well Data.</h1>
 {% endblock page_title %}
@@ -12,75 +12,82 @@
 {% endblock %}
 {% block body %}
     <style>
-        .page-header {
-            font-size: 17pt;
-        }
+      .page-header {
+        font-size: 17pt;
+      }
 
-        .form-group p, .form-group .p {
-            border: 1px solid lightgrey;
-            padding: 15px;
-        }
+      .form-group p, .form-group .p {
+        border: 1px solid lightgrey;
+        padding: 15px;
+      }
 
-        .form-group p:hover {
-            box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);
-        }
+      .form-group p:hover {
+        box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.10);
+      }
 
-        .tab-pane {
-            padding: 40px;
-            border-bottom: 1px solid rgb(221, 221, 221);
-            border-left: 1px solid rgb(221, 221, 221);
-            border-right: 1px solid rgb(221, 221, 221);
-        }
+      .tab-pane {
+        padding: 40px;
+        border-bottom: 1px solid rgb(221, 221, 221);
+        border-left: 1px solid rgb(221, 221, 221);
+        border-right: 1px solid rgb(221, 221, 221);
+      }
 
-        .template-indicator {
-            margin-top: 20px;
-            font-style: italic;
-            color: grey;
-        }
+      .template-indicator {
+        margin-top: 20px;
+        font-style: italic;
+        color: grey;
+      }
 
-        .template-indicator a {
-            font-weight: 700;
-        }
+      .template-indicator a {
+        font-weight: 700;
+      }
 
-        .notes span {
-            display: inline-block;
-            padding: 5px 10px;
-            font-weight: 700;
-        }
+      .notes span {
+        display: inline-block;
+        padding: 5px 10px;
+        font-weight: 700;
+      }
 
-        .notes .added {
-            background-color: #48b14f;
-            color: white;
-        }
+      .notes .added {
+        background-color: #48b14f;
+        color: white;
+      }
 
-        .notes .error {
-            background-color: #ca3232;
-            color: white;
-        }
+      .notes .error {
+        background-color: #ca3232;
+        color: white;
+      }
 
-        .notes .skipped {
-            background-color: #ffef44;
-        }
+      .notes .skipped {
+        background-color: #ffef44;
+      }
 
-        select {
-            cursor: pointer;
-        }
+      select {
+        cursor: pointer;
+      }
 
-        select,
-        textarea {
-            width: 100%;
-        }
+      select,
+      textarea {
+        width: 100%;
+      }
 
-        .multivalue .multivalue-selection div {
-            float: none !important;
-            width: fit-content;
-            display: inline-block;
-        }
+      .multivalue .multivalue-selection div {
+        float: none !important;
+        width: fit-content;
+        display: inline-block;
+      }
 
-        .well:hover {
-            cursor: pointer;
-            opacity: 0.7;
-        }
+      .well:hover {
+        cursor: pointer;
+        opacity: 0.7;
+      }
+
+      .progress {
+        border-radius: 0 !important;
+        padding: 0.5rem 1rem;
+        height: 2rem !important;
+        margin: -1px;
+      }
     </style>
 
     <div class="container">
@@ -90,18 +97,45 @@
         <div class="row">
             {% if upload_session %}
                 <div class="container">
-                    <h2>{% trans "Upload progress" %} {{ upload_session_file_name }}</h2>
-                    <div class="progress">
-                        <div id="upload-progress"
-                             class="progress-bar progress-bar-success"
-                             role="progressbar" aria-valuenow="0"
-                             aria-valuemin="0" aria-valuemax="100"
-                             style="width:0%">
-                            0%
+                    <h5>{% trans "Current upload" %}</h5>
+                    <div style="border: 1px solid #ddd; padding-bottom: 1rem; margin-bottom: 1rem">
+                        <div class="container-fluid row">
+                            <div class="progress">
+                                <div id="upload-progress"
+                                     class="progress-bar progress-bar-success"
+                                     role="progressbar" aria-valuenow="0"
+                                     aria-valuemin="0" aria-valuemax="100"
+                                     style="width:0%">
+                                    0%
+                                </div>
+                            </div>
+                            <div class="col-xs-2">
+                                <p>Filename</p>
+                                <p>Organisation</p>
+                                <p>Uploaded at</p>
+                                <p>Status</p>
+                                <p></p>
+                            </div>
+                            <div class="col-xs-10">
+                                <p>:
+                                    <a href="{{ upload_session.upload_file.url }}">
+                                        {{ upload_session.filename }}
+                                    </a></p>
+                                <p>: {{ upload_session.organisation.name }}</p>
+                                <p>: {{ upload_session.uploaded_at }}</p>
+                                <p id="upload-progress-task-status">
+                                    : {{ upload_session.task_status }}
+                                    {% if upload_session.task_status == 'STOP' %}
+                                        <button id="ResumeButton">Resume
+                                        </button>
+                                    {% endif %}
+                                </p>
+                                <p>
+                                    <span id="upload-progress-status"
+                                          class="notes" role="alert"/>
+                                </p>
+                            </div>
                         </div>
-                    </div>
-                    <div id="upload-progress-status"
-                         class="alert alert-warning notes" role="alert">
                     </div>
                 </div>
             {% else %}
@@ -122,8 +156,10 @@
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab"
-                                   data-toggle="tab" href="#well-descriptor" role="tab"
-                                   aria-controls="home" aria-selected="true">{% trans "General Information" %}</a>
+                                   data-toggle="tab" href="#well-descriptor"
+                                   role="tab"
+                                   aria-controls="home"
+                                   aria-selected="true">{% trans "General Information" %}</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="profile-tab"
@@ -155,7 +191,8 @@
                                 <div class="template-indicator">
                                     {% trans "This Batch Upload allows you to import several Well data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points). Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
 
-                                    {% trans "Template" %} : <a href="{% static 'upload_template/well.xlsx' %}">{% trans "here" %}</a>
+                                    {% trans "Template" %} : <a
+                                        href="{% static 'upload_template/well.xlsx' %}">{% trans "here" %}</a>
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="well-monitoring"
@@ -168,7 +205,8 @@
                                 <div class="template-indicator">
                                     {% trans "This Batch Upload allows you to import several Monitoring Data at one time. Upload the well information before using this form. Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
 
-                                    {% trans "Template" %} : <a href="{% static 'upload_template/monitoring_data.xlsx' %}">{% trans "here" %}</a>
+                                    {% trans "Template" %} : <a
+                                        href="{% static 'upload_template/monitoring_data.xlsx' %}">{% trans "here" %}</a>
                                 </div>
                             </div>
                         </div>
@@ -204,33 +242,53 @@
 
     <script src="{% static "lib/js/jquery.js" %}"></script>
     <script>
-        let past_upload = {{ past_upload|safe }};
+      let past_upload = {{ past_upload|safe }};
 
-        function returnStatusHtml(status) {
-            return `
+      function returnStatusHtml(status) {
+        return `
                 <span class="added">${status.added} added</span>
                 <span class="error">${status.error} error</span>
                 <span class="skipped">${status.skipped} skipped</span>
             `
-        }
+      }
 
-        $(document).ready(function () {
-            {# render past upload #}
-            const $pastUpload = $('#pass-upload');
-            $.each(past_upload, function (index, value) {
-                {# if there is error, show red border#}
-                let color = '#ca3232'
-                let status = value.status
-                try {
-                    status = JSON.parse(value.status)
-                    if (!status.error) {
-                        color = '#48b14f'
-                    }
-                    status = returnStatusHtml(status)
-                } catch (e) {
+      function initResumeButton() {
+        $('#ResumeButton').click(function () {
+          let upload_session_uuid = '{{ upload_session.token }}';
+          let url = '/groundwater/upload-session/' + upload_session_uuid + '/';
+          $(this).attr("disabled", true);
+          let data = new FormData();
+          (
+            async () => {
+              data.append('csrfmiddlewaretoken', $('input[name="csrfmiddlewaretoken"]').attr('value'));
+              await fetch(url, {
+                method: "POST",
+                body: data,
+              });
+              $(this).removeAttr("disabled");
+            }
+          )()
+        })
+      }
 
-                }
-                $pastUpload.append(`
+      $(document).ready(function () {
+        {# render past upload #}
+        const $pastUpload = $('#pass-upload');
+        initResumeButton()
+        $.each(past_upload, function (index, value) {
+          {# if there is error, show red border#}
+          let color = '#ca3232'
+          let status = value.status
+          try {
+            status = JSON.parse(value.status)
+            if (!status.error) {
+              color = '#48b14f'
+            }
+            status = returnStatusHtml(status)
+          } catch (e) {
+
+          }
+          $pastUpload.append(`
                  <div class="well well-sm past-upload ${value.category}" style="border: 1px solid ${color}" data-id="${value.id}" data-report="${value.report_filename}">
                     <div class="container-fluid row" style="padding-top: 10px;">
                         <div class="col-xs-2">
@@ -247,65 +305,72 @@
                         </div>
                     </div>
                 </div>`)
-            });
-            $('.well').click(function () {
-                window.open($(this).data('report'), '_blank')
-            })
-
-            {# update the form #}
-            $('#myTab a[href="#well-descriptor"]').tab('show')
-
-            {# when tab clicked, show/hide the pas upload#}
-            $('#myTab a').click(function () {
-                $('.past-upload').hide();
-                let $el = null
-                if ($(this).attr('href') === '#well-descriptor') {
-                    $('#permission').show();
-                    $el = $('.well_upload');
-                } else {
-                    $('#permission').hide();
-                    $el = $('.well_monitoring_upload')
-                }
-                $el.show();
-                if ($el.length === 0) {
-                    $('#past-upload-sessions').hide()
-                } else {
-                    $('#past-upload-sessions').show()
-                }
-            });
-            $('#myTab a[href="#well-descriptor"]').click()
-
-            let uploadProgress = 0;
-            {% if upload_session %}
-                let upload_session_uuid = '{{ upload_session.token }}';
-                let url = '/groundwater/upload-session/' + upload_session_uuid;
-                let progressInterval = setInterval(function () {
-                    $.ajax({
-                        url: url,
-                        type: "GET",
-                        success: function (data) {
-                            uploadProgress = data.progress
-                            $('#upload-progress').css('width', uploadProgress + '%').html(
-                                uploadProgress.toFixed(1) + '%'
-                            );
-                            if (data.status) {
-                                let status = data.status
-                                try {
-                                    status = returnStatusHtml(JSON.parse(status))
-                                } catch (e) {
-
-                                }
-                                $('#upload-progress-status').html(status);
-                            }
-                            if (uploadProgress >= 100 || data['is_processed'] || data['is_canceled']) {
-                                setTimeout(function () {
-                                    location.reload();
-                                }, 1000);
-                            }
-                        }
-                    });
-                }, 2000);
-            {% endif %}
+        });
+        $('.well').click(function () {
+          window.open($(this).data('report'), '_blank')
         })
+
+        {# update the form #}
+        $('#myTab a[href="#well-descriptor"]').tab('show')
+
+        {# when tab clicked, show/hide the pas upload#}
+        $('#myTab a').click(function () {
+          $('.past-upload').hide();
+          let $el = null
+          if ($(this).attr('href') === '#well-descriptor') {
+            $('#permission').show();
+            $el = $('.well_upload');
+          } else {
+            $('#permission').hide();
+            $el = $('.well_monitoring_upload')
+          }
+          $el.show();
+          if ($el.length === 0) {
+            $('#past-upload-sessions').hide()
+          } else {
+            $('#past-upload-sessions').show()
+          }
+        });
+        $('#myTab a[href="#well-descriptor"]').click()
+
+        let uploadProgress = 0;
+        {% if upload_session %}
+          let upload_session_uuid = '{{ upload_session.token }}';
+          let url = '/groundwater/upload-session/' + upload_session_uuid;
+          let progressInterval = setInterval(function () {
+            $.ajax({
+              url: url,
+              type: "GET",
+              success: function (data) {
+                uploadProgress = data.progress
+                $('#upload-progress').css('width', uploadProgress + '%').html(
+                  uploadProgress.toFixed(1) + '%'
+                );
+                const disabled = $('#ResumeButton').attr('disabled')
+                $('#upload-progress-task-status').html(': ' + data.task_status);
+                if (data.task_status === 'STOP') {
+                  $('#upload-progress-task-status').append(' <button id="ResumeButton">Resume</button>')
+                }
+                $('#ResumeButton').attr("disabled", disabled);
+                initResumeButton()
+                if (data.status) {
+                  let status = data.status
+                  try {
+                    status = returnStatusHtml(JSON.parse(status))
+                  } catch (e) {
+
+                  }
+                  $('#upload-progress-status').html(status);
+                }
+                if (uploadProgress >= 100 || data['is_processed'] || data['is_canceled']) {
+                  setTimeout(function () {
+                    location.reload();
+                  }, 1000);
+                }
+              }
+            });
+          }, 2000);
+        {% endif %}
+      })
     </script>
 {% endblock %}

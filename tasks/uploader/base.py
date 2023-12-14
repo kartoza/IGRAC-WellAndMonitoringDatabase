@@ -107,20 +107,38 @@ class BaseUploader(WellEditing):
         """ Process records """
         organisation = self.upload_session.organisation
         total_records = self.total_records
-        logger.debug('Found {} wells'.format(total_records))
+        uploader = self.upload_session.get_uploader()
 
+        logger.debug('Found {} wells'.format(total_records))
+        
         progress = {
             'added': 0,
             'error': 0,
             'skipped': 0,
         }
+
+        resumed_index = 0
+        try:
+            status = json.loads(self.upload_session.status)
+            resumed_index = status['added'] + status['error'] + status[
+                'skipped']
+        except Exception:
+            pass
+
+        well_by_org = {}
         wells_id = []
         countries_code = []
+
         # For checking records
         index = 0
         for sheet_name, records in self.records.items():
+            worksheet = self.workbook[sheet_name]
+
             for row, raw_record in enumerate(records):
                 index += 1
+                if index <= resumed_index:
+                    continue
+
                 # for saving records, 50%
                 process_percent = (index / total_records) * 50
                 error = {}
@@ -129,10 +147,16 @@ class BaseUploader(WellEditing):
                     original_id = get_column(raw_record, 0)
                     record = self._convert_record(sheet_name, raw_record)
 
+                    well_identifier = f'{organisation.id}-{original_id}'
                     try:
-                        well = Well.objects.get(
-                            organisation=organisation, original_id=original_id
-                        )
+                        try:
+                            well = well_by_org[well_identifier]
+                        except KeyError:
+                            well = Well.objects.get(
+                                organisation_id=organisation.id,
+                                original_id=original_id
+                            )
+                            well_by_org[well_identifier] = well
                     except Well.DoesNotExist:
                         if self.WELL_AUTOCREATE:
                             well = None
@@ -146,7 +170,7 @@ class BaseUploader(WellEditing):
                     else:
                         well = self.edit_well(
                             well, record, {},
-                            self.upload_session.get_uploader(),
+                            uploader,
                             generate_cache=False
                         )
                         wells_id.append(well.id)
@@ -188,7 +212,6 @@ class BaseUploader(WellEditing):
                             }
                         )
 
-                        worksheet = self.workbook[sheet_name]
                         row = worksheet[row_idx]
                         try:
                             status_column_idx = self.status_column[sheet_name]
@@ -242,6 +265,7 @@ class BaseUploader(WellEditing):
             generate_data_well_cache(
                 well_id=well_id, generate_country_cache=False
             )
+
         # Run the country cache
         for index, country_code in enumerate(list(set(countries_code))):
             process_percent = ((index / len(countries_code)) * 25) + 75

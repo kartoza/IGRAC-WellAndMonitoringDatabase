@@ -58,7 +58,7 @@ class MonitoringDataUploader(BaseUploader):
             key = 'yield_measurement'
 
         return MODEL.objects.filter(
-            well=well,
+            well_id=well.id,
             time=record[key][0]['time'],
             parameter=record[key][0]['parameter']
-        ).count()
+        ).first()

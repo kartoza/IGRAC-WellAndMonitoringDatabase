@@ -9,6 +9,7 @@ import uuid
 from datetime import datetime
 
 import openpyxl
+from celery import current_app
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -28,6 +29,14 @@ UPLOAD_SESSION_CATEGORY = (
 )
 
 User = get_user_model()
+
+
+class TaskStatus:
+    """Task status."""
+
+    RUNNING = 'RUNNING'
+    STOP = 'STOP'
+    DONE = 'DONE'
 
 
 class UploadSession(LicenseMetadata):
@@ -63,7 +72,10 @@ class UploadSession(LicenseMetadata):
     )
 
     status = models.TextField(
-        help_text='What is the status of progress. Mostly it will split by added, error and skipped ',
+        help_text=(
+            'What is the status of progress. '
+            'Mostly it will split by added, error and skipped ',
+        ),
         blank=True,
         null=True
     )
@@ -85,6 +97,11 @@ class UploadSession(LicenseMetadata):
         default=False
     )
 
+    task_id = models.TextField(
+        blank=True,
+        null=True
+    )
+
     # noinspection PyClassicStyleClass
     class Meta:
         """Meta class for project."""
@@ -95,6 +112,10 @@ class UploadSession(LicenseMetadata):
 
     def __str__(self):
         return str(self.token)
+
+    @property
+    def filename(self):
+        return self.upload_file.name
 
     def get_uploader(self):
         """ return user of uploader """
@@ -137,29 +158,11 @@ class UploadSession(LicenseMetadata):
         :param progress: Current progress
         :type progress: int
         """
-
-        folder = os.path.join(
-            settings.MEDIA_ROOT, 'gwml2', 'upload', 'progress'
-        )
         if finished:
             if progress == 100:
                 self.is_processed = True
             if progress < 100:
                 self.is_canceled = True
-            if os.path.exists(os.path.join(folder, str(self.token))):
-                os.remove(os.path.join(folder, str(self.token)))
-        else:
-            try:
-                if not os.path.exists(folder):
-                    os.makedirs(folder)
-                f = open(os.path.join(folder, str(self.token)), "w+")
-                f.write(json.dumps({
-                    'progress': progress,
-                    'status': status
-                }))
-                f.close()
-            except Exception as e:
-                pass
 
         self.progress = progress
         self.status = status
@@ -194,6 +197,45 @@ class UploadSession(LicenseMetadata):
                 row_status.update_sheet(worksheet, status_column_idx)
         workbook.save(_report_file)
         os.chmod(_report_file, 0o0777)
+
+    @property
+    def task_status(self):
+        """Return task status from celery."""
+        if self.task_id:
+            # If processed, meaning done
+            if self.is_processed:
+                return TaskStatus.DONE
+
+            active_tasks = current_app.control.inspect().active()
+            for worker, running_tasks in active_tasks.items():
+                for task in running_tasks:
+                    if task["id"] == self.task_id:
+                        return TaskStatus.RUNNING
+
+            # If task not found, meaning stopped
+            return TaskStatus.STOP
+        else:
+            return None
+
+    def run_in_background(self):
+        """Run the uploader in background."""
+        from gwml2.tasks import well_batch_upload
+        if self.task_status != TaskStatus.RUNNING:
+            self.task_id = well_batch_upload.delay(self.id)
+            self.save()
+
+    def run(self):
+        """Run the upload."""
+        from gwml2.tasks.uploader.general_information import (
+            GeneralInformationUploader
+        )
+        from gwml2.tasks.uploader.monitoring_data import (
+            MonitoringDataUploader
+        )
+        if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
+            GeneralInformationUploader(self)
+        elif self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
+            MonitoringDataUploader(self)
 
 
 RowStatus = [
