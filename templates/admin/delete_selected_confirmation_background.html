@@ -1,0 +1,94 @@
+{% extends "admin/delete_selected_confirmation.html" %}
+
+<!-- LOADING -->
+{% load i18n l10n admin_urls %}
+
+<!-- BREADCRUMBS -->
+{% block breadcrumbs %}
+    <ul class="grp-horizontal-list">
+        <li><a href="{% url 'admin:index' %}">{% trans "Home" %}</a></li>
+        <li>
+            <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+        </li>
+        <li>
+            <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+        </li>
+        <li>{% trans 'Delete multiple objects in background' %}</li>
+    </ul>
+{% endblock %}
+
+<!-- CONTENT -->
+{% block content %}
+    <div class="g-d-c">
+        <div class="grp-group">
+            <div class="grp-module grp-collapse grp-open">
+                <h3 class="grp-collapse-handler">Summary</h3>
+                <div class="grp-module">
+                    <div class="grp-row">Wells: {{ data.count.well }}</div>
+                    <div class="grp-row">
+                        Well level measurements: {{ data.count.level }}
+                    </div>
+                    <div class="grp-row">
+                        Well yield measurements: {{ data.count.yield }}
+                    </div>
+                    <div class="grp-row">
+                        Well quality measurements: {{ data.count.quality }}
+                    </div>
+                    {% for org in data.organisations %}
+                        <div class="grp-row">
+                            Wells under
+                            {{ org.organisation__name }}: {{ org.count }}
+                        </div>
+                    {% endfor %}
+
+                </div>
+            </div>
+        </div>
+        {% if not isProgress %}
+            <form action="{% url 'delete-well-confirmation-view' %}"
+                  method="post" novalidate>
+                {% csrf_token %}
+                <div id="submit"
+                     class="grp-module grp-submit-row grp-fixed-footer">
+                    <input type="hidden" name="data"
+                           value="{{ data_in_json }}"/>
+                    <input type="hidden" name="ids" value="{{ ids }}"/>
+                    <ul>
+                        <li class="grp-float-left">
+                            <a href="."
+                               class="grp-button grp-cancel-link">
+                                {% trans "Cancel" %}
+                            </a>
+                        </li>
+                        <li>
+                            <input
+                                    type="submit"
+                                    value="{% trans "Yes, I'm sure" %}"
+                                    class="grp-button grp-default"
+                            />
+                        </li>
+                    </ul>
+                    <input type="hidden" name="post" value="yes"/>
+                </div>
+            </form>
+            </div>
+        {% endif %}
+    <script>
+      {% if isProgress %}
+        async function getData() {
+          const response = await fetch("{% url 'delete-well-progress-data' uuid=uuid %}");
+          const data = await response.json();
+
+          if (data.progress < 100) {
+            $('#grp-content-title h1').html(`Deleting progress ${data.progress}%`)
+            setTimeout(function () {
+              getData()
+            }, 1000);
+          } else {
+            $('#grp-content-title h1').html('Deleting progress 100%')
+          }
+        }
+        getData()
+      {% endif %}
+    </script>
+{% endblock %}

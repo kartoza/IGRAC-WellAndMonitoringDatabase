@@ -21,6 +21,14 @@ def regenerate_measurement_cache(modeladmin, request, queryset):
         well.generate_measurement_cache()
 
 
+@admin.action(description='Delete selected wells in background')
+def delete_in_background(modeladmin, request, queryset):
+    from gwml2.views.admin.delete_selected_confirmation_background import (
+        delete_well_in_background
+    )
+    return delete_well_in_background(modeladmin, request, queryset)
+
+
 class WellAdmin(admin.ModelAdmin):
     list_display = (
         'original_id', 'organisation', 'number_of_measurements',
@@ -39,7 +47,9 @@ class WellAdmin(admin.ModelAdmin):
         'geology', 'construction', 'management', 'hydrogeology_parameter'
     )
     search_fields = ('original_id', 'name')
-    actions = [regenerate_measurement_cache, assign_country]
+    actions = [
+        delete_in_background, regenerate_measurement_cache, assign_country
+    ]
 
     def edit(self, obj):
         url = reverse('well_form', args=[obj.id])

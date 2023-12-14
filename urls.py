@@ -16,12 +16,15 @@ from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.upload_session import UploadSessionApiView
 from gwml2.api.user import (UserAutocompleteAPI, UserUUIDAPI)
+from gwml2.api.well_deletion import WellDeletionAPI
 from gwml2.api.well_measurement import WellLevelMeasurementData
 from gwml2.api.well_relation import (
     WellRelationDeleteView,
     WellRelationListView,
     WellMeasurementDataView
 )
+from gwml2.views.admin.delete_selected_confirmation_background import \
+    DeleteWellPostView, DeleteWellProgressView
 from gwml2.views.download_request import (
     DownloadRequestFormView,
     DownloadRequestDownloadView,
@@ -141,6 +144,21 @@ urlpatterns = [
     url(r'^task/(?P<task_id>.+)/progress/',
         view=TaskProgress.as_view(),
         name='task_progress'),
+    url(
+        r'^delete/well/progress/(?P<uuid>[0-9a-f-]+)/data',
+        view=WellDeletionAPI.as_view(),
+        name='delete-well-progress-data'
+    ),
+    url(
+        r'^delete/well/progress/(?P<uuid>[0-9a-f-]+)',
+        view=DeleteWellProgressView.as_view(),
+        name='delete-well-progress-view'
+    ),
+    url(
+        r'^delete/well/',
+        view=DeleteWellPostView.as_view(),
+        name='delete-well-confirmation-view'
+    ),
     url(r'^api/', include(api_url)),
     url(r'^record/', include(well_url)),
     url(r'^user/', include(user_url)),

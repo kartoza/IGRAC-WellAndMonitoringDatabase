@@ -11,6 +11,7 @@ from gwml2.models.measurement import *
 from gwml2.models.term import *
 from gwml2.models.term_measurement_parameter import *
 from gwml2.models.well import *
+from gwml2.models.well_deletion import *
 
 # management
 from gwml2.models.well_management.organisation import *
