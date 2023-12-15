@@ -1,20 +1,19 @@
 import json
+
+from braces.views import LoginRequiredMixin
 from django.db.models import Q
 from django.http import HttpResponse
 from django.urls import reverse
 from django.views.generic import FormView
 
-from braces.views import LoginRequiredMixin
-
 from gwml2.forms import CsvWellForm
-from gwml2.tasks import well_batch_upload
 from gwml2.models.upload_session import (
     UploadSession,
     UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
     UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
 )
-from gwml2.utilities import get_organisations_as_editor
 from gwml2.serializer.upload_session import UploadSessionSerializer
+from gwml2.utilities import get_organisations_as_editor
 
 
 class WellUploadView(LoginRequiredMixin, FormView):
@@ -54,9 +53,6 @@ class WellUploadView(LoginRequiredMixin, FormView):
         if upload_sessions.count() > 0:
             upload_session = upload_sessions[0]
             context['upload_session'] = upload_session
-            context['upload_session_file_name'] = (
-                upload_session.upload_file.name.split('/')[1]
-            )
         MAX = 10
         context['past_upload'] = UploadSessionSerializer(
             UploadSession.objects.filter(
@@ -98,7 +94,9 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     upload_file=gw_well_file,
                     uploader=request.user.id,
                     license=form.cleaned_data['license'],
-                    restriction_code_type=form.cleaned_data['restriction_code_type'],
+                    restriction_code_type=form.cleaned_data[
+                        'restriction_code_type'
+                    ],
                     constraints_other=form.cleaned_data['constraints_other'],
                 )
             elif gw_monitoring_file:
@@ -111,7 +109,7 @@ class WellUploadView(LoginRequiredMixin, FormView):
             else:
                 return self.form_invalid(form)
 
-            well_batch_upload.delay(upload_session.id)
+            upload_session.run_in_background()
             return self.form_valid(form)
         else:
             return self.form_invalid(form)

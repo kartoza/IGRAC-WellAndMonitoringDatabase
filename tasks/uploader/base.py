@@ -1,7 +1,5 @@
 import json
-import os
 
-import openpyxl
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
 from pyexcel_xls import get_data as xls_get
@@ -48,17 +46,18 @@ class BaseUploader(WellEditing):
 
     status_column = {}
 
-    def __init__(self, upload_session: UploadSession):
+    def __init__(self, upload_session: UploadSession, restart: bool = False):
         from gwml2.signals.well import post_save_measurement_for_cache
+        self.restart = restart
         self.upload_session = upload_session
+        self.uploader = self.upload_session.get_uploader()
         _file = self.upload_session.upload_file
         _filename = _file.path
-        _report_file = _filename.replace('.xls', '.report.xls')
-        if os.path.exists(_report_file):
-            os.remove(_report_file)
-        self.workbook = openpyxl.load_workbook(_filename)
 
+        self.upload_session.update_step('Reading file')
         self.total_records = 0
+        self.relation_cache = {}
+
         records = {}
         if _file:
             _file.seek(0)
@@ -100,13 +99,18 @@ class BaseUploader(WellEditing):
                 ):
                     self.process()
 
-        self.workbook.save(_report_file)
-        os.chmod(_report_file, 0o0777)
+        # For report
+        self.upload_session.update_step('Create report')
+        self.upload_session.create_report_excel()
+
+        # Finish
+        self.upload_session.update_step('Finish')
 
     def process(self):
         """ Process records """
         organisation = self.upload_session.organisation
         total_records = self.total_records
+
         logger.debug('Found {} wells'.format(total_records))
 
         progress = {
@@ -114,25 +118,51 @@ class BaseUploader(WellEditing):
             'error': 0,
             'skipped': 0,
         }
+
+        resumed_index = 0
+        if not self.restart:
+            try:
+                status = json.loads(self.upload_session.status)
+                resumed_index = status['added'] + status['error'] + status[
+                    'skipped']
+                progress = status
+            except Exception:
+                pass
+
+        well_by_org = {}
         wells_id = []
-        countries_code = []
-        # For checking records
+
+        # ------------------------------
+        # Upload data
+        # ------------------------------
+        self.upload_session.update_step('Upload data')
         index = 0
         for sheet_name, records in self.records.items():
             for row, raw_record in enumerate(records):
                 index += 1
-                # for saving records, 50%
+                if index <= resumed_index:
+                    continue
+
                 process_percent = (index / total_records) * 50
+
+                # for saving records, 50%
                 error = {}
                 skipped = False
+                well = None
                 try:
                     original_id = get_column(raw_record, 0)
                     record = self._convert_record(sheet_name, raw_record)
 
+                    well_identifier = f'{organisation.id}-{original_id}'
                     try:
-                        well = Well.objects.get(
-                            organisation=organisation, original_id=original_id
-                        )
+                        try:
+                            well = well_by_org[well_identifier]
+                        except KeyError:
+                            well = Well.objects.get(
+                                organisation_id=organisation.id,
+                                original_id=original_id
+                            )
+                            well_by_org[well_identifier] = well
                     except Well.DoesNotExist:
                         if self.WELL_AUTOCREATE:
                             well = None
@@ -144,13 +174,8 @@ class BaseUploader(WellEditing):
                     if self.get_object(sheet_name, well, record):
                         skipped = True
                     else:
-                        well = self.edit_well(
-                            well, record, {},
-                            self.upload_session.get_uploader(),
-                            generate_cache=False
-                        )
+                        well = self.update_data(well, record)
                         wells_id.append(well.id)
-                        countries_code.append(well.country.code)
                 except Well.DoesNotExist:
                     error = {
                         'original_id': 'Well does not exist'
@@ -164,68 +189,85 @@ class BaseUploader(WellEditing):
                         'original_id': '{}'.format(e)
                     }
 
-                # update progress
+                # ---------------------------------------------
+                # Update progress and status
+                # ---------------------------------------------
                 row_idx = row + self.START_ROW + 1
                 if error:
                     progress['error'] += 1
 
                     # create progress status per row
-                    for key, value in error.items():
+                    for key, note in error.items():
                         try:
                             column = list(self.RECORD_FORMAT.keys()).index(key)
                         except ValueError:
                             column = 0
-                        if type(value) is list:
-                            value = '<br>'.join(value)
-                        row_obj, created = UploadSessionRowStatus.objects.get_or_create(
+                        if type(note) is list:
+                            note = '<br>'.join(note)
+                        obj, _ = UploadSessionRowStatus.objects.get_or_create(
                             upload_session=self.upload_session,
                             sheet_name=sheet_name,
                             row=row_idx,
                             column=column,
-                            status=1,
                             defaults={
-                                'note': value
+                                'status': 1
                             }
                         )
-
-                        worksheet = self.workbook[sheet_name]
-                        row = worksheet[row_idx]
-                        try:
-                            status_column_idx = self.status_column[sheet_name]
-                        except KeyError:
-                            status_column_idx = len(row) + 1
-                            self.status_column[sheet_name] = status_column_idx
-                        row_obj.update_sheet(worksheet, status_column_idx)
+                        obj.well = well
+                        obj.status = 1
+                        obj.note = note
+                        obj.save()
                 elif skipped:
                     progress['skipped'] += 1
 
                     # create progress status per row
-                    row_obj, created = UploadSessionRowStatus.objects.get_or_create(
+                    obj, _ = UploadSessionRowStatus.objects.get_or_create(
                         upload_session=self.upload_session,
                         sheet_name=sheet_name,
                         row=row_idx,
                         column=0,
-                        status=2
+                        defaults={
+                            'status': 2
+                        }
                     )
-                    worksheet = self.workbook[sheet_name]
-                    row = worksheet[row_idx]
-                    try:
-                        status_column_idx = self.status_column[sheet_name]
-                    except KeyError:
-                        status_column_idx = len(row) + 1
-                        self.status_column[sheet_name] = status_column_idx
-                    row_obj.update_sheet(worksheet, status_column_idx)
+                    obj.well = well
+                    obj.status = 2
+                    obj.save()
                 else:
                     progress['added'] += 1
+
+                    # create progress status per row
+                    obj, _ = UploadSessionRowStatus.objects.get_or_create(
+                        upload_session=self.upload_session,
+                        sheet_name=sheet_name,
+                        row=row_idx,
+                        column=0,
+                        defaults={
+                            'status': 0
+                        }
+                    )
+                    obj.well = well
+                    obj.status = 0
+                    obj.save()
 
                 self.upload_session.update_progress(
                     progress=int(process_percent),
                     status=json.dumps(progress)
                 )
 
+        # ------------------------------------
         # Run the data cache
-        for index, well_id in enumerate(list(set(wells_id))):
-            process_percent = ((index / len(wells_id)) * 25) + 50
+        # ------------------------------------
+        self.upload_session.update_step('Running wells cache')
+        wells_id = list(
+            self.upload_session.uploadsessionrowstatus_set.values_list(
+                'well_id', flat=True
+            )
+        )
+        wells_id = list(set(wells_id))
+        count = len(wells_id)
+        for index, well_id in enumerate(wells_id):
+            process_percent = ((index / count) * 25) + 50
             self.upload_session.update_progress(
                 progress=int(process_percent),
                 status=json.dumps(progress)
@@ -242,9 +284,20 @@ class BaseUploader(WellEditing):
             generate_data_well_cache(
                 well_id=well_id, generate_country_cache=False
             )
+
+        # ------------------------------------
         # Run the country cache
-        for index, country_code in enumerate(list(set(countries_code))):
-            process_percent = ((index / len(countries_code)) * 25) + 75
+        # ------------------------------------
+        self.upload_session.update_step('Running country cache')
+        countries_code = list(
+            Well.objects.filter(
+                id__in=wells_id
+            ).values_list('country__code', flat=True)
+        )
+        countries_code = list(set(countries_code))
+        count = len(countries_code)
+        for index, country_code in enumerate(countries_code):
+            process_percent = ((index / count) * 25) + 75
             self.upload_session.update_progress(
                 progress=int(process_percent),
                 status=json.dumps(progress)
@@ -272,10 +325,23 @@ class BaseUploader(WellEditing):
             TERM = self.RECORD_FORMAT[key]
             if value and TERM:
                 try:
-                    if TERM == Unit:
-                        value = TERM.objects.get(name__iexact=value).name
-                    else:
-                        value = TERM.objects.get(name__iexact=value).id
+                    term_key = TERM.__name__
+                    try:
+                        cache = self.relation_cache[term_key]
+                    except KeyError:
+                        self.relation_cache[term_key] = {}
+                        cache = self.relation_cache[term_key]
+                    try:
+                        value = cache[value]
+                    except KeyError:
+                        if TERM == Unit:
+                            rel_value = TERM.objects.get(
+                                name__iexact=value
+                            ).name
+                        else:
+                            rel_value = TERM.objects.get(name__iexact=value).id
+                        cache[value] = rel_value
+                        value = rel_value
                 except TermFeatureType.DoesNotExist:
                     raise TermNotFound(json.dumps(
                         {key: 'Feature Type does not exist'}
@@ -307,11 +373,13 @@ class BaseUploader(WellEditing):
         return self.convert_record(sheet_name, data)
 
     def convert_record(self, sheet_name, data):
-        """ return object that will be used
-        """
+        """Convert record."""
+        raise NotImplementedError
+
+    def update_data(self, well, record) -> Well:
+        """Process record"""
         raise NotImplementedError
 
     def get_object(self, sheet_name, well, record):
-        """ return object that will be used
-        """
+        """Return object that will be used."""
         raise NotImplementedError

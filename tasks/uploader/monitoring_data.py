@@ -1,10 +1,9 @@
 from celery.utils.log import get_task_logger
 
-from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.models.well import (
-    WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
-)
 from gwml2.models.general import Unit
+from gwml2.models.term_measurement_parameter import TermMeasurementParameter
+from gwml2.models.well import WellLevelMeasurement, WellQualityMeasurement, \
+    WellYieldMeasurement, Well
 from gwml2.tasks.uploader.base import BaseUploader
 
 logger = get_task_logger(__name__)
@@ -45,8 +44,7 @@ class MonitoringDataUploader(BaseUploader):
         }
 
     def get_object(self, sheet_name, well, record):
-        """ return object that will be used
-        """
+        """Return object that will be used."""
         if sheet_name == self.SHEETS[0]:
             MODEL = WellLevelMeasurement
             key = 'level_measurement'
@@ -58,7 +56,15 @@ class MonitoringDataUploader(BaseUploader):
             key = 'yield_measurement'
 
         return MODEL.objects.filter(
-            well=well,
+            well_id=well.id,
             time=record[key][0]['time'],
             parameter=record[key][0]['parameter']
-        ).count()
+        ).first()
+
+    def update_data(self, well, record) -> Well:
+        """Process record"""
+        return self.edit_well(
+            well, record, {},
+            self.uploader,
+            generate_cache=False
+        )
