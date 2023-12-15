@@ -264,8 +264,10 @@ class BaseUploader(WellEditing):
                 'well_id', flat=True
             )
         )
-        for index, well_id in enumerate(list(set(wells_id))):
-            process_percent = ((index / len(wells_id)) * 25) + 50
+        wells_id = list(set(wells_id))
+        count = len(wells_id)
+        for index, well_id in enumerate(wells_id):
+            process_percent = ((index / count) * 25) + 50
             self.upload_session.update_progress(
                 progress=int(process_percent),
                 status=json.dumps(progress)
@@ -292,8 +294,10 @@ class BaseUploader(WellEditing):
                 id__in=wells_id
             ).values_list('country__code', flat=True)
         )
-        for index, country_code in enumerate(list(set(countries_code))):
-            process_percent = ((index / len(countries_code)) * 25) + 75
+        countries_code = list(set(countries_code))
+        count = len(countries_code)
+        for index, country_code in enumerate(countries_code):
+            process_percent = ((index / count) * 25) + 75
             self.upload_session.update_progress(
                 progress=int(process_percent),
                 status=json.dumps(progress)

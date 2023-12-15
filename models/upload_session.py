@@ -123,6 +123,10 @@ class UploadSession(LicenseMetadata):
     def filename(self):
         return ntpath.basename(self.upload_file.name)
 
+    @property
+    def timestamp(self):
+        return self.uploaded_at.timestamp() * 1000
+
     def get_uploader(self):
         """ return user of uploader """
         try:

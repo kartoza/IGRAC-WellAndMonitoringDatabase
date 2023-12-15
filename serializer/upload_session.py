@@ -16,11 +16,7 @@ class UploadSessionSerializer(serializers.ModelSerializer):
         return _report_file
 
     def get_uploaded_at(self, obj: UploadSession):
-        return obj.uploaded_at.strftime("%b. %d, %Y, %-I:%M %p").replace(
-            'AM', 'a.m.'
-        ).replace(
-            'PM', 'p.m.'
-        )
+        return obj.timestamp
 
     class Meta:
         model = UploadSession
