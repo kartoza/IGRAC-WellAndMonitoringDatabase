@@ -14,7 +14,6 @@ class Functions:
 
     def restart_uploads(self):
         """Restart uploads."""
-        return
         for upload in UploadSession.objects.filter(
                 task_id__isnull=False
         ).filter(is_processed=False):

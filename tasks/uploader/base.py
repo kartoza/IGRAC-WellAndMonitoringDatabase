@@ -56,6 +56,7 @@ class BaseUploader(WellEditing):
 
         self.upload_session.update_step('Reading file')
         self.total_records = 0
+        self.relation_cache = {}
 
         records = {}
         if _file:
@@ -320,10 +321,23 @@ class BaseUploader(WellEditing):
             TERM = self.RECORD_FORMAT[key]
             if value and TERM:
                 try:
-                    if TERM == Unit:
-                        value = TERM.objects.get(name__iexact=value).name
-                    else:
-                        value = TERM.objects.get(name__iexact=value).id
+                    term_key = TERM.__name__
+                    try:
+                        cache = self.relation_cache[term_key]
+                    except KeyError:
+                        self.relation_cache[term_key] = {}
+                        cache = self.relation_cache[term_key]
+                    try:
+                        value = cache[value]
+                    except KeyError:
+                        if TERM == Unit:
+                            rel_value = TERM.objects.get(
+                                name__iexact=value
+                            ).name
+                        else:
+                            rel_value = TERM.objects.get(name__iexact=value).id
+                        cache[value] = rel_value
+                        value = rel_value
                 except TermFeatureType.DoesNotExist:
                     raise TermNotFound(json.dumps(
                         {key: 'Feature Type does not exist'}
