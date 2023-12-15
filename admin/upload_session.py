@@ -9,6 +9,12 @@ def resume_upload(modeladmin, request, queryset):
         upload_session.run_in_background()
 
 
+@admin.action(description='Restart upload.')
+def restart_upload(modeladmin, request, queryset):
+    for upload_session in queryset:
+        upload_session.run_in_background(restart=True)
+
+
 class UploadSessionAdmin(admin.ModelAdmin):
     list_display = (
         'uploaded_at',
@@ -23,7 +29,7 @@ class UploadSessionAdmin(admin.ModelAdmin):
         'is_processed',
         'is_canceled'
     )
-    actions = (resume_upload,)
+    actions = (resume_upload, restart_upload)
 
 
 admin.site.register(UploadSession, UploadSessionAdmin)

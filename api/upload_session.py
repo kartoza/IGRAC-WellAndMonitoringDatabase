@@ -2,6 +2,7 @@ from django.http import JsonResponse, Http404, HttpResponse
 from django.views.generic.base import View
 
 from gwml2.models.upload_session import UploadSession
+from gwml2.serializer.upload_session import UploadSessionSerializer
 
 
 class UploadSessionApiView(View):
@@ -15,12 +16,7 @@ class UploadSessionApiView(View):
             session = UploadSession.objects.get(
                 token=token
             )
-            output = {
-                'token': session.token,
-                'is_processed': session.is_processed,
-                'is_canceled': session.is_canceled,
-                'task_status': session.task_status
-            }
+            output = UploadSessionSerializer(session).data
             output.update(session.progress_status())
             return JsonResponse(output)
         except UploadSession.DoesNotExist:

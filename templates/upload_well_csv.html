@@ -84,9 +84,23 @@
 
       .progress {
         border-radius: 0 !important;
-        padding: 0.5rem 1rem;
         height: 2rem !important;
         margin: -1px;
+        position: relative;
+      }
+
+      #upload-progress {
+        text-align: left;
+        box-sizing: border-box;
+      }
+
+      #upload-progress-text {
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: white;
+        padding: 6px 1rem;
       }
     </style>
 
@@ -101,12 +115,14 @@
                     <div style="border: 1px solid #ddd; padding-bottom: 1rem; margin-bottom: 1rem">
                         <div class="container-fluid row">
                             <div class="progress">
+                                <div id="upload-progress-text">
+                                    Loading
+                                </div>
                                 <div id="upload-progress"
                                      class="progress-bar progress-bar-success"
                                      role="progressbar" aria-valuenow="0"
                                      aria-valuemin="0" aria-valuemax="100"
                                      style="width:0%">
-                                    0%
                                 </div>
                             </div>
                             <div class="col-xs-2">
@@ -337,14 +353,15 @@
         {% if upload_session %}
           let upload_session_uuid = '{{ upload_session.token }}';
           let url = '/groundwater/upload-session/' + upload_session_uuid;
-          let progressInterval = setInterval(function () {
+          const fetchData = () => {
             $.ajax({
               url: url,
               type: "GET",
               success: function (data) {
                 uploadProgress = data.progress
-                $('#upload-progress').css('width', uploadProgress + '%').html(
-                  uploadProgress.toFixed(1) + '%'
+                $('#upload-progress').css('width', uploadProgress + '%');
+                $('#upload-progress-text').html(
+                  `<div>${uploadProgress.toFixed(1)}% - ${data.step}</div>`
                 );
                 const disabled = $('#ResumeButton').attr('disabled')
                 $('#upload-progress-task-status').html(': ' + data.task_status);
@@ -362,14 +379,11 @@
                   }
                   $('#upload-progress-status').html(status);
                 }
-                if (uploadProgress >= 100 || data['is_processed'] || data['is_canceled']) {
-                  setTimeout(function () {
-                    location.reload();
-                  }, 1000);
-                }
               }
             });
-          }, 2000);
+          }
+          setInterval(fetchData, 2000);
+          fetchData()
         {% endif %}
       })
     </script>

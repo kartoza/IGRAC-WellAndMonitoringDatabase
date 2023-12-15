@@ -16,6 +16,7 @@ from django.db import models
 from openpyxl.styles import PatternFill, Font
 
 from gwml2.models.metadata.license_metadata import LicenseMetadata
+from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
@@ -69,6 +70,11 @@ class UploadSession(LicenseMetadata):
         max_length=50,
         blank=True,
         default='',
+    )
+
+    step = models.TextField(
+        blank=True,
+        null=True
     )
 
     status = models.TextField(
@@ -164,8 +170,48 @@ class UploadSession(LicenseMetadata):
         self.status = status
         self.save()
 
+    def update_step(self, step: str):
+        """Update step of upload."""
+        self.step = step
+        self.save()
+
+    @property
+    def task_status(self):
+        """Return task status from celery."""
+        if self.task_id:
+            # If processed, meaning done
+            if self.is_processed:
+                return TaskStatus.DONE
+
+            active_tasks = current_app.control.inspect().active()
+            for worker, running_tasks in active_tasks.items():
+                for task in running_tasks:
+                    if task["id"] == self.task_id:
+                        return TaskStatus.RUNNING
+        return TaskStatus.STOP
+
+    def run_in_background(self, restart: bool = False):
+        """Run the uploader in background."""
+        from gwml2.tasks import well_batch_upload
+        if self.task_status != TaskStatus.RUNNING:
+            well_batch_upload.delay(self.id, restart)
+
+    def run(self, restart: bool = False):
+        """Run the upload."""
+        from gwml2.tasks.uploader.general_information import (
+            GeneralInformationUploader
+        )
+        from gwml2.tasks.uploader.monitoring_data import (
+            MonitoringDataUploader
+        )
+        if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
+            GeneralInformationUploader(self, restart)
+        elif self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
+            MonitoringDataUploader(self, restart)
+
     def create_report_excel(self):
         """Created excel that will contain reports."""
+
         _file = self.upload_file.path
         _report_file = _file.replace('.xls', '.report.xls')
         if os.path.exists(_report_file):
@@ -187,46 +233,10 @@ class UploadSession(LicenseMetadata):
                 status_column_idx = len(row) + 1
                 status_column[sheetname] = status_column_idx
 
-            print(f'{total}')
             for idx, row_status in enumerate(sheet_query):
-                print(f'{idx} / {total}')
                 row_status.update_sheet(worksheet, status_column_idx)
         workbook.save(_report_file)
         os.chmod(_report_file, 0o0777)
-
-    @property
-    def task_status(self):
-        """Return task status from celery."""
-        if self.task_id:
-            # If processed, meaning done
-            if self.is_processed:
-                return TaskStatus.DONE
-
-            active_tasks = current_app.control.inspect().active()
-            for worker, running_tasks in active_tasks.items():
-                for task in running_tasks:
-                    if task["id"] == self.task_id:
-                        return TaskStatus.RUNNING
-        return TaskStatus.STOP
-
-    def run_in_background(self):
-        """Run the uploader in background."""
-        from gwml2.tasks import well_batch_upload
-        if self.task_status != TaskStatus.RUNNING:
-            well_batch_upload.delay(self.id)
-
-    def run(self):
-        """Run the upload."""
-        from gwml2.tasks.uploader.general_information import (
-            GeneralInformationUploader
-        )
-        from gwml2.tasks.uploader.monitoring_data import (
-            MonitoringDataUploader
-        )
-        if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
-            GeneralInformationUploader(self)
-        elif self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
-            MonitoringDataUploader(self)
 
 
 RowStatus = [
@@ -238,15 +248,16 @@ RowStatus = [
 
 class UploadSessionRowStatus(models.Model):
     """ Check status data per row of upload """
-    upload_session = models.ForeignKey(
-        UploadSession, on_delete=models.CASCADE)
+    upload_session = models.ForeignKey(UploadSession, on_delete=models.CASCADE)
     sheet_name = models.CharField(max_length=256)
     row = models.IntegerField()
     column = models.IntegerField()
-    status = models.IntegerField(
-        choices=RowStatus)
+    status = models.IntegerField(choices=RowStatus)
     note = models.TextField(
         null=True, blank=True
+    )
+    well = models.ForeignKey(
+        Well, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     class Meta:
