@@ -38,6 +38,7 @@ class TermNotFound(Exception):
 
 class BaseUploader(WellEditing):
     """ Convert excel into json and save the data """
+    UPLOADER_NAME = ''
     AUTOCREATE_WELL = False
     SHEETS = []
     START_ROW = 2
@@ -73,10 +74,16 @@ class BaseUploader(WellEditing):
                         records[sheet_name] = sheet_records
                         self.total_records += len(sheet_records)
                 except KeyError as e:
+                    error = (
+                        f'Sheet {e} in excel is not found. '
+                        f'This sheet is used by {self.UPLOADER_NAME}. '
+                        f'Please check if you use the correct uploader/tab. '
+                    )
+
                     self.upload_session.update_progress(
                         finished=True,
                         progress=100,
-                        status='Sheet {} is needed'.format(e)
+                        status=error
                     )
                     return
         self.records = records
@@ -141,6 +148,8 @@ class BaseUploader(WellEditing):
             for row, raw_record in enumerate(records):
                 index += 1
                 if index <= resumed_index:
+                    continue
+                if len(raw_record) == 0:
                     continue
 
                 process_percent = (index / total_records) * 50

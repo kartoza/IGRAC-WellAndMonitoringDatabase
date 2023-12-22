@@ -11,6 +11,7 @@ logger = get_task_logger(__name__)
 
 class MonitoringDataUploader(BaseUploader):
     """ Save well uploader from excel """
+    UPLOADER_NAME = 'Monitoring Data'
     AUTOCREATE_WELL = False
     SHEETS = [
         'Groundwater Level',
