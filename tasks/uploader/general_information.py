@@ -12,6 +12,7 @@ logger = get_task_logger(__name__)
 
 class GeneralInformationUploader(BaseUploader):
     """ Save well uploader from excel """
+    UPLOADER_NAME = 'General Information'
     AUTOCREATE_WELL = True
     SHEETS = [
         'General Information'

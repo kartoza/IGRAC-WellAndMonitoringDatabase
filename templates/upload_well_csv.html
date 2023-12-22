@@ -33,7 +33,7 @@
       }
 
       .template-indicator {
-        margin-top: 20px;
+        margin-bottom: 20px;
         font-style: italic;
         color: grey;
       }
@@ -126,6 +126,7 @@
                                 </div>
                             </div>
                             <div class="col-xs-2">
+                                <p>Uploader</p>
                                 <p>Filename</p>
                                 <p>Organisation</p>
                                 <p>Uploaded at</p>
@@ -133,6 +134,7 @@
                                 <p></p>
                             </div>
                             <div class="col-xs-10">
+                                <p>: {% if upload_session.category == 'well_upload' %}General Information{% else %}Monitoring Data{% endif %}</p>
                                 <p>:
                                     <a href="{{ upload_session.upload_file.url }}">
                                         {{ upload_session.filename }}
@@ -191,6 +193,17 @@
                         <div class="tab-content" id="myTabContent">
                             <div class="tab-pane fade" id="well-descriptor"
                                  role="tabpanel" aria-labelledby="home-tab">
+                                <div class="template-indicator">
+                                    {% trans "This Batch Upload allows you to import several Well data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points)." %}
+                                    <br>
+                                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
+                                    <br>
+                                    <br>
+                                    {% trans "Template" %} :
+                                    <a href="{% static 'upload_template/well.xlsx' %}">
+                                        {% trans "here" %}
+                                    </a>
+                                </div>
                                 <p>
                                     {{ form.license.label_tag }}
                                     {{ form.license }}
@@ -207,26 +220,26 @@
                                     {{ form.gw_well_file.label_tag }}
                                     {{ form.gw_well_file }}
                                 </p>
-                                <div class="template-indicator">
-                                    {% trans "This Batch Upload allows you to import several Well data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points). Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
-
-                                    {% trans "Template" %} : <a
-                                        href="{% static 'upload_template/well.xlsx' %}">{% trans "here" %}</a>
-                                </div>
                             </div>
                             <div class="tab-pane fade" id="well-monitoring"
                                  role="tabpanel"
                                  aria-labelledby="profile-tab">
+                                <div class="template-indicator">
+                                    {% trans "This Batch Upload allows you to import several Monitoring Data at one time. Upload the well information before using this form." %}
+                                    <br>
+                                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
+
+                                    <br>
+                                    <br>
+                                    {% trans "Template" %} :
+                                    <a href="{% static 'upload_template/monitoring_data.xlsx' %}">
+                                        {% trans "here" %}
+                                    </a>
+                                </div>
                                 <p>
                                     {{ form.gw_well_monitoring_file.label_tag }}
                                     {{ form.gw_well_monitoring_file }}
                                 </p>
-                                <div class="template-indicator">
-                                    {% trans "This Batch Upload allows you to import several Monitoring Data at one time. Upload the well information before using this form. Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
-
-                                    {% trans "Template" %} : <a
-                                        href="{% static 'upload_template/monitoring_data.xlsx' %}">{% trans "here" %}</a>
-                                </div>
                             </div>
                         </div>
 
@@ -311,12 +324,14 @@
                  <div class="well well-sm past-upload ${value.category}" style="border: 1px solid ${color}" data-id="${value.id}" data-report="${value.report_filename}">
                     <div class="container-fluid row" style="padding-top: 10px;">
                         <div class="col-xs-2">
+                            <p>Uploader</p>
                             <p>Filename</p>
                             <p>Organisation</p>
                             <p>Uploaded at</p>
                             <p></p>
                         </div>
                         <div class="col-xs-10">
+                            <p>: ${value.category === 'well_upload' ? 'General Information' : 'Monitoring Data' }</p>
                             <p>: ${value.filename}</p>
                             <p>: ${value.organisation}</p>
                             <p>: ${new Date(value.uploaded_at)}</p>
@@ -382,10 +397,21 @@
                   }
                   $('#upload-progress-status').html(status);
                 }
+                if (data.task_status !== 'DONE') {
+                  setTimeout(function () {
+                    fetchData()
+                  }, 2000);
+                } else {
+                  window.open(data.report_filename);
+                }
+              },
+              error: function (xhr, ajaxOptions, thrownError) {
+                setTimeout(function () {
+                  fetchData()
+                }, 2000);
               }
             });
           }
-          setInterval(fetchData, 2000);
           fetchData()
         {% endif %}
       })
