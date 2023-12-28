@@ -83,12 +83,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         verbose_name=_('Organisation')
     )
 
-    # number of measurement
-    number_of_measurements = models.IntegerField(
-        default=0,
-        help_text=_('Indicate how many measurement this well has.')
-    )
-
     # First and last measurement time
     first_time_measurement = models.DateTimeField(
         _('Time'),
@@ -97,6 +91,24 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     last_time_measurement = models.DateTimeField(
         _('Time'),
         null=True, blank=True
+    )
+
+    # number of measurement
+    number_of_measurements = models.IntegerField(
+        default=0,
+        help_text=_('Indicate how many measurement this well has.')
+    )
+    number_of_measurements_level = models.IntegerField(
+        default=0,
+        help_text=_('Indicate how many level measurement this well has.')
+    )
+    number_of_measurements_quality = models.IntegerField(
+        default=0,
+        help_text=_('Indicate how many quality measurement this well has.')
+    )
+    number_of_measurements_yield = models.IntegerField(
+        default=0,
+        help_text=_('Indicate how many yield measurement this well has.')
     )
     objects = WellManager()
 
