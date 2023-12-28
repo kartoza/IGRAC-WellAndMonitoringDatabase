@@ -2,6 +2,9 @@ CREATE VIEW vw_well AS
 select w.id,
        w.description,
        w.number_of_measurements         as "number_of_measurements",
+       w.number_of_measurements_level   as "number_of_measurements_level",
+       w.number_of_measurements_quality as "number_of_measurements_quality",
+       w.number_of_measurements_yield   as "number_of_measurements_yield",
        w.ggis_uid                       as "ggis_uid",
        w.original_id                    as "original_id",
        w.name                           as "name",
@@ -47,7 +50,6 @@ from well as w
 WHERE org.active = True;
 
 -- WELL VIEW --
-
 CREATE
 MATERIALIZED VIEW mv_well_ggmn AS
 select DISTINCT
@@ -70,11 +72,15 @@ ON (id) id,
     created_at,
     created_by,
     last_edited_at,
-    last_edited_by
+    last_edited_by,
+    number_of_measurements_level,
+    number_of_measurements_quality,
+    number_of_measurements_yield
 from vw_well
 where number_of_measurements
     > 0
   and organisation is not null;
+
 CREATE
 MATERIALIZED VIEW mv_well AS
 select DISTINCT
@@ -97,7 +103,10 @@ ON (id) id,
     created_at,
     created_by,
     last_edited_at,
-    last_edited_by
+    last_edited_by,
+    number_of_measurements_level,
+    number_of_measurements_quality,
+    number_of_measurements_yield
 from vw_well;
 
 -- WELL FOR ISTSOS MEASUREMENT --

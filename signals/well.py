@@ -66,6 +66,12 @@ def post_delete_measurement(sender, instance, **kwargs):
     if instance.value:
         instance.value.delete()
     try:
+        if sender == WellLevelMeasurement:
+            instance.well.number_of_measurements_level -= 1
+        elif sender == WellQualityMeasurement:
+            instance.well.number_of_measurements_quality -= 1
+        elif sender == WellYieldMeasurement:
+            instance.well.number_of_measurements_yield -= 1
         instance.well.number_of_measurements -= 1
         instance.well.updated()
     except Well.DoesNotExist:
@@ -82,6 +88,12 @@ def pre_save_measurement(sender, instance, **kwargs):
     try:
         if not instance.id:
             instance.well.number_of_measurements += 1
+            if sender == WellLevelMeasurement:
+                instance.well.number_of_measurements_level += 1
+            elif sender == WellQualityMeasurement:
+                instance.well.number_of_measurements_quality += 1
+            elif sender == WellYieldMeasurement:
+                instance.well.number_of_measurements_yield += 1
 
         instance.set_default_value()
         if not instance.well.first_time_measurement or \
