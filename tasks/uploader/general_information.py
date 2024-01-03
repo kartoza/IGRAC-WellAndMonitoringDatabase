@@ -17,7 +17,6 @@ class GeneralInformationUploader(BaseUploader):
     SHEETS = [
         'General Information'
     ]
-    WELL_AUTOCREATE = True
 
     # key related with the index of keys
     # value if it has tem

@@ -217,14 +217,17 @@ class UploadSession(LicenseMetadata):
     def run(self, restart: bool = False):
         """Run the upload."""
         from gwml2.tasks.uploader.uploader import BatchUploader
-        from gwml2.tasks.uploader.general_information import (
-            GeneralInformationUploader
-        )
-        from gwml2.tasks.uploader.monitoring_data import (
-            MonitoringDataUploader
+        from gwml2.tasks.uploader import (
+            GeneralInformationUploader,
+            MonitoringDataUploader,
+            ManagementUploader
         )
         if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
-            BatchUploader(self, [GeneralInformationUploader], restart)
+            BatchUploader(
+                self,
+                [GeneralInformationUploader, ManagementUploader],
+                restart
+            )
         elif self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
             BatchUploader(self, [MonitoringDataUploader], restart)
 

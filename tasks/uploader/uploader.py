@@ -60,9 +60,13 @@ class BatchUploader:
         """Process."""
         self.upload_session = upload_session
 
+        if restart:
+            self.upload_session.status = ''
+            self.upload_session.save()
+
         # READ FILE
         records = {}
-        self.upload_session.update_step('Reading file')
+        self.upload_session.update_step('Reading file', progress=0)
         _file = self.upload_session.upload_file
         if _file:
             _file.seek(0)
@@ -146,13 +150,6 @@ class BatchUploader:
                 progress=int(process_percent)
             )
             generate_data_country_cache(country_code)
-
-        # finish
-        self.upload_session.update_progress(
-            finished=True,
-            progress=100
-        )
-
         # -----------------------------------------
         # FINISH
         # For report

@@ -4,7 +4,7 @@ from celery.utils.log import get_task_logger
 
 from gwml2.models.general import Unit, Country
 from gwml2.models.term import (
-    TermFeatureType, TermWellPurpose, TermWellStatus,
+    TermFeatureType, TermWellPurpose, TermWellStatus, TermGroundwaterUse
 )
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
@@ -27,11 +27,10 @@ class TermNotFound(Exception):
 class BaseUploader(WellEditing):
     """ Convert excel into json and save the data """
     UPLOADER_NAME = ''
-    AUTOCREATE_WELL = False
     SHEETS = []
     START_ROW = 2
     RECORD_FORMAT = {}
-    WELL_AUTOCREATE = False
+    AUTOCREATE_WELL = False
 
     def __init__(
             self, upload_session: UploadSession, records: dict,
@@ -130,7 +129,7 @@ class BaseUploader(WellEditing):
                             )
                             self.well_by_id[well_identifier] = well
                     except Well.DoesNotExist:
-                        if self.WELL_AUTOCREATE:
+                        if self.AUTOCREATE_WELL:
                             well = None
                         else:
                             raise Well.DoesNotExist()
@@ -262,6 +261,10 @@ class BaseUploader(WellEditing):
                 except TermWellStatus.DoesNotExist:
                     raise TermNotFound(json.dumps(
                         {key: 'Status does not exist'}
+                    ))
+                except TermGroundwaterUse.DoesNotExist:
+                    raise TermNotFound(json.dumps(
+                        {key: 'Groundwater use does not exist'}
                     ))
                 except Unit.DoesNotExist:
                     raise TermNotFound(json.dumps(

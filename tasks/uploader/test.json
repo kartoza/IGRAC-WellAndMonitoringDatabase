@@ -1,0 +1,96 @@
+{
+  "general_information": {
+    "ggis_uid": "Department of Water Resources (Gambia)-0000000001",
+    "original_id": "0000000001",
+    "name": "Bijilo OB6",
+    "feature_type": "6",
+    "purpose": "4",
+    "status": "1",
+    "photo": "",
+    "description": "",
+    "latitude": "13.4208039",
+    "longitude": "-16.716666",
+    "ground_surface_elevation_id": "29426413",
+    "ground_surface_elevation_value": "19.47",
+    "ground_surface_elevation_unit": "m",
+    "top_borehole_elevation_id": "62383374",
+    "top_borehole_elevation_value": "23.0",
+    "top_borehole_elevation_unit": "m",
+    "country": "76",
+    "address": ""
+  },
+  "documents": [],
+  "geology": {
+    "total_depth_id": "62383375",
+    "total_depth_value": "12.0",
+    "total_depth_unit": "m",
+    "reference_elevation": "2"
+  },
+  "drilling": {
+    "water_strike": [],
+    "stratigraphic_log": [],
+    "year_of_drilling": "1990",
+    "drilling_method": "5",
+    "driller": "Test",
+    "successful": "true",
+    "cause_of_failure": ""
+  },
+  "construction": {
+    "structure": [],
+    "pump_installer": "",
+    "pump_description": ""
+  },
+  "hydrogeology": {
+    "pumping_test": {
+      "porosity": "1.0",
+      "hydraulic_conductivity": "",
+      "hydraulic_conductivity_id": "62383385",
+      "hydraulic_conductivity_value": "2.0",
+      "hydraulic_conductivity_unit": "m/day",
+      "transmissivity": "",
+      "transmissivity_id": "62383386",
+      "transmissivity_value": "3.0",
+      "transmissivity_unit": "m²/day",
+      "specific_storage": "",
+      "specific_storage_id": "62383387",
+      "specific_storage_value": "2.0",
+      "specific_storage_unit": "1/m",
+      "specific_yield": "12.0",
+      "storativity": "",
+      "storativity_id": "62383388",
+      "storativity_value": "1.0",
+      "storativity_unit": "m³/day",
+      "specific_capacity": "",
+      "specific_capacity_id": "62383389",
+      "specific_capacity_value": "2.0",
+      "specific_capacity_unit": "m²/day",
+      "test_type": "2"
+    },
+    "aquifer_name": "Aquifer 1",
+    "aquifer_material": "BrickA",
+    "aquifer_type": "4",
+    "aquifer_thickness": "10 to 20 m",
+    "confinement": "1"
+  },
+  "management": {
+    "license": {
+      "number": "AAADSD",
+      "valid_from": "2024-01-03",
+      "valid_until": "2024-01-10",
+      "description": "desc"
+    },
+    "manager": "Irwan",
+    "description": "desc",
+    "groundwater_use": "1",
+    "number_of_users": "12"
+  },
+  "level_measurement": [],
+  "quality_measurement": [],
+  "yield_measurement": [],
+  "well_metadata": {
+    "organisation": "17",
+    "license": "7",
+    "restriction_code_type": "1",
+    "constraints_other": ""
+  }
+}
