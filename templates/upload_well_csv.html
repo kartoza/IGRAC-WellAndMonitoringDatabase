@@ -48,6 +48,18 @@
         font-weight: 700;
       }
 
+      .StatusRow {
+        margin-bottom: 3px;
+      }
+
+      .StatusRow td {
+        padding: 1px;
+      }
+
+      .StatusRow span {
+        width: 100%;
+      }
+
       .notes .added {
         background-color: #48b14f;
         color: white;
@@ -134,7 +146,10 @@
                                 <p></p>
                             </div>
                             <div class="col-xs-10">
-                                <p>: {% if upload_session.category == 'well_upload' %}General Information{% else %}Monitoring Data{% endif %}</p>
+                                <p>:
+                                    {% if upload_session.category == 'well_upload' %}
+                                        General Information{% else %}Monitoring
+                                        Data{% endif %}</p>
                                 <p>:
                                     <a href="{{ upload_session.upload_file.url }}">
                                         {{ upload_session.filename }}
@@ -196,11 +211,11 @@
                                 <div class="template-indicator">
                                     {% trans "This Batch Upload allows you to import several Well data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points)." %}
                                     <br>
-                                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
+                                    {% trans "Download the templates and fill them in with your data, then simply upload these files." %}
                                     <br>
                                     <br>
                                     {% trans "Template" %} :
-                                    <a href="{% static 'upload_template/well.xlsx' %}">
+                                    <a href="{% static 'download_template/wells.xlsx' %}">
                                         {% trans "here" %}
                                     </a>
                                 </div>
@@ -215,10 +230,14 @@
                                     <br>
                                     {{ form.constraints_other.label_tag }}
                                     {{ form.constraints_other }}
-                                    <br>
-                                    <br>
-                                    {{ form.gw_well_file.label_tag }}
-                                    {{ form.gw_well_file }}
+
+                                <div class="template-indicator">
+                                    {% trans "License, Restriction and Restrictions other will override the data on excel if filled." %}
+                                </div>
+                                <br>
+                                <br>
+                                {{ form.gw_well_file.label_tag }}
+                                {{ form.gw_well_file }}
                                 </p>
                             </div>
                             <div class="tab-pane fade" id="well-monitoring"
@@ -232,7 +251,7 @@
                                     <br>
                                     <br>
                                     {% trans "Template" %} :
-                                    <a href="{% static 'upload_template/monitoring_data.xlsx' %}">
+                                    <a href="{% static 'download_template/monitoring_data.xlsx' %}">
                                         {% trans "here" %}
                                     </a>
                                 </div>
@@ -277,11 +296,27 @@
       let past_upload = {{ past_upload|safe }};
 
       function returnStatusHtml(status) {
-        return `
+        if (status.added !== undefined) {
+          return `
                 <span class="added">${status.added} added</span>
                 <span class="error">${status.error} error</span>
                 <span class="skipped">${status.skipped} skipped</span>
             `
+        } else {
+          let html = ''
+          for (const [key, value] of Object.entries(status)) {
+            html += `
+                <tr class="notes StatusRow">
+                    <td><span class="title">${key}</span></td>
+                    <td><span class="title">:</span></td>
+                    <td><span class="added">${value.added} added</span></td>
+                    <td><span class="error">${value.error} error</span></td>
+                    <td><span class="skipped">${value.skipped} skipped</span></td>
+                </tr>
+            `
+          }
+          return '<table>' + html + '</table>'
+        }
       }
 
       function initResumeButton() {
@@ -331,7 +366,7 @@
                             <p></p>
                         </div>
                         <div class="col-xs-10">
-                            <p>: ${value.category === 'well_upload' ? 'General Information' : 'Monitoring Data' }</p>
+                            <p>: ${value.category === 'well_upload' ? 'General Information' : 'Monitoring Data'}</p>
                             <p>: ${value.filename}</p>
                             <p>: ${value.organisation}</p>
                             <p>: ${new Date(value.uploaded_at)}</p>
