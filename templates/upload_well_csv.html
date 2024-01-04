@@ -148,8 +148,11 @@
                             <div class="col-xs-10">
                                 <p>:
                                     {% if upload_session.category == 'well_upload' %}
-                                        General Information{% else %}Monitoring
-                                        Data{% endif %}</p>
+                                        General Information
+                                    {% elif upload_seesion.category == 'well_monitoring_upload' %}
+                                        Monitoring Data
+                                    {% else %}Drilling and
+                                        Construction{% endif %}</p>
                                 <p>:
                                     <a href="{{ upload_session.upload_file.url }}">
                                         {{ upload_session.filename }}
@@ -276,7 +279,7 @@
                                     {% trans "This Batch Upload allows you to import drilling and construction." %}
                                     <br>
                                     <br>
-{#                                    {% trans "Example we have well A and B. On excel, we have row Water Strike for well A. On import, it will replace Water Strike on Well A, but will keep data on B." %}#}
+                                    {#                                    {% trans "Example we have well A and B. On excel, we have row Water Strike for well A. On import, it will replace Water Strike on Well A, but will keep data on B." %}#}
                                     {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
                                     {% trans "WATER STRIKE, STRATIGRAPHIC LOG AND STRUCTURES IS IN PROGRESS." %}
 
@@ -398,7 +401,7 @@
                             <p></p>
                         </div>
                         <div class="col-xs-10">
-                            <p>: ${value.category === 'well_upload' ? 'General Information' : 'Monitoring Data'}</p>
+                            <p>: ${value.category === 'well_upload' ? 'General Information' : value.category === 'well_monitoring_upload' ? 'Monitoring Data' : 'Drilling and Construction'}</p>
                             <p>: ${value.filename}</p>
                             <p>: ${value.organisation}</p>
                             <p>: ${new Date(value.uploaded_at)}</p>
@@ -421,9 +424,12 @@
           if ($(this).attr('href') === '#well-descriptor') {
             $('#permission').show();
             $el = $('.well_upload');
-          } else {
+          } else if ($(this).attr('href') === '#well-monitoring') {
             $('#permission').hide();
             $el = $('.well_monitoring_upload')
+          } else {
+            $('#permission').hide();
+            $el = $('.well_drilling_and_construction')
           }
           $el.show();
           if ($el.length === 0) {
