@@ -1071,3 +1071,7 @@ input[type="checkbox"] {
 .ui-datepicker td {
   padding: 1px !important;
 }
+
+#form textarea {
+    background-color:white!important;
+}

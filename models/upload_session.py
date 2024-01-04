@@ -21,12 +21,24 @@ from gwml2.models.well_management.organisation import Organisation
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
+UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD = (
+    'well_drilling_and_construction'
+)
 
 # make choices
 UPLOAD_SESSION_CATEGORY = (
-    (UPLOAD_SESSION_CATEGORY_WELL_UPLOAD, UPLOAD_SESSION_CATEGORY_WELL_UPLOAD),
-    (UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
-     UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD),
+    (
+        UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
+        UPLOAD_SESSION_CATEGORY_WELL_UPLOAD
+    ),
+    (
+        UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
+        UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
+    ),
+    (
+        UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD,
+        UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD
+    )
 )
 
 User = get_user_model()
@@ -221,7 +233,8 @@ class UploadSession(LicenseMetadata):
             GeneralInformationUploader,
             HydrogeologyUploader,
             MonitoringDataUploader,
-            ManagementUploader
+            ManagementUploader,
+            DrillingAndConstructionUploader
         )
         if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
             BatchUploader(
@@ -234,6 +247,10 @@ class UploadSession(LicenseMetadata):
             )
         elif self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
             BatchUploader(self, [MonitoringDataUploader], restart)
+        elif self.category == (
+                UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD
+        ):
+            BatchUploader(self, [DrillingAndConstructionUploader], restart)
 
     def create_report_excel(self):
         """Created excel that will contain reports."""

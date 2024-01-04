@@ -5,3 +5,4 @@ from .general_information import GeneralInformationUploader
 from .hydrogeology import HydrogeologyUploader
 from .management_data import ManagementUploader
 from .monitoring_data import MonitoringDataUploader
+from .drilling_and_construction import DrillingAndConstructionUploader

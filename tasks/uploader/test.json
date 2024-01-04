@@ -27,18 +27,93 @@
     "reference_elevation": "2"
   },
   "drilling": {
-    "water_strike": [],
-    "stratigraphic_log": [],
+    "water_strike": [
+      {
+        "id": "7",
+        "reference_elevation": "1",
+        "depth_id": "62376161",
+        "depth_value": "2.0",
+        "depth_unit": "m",
+        "description": "Descd"
+      },
+      {
+        "id": "8",
+        "reference_elevation": "1",
+        "depth_id": "62376162",
+        "depth_value": "1.0",
+        "depth_unit": "m",
+        "description": "Descd"
+      }
+    ],
+    "stratigraphic_log": [
+      {
+        "id": "13",
+        "reference_elevation": "1",
+        "top_depth_id": "62376157",
+        "top_depth_value": "0.0",
+        "top_depth_unit": "m",
+        "bottom_depth_id": "62376158",
+        "bottom_depth_value": "1.0",
+        "bottom_depth_unit": "m",
+        "material": "Brick",
+        "stratigraphic_unit": "m"
+      },
+      {
+        "id": "14",
+        "reference_elevation": "1",
+        "top_depth_id": "62376159",
+        "top_depth_value": "1.0",
+        "top_depth_unit": "m",
+        "bottom_depth_id": "62376160",
+        "bottom_depth_value": "2.0",
+        "bottom_depth_unit": "m",
+        "material": "Metal",
+        "stratigraphic_unit": "m"
+      }
+    ],
     "year_of_drilling": "1990",
     "drilling_method": "5",
-    "driller": "Test",
-    "successful": "true",
-    "cause_of_failure": ""
+    "driller": "Contractor",
+    "successful": "false",
+    "cause_of_failure": "Test"
   },
   "construction": {
-    "structure": [],
-    "pump_installer": "",
-    "pump_description": ""
+    "structure": [
+      {
+        "id": "15",
+        "reference_elevation": "1",
+        "top_depth_id": "62376166",
+        "top_depth_value": "1.0",
+        "top_depth_unit": "m",
+        "bottom_depth_id": "62376167",
+        "bottom_depth_value": "2.0",
+        "bottom_depth_unit": "m",
+        "type": "1",
+        "diameter_id": "62376168",
+        "diameter_value": "2.0",
+        "diameter_unit": "m",
+        "material": "Brick",
+        "description": "m"
+      },
+      {
+        "id": "14",
+        "reference_elevation": "1",
+        "top_depth_id": "62376163",
+        "top_depth_value": "2.0",
+        "top_depth_unit": "m",
+        "bottom_depth_id": "62376164",
+        "bottom_depth_value": "3.0",
+        "bottom_depth_unit": "m",
+        "type": "1",
+        "diameter_id": "62376165",
+        "diameter_value": "3.0",
+        "diameter_unit": "m",
+        "material": "Steel",
+        "description": "m"
+      }
+    ],
+    "pump_installer": "Pump installer",
+    "pump_description": "Pump description"
   },
   "hydrogeology": {
     "pumping_test": {
