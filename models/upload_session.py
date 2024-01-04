@@ -219,13 +219,17 @@ class UploadSession(LicenseMetadata):
         from gwml2.tasks.uploader.uploader import BatchUploader
         from gwml2.tasks.uploader import (
             GeneralInformationUploader,
+            HydrogeologyUploader,
             MonitoringDataUploader,
             ManagementUploader
         )
         if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
             BatchUploader(
                 self,
-                [GeneralInformationUploader, ManagementUploader],
+                [
+                    GeneralInformationUploader, HydrogeologyUploader,
+                    ManagementUploader
+                ],
                 restart
             )
         elif self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:

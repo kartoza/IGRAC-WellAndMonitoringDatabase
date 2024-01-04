@@ -27,6 +27,7 @@ class TermNotFound(Exception):
 class BaseUploader(WellEditing):
     """ Convert excel into json and save the data """
     UPLOADER_NAME = ''
+    IS_OPTIONAL = True
     SHEETS = []
     START_ROW = 2
     RECORD_FORMAT = {}
@@ -55,6 +56,8 @@ class BaseUploader(WellEditing):
                 self.records[sheet_name] = sheet_records
                 self.total_records += len(sheet_records)
         except KeyError as e:
+            if self.IS_OPTIONAL:
+                return
             error = (
                 f'Sheet {e} in excel is not found. '
                 f'This sheet is used by {self.UPLOADER_NAME}. '

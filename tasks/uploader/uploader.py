@@ -66,7 +66,7 @@ class BatchUploader:
 
         # READ FILE
         records = {}
-        self.upload_session.update_step('Reading file', progress=0)
+        self.upload_session.update_step('Reading file', progress=1)
         _file = self.upload_session.upload_file
         if _file:
             _file.seek(0)

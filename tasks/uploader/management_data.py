@@ -10,6 +10,7 @@ logger = get_task_logger(__name__)
 class ManagementUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'General Information'
+    IS_OPTIONAL = True
     SHEETS = ['Management']
 
     # key related with the index of keys
