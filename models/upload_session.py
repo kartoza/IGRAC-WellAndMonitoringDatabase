@@ -230,11 +230,12 @@ class UploadSession(LicenseMetadata):
         """Run the upload."""
         from gwml2.tasks.uploader.uploader import BatchUploader
         from gwml2.tasks.uploader import (
+            DrillingAndConstructionUploader,
             GeneralInformationUploader,
             HydrogeologyUploader,
-            MonitoringDataUploader,
             ManagementUploader,
-            DrillingAndConstructionUploader,
+            MonitoringDataUploader,
+            StratigraphicLogUploader,
             WaterStrikeUploader
         )
         if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
@@ -254,7 +255,8 @@ class UploadSession(LicenseMetadata):
             BatchUploader(
                 self,
                 [
-                    DrillingAndConstructionUploader, WaterStrikeUploader
+                    DrillingAndConstructionUploader, WaterStrikeUploader,
+                    StratigraphicLogUploader
                 ],
                 restart
             )
