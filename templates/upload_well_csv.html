@@ -114,6 +114,11 @@
         color: white;
         padding: 6px 1rem;
       }
+
+      .nav-item.active .nav-link {
+        background-color: var(--gn-link-color, #397aab) !important;
+        color: white !important;
+      }
     </style>
 
     <div class="container">
@@ -279,9 +284,9 @@
                                     {% trans "This Batch Upload allows you to import drilling and construction." %}
                                     <br>
                                     <br>
-                                    {#                                    {% trans "Example we have well A and B. On excel, we have row Water Strike for well A. On import, it will replace Water Strike on Well A, but will keep data on B." %}#}
+                                    {% trans "WATER STRIKE, STRATIGRAPHIC LOG and STRUCTURES will replace all data." %}
+                                    {% trans "Example we have well A and B. On excel, we have row Water Strike for well A. On import, it will replace Water Strike on Well A, but will keep data on B." %}
                                     {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
-                                    {% trans "WATER STRIKE, STRATIGRAPHIC LOG AND STRUCTURES IS IN PROGRESS." %}
 
                                     <br>
                                     <br>
