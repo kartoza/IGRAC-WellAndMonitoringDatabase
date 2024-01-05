@@ -57,7 +57,7 @@ class QuantityInput(forms.widgets.Input):
                 )
             else:
                 quantity = Quantity()
-            if data['{}_value'.format(name)] is not None:
+            if data['{}_value'.format(name)] not in [None, '']:
                 quantity.value = data['{}_value'.format(name)]
                 quantity.unit = None
                 if data['{}_unit'.format(name)]:

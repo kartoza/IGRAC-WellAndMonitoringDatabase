@@ -236,6 +236,7 @@ class UploadSession(LicenseMetadata):
             ManagementUploader,
             MonitoringDataUploader,
             StratigraphicLogUploader,
+            StructuresUploader,
             WaterStrikeUploader
         )
         if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
@@ -256,7 +257,7 @@ class UploadSession(LicenseMetadata):
                 self,
                 [
                     DrillingAndConstructionUploader, WaterStrikeUploader,
-                    StratigraphicLogUploader
+                    StratigraphicLogUploader, StructuresUploader
                 ],
                 restart
             )

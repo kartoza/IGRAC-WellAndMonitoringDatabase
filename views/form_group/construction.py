@@ -18,7 +18,8 @@ class ConstructionGetForms(FormGroupGet):
         structures = []
         if self.well.construction:
             for obj in self.well.construction.constructionstructure_set.all():
-                structures.append(ConstructionStructureForm.make_from_instance(obj))
+                structures.append(
+                    ConstructionStructureForm.make_from_instance(obj))
         return {
             'construction': ConstructionForm.make_from_instance(
                 self.well.construction),
@@ -42,7 +43,8 @@ class ConstructionCreateForm(FormGroupCreate):
             if self.data['construction'].get('structure', None):
                 for structure in self.data['construction']['structure']:
                     obj = ConstructionStructure.objects.get(
-                        id=structure['id']) if structure['id'] else ConstructionStructure()
+                        id=structure['id']
+                    ) if structure['id'] else ConstructionStructure()
 
                     self.structures.append(
                         self._make_form(
@@ -53,7 +55,13 @@ class ConstructionCreateForm(FormGroupCreate):
     def save(self):
         """ save all available data """
         if self.form:
-            self.form.save()
+            save_form = True
+            if not self.form.instance.id:
+                pass
+            elif self.data.get('construction', None).get('skip_save', False):
+                save_form = False
+            if save_form:
+                self.form.save()
             for structure in self.structures:
                 structure.instance.construction = self.form.instance
                 structure.save()
