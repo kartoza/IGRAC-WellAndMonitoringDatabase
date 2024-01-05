@@ -27,7 +27,7 @@ class TermNotFound(Exception):
 class BaseUploader(WellEditing):
     """ Convert excel into json and save the data """
     UPLOADER_NAME = ''
-    IS_OPTIONAL = True
+    IS_OPTIONAL = False
     SHEETS = []
     START_ROW = 2
     RECORD_FORMAT = {}
@@ -293,7 +293,11 @@ class BaseUploader(WellEditing):
 
     def update_data(self, well, record) -> Well:
         """Process record"""
-        raise NotImplementedError
+        return self.edit_well(
+            well, record, {},
+            self.uploader,
+            generate_cache=False
+        )
 
     def get_object(self, sheet_name, well, record):
         """Return object that will be used."""

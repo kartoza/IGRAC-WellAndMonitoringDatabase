@@ -1,5 +1,5 @@
 from gwml2.forms import (
-    DrillingForm, WaterStrikeForm, StratigraphicLogForm, ReferenceElevationForm
+    DrillingForm, WaterStrikeForm, StratigraphicLogForm
 )
 from gwml2.models.drilling import (
     Drilling, StratigraphicLog, WaterStrike
@@ -51,7 +51,8 @@ class DrillingCreateForm(FormGroupCreate):
             if self.data['drilling'].get('water_strike'):
                 for water_strike in self.data['drilling']['water_strike']:
                     obj = WaterStrike.objects.get(
-                        id=water_strike['id']) if water_strike['id'] else WaterStrike()
+                        id=water_strike['id']
+                    ) if water_strike['id'] else WaterStrike()
 
                     self.water_strike.append(
                         self._make_form(
@@ -60,7 +61,14 @@ class DrillingCreateForm(FormGroupCreate):
     def save(self):
         """ save all available data """
         if self.form:
-            self.form.save()
+            save_form = True
+            if not self.form.instance.id:
+                pass
+            elif self.data.get('drilling', None).get('skip_save', False):
+                save_form = False
+            if save_form:
+                self.form.save()
+
             for water_strike in self.water_strike:
                 water_strike.instance.drilling = self.form.instance
                 water_strike.save()

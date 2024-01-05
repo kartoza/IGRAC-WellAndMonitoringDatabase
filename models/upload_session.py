@@ -234,7 +234,8 @@ class UploadSession(LicenseMetadata):
             HydrogeologyUploader,
             MonitoringDataUploader,
             ManagementUploader,
-            DrillingAndConstructionUploader
+            DrillingAndConstructionUploader,
+            WaterStrikeUploader
         )
         if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
             BatchUploader(
@@ -250,7 +251,13 @@ class UploadSession(LicenseMetadata):
         elif self.category == (
                 UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD
         ):
-            BatchUploader(self, [DrillingAndConstructionUploader], restart)
+            BatchUploader(
+                self,
+                [
+                    DrillingAndConstructionUploader, WaterStrikeUploader
+                ],
+                restart
+            )
 
     def create_report_excel(self):
         """Created excel that will contain reports."""

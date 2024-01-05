@@ -6,3 +6,4 @@ from .hydrogeology import HydrogeologyUploader
 from .management_data import ManagementUploader
 from .monitoring_data import MonitoringDataUploader
 from .drilling_and_construction import DrillingAndConstructionUploader
+from .water_strike import WaterStrikeUploader

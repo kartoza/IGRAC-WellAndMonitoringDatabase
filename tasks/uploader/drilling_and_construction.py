@@ -2,9 +2,6 @@ from celery.utils.log import get_task_logger
 
 from gwml2.models.general import Unit
 from gwml2.models.term import TermDrillingMethod
-from gwml2.models.well import (
-    Well
-)
 from gwml2.tasks.uploader.base import BaseUploader
 
 logger = get_task_logger(__name__)
@@ -55,11 +52,3 @@ class DrillingAndConstructionUploader(BaseUploader):
         """ return object that will be used
         """
         return None
-
-    def update_data(self, well, record) -> Well:
-        """Process record"""
-        return self.edit_well(
-            well, record, {},
-            self.uploader,
-            generate_cache=False
-        )
