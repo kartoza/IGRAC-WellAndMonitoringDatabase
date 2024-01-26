@@ -1,0 +1,204 @@
+{% extends "upload_session/base.html" %}
+{% load static %}
+{% load i18n %}
+{% block outside_content %}
+    <style>
+      table {
+        width: 100%;
+        font-size: 0.8rem;
+      }
+
+      #wrap > .container,
+      #wrap > .container > .row > .col-md-8 {
+        width: 100% !important;
+      }
+
+      table th,
+      table td {
+        border: 1px solid #ddd;
+        padding: 0.5rem !important;
+        vertical-align: middle !important;
+      }
+
+      #loading td {
+        text-align: center;
+        height: 100px;
+        padding: 40px !important;
+      }
+
+      .notes {
+        max-width: 400px;
+      }
+
+      .filename {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    </style>
+    <table>
+        <tr>
+            <td>Upload type</td>
+            <td>Filename</td>
+            <td>Organisation</td>
+            <td>Uploaded at</td>
+            <td>Upload status</td>
+            <td>Progress</td>
+            <td>Note</td>
+            <td>Report</td>
+        </tr>
+        <tr id="loading">
+            <td colspan="8">LOADING</td>
+        </tr>
+    </table>
+    <script>
+      function initResumeButton($button, token) {
+        $button.click(function () {
+          let url = '/groundwater/upload-session/' + token + '/';
+          $(this).attr("disabled", true);
+          let data = new FormData();
+          (
+            async () => {
+              data.append('csrfmiddlewaretoken', $('input[name="csrfmiddlewaretoken"]').attr('value'));
+              await fetch(url, {
+                method: "POST",
+                body: data,
+              });
+            }
+          )()
+        })
+      }
+
+      function initStopButton($button, token) {
+        $button.click(function () {
+          let url = '/groundwater/upload-session/' + token + '/stop';
+          $(this).attr("disabled", true);
+          let data = new FormData();
+          (
+            async () => {
+              data.append('csrfmiddlewaretoken', $('input[name="csrfmiddlewaretoken"]').attr('value'));
+              await fetch(url, {
+                method: "POST",
+                body: data,
+              });
+            }
+          )()
+        })
+      }
+
+      function returnStatusHtml(status) {
+        if (status.added !== undefined) {
+          return `
+                <span class="added">${status.added} added</span>
+                <span class="error">${status.error} error</span>
+                <span class="skipped">${status.skipped} skipped</span>
+            `
+        } else {
+          let html = ''
+          for (const [key, value] of Object.entries(status)) {
+            html += `
+            <div style="margin-bottom: 3px">${key} : ${returnStatusHtml(value)}</div>
+            `
+          }
+          return html
+        }
+      }
+
+      function updateData(data) {
+        const id = `session-${data.id}`;
+        let $row = $('#' + id)
+        let color = '#FFFFFF'
+        let status = data.status
+        try {
+          status = JSON.parse(data.status)
+          if (!status.error) {
+            if (data.is_processed) {
+              color = '#48b14f'
+            }
+          }
+          status = returnStatusHtml(status)
+        } catch (e) {
+          if (data.is_processed) {
+            color = '#ca3232'
+          }
+        }
+
+        const disabledResume = $row.length ? $row.find('.ResumeButton').attr('disabled') : false
+        const disabledStop = $row.length ? $row.find('.StopButton').attr('disabled') : false
+
+        let button = ''
+        const uploadStatus = data.is_processed ? 'DONE' : data.is_canceled ? 'CANCELLED' : 'RUNNING'
+        if (data.task_status === 'STOP' && uploadStatus !== 'CANCELLED') {
+          button = '<button class="ResumeButton" ' + (disabledResume ? `disabled="${disabledResume}"` : '') + '>Resume</button>'
+        } else if (data.task_status === 'RUNNING') {
+          button = '<button class="StopButton" ' + (disabledStop ? `disabled="${disabledStop}"` : '') + '>Stop</button>'
+        }
+        const html = `
+          <tr id="${id}" style="background-color: ${color}11">
+            <td> ${data.category === 'well_upload' ? 'General Information' : 'Monitoring Data'}</td>
+            <td class="filename" title="${data.filename}">
+                <a href="${data.file_url}">${data.filename}</a>
+            </td>
+            <td class="filename" title="${data.organisation}"> ${data.organisation}</td>
+            <td style="width: 100px"> ${new Date(data.uploaded_at).toISOString()}</td>
+            <td> ${uploadStatus} ${button}</td>
+            <td>
+                <div class="progress">
+                    <div class="progress-bar"
+                         role="progressbar" aria-valuenow="0"
+                         aria-valuemin="0" aria-valuemax="100"
+                         style="width:100%">
+                        <div class="upload-progress-text bottom">&nbsp;&nbsp;&nbsp;&nbsp;${data.progress.toFixed(1)}% - ${data.step}</div>
+                    </div>
+                    <div class="progress-bar progress-bar-success"
+                         role="progressbar" aria-valuenow="0"
+                         aria-valuemin="0" aria-valuemax="100"
+                         style="width:${data.progress}%">
+                        <div class="upload-progress-text">&nbsp;&nbsp;&nbsp;&nbsp;${data.progress.toFixed(1)}% - ${data.step}</div>
+                    </div>
+                </div>
+            </td>
+            <td><div class="notes">${status ? status : ''}</div></td>
+            <td>${data.task_status !== 'RUNNING' ? ("<a href=" + data.report_filename + " target='_blank'>report</a>") : ""}</td>
+          </tr>
+        `
+        if (!$row.length) {
+          $('table tr').first().after(html)
+        } else {
+          $row.replaceWith(html)
+        }
+
+        {# Init event #}
+        $row = $('#' + id)
+        initResumeButton($row.find('.ResumeButton'), data.token)
+        initStopButton($row.find('.StopButton'), data.token)
+      }
+
+      $(document).ready(function () {
+        function fetchData() {
+          $.ajax({
+            url: "{% url 'upload_session_list' %}?page_size=20",
+            type: "GET",
+            success: function (data) {
+              data = data.results
+              data.reverse()
+              $('#loading').remove()
+              data.forEach(row => {
+                updateData(row)
+              })
+              setTimeout(function () {
+                fetchData()
+              }, 2000);
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+              setTimeout(function () {
+                fetchData()
+              }, 2000);
+            }
+          })
+        }
+
+        fetchData()
+      })
+    </script>
+{% endblock %}

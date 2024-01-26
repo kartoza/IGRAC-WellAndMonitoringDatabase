@@ -111,6 +111,7 @@ class BaseUploader(WellEditing):
                     except UploadSessionCancelled:
                         self.upload_session.update_step('Create report')
                         self.upload_session.create_report_excel()
+                        self.upload_session.update_step('Cancelled')
                         return
 
         self.upload_session.update_step('Create report')

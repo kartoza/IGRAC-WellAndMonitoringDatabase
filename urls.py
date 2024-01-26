@@ -3,6 +3,7 @@
 
 from django.conf.urls import url
 from django.urls import include
+from django.views.generic import TemplateView
 
 from gwml2.api.authentication import TokenAuth
 from gwml2.api.country import CountryAutocompleteAPI
@@ -15,7 +16,7 @@ from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.upload_session import (
-    UploadSessionApiView, UploadSessionStopApiView
+    UploadSessionApiView, UploadSessionStopApiView, UploadSessionListApiView
 )
 from gwml2.api.user import UserAutocompleteAPI, UserUUIDAPI
 from gwml2.api.well_deletion import WellDeletionAPI
@@ -133,14 +134,38 @@ api_url = [
         view=CountryAutocompleteAPI.as_view(),
         name='country_autocomplete'),
 ]
+upload_session_url = [
+    url(r'^list',
+        view=UploadSessionListApiView.as_view(),
+        name='upload_session_list'),
+    url(r'^'
+        r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
+        r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/stop',
+        view=UploadSessionStopApiView.as_view(),
+        name='upload_session_stop'),
+    url(r'^'
+        r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
+        r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
+        view=UploadSessionApiView.as_view(),
+        name='upload_session_progress'),
+    url(r'^(?P<pk>\d+)/detail',
+        view=UploadSessionDetailView.as_view(),
+        name='upload_session_detail'),
+]
 
 urlpatterns = [
     url(r'^token-auth',
         view=TokenAuth.as_view(),
         name='gwml2-token-aut'),
+    url(
+        r'^batch-upload/history',
+        TemplateView.as_view(template_name='upload_session/history.html'),
+        name='well_upload_history_view'
+    ),
     url(r'^batch-upload',
         view=WellUploadView.as_view(),
-        name='well_upload_view'),
+        name='well_upload_view'
+        ),
     url(r'^progress-upload',
         view=get_progress_upload,
         name='progress_upload'),
@@ -166,17 +191,5 @@ urlpatterns = [
     url(r'^record/', include(well_url)),
     url(r'^user/', include(user_url)),
     url(r'^organisation/', include(organisation_url)),
-    url(r'^upload-session/'
-        r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
-        r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/stop',
-        view=UploadSessionStopApiView.as_view(),
-        name='upload_session_stop'),
-    url(r'^upload-session/'
-        r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
-        r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
-        view=UploadSessionApiView.as_view(),
-        name='upload_session_progress'),
-    url(r'^upload-session/(?P<pk>\d+)/detail',
-        view=UploadSessionDetailView.as_view(),
-        name='upload_session_detail'),
+    url(r'^upload-session/', include(upload_session_url)),
 ]

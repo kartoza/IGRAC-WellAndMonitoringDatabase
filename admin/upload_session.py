@@ -21,6 +21,8 @@ def resume_upload(modeladmin, request, queryset):
 @admin.action(description='Restart upload.')
 def restart_upload(modeladmin, request, queryset):
     for upload_session in queryset:
+        upload_session.is_canceled = False
+        upload_session.save()
         upload_session.run_in_background(restart=True)
 
 

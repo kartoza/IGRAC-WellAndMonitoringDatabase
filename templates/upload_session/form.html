@@ -1,0 +1,108 @@
+{% extends "upload_session/base.html" %}
+{% load static %}
+{% load i18n %}
+{% block content %}
+    <form action="" method="post" name="file"
+          enctype="multipart/form-data"
+          class="form-horizontal">
+        {% csrf_token %}
+        <div class="form-group">
+            <div class="col-md-12">
+                <p>
+                    {{ form.organisation.label_tag }}
+                    {{ form.organisation }}
+                </p>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="home-tab"
+                   data-toggle="tab" href="#well-descriptor"
+                   role="tab"
+                   aria-controls="home"
+                   aria-selected="true">{% trans "General Information" %}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="profile-tab"
+                   data-toggle="tab"
+                   href="#well-monitoring" role="tab"
+                   aria-controls="profile"
+                   aria-selected="false">{% trans "Monitoring data" %}</a>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade" id="well-descriptor"
+                 role="tabpanel" aria-labelledby="home-tab">
+                <div class="template-indicator">
+                    {% trans "This Batch Upload allows you to import several Well data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points)." %}
+                    <br>
+                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
+                    <br>
+                    <br>
+                    {% trans "Template" %} :
+                    <a href="{% static 'upload_template/well.xlsx' %}">
+                        {% trans "here" %}
+                    </a>
+                </div>
+                <p>
+                    {{ form.license.label_tag }}
+                    {{ form.license }}
+                    <br>
+                    <br>
+                    {{ form.restriction_code_type.label_tag }}
+                    {{ form.restriction_code_type }}
+                    <br>
+                    <br>
+                    {{ form.constraints_other.label_tag }}
+                    {{ form.constraints_other }}
+                    <br>
+                    <br>
+                    {{ form.gw_well_file.label_tag }}
+                    {{ form.gw_well_file }}
+                </p>
+            </div>
+            <div class="tab-pane fade" id="well-monitoring"
+                 role="tabpanel"
+                 aria-labelledby="profile-tab">
+                <div class="template-indicator">
+                    {% trans "This Batch Upload allows you to import several Monitoring Data at one time. Upload the well information before using this form." %}
+                    <br>
+                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
+
+                    <br>
+                    <br>
+                    {% trans "Template" %} :
+                    <a href="{% static 'upload_template/monitoring_data.xlsx' %}">
+                        {% trans "here" %}
+                    </a>
+                </div>
+                <p>
+                    {{ form.gw_well_monitoring_file.label_tag }}
+                    {{ form.gw_well_monitoring_file }}
+                </p>
+            </div>
+        </div>
+
+        <div class="row form-group">
+            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12"
+                 style="margin-top: 20px">
+                <a href="{% url "well_upload_view" %}"
+                   class="btn btn-danger pull-left"
+                   onClick="$(form)[0].reset();"
+                   style="margin-right: 10px">Clear </a>
+                <button class="btn btn-primary pull-left"><span
+                        class="glyphicon glyphicon-upload"
+                        style="margin-right:5px;"
+                        type="file"></span>{% trans "Upload" %}
+                </button>
+            </div>
+        </div>
+    </form>
+    <script>
+
+      $(document).ready(function () {
+        $('#home-tab').click()
+      })
+    </script>
+{% endblock %}
