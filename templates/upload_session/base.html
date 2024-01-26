@@ -95,13 +95,37 @@
         box-sizing: border-box;
       }
 
-      .upload-progress-text {
-        height: 100%;
+      .msgapi .progress-bar {
+        background-color: white;
+        color: black;
+        box-shadow: unset;
+        border: 1px solid #ddd;
+      }
+
+      .progress-bar-success {
         position: absolute;
         top: 0;
         left: 0;
+      }
+
+      .msgapi .progress-bar-success {
+        background-color: #398439 !important;
+      }
+
+      .upload-progress-text {
+        padding: 8px 0;
+        height: 100%;
+        text-align: left;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .upload-progress-text {
         color: white;
-        padding: 6px 1rem;
+      }
+
+      .upload-progress-text.bottom {
+        color: var(--gn-main-color, #000);
       }
 
       button:disabled {

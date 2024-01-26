@@ -1,3 +1,4 @@
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, Http404, HttpResponse
 from django.views.generic.base import View
 from rest_framework.generics import ListAPIView
@@ -30,9 +31,7 @@ class UploadSessionApiView(View):
     def get(self, request, token, *args):
 
         try:
-            session = UploadSession.objects.get(
-                token=token
-            )
+            session = UploadSession.objects.get(token=token)
             output = UploadSessionSerializer(session).data
             output.update(session.progress_status())
             return JsonResponse(output)
@@ -43,6 +42,10 @@ class UploadSessionApiView(View):
         """Resume the upload."""
         try:
             session = UploadSession.objects.get(token=token)
+            if not session.uploader:
+                raise PermissionDenied()
+            if request.user.id != session.uploader:
+                raise PermissionDenied()
             session.is_canceled = False
             session.save()
             session.run_in_background()
@@ -58,6 +61,10 @@ class UploadSessionStopApiView(View):
         """Resume the upload."""
         try:
             session = UploadSession.objects.get(token=token)
+            if not session.uploader:
+                raise PermissionDenied()
+            if request.user.id != session.uploader:
+                raise PermissionDenied()
             session.is_canceled = True
             session.save()
             return HttpResponse('ok')

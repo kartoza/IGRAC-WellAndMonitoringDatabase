@@ -144,11 +144,17 @@
             <td> ${uploadStatus} ${button}</td>
             <td>
                 <div class="progress">
-                    <div class="upload-progress-text">${data.progress.toFixed(1)}% - ${data.step}</div>
+                    <div class="progress-bar"
+                         role="progressbar" aria-valuenow="0"
+                         aria-valuemin="0" aria-valuemax="100"
+                         style="width:100%">
+                        <div class="upload-progress-text bottom">&nbsp;&nbsp;&nbsp;&nbsp;${data.progress.toFixed(1)}% - ${data.step}</div>
+                    </div>
                     <div class="progress-bar progress-bar-success"
                          role="progressbar" aria-valuenow="0"
                          aria-valuemin="0" aria-valuemax="100"
                          style="width:${data.progress}%">
+                        <div class="upload-progress-text">&nbsp;&nbsp;&nbsp;&nbsp;${data.progress.toFixed(1)}% - ${data.step}</div>
                     </div>
                 </div>
             </td>
