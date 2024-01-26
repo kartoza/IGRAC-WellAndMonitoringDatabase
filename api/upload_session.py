@@ -30,3 +30,17 @@ class UploadSessionApiView(View):
             return HttpResponse('ok')
         except UploadSession.DoesNotExist:
             raise Http404('No session found')
+
+
+class UploadSessionStopApiView(View):
+    """Stop an upload."""
+
+    def post(self, request, token, *args):
+        """Resume the upload."""
+        try:
+            session = UploadSession.objects.get(token=token)
+            session.is_canceled = True
+            session.save()
+            return HttpResponse('ok')
+        except UploadSession.DoesNotExist:
+            raise Http404('No session found')

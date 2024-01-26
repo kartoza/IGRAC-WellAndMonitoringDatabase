@@ -3,9 +3,18 @@ from django.contrib import admin
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
 
 
+@admin.action(description='Stop upload.')
+def stop_upload(modeladmin, request, queryset):
+    for upload_session in queryset:
+        upload_session.is_canceled = True
+        upload_session.save()
+
+
 @admin.action(description='Resume upload.')
 def resume_upload(modeladmin, request, queryset):
     for upload_session in queryset:
+        upload_session.is_canceled = False
+        upload_session.save()
         upload_session.run_in_background()
 
 
@@ -29,7 +38,7 @@ class UploadSessionAdmin(admin.ModelAdmin):
         'is_processed',
         'is_canceled'
     )
-    actions = (resume_upload, restart_upload)
+    actions = (stop_upload, resume_upload, restart_upload)
 
 
 admin.site.register(UploadSession, UploadSessionAdmin)

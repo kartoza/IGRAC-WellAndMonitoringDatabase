@@ -14,8 +14,10 @@ from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
-from gwml2.api.upload_session import UploadSessionApiView
-from gwml2.api.user import (UserAutocompleteAPI, UserUUIDAPI)
+from gwml2.api.upload_session import (
+    UploadSessionApiView, UploadSessionStopApiView
+)
+from gwml2.api.user import UserAutocompleteAPI, UserUUIDAPI
 from gwml2.api.well_deletion import WellDeletionAPI
 from gwml2.api.well_measurement import WellLevelMeasurementData
 from gwml2.api.well_relation import (
@@ -23,8 +25,9 @@ from gwml2.api.well_relation import (
     WellRelationListView,
     WellMeasurementDataView
 )
-from gwml2.views.admin.delete_selected_confirmation_background import \
+from gwml2.views.admin.delete_selected_confirmation_background import (
     DeleteWellPostView, DeleteWellProgressView
+)
 from gwml2.views.download_request import (
     DownloadRequestFormView,
     DownloadRequestDownloadView,
@@ -163,6 +166,11 @@ urlpatterns = [
     url(r'^record/', include(well_url)),
     url(r'^user/', include(user_url)),
     url(r'^organisation/', include(organisation_url)),
+    url(r'^upload-session/'
+        r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
+        r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/stop',
+        view=UploadSessionStopApiView.as_view(),
+        name='upload_session_stop'),
     url(r'^upload-session/'
         r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',

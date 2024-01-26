@@ -40,6 +40,12 @@ class TaskStatus:
     DONE = 'DONE'
 
 
+class UploadSessionCancelled(Exception):
+    def __init__(self, error):
+        super(Exception, self).__init__(error)
+        self.errors = error
+
+
 class UploadSession(LicenseMetadata):
     """Upload session model
     """
@@ -164,6 +170,10 @@ class UploadSession(LicenseMetadata):
         :param progress: Current progress
         :type progress: int
         """
+        self.refresh_from_db()
+        if self.is_canceled:
+            raise UploadSessionCancelled('Cancelled')
+
         if finished:
             if progress == 100:
                 self.is_processed = True
@@ -186,6 +196,8 @@ class UploadSession(LicenseMetadata):
             # If processed, meaning done
             if self.is_processed:
                 return TaskStatus.DONE
+            if self.is_canceled:
+                return TaskStatus.STOP
 
             active_tasks = current_app.control.inspect().active()
             for worker, running_tasks in active_tasks.items():

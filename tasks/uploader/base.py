@@ -10,7 +10,9 @@ from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus,
 )
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
+from gwml2.models.upload_session import (
+    UploadSession, UploadSessionRowStatus, UploadSessionCancelled
+)
 from gwml2.models.well import (
     Well,
     WellLevelMeasurement,
@@ -104,9 +106,13 @@ class BaseUploader(WellEditing):
                         receiver=post_save_measurement_for_cache,
                         sender=WellQualityMeasurement
                 ):
-                    self.process()
+                    try:
+                        self.process()
+                    except UploadSessionCancelled:
+                        self.upload_session.update_step('Create report')
+                        self.upload_session.create_report_excel()
+                        return
 
-        # For report
         self.upload_session.update_step('Create report')
         self.upload_session.create_report_excel()
 
