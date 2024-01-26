@@ -16,5 +16,9 @@ class Functions:
         """Restart uploads."""
         for upload in UploadSession.objects.filter(
                 task_id__isnull=False
-        ).filter(is_processed=False):
+        ).filter(
+            is_processed=False
+        ).filter(
+            is_canceled=False
+        ):
             upload.run_in_background()

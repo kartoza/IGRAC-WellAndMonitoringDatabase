@@ -102,6 +102,10 @@
         color: white;
         padding: 6px 1rem;
       }
+
+      button:disabled {
+        color: #555;
+      }
     </style>
 
     <div class="container">
@@ -134,7 +138,10 @@
                                 <p></p>
                             </div>
                             <div class="col-xs-10">
-                                <p>: {% if upload_session.category == 'well_upload' %}General Information{% else %}Monitoring Data{% endif %}</p>
+                                <p>:
+                                    {% if upload_session.category == 'well_upload' %}
+                                        General Information{% else %}Monitoring
+                                        Data{% endif %}</p>
                                 <p>:
                                     <a href="{{ upload_session.upload_file.url }}">
                                         {{ upload_session.filename }}
@@ -149,6 +156,8 @@
                                     {% if upload_session.task_status == 'STOP' %}
                                         <button id="ResumeButton">Resume
                                         </button>
+                                    {% elif upload_session.task_status == 'RUNNING' %}
+                                        <button id="StopButton">Stop</button>
                                     {% endif %}
                                 </p>
                                 <p>
@@ -303,10 +312,30 @@
         })
       }
 
+      function initStopButton() {
+        $('#StopButton').click(function () {
+          let upload_session_uuid = '{{ upload_session.token }}';
+          let url = '/groundwater/upload-session/' + upload_session_uuid + '/stop';
+          $(this).attr("disabled", true);
+          let data = new FormData();
+          (
+            async () => {
+              data.append('csrfmiddlewaretoken', $('input[name="csrfmiddlewaretoken"]').attr('value'));
+              await fetch(url, {
+                method: "POST",
+                body: data,
+              });
+              $(this).removeAttr("disabled");
+            }
+          )()
+        })
+      }
+
       $(document).ready(function () {
         {# render past upload #}
         const $pastUpload = $('#pass-upload');
         initResumeButton()
+        initStopButton()
         $.each(past_upload, function (index, value) {
           {# if there is error, show red border#}
           let color = '#ca3232'
@@ -328,13 +357,15 @@
                             <p>Filename</p>
                             <p>Organisation</p>
                             <p>Uploaded at</p>
+                            <p>Upload status</p>
                             <p></p>
                         </div>
                         <div class="col-xs-10">
-                            <p>: ${value.category === 'well_upload' ? 'General Information' : 'Monitoring Data' }</p>
+                            <p>: ${value.category === 'well_upload' ? 'General Information' : 'Monitoring Data'}</p>
                             <p>: ${value.filename}</p>
                             <p>: ${value.organisation}</p>
                             <p>: ${new Date(value.uploaded_at)}</p>
+                            <p>: ${value.is_processed ? 'DONE' : 'CANCELLED'}</p>
                             <p class="notes">${status}</p>
                         </div>
                     </div>
@@ -382,12 +413,20 @@
                   `<div>${uploadProgress.toFixed(1)}% - ${data.step}</div>`
                 );
                 const disabled = $('#ResumeButton').attr('disabled')
+                const disabledStop = $('#StopButton').attr('disabled')
                 $('#upload-progress-task-status').html(': ' + data.task_status);
                 if (data.task_status === 'STOP') {
                   $('#upload-progress-task-status').append(' <button id="ResumeButton">Resume</button>')
+                  if (data.is_canceled) {
+                    location.reload();
+                  }
+                } else if (data.task_status === 'RUNNING') {
+                  $('#upload-progress-task-status').append(' <button id="StopButton">Stop</button>')
                 }
                 $('#ResumeButton').attr("disabled", disabled);
+                $('#StopButton').attr("disabled", disabledStop);
                 initResumeButton()
+                initStopButton()
                 if (data.status) {
                   let status = data.status
                   try {
