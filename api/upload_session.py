@@ -1,9 +1,9 @@
 from django.http import JsonResponse, Http404, HttpResponse
 from django.views.generic.base import View
 from rest_framework.generics import ListAPIView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 
+from gwml2.api.pagination import Pagination
 from gwml2.models.upload_session import UploadSession
 from gwml2.serializer.upload_session import UploadSessionSerializer
 
@@ -12,7 +12,7 @@ class UploadSessionListApiView(ListAPIView):
     """Return List of upload session."""
 
     permission_classes = (IsAuthenticated,)
-    pagination_class = PageNumberPagination
+    pagination_class = Pagination
     serializer_class = UploadSessionSerializer
 
     def get_queryset(self):

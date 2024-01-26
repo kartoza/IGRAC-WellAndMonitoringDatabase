@@ -29,6 +29,12 @@
       .notes {
         max-width: 400px;
       }
+
+      .filename {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
     </style>
     <table>
         <tr>
@@ -39,6 +45,7 @@
             <td>Upload status</td>
             <td>Progress</td>
             <td>Note</td>
+            <td>Report</td>
         </tr>
         <tr id="loading">
             <td colspan="8">LOADING</td>
@@ -120,7 +127,8 @@
         const disabledStop = $row.length ? $row.find('.StopButton').attr('disabled') : false
 
         let button = ''
-        if (data.task_status === 'STOP') {
+        const uploadStatus = data.is_processed ? 'DONE' : data.is_canceled ? 'CANCELLED' : 'RUNNING'
+        if (data.task_status === 'STOP' && uploadStatus !== 'CANCELLED') {
           button = '<button class="ResumeButton" ' + (disabledResume ? `disabled="${disabledResume}"` : '') + '>Resume</button>'
         } else if (data.task_status === 'RUNNING') {
           button = '<button class="StopButton" ' + (disabledStop ? `disabled="${disabledStop}"` : '') + '>Stop</button>'
@@ -128,10 +136,12 @@
         const html = `
           <tr id="${id}" style="background-color: ${color}11">
             <td> ${data.category === 'well_upload' ? 'General Information' : 'Monitoring Data'}</td>
-            <td> ${data.filename}</td>
-            <td> ${data.organisation}</td>
-            <td> ${new Date(data.uploaded_at).toISOString()}</td>
-            <td> ${data.is_processed ? 'DONE' : data.is_canceled ? 'CANCELLED' : 'RUNNING'} ${button}</td>
+            <td class="filename" title="${data.filename}">
+                <a href="${data.file_url}">${data.filename}</a>
+            </td>
+            <td class="filename" title="${data.organisation}"> ${data.organisation}</td>
+            <td style="width: 100px"> ${new Date(data.uploaded_at).toISOString()}</td>
+            <td> ${uploadStatus} ${button}</td>
             <td>
                 <div class="progress">
                     <div class="upload-progress-text">${data.progress.toFixed(1)}% - ${data.step}</div>
@@ -143,6 +153,7 @@
                 </div>
             </td>
             <td><div class="notes">${status ? status : ''}</div></td>
+            <td>${data.task_status !== 'RUNNING' ? ("<a href=" + data.report_filename + " target='_blank'>report</a>") : ""}</td>
           </tr>
         `
         if (!$row.length) {
@@ -160,9 +171,10 @@
       $(document).ready(function () {
         function fetchData() {
           $.ajax({
-            url: "{% url 'upload_session_list' %}",
+            url: "{% url 'upload_session_list' %}?page_size=20",
             type: "GET",
             success: function (data) {
+              data = data.results
               data.reverse()
               $('#loading').remove()
               data.forEach(row => {
