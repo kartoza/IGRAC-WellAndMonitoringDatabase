@@ -3,7 +3,9 @@ from django.db.models.signals import post_save
 from pyexcel_xls import get_data as xls_get
 from pyexcel_xlsx import get_data as xlsx_get
 
-from gwml2.models.upload_session import UploadSession
+from gwml2.models.upload_session import (
+    UploadSession, UploadSessionCancelled
+)
 from gwml2.models.well import (
     Well,
     WellLevelMeasurement,
@@ -51,7 +53,13 @@ class BatchUploader:
                         receiver=post_save_measurement_for_cache,
                         sender=WellQualityMeasurement
                 ):
-                    self.process(upload_session, uploaders, restart)
+                    try:
+                        self.process(upload_session, uploaders, restart)
+                    except UploadSessionCancelled:
+                        self.upload_session.update_step('Create report')
+                        self.upload_session.create_report_excel()
+                        self.upload_session.update_step('Cancelled')
+                        return
 
     def process(
             self, upload_session: UploadSession, uploaders: list,

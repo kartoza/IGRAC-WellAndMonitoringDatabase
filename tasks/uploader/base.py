@@ -7,7 +7,9 @@ from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus, TermGroundwaterUse
 )
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
+from gwml2.models.upload_session import (
+    UploadSession, UploadSessionRowStatus
+)
 from gwml2.models.well import (
     Well
 )
