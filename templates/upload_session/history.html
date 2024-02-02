@@ -127,8 +127,9 @@
         const disabledStop = $row.length ? $row.find('.StopButton').attr('disabled') : false
 
         let button = ''
-        const uploadStatus = data.is_processed ? 'DONE' : data.is_canceled ? 'CANCELLED' : 'RUNNING'
-        if (data.task_status === 'STOP' && uploadStatus !== 'CANCELLED') {
+        const uploadStatus = data.task_status
+        const creatingReport = data.step === "Create report";
+        if (data.task_status === 'STOP') {
           button = '<button class="ResumeButton" ' + (disabledResume ? `disabled="${disabledResume}"` : '') + '>Resume</button>'
         } else if (data.task_status === 'RUNNING') {
           button = '<button class="StopButton" ' + (disabledStop ? `disabled="${disabledStop}"` : '') + '>Stop</button>'
@@ -159,7 +160,7 @@
                 </div>
             </td>
             <td><div class="notes">${status ? status : ''}</div></td>
-            <td>${data.task_status !== 'RUNNING' ? ("<a href=" + data.report_filename + " target='_blank'>report</a>") : ""}</td>
+            <td>${creatingReport ? 'Creating report' : data.task_status !== 'RUNNING' ? ("<a href=" + data.report_filename + " target='_blank'>report</a>") : ""}</td>
           </tr>
         `
         if (!$row.length) {

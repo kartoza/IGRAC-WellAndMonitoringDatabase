@@ -204,6 +204,12 @@ class UploadSession(LicenseMetadata):
                 for task in running_tasks:
                     if task["id"] == self.task_id:
                         return TaskStatus.RUNNING
+
+            active_tasks = current_app.control.inspect().reserved()
+            for worker, running_tasks in active_tasks.items():
+                for task in running_tasks:
+                    if task["id"] == self.task_id:
+                        return TaskStatus.RUNNING
         return TaskStatus.STOP
 
     def run_in_background(self, restart: bool = False):
