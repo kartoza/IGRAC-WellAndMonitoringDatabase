@@ -1,5 +1,6 @@
 from django import forms
 from django.utils.translation import ugettext_lazy as _
+
 from geonode.base.models import License, RestrictionCodeType
 
 
@@ -22,6 +23,12 @@ class CsvWellForm(forms.Form):
 
     gw_well_monitoring_file = forms.FileField(
         label=_("Monitoring data"),
+        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        required=False
+    )
+
+    gw_well_drilling_and_construction_file = forms.FileField(
+        label=_("Drilling and donstruction data"),
         widget=forms.FileInput(attrs={'class': 'form-control'}),
         required=False
     )

@@ -7,7 +7,8 @@ from gwml2.forms import CsvWellForm
 from gwml2.models.upload_session import (
     UploadSession,
     UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
-    UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
+    UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
+    UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD
 )
 from gwml2.utilities import get_organisations_as_editor
 
@@ -50,6 +51,9 @@ class WellUploadView(LoginRequiredMixin, FormView):
         form = self.get_form(form_class)
         gw_well_file = request.FILES.get('gw_well_file')
         gw_monitoring_file = request.FILES.get('gw_well_monitoring_file')
+        gw_well_drilling_and_construction_file = request.FILES.get(
+            'gw_well_drilling_and_construction_file'
+        )
 
         if form.is_valid():
             if gw_well_file:
@@ -69,6 +73,15 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     organisation=form.cleaned_data['organisation'],
                     category=UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
                     upload_file=gw_monitoring_file,
+                    uploader=request.user.id,
+                )
+            elif gw_well_drilling_and_construction_file:
+                upload_session = UploadSession.objects.create(
+                    organisation=form.cleaned_data['organisation'],
+                    category=(
+                        UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD
+                    ),
+                    upload_file=gw_well_drilling_and_construction_file,
                     uploader=request.user.id,
                 )
             else:

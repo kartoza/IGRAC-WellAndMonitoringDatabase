@@ -4,7 +4,6 @@ from gwml2.models.general import Unit, Country
 from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus
 )
-from gwml2.models.well import Well
 from gwml2.tasks.uploader.base import BaseUploader
 
 logger = get_task_logger(__name__)
@@ -17,7 +16,6 @@ class GeneralInformationUploader(BaseUploader):
     SHEETS = [
         'General Information'
     ]
-    WELL_AUTOCREATE = True
 
     # key related with the index of keys
     # value if it has tem
@@ -55,11 +53,3 @@ class GeneralInformationUploader(BaseUploader):
         """ return object that will be used
         """
         return well
-
-    def update_data(self, well, record) -> Well:
-        """Process record"""
-        return self.edit_well(
-            well, record, {},
-            self.uploader,
-            generate_cache=False
-        )

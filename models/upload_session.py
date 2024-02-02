@@ -21,12 +21,24 @@ from gwml2.models.well_management.organisation import Organisation
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
+UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD = (
+    'well_drilling_and_construction'
+)
 
 # make choices
 UPLOAD_SESSION_CATEGORY = (
-    (UPLOAD_SESSION_CATEGORY_WELL_UPLOAD, UPLOAD_SESSION_CATEGORY_WELL_UPLOAD),
-    (UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
-     UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD),
+    (
+        UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
+        UPLOAD_SESSION_CATEGORY_WELL_UPLOAD
+    ),
+    (
+        UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD,
+        UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
+    ),
+    (
+        UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD,
+        UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD
+    )
 )
 
 User = get_user_model()
@@ -181,12 +193,26 @@ class UploadSession(LicenseMetadata):
                 self.is_canceled = True
 
         self.progress = progress
-        self.status = status
+        if status:
+            self.status = status
         self.save()
 
-    def update_step(self, step: str):
+    def update_status(self, sheet_name, status):
+        """Update status."""
+        try:
+            _status = json.loads(self.status)
+        except Exception:
+            _status = {}
+
+        _status[sheet_name] = status
+        self.status = json.dumps(_status)
+        self.save()
+
+    def update_step(self, step: str, progress: int = None):
         """Update step of upload."""
         self.step = step
+        if progress:
+            self.progress = progress
         self.save()
 
     @property
@@ -220,16 +246,39 @@ class UploadSession(LicenseMetadata):
 
     def run(self, restart: bool = False):
         """Run the upload."""
-        from gwml2.tasks.uploader.general_information import (
-            GeneralInformationUploader
-        )
-        from gwml2.tasks.uploader.monitoring_data import (
-            MonitoringDataUploader
+        from gwml2.tasks.uploader.uploader import BatchUploader
+        from gwml2.tasks.uploader import (
+            DrillingAndConstructionUploader,
+            GeneralInformationUploader,
+            HydrogeologyUploader,
+            ManagementUploader,
+            MonitoringDataUploader,
+            StratigraphicLogUploader,
+            StructuresUploader,
+            WaterStrikeUploader
         )
         if self.category == UPLOAD_SESSION_CATEGORY_WELL_UPLOAD:
-            GeneralInformationUploader(self, restart)
+            BatchUploader(
+                self,
+                [
+                    GeneralInformationUploader, HydrogeologyUploader,
+                    ManagementUploader
+                ],
+                restart
+            )
         elif self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
-            MonitoringDataUploader(self, restart)
+            BatchUploader(self, [MonitoringDataUploader], restart)
+        elif self.category == (
+                UPLOAD_SESSION_CATEGORY_DRILLING_CONSTRUCTION_UPLOAD
+        ):
+            BatchUploader(
+                self,
+                [
+                    DrillingAndConstructionUploader, WaterStrikeUploader,
+                    StratigraphicLogUploader, StructuresUploader
+                ],
+                restart
+            )
 
     def create_report_excel(self):
         """Created excel that will contain reports."""

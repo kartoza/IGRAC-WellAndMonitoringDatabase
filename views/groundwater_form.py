@@ -192,6 +192,7 @@ class WellEditing(object):
         self.level_measurement.save()
         self.general_information.save()
         self.well_metadata.save()
+        well.save()
 
         if generate_cache:
             generate_data_well_cache.delay(well_id=well.id)

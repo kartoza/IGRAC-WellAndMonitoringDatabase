@@ -30,6 +30,14 @@
                    aria-controls="profile"
                    aria-selected="false">{% trans "Monitoring data" %}</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="profile-tab"
+                   data-toggle="tab"
+                   href="#well-drilling-and-construction"
+                   role="tab"
+                   aria-controls="profile"
+                   aria-selected="false">{% trans "Drilling and Construction" %}</a>
+            </li>
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade" id="well-descriptor"
@@ -56,10 +64,13 @@
                     <br>
                     {{ form.constraints_other.label_tag }}
                     {{ form.constraints_other }}
-                    <br>
-                    <br>
-                    {{ form.gw_well_file.label_tag }}
-                    {{ form.gw_well_file }}
+                <div class="template-indicator">
+                    {% trans "License, Restriction and Restrictions other will override the data on excel if filled." %}
+                </div>
+                <br>
+                <br>
+                {{ form.gw_well_file.label_tag }}
+                {{ form.gw_well_file }}
                 </p>
             </div>
             <div class="tab-pane fade" id="well-monitoring"
@@ -80,6 +91,30 @@
                 <p>
                     {{ form.gw_well_monitoring_file.label_tag }}
                     {{ form.gw_well_monitoring_file }}
+                </p>
+            </div>
+            <div class="tab-pane fade"
+                 id="well-drilling-and-construction"
+                 role="tabpanel"
+                 aria-labelledby="profile-tab">
+                <div class="template-indicator">
+                    {% trans "This Batch Upload allows you to import drilling and construction." %}
+                    <br>
+                    <br>
+                    {% trans "WATER STRIKE, STRATIGRAPHIC LOG and STRUCTURES will replace all data." %}
+                    {% trans "Example we have well A and B. On excel, we have row Water Strike for well A. On import, it will replace Water Strike on Well A, but will keep data on B." %}
+                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
+
+                    <br>
+                    <br>
+                    {% trans "Template" %} :
+                    <a href="{% static 'download_template/drilling_and_construction.xlsx' %}">
+                        {% trans "here" %}
+                    </a>
+                </div>
+                <p>
+                    {{ form.gw_well_drilling_and_construction_file.label_tag }}
+                    {{ form.gw_well_drilling_and_construction_file }}
                 </p>
             </div>
         </div>

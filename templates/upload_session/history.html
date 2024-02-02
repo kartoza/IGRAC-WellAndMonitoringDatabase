@@ -35,6 +35,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+
+      .report {
+        width: 50px;
+      }
     </style>
     <table>
         <tr>
@@ -42,7 +46,9 @@
             <td>Filename</td>
             <td>Organisation</td>
             <td>Uploaded at</td>
-            <td>Upload status</td>
+            <td>
+                <div style="min-width: 130px">Upload status</div>
+            </td>
             <td>Progress</td>
             <td>Note</td>
             <td>Report</td>
@@ -136,7 +142,7 @@
         }
         const html = `
           <tr id="${id}" style="background-color: ${color}11">
-            <td> ${data.category === 'well_upload' ? 'General Information' : 'Monitoring Data'}</td>
+            <td> ${data.category === 'well_upload' ? 'General Information' : data.category === 'well_drilling_and_construction' ? 'Drilling and Construction' : 'Monitoring Data'}</td>
             <td class="filename" title="${data.filename}">
                 <a href="${data.file_url}">${data.filename}</a>
             </td>
@@ -160,7 +166,7 @@
                 </div>
             </td>
             <td><div class="notes">${status ? status : ''}</div></td>
-            <td>${creatingReport ? 'Creating report' : data.task_status !== 'RUNNING' ? ("<a href=" + data.report_filename + " target='_blank'>report</a>") : ""}</td>
+            <td class="report">${creatingReport ? 'Creating report' : data.task_status !== 'RUNNING' ? ("<a href=" + data.report_filename + " target='_blank'>report</a>") : ""}</td>
           </tr>
         `
         if (!$row.length) {
