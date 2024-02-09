@@ -405,7 +405,7 @@ let MeasurementChartObj = function (
     this.$stepDescription = $(`#${identifier}-step-description`);
     this.toggleSeries = {
         value: true,
-        trend: true,
+        trend: false,
         step: false
     };
     this.isTrendLine = false;
