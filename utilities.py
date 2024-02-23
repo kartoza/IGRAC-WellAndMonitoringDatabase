@@ -134,5 +134,5 @@ def make_aware_local(time):
     """Make aware."""
     try:
         return make_aware(time)
-    except ValueError:
+    except (ValueError, AttributeError):
         return time
