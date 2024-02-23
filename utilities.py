@@ -3,6 +3,7 @@ import typing
 from typing import List
 
 from django.db.models import Q
+from django.utils.timezone import make_aware
 
 from gwml2.models.general import Unit, UnitConvertion, Quantity
 from gwml2.models.well_management.organisation import Organisation
@@ -127,3 +128,11 @@ def convert_value(quantity: Quantity, unit_to: Unit) -> typing.Optional[
             unit=unit, value=value)
     else:
         return None
+
+
+def make_aware_local(time):
+    """Make aware."""
+    try:
+        return make_aware(time)
+    except ValueError:
+        return time

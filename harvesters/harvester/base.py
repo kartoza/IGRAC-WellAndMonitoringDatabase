@@ -25,7 +25,7 @@ from gwml2.models.well import (
 from gwml2.signals.well import post_save_measurement_for_cache
 from gwml2.tasks.data_file_cache import generate_data_well_cache
 from gwml2.tasks.well import generate_measurement_cache
-from gwml2.utilities import temp_disconnect_signal
+from gwml2.utilities import temp_disconnect_signal, make_aware_local
 
 User = get_user_model()
 
@@ -239,7 +239,7 @@ class BaseHarvester(ABC):
         try:
             obj, created = model.objects.get_or_create(
                 well=harvester_well_data.well,
-                time=time,
+                time=make_aware_local(time),
                 parameter=defaults.get('parameter', None),
                 defaults=defaults
             )
@@ -267,8 +267,13 @@ class BaseHarvester(ABC):
                 obj.save()
         return obj
 
-    def post_processing_well(self, well: Well):
+    def post_processing_well(
+            self, well: Well, generate_country_cache: bool = True
+    ):
         """Specifically for processing cache after procesing well."""
         print(f'Generate cache for {well.original_id}')
+        well.update_metadata()
         generate_measurement_cache(well.id)
-        generate_data_well_cache(well.id)
+        generate_data_well_cache(
+            well.id, generate_country_cache=generate_country_cache
+        )

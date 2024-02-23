@@ -239,7 +239,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                     parameter = measurement.parameter.name
 
                     if MeasurementModel == WellLevelMeasurement:
-                        if parameter in [MEASUREMENT_PARAMETER_AMSL, MEASUREMENT_PARAMETER_TOP, MEASUREMENT_PARAMETER_GROUND]:
+                        if parameter in [MEASUREMENT_PARAMETER_AMSL,
+                                         MEASUREMENT_PARAMETER_TOP,
+                                         MEASUREMENT_PARAMETER_GROUND]:
                             parameter = MEASUREMENT_PARAMETER_AMSL
                             if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
                                 if top_borehole_elevation:
@@ -291,6 +293,18 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 file = gzip.open(filename, 'wb')
                 file.write(json_bytes)
                 file.close()
+
+    def update_metadata(self):
+        """Update metadata of well."""
+        self.number_of_measurements_level = self.welllevelmeasurement_set.count()
+        self.number_of_measurements_quality = self.wellqualitymeasurement_set.count()
+        self.number_of_measurements_yield = self.wellyieldmeasurement_set.count()
+        self.number_of_measurements = (
+                self.number_of_measurements_level +
+                self.number_of_measurements_quality +
+                self.number_of_measurements_yield
+        )
+        self.save()
 
 
 # documents
