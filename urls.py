@@ -76,13 +76,13 @@ well_detail_urls = [
 ]
 
 well_url = [
-    url(r'^download-request/(?P<uuid>[0-9a-f-]+)/status$',
+    url(r'^download/(?P<uuid>[0-9a-f-]+)/status$',
         view=DownloadRequestDownloadStatus.as_view(),
         name='well_download_request_status'),
-    url(r'^download-request/(?P<uuid>[0-9a-f-]+)$',
+    url(r'^download/(?P<uuid>[0-9a-f-]+)$',
         view=DownloadRequestDownloadView.as_view(),
         name='well_download_request_download'),
-    url(r'^download-request$',
+    url(r'^download$',
         view=DownloadRequestFormView.as_view(),
         name='well_download_request'),
     url(r'^create/',
