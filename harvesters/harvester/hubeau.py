@@ -6,7 +6,7 @@ import requests
 from dateutil.parser import parse
 
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.models.harvester import Harvester, HarvesterAttribute
+from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
@@ -75,12 +75,10 @@ class Hubeau(BaseHarvester):
                 self._update(f'{original_id} - Deleting measurements')
                 well.welllevelmeasurement_set.all().delete()
                 self.re_fetch_codes_done.append(original_id)
-                attr, _ = HarvesterAttribute.objects.get_or_create(
-                    harvester=self.harvester,
-                    name=self.re_fetch_codes_done_key
+                self.update_attribute(
+                    self.re_fetch_codes_done_key,
+                    json.dumps(self.re_fetch_codes_done)
                 )
-                attr.value = json.dumps(self.re_fetch_codes_done)
-                attr.save()
 
     def _measurement_url(self, params_dict: dict):
         """Construct url for measurement"""

@@ -11,8 +11,8 @@ from django.db.models.signals import post_save
 from django.utils import timezone
 
 from gwml2.harvesters.models.harvester import (
-    Harvester, HarvesterLog, RUNNING,
-    ERROR, DONE, HarvesterWellData
+    HarvesterLog, RUNNING, ERROR,
+    DONE, HarvesterWellData, Harvester, HarvesterAttribute
 )
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term import TermFeatureType
@@ -277,3 +277,12 @@ class BaseHarvester(ABC):
         generate_data_well_cache(
             well.id, generate_country_cache=generate_country_cache
         )
+
+    def update_attribute(self, key: str, value):
+        """Update attribute."""
+        attr, _ = HarvesterAttribute.objects.get_or_create(
+            harvester=self.harvester,
+            name=key
+        )
+        attr.value = value
+        attr.save()

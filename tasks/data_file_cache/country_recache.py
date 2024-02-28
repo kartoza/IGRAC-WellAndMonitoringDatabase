@@ -137,7 +137,10 @@ class GenerateCountryCacheFile(WellCacheFileBase):
                     )
 
             zip_file.close()
-        shutil.rmtree(self.folder)
+        try:
+            shutil.rmtree(self.folder)
+        except FileNotFoundError:
+            pass
         self.log(f'----- Finish zipping : {country.code}  -------')
 
     def merge_data_per_well(
