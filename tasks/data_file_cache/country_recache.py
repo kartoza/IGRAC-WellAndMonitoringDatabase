@@ -68,6 +68,8 @@ class GenerateCountryCacheFile(WellCacheFileBase):
         drilling_ggmn_book = load_workbook(drilling_ggmn_file)
 
         # Save the data
+        organisations = []
+        ggmn_organisations = []
         wells = Well.objects.filter(country=self.country).order_by('-id')
         for well in wells:
             self.merge_data_per_well(
@@ -81,12 +83,26 @@ class GenerateCountryCacheFile(WellCacheFileBase):
                 ['Drilling and Construction', 'Water Strike',
                  'Stratigraphic Log', 'Structures']
             )
+            if (
+                well.organisation and
+                well.organisation.name not in organisations
+            ):
+                organisations.append(well.organisation.name)
+            if (
+                well.organisation and well.number_of_measurements > 0 and
+                well.organisation.name not in ggmn_organisations
+            ):
+                ggmn_organisations.append(well.organisation.name)
 
         # Save book
         well_book.save(well_file)
         well_ggmn_book.save(well_ggmn_file)
         drilling_book.save(drilling_file)
         drilling_ggmn_book.save(drilling_ggmn_file)
+        # save organisations for a country
+        self.generate_organisations_json_file(WELL_AND_MONITORING_DATA,
+                                              organisations)
+        self.generate_organisations_json_file(GGMN, ggmn_organisations)
 
         # -------------------------------------------------------------------------
         # zipping files
@@ -135,7 +151,6 @@ class GenerateCountryCacheFile(WellCacheFileBase):
                         _filename,
                         compress_type=zipfile.ZIP_DEFLATED
                     )
-
             zip_file.close()
         shutil.rmtree(self.folder)
         self.log(f'----- Finish zipping : {country.code}  -------')
@@ -179,6 +194,12 @@ class GenerateCountryCacheFile(WellCacheFileBase):
             target_sheet.append(row)
             if target_book_2:
                 target_sheet_2.append(row)
+
+    def generate_organisations_json_file(self, data_type, organisations):
+        _file = os.path.join(DATA_FOLDER,
+                             f'{str(self.country.code)} - {data_type}.json')
+        with open(_file, "w") as outfile:
+            outfile.write(json.dumps(organisations, indent=4))
 
 
 @shared_task(bind=True, queue='update')
