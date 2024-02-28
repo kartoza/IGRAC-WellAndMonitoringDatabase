@@ -9,6 +9,7 @@ from django.contrib.gis.db import models
 from django.utils.translation import ugettext_lazy as _
 
 from gwml2.models.general import Country
+from gwml2.models.well_management.organisation import Organisation
 from igrac.models import SitePreference
 
 WELL_AND_MONITORING_DATA = 'Well and Monitoring Data'
@@ -46,6 +47,11 @@ class DownloadRequest(models.Model):
         Country,
         null=True, blank=True,
         related_name='download_country_data_request'
+    )
+    organisations = models.ManyToManyField(
+        Organisation,
+        null=True, blank=True,
+        related_name='download_organisation_data_request'
     )
     first_name = models.CharField(
         _('First Name'), max_length=512
