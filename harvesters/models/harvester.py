@@ -1,6 +1,7 @@
 from django.contrib.gis.db import models
 from django.utils.module_loading import import_string
 from django.utils.translation import ugettext_lazy as _
+
 from gwml2.models.term import TermFeatureType
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
@@ -105,8 +106,7 @@ class HarvesterAttribute(models.Model):
         help_text=_(
             "The name of attribute")
     )
-    value = models.CharField(
-        max_length=100,
+    value = models.TextField(
         null=True, default=True,
         help_text=_(
             "The value of attribute")

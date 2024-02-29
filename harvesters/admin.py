@@ -94,11 +94,8 @@ HARVESTERS_CHOICES = (
 
 class HarvesterAttributeInline(admin.TabularInline):
     model = HarvesterAttribute
-    readonly_fields = ('harvester', 'name')
+    readonly_fields = ('harvester',)
     extra = 0
-
-    def has_add_permission(self, request, obj=None):
-        return False
 
 
 class HarvesterLogInline(admin.TabularInline):
@@ -130,7 +127,9 @@ class HarvesterAdmin(admin.ModelAdmin):
     form = HarvesterForm
     inlines = [HarvesterAttributeInline, HarvesterLogInline]
     list_display = (
-        'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class', 'last_run')
+        'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class',
+        'last_run'
+    )
     list_editable = ('active',)
     actions = (harvest_data,)
 
