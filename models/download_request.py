@@ -78,7 +78,12 @@ class DownloadRequest(models.Model):
 
     def generate_file(self):
         """Generate file to be downloaded."""
-        from gwml2.tasks.data_file_cache.country_recache import DATA_FOLDER
+        from gwml2.tasks.data_file_cache.country_recache import (
+            COUNTRY_DATA_FOLDER
+        )
+        from gwml2.tasks.data_file_cache.organisation_cache import (
+            ORGANISATION_DATA_FOLDER
+        )
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
 
@@ -87,21 +92,39 @@ class DownloadRequest(models.Model):
         )
 
         zip_file = zipfile.ZipFile(request_file, 'w')
-        for country in self.countries.all():
-            data_file_name = f'{country.code} - {self.data_type}.zip'
-            data_file = os.path.join(DATA_FOLDER, data_file_name)
-            if os.path.exists(data_file):
-                zip_file.write(
-                    data_file, data_file_name,
-                    compress_type=zipfile.ZIP_DEFLATED
-                )
+        if self.countries.exists():
+            self._write_countries_to_zip_file(COUNTRY_DATA_FOLDER, zip_file)
+        elif self.organisations.exists():
+            self._write_organisations_to_zip_file(
+                ORGANISATION_DATA_FOLDER, zip_file
+            )
         zip_file.writestr('Readme.txt',
-                          self._generate_readme_file(DATA_FOLDER))
+                          self._generate_readme_file(COUNTRY_DATA_FOLDER))
         zip_file.close()
 
         # Make this downloader done
         self.is_ready = True
         self.save()
+
+    def _add_content_to_zip_file(self, data_folder, data_file_name, zip_file):
+        data_file = os.path.join(data_folder, data_file_name)
+        if os.path.exists(data_file):
+            zip_file.write(
+                data_file, data_file_name,
+                compress_type=zipfile.ZIP_DEFLATED
+            )
+
+    def _write_countries_to_zip_file(self, data_folder, zip_file):
+        for country in self.countries.all():
+            data_file_name = f'{country.code} - {self.data_type}.zip'
+            self._add_content_to_zip_file(
+                data_folder, data_file_name, zip_file)
+
+    def _write_organisations_to_zip_file(self, data_folder, zip_file):
+        for organisation in self.organisations.all():
+            data_file_name = f'{str(organisation.id)} - {self.data_type}.zip'
+            self._add_content_to_zip_file(
+                data_folder, data_file_name, zip_file)
 
     def _get_readme_text(self):
         pref = SitePreference.objects.first()
@@ -114,19 +137,14 @@ class DownloadRequest(models.Model):
             header_text = pref.download_readme_text
         return header_text if header_text else DEFAULT_README_HEADER_TEXT
 
-    def _generate_readme_file(self, data_folder):
-        header_text = self._get_readme_text()
-        header_text += '\r\n'
-        header_text += '\r\n'
-        header_text += (
-            'Organisations contributing with groundwater '
-            'monitoring data are:\r\n'
-        )
+    def _get_organisations_in_countries_readme(self, country_data_folder):
+        header_text = ''
         for country in self.countries.all():
             _organisation_file_name = (
                 f'{country.code} - {self.data_type}.json'
             )
-            _file_path = os.path.join(data_folder, _organisation_file_name)
+            _file_path = os.path.join(country_data_folder,
+                                      _organisation_file_name)
             if not os.path.exists(_file_path):
                 continue
             data = []
@@ -136,6 +154,28 @@ class DownloadRequest(models.Model):
                 continue
             _organisation_str = ', '.join(data)
             header_text += f'{country.name} - {_organisation_str};\r\n'
+        return header_text
+
+    def _get_organisations_in_readme(self):
+        header_text = ''
+        for organisation in self.organisations.all():
+            header_text += f'{organisation.name};\r\n'
+        return header_text
+
+    def _generate_readme_file(self, country_data_folder):
+        header_text = self._get_readme_text()
+        header_text += '\r\n'
+        header_text += '\r\n'
+        header_text += (
+            'Organisations contributing with groundwater '
+            'monitoring data are:\r\n'
+        )
+        if self.countries.exists():
+            header_text += self._get_organisations_in_countries_readme(
+                country_data_folder)
+        elif self.organisations.exists():
+            header_text += self._get_organisations_in_readme()
+
         header_text += '\r\n'
         header_text += (
             '======================================================='
