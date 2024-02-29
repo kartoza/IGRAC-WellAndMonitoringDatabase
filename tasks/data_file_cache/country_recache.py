@@ -9,7 +9,7 @@ from gwml2.models.general import Country
 from gwml2.models.well import Well
 from gwml2.tasks.data_file_cache.base_cache import WellCacheZipFileBase
 
-COUNTRY_DATA_FOLDER = os.path.join(settings.GWML2_FOLDER, 'country-data')
+COUNTRY_DATA_FOLDER = os.path.join(settings.GWML2_FOLDER, 'data')
 
 
 class GenerateCountryCacheFile(WellCacheZipFileBase):

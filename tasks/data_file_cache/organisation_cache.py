@@ -39,7 +39,7 @@ class GenerateOrganisationCacheFile(WellCacheZipFileBase):
 
 
 @shared_task(bind=True, queue='update')
-def generate_data_country_cache(self, organisation_id: int):
+def generate_data_organisation_cache(self, organisation_id: int):
     try:
         organisation = Organisation.objects.get(id=organisation_id)
         generator = GenerateOrganisationCacheFile(organisation)
