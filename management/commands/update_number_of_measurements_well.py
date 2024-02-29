@@ -33,12 +33,4 @@ class Command(BaseCommand):
                 if idx + 1 < _from:
                     continue
                 print('{}/{}'.format(idx + 1, count))
-                well.number_of_measurements_level = well.welllevelmeasurement_set.count()
-                well.number_of_measurements_quality = well.wellqualitymeasurement_set.count()
-                well.number_of_measurements_yield = well.wellyieldmeasurement_set.count()
-                well.number_of_measurements = (
-                        well.number_of_measurements_level +
-                        well.number_of_measurements_quality +
-                        well.number_of_measurements_yield
-                )
-                well.save()
+                well.update_metadata()

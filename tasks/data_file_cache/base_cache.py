@@ -179,6 +179,13 @@ class WellCacheZipFileBase(WellCacheFileBase):
             if target_book_2:
                 target_sheet_2.append(row)
 
+    def clear_folder(self):
+        if os.path.exists(self.folder):
+            try:
+                shutil.rmtree(self.folder)
+            except FileNotFoundError:
+                pass
+
     def run(self):
         self.current_time = time.time()
         self.log(
@@ -186,8 +193,7 @@ class WellCacheZipFileBase(WellCacheFileBase):
             '-------'
         )
         # clear everything before starts
-        if os.path.exists(self.folder):
-            shutil.rmtree(self.folder)
+        self.clear_folder()
 
         # Prepare files
         well_folder = self.folder_by_type(WELL_AND_MONITORING_DATA)
@@ -297,4 +303,4 @@ class WellCacheZipFileBase(WellCacheFileBase):
         )
 
         # clear temp directory
-        shutil.rmtree(self.folder)
+        self.clear_folder()
