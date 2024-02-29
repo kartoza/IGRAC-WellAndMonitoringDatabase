@@ -61,10 +61,12 @@ class DownloadRequestFormView(View):
         if form.is_valid():
             download_request = form.save(commit=False)
             countries = form.cleaned_data['countries']
+            organisations = form.cleaned_data['organisations']
             if request.user.is_authenticated:
                 download_request.user_id = request.user.id
             download_request.save()
             download_request.countries.add(*countries)
+            download_request.organisations.add(*organisations)
             prepare_download_file.delay(download_request.id)
             return redirect(
                 reverse(

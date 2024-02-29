@@ -62,6 +62,12 @@
         .form-actions button {
             width: 100%;
         }
+        #id_radio_filter_type {
+            padding-left: 0;
+        }
+        form .error-msg ul.errorlist {
+            padding-inline-start: 0;
+        }
     </style>
 {% endblock %}
 
@@ -75,13 +81,15 @@
                 {% csrf_token %}
                 <div class="helptext">
                     In order to download the data, please indicate for which
-                    countries you request the data,
+                    countries or data providers you request the data,
                     and identify yourself unless you are already signed in.
                     This information helps GGIS administrator and data
                     providers
                     with providing adequate data and services.
                 </div>
+                {{ form.radio_filter_type|field_as_bootstrap }}
                 {{ form.countries|field_as_bootstrap }}
+                {{ form.organisations|field_as_bootstrap }}
                 {{ form.data_type|field_as_bootstrap }}
                 {{ form.email|field_as_bootstrap }}
                 <div class="group">
@@ -157,6 +165,33 @@
           }).on('select2:open', function (e) {
             $('#id_organization_types input.select2-search__field').prop('placeholder', placeholder);
           });
+        }
+        {
+          const placeholder = "Select data providers.";
+          $('#id_organisations select').select2({
+            placeholder: placeholder
+          }).on('select2:open', function (e) {
+            $('#id_organisations  input.select2-search__field').prop('placeholder', placeholder);
+          });
+        }
+        {
+            function radioFilterTypeOnChange(value) {
+                console.log('value radio ', value)
+                if (value === 'countries') {
+                    $('#id_organisations').hide();
+                    $('#id_countries').show();
+                }
+                else if (value === 'data_providers') {
+                    $('#id_organisations').show();
+                    $('#id_countries').hide();
+                }
+            } 
+            $('input[type=radio][name=radio_filter_type]').change(function() {
+                radioFilterTypeOnChange(this.value)
+            });
+            // set initial
+            var initial = $('input[type=radio][name=radio_filter_type]:checked').val();
+            radioFilterTypeOnChange(initial);
         }
       });
     </script>
