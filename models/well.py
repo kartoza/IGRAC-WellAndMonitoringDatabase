@@ -294,6 +294,22 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 file.write(json_bytes)
                 file.close()
 
+    def assign_first_last(self, query):
+        """Assign first and last measurements."""
+        first = query.order_by('time').first()
+        if first and (
+                not self.first_time_measurement or
+                first.time <= self.first_time_measurement
+        ):
+            self.first_time_measurement = first.time
+
+        last = query.order_by('time').last()
+        if last and (
+                not self.last_time_measurement or
+                last.time >= self.first_time_measurement
+        ):
+            self.last_time_measurement = last.time
+
     def update_metadata(self):
         """Update metadata of well."""
         self.number_of_measurements_level = self.welllevelmeasurement_set.count()
@@ -304,6 +320,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 self.number_of_measurements_quality +
                 self.number_of_measurements_yield
         )
+        self.assign_first_last(self.welllevelmeasurement_set.all())
+        self.assign_first_last(self.wellyieldmeasurement_set.all())
+        self.assign_first_last(self.wellqualitymeasurement_set.all())
         self.save()
 
 
