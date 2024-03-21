@@ -31,6 +31,10 @@ class Hubeau(BaseHarvester):
     original_id_key = 'code_bss'
     updated = False
     re_fetch_codes_done_key = 're-fetch-codes-done'
+    last_code_key = 'last-code'
+    stations_url_key = 'stations-url'
+    current_idx = 0
+    proceed = False
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -48,6 +52,12 @@ class Hubeau(BaseHarvester):
             self.codes = json.loads(self.attributes['codes'])
         except Exception:
             pass
+
+        # Check last code
+        self.last_code = self.attributes.get(self.last_code_key, None)
+        if not self.last_code:
+            self.proceed = True
+
         self.re_fetch = self.attributes.get('re-fetch', False)
         self.re_fetch_codes_done = json.loads(
             self.attributes.get(self.re_fetch_codes_done_key, '[]')
@@ -55,10 +65,14 @@ class Hubeau(BaseHarvester):
 
         self.countries = []
         # Process the stations
-        self._process_stations(
-            f'{self.domain}/stations?'
-            'format=json&nb_mesures_piezo_min=2&size=100'
+        station_url = self.attributes.get(
+            self.stations_url_key, (
+                f'{self.domain}/stations?'
+                f'format=json&nb_mesures_piezo_min=2&size=2000'
+            )
         )
+        self._process_stations(station_url)
+        self.delete_attribute(self.last_code_key)
 
         # Run country caches
         self._update('Run country caches')
@@ -67,13 +81,20 @@ class Hubeau(BaseHarvester):
             generate_data_country_cache(country)
         self._done('Done')
 
-    def check_prefetch_wells(self, well):
+    def check_prefetch_wells(self, well, original_id):
         """Get prefetch wells is needed or not"""
         if self.re_fetch:
-            original_id = well.original_id
+            if well:
+                original_id = well.original_id
+                if original_id not in self.re_fetch_codes_done:
+                    self._update(
+                        f'[{self.current_idx}/{self.count}] '
+                        f'{original_id} - Deleting measurements'
+                    )
+                    well.welllevelmeasurement_set.all().delete()
+
+            # Save this to re fetch codes done
             if original_id not in self.re_fetch_codes_done:
-                self._update(f'{original_id} - Deleting measurements')
-                well.welllevelmeasurement_set.all().delete()
                 self.re_fetch_codes_done.append(original_id)
                 self.update_attribute(
                     self.re_fetch_codes_done_key,
@@ -103,9 +124,25 @@ class Hubeau(BaseHarvester):
         if response.status_code in [200, 206]:
             data = response.json()
             stations = data['data']
+            self.count = data['count']
+
             for station in stations:
+                self.current_idx += 1
                 original_id = station[self.original_id_key]
+                self._update(
+                    f'[{self.current_idx}/{self.count}] '
+                    f'{original_id} - Checking'
+                )
+
+                # Check last code, if there, skip if not found yet
+                if self.last_code:
+                    if original_id == self.last_code:
+                        self.proceed = True
+
                 if self.codes and original_id not in self.codes:
+                    continue
+
+                if not self.proceed:
                     continue
 
                 self.updated = False
@@ -117,10 +154,10 @@ class Hubeau(BaseHarvester):
 
                 last_date = None
                 well = self.get_well(original_id, latitude, longitude)
+                self.check_prefetch_wells(well, original_id)
                 # We just filter by latest one
                 if well:
                     # Remove all measurements if re-fetch
-                    self.check_prefetch_wells(well)
                     last = well.welllevelmeasurement_set.first()
                     if last:
                         last_date = last.time.strftime("%Y-%m-%d")
@@ -152,6 +189,10 @@ class Hubeau(BaseHarvester):
                         Well.DoesNotExist, requests.exceptions.ConnectionError
                 ):
                     pass
+
+                self.update_attribute(
+                    self.last_code_key, original_id
+                )
             if data['next']:
                 self._process_stations(data['next'])
         else:
@@ -174,7 +215,10 @@ class Hubeau(BaseHarvester):
 
             data = response.json()
             measurements = data['data']
-            self._update(f'{original_id} - {len(measurements)} - {url}')
+            self._update(
+                f'[{self.current_idx}/{self.count}] '
+                f'{original_id} - {len(measurements)} - {url}'
+            )
             if measurements:
                 # Save well
                 if not harvester_well_data:

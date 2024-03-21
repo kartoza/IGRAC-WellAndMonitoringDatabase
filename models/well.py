@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import make_aware
@@ -31,7 +32,9 @@ MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
 
 class WellManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(organisation__active=True)
+        return super().get_queryset().filter(
+            Q(organisation__active=True) | Q(organisation__isnull=True)
+        )
 
 
 class Well(GeneralInformation, CreationMetadata, LicenseMetadata):

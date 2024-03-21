@@ -17,6 +17,9 @@ from gwml2.models.well import (
     Well,
     MEASUREMENT_PARAMETER_GROUND, WellLevelMeasurement, HydrogeologyParameter
 )
+from gwml2.tasks.data_file_cache.country_recache import (
+    generate_data_country_cache
+)
 
 
 class CidaUsgs(BaseHarvester):
@@ -25,6 +28,11 @@ class CidaUsgs(BaseHarvester):
     """
     units = {}
     updated = False
+    countries = []
+    stations_url_key = 'stations-url'
+    last_code_key = 'last-code'
+    proceed = False
+    retry = 0
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -49,17 +57,31 @@ class CidaUsgs(BaseHarvester):
         super(CidaUsgs, self).__init__(harvester, replace, original_id)
 
     def _process(self):
-        url = (
-            f'https://cida.usgs.gov/ngwmn/geoserver/wfs?'
-            f'request=GetFeature&SERVICE=WFS&VERSION=1.0.0&srsName=EPSG%3A4326&outputFormat=GML2&typeName=ngwmn%3AVW_GWDP_GEOSERVER&CQL_FILTER=((WL_SN_FLAG%20%3D%20%271%27)%20AND%20(WL_WELL_TYPE%20%3D%20%272%27))'
+        # Check last code
+        self.last_code = self.attributes.get(self.last_code_key, None)
+        if not self.last_code:
+            self.proceed = True
+
+        station_url = self.attributes.get(
+            self.stations_url_key, (
+                f'https://cida.usgs.gov/ngwmn/geoserver/wfs?'
+                f'request=GetFeature&SERVICE=WFS&VERSION=1.0.0&srsName=EPSG%3A4326&outputFormat=GML2&typeName=ngwmn%3AVW_GWDP_GEOSERVER&CQL_FILTER=((WL_SN_FLAG%20%3D%20%271%27)%20AND%20(WL_WELL_TYPE%20%3D%20%272%27))'
+            )
         )
-        response = requests.get(url)
-        if response.status_code == 200:
-            print('Stations received')
-            self.get_stations(BeautifulSoup(response.content, "lxml"))
-            self._done()
-        else:
-            self._error(f'{response.status_code} - {response.text}')
+        try:
+            response = requests.get(station_url)
+            if response.status_code == 200:
+                print('Stations received')
+                self.get_stations(BeautifulSoup(response.content, "lxml"))
+                self._done()
+            else:
+                self._error(f'{response.status_code} - {response.text}')
+        except requests.exceptions.ConnectionError as e:
+            self.retry += 1
+            if self.retry == 3:
+                raise Exception(e)
+            else:
+                self._process()
 
     def value_by_tag(self, xml, tag):
         """Return value by tag"""
@@ -88,6 +110,15 @@ class CidaUsgs(BaseHarvester):
                     skip = False
                 else:
                     continue
+
+            # Check last code, if there, skip if not found yet
+            if self.last_code:
+                if site_no == self.last_code:
+                    self.proceed = True
+
+            if not self.proceed:
+                continue
+
             try:
                 site_name = self.value_by_tag(member, 'ngwmn:site_name')
                 latitude = float(
@@ -194,7 +225,15 @@ class CidaUsgs(BaseHarvester):
 
                 # Generate cache
                 if self.updated:
-                    self.post_processing_well(well)
+                    self.post_processing_well(
+                        well, generate_country_cache=False
+                    )
+                    if well.country:
+                        self.countries.append(well.country.code)
+
+                self.update_attribute(
+                    self.last_code_key, site_no
+                )
             except (
                     KeyError, Well.DoesNotExist,
                     requests.exceptions.ConnectionError
@@ -202,6 +241,14 @@ class CidaUsgs(BaseHarvester):
                 pass
             except Exception as e:
                 raise Exception(f'{site_id} : {e}')
+
+        self.delete_attribute(self.last_code_key)
+
+        # Run country caches
+        self._update('Run country caches')
+        countries = list(set(self.countries))
+        for country in countries:
+            generate_data_country_cache(country)
 
     def get_measurements(self, well_data, harvester_well_data):
         """Get and save measurements."""
