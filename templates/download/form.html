@@ -65,6 +65,9 @@
         #id_radio_filter_type {
             padding-left: 0;
         }
+        #id_radio_filter_type label {
+            font-weight: 400 !important;
+        }
         form .error-msg ul.errorlist {
             padding-inline-start: 0;
         }
@@ -176,7 +179,6 @@
         }
         {
             function radioFilterTypeOnChange(value) {
-                console.log('value radio ', value)
                 if (value === 'countries') {
                     $('#id_organisations').hide();
                     $('#id_countries').show();
