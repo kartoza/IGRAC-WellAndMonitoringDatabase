@@ -1,10 +1,12 @@
 import json
 import os
+
 import requests
 from dateutil import parser
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.geos import Point
 from django.utils.timezone import make_aware
+
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.general import Quantity, Unit
@@ -13,18 +15,22 @@ from gwml2.models.well import (
     MEASUREMENT_PARAMETER_AMSL,
     Well, WellLevelMeasurement
 )
-from gwml2.tasks.well import generate_measurement_cache
+from gwml2.tasks.data_file_cache.country_recache import (
+    generate_data_country_cache
+)
 
 
 class SguAPI(BaseHarvester):
     """
     Harvester for https://www.sgu.se/
     """
-    max_region_codes = {
+    max_region_codes = {}
+    countries = []
 
-    }
-
-    def __init__(self, harvester: Harvester, replace: bool = False, original_id: str = None):
+    def __init__(
+            self, harvester: Harvester, replace: bool = False,
+            original_id: str = None
+    ):
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL)
@@ -60,6 +66,10 @@ class SguAPI(BaseHarvester):
             # get csr
             crs = data['crs']['properties']['name']
             well_total = len(data['features'])
+
+            # ------------------------------------------
+            # STATIONS
+            # ------------------------------------------
             for well_idx, station in enumerate(data['features']):
                 to_coord = SpatialReference(4326)
                 from_coord = SpatialReference(crs)
@@ -86,7 +96,9 @@ class SguAPI(BaseHarvester):
                     continue
 
                 # get measurements
-                response = self._request_api(f'https://resource.sgu.se/oppnadata/grundvatten/api/grundvattennivaer/nivaer/station/{station_id}?format=json')
+                response = self._request_api(
+                    f'https://resource.sgu.se/oppnadata/grundvatten/api/grundvattennivaer/nivaer/station/{station_id}?format=json'
+                )
                 try:
                     feature = response['features'][0]
                 except IndexError:
@@ -100,7 +112,9 @@ class SguAPI(BaseHarvester):
                     continue
 
                 self._update(
-                    'Saving {} : well({}/{})'.format(url, well_idx + 1, well_total)
+                    'Saving {} : well({}/{})'.format(
+                        url, well_idx + 1,
+                        well_total)
                 )
 
                 # check latest date
@@ -109,16 +123,26 @@ class SguAPI(BaseHarvester):
                 ).order_by('-time').first()
 
                 measurement_total = len(properties['Mätningar'])
-                for measurement_idx, measurement in enumerate(properties['Mätningar']):
+                # ------------------------------------------
+                # Measurements
+                # ------------------------------------------
+                for measurement_idx, measurement in enumerate(
+                        properties['Mätningar']
+                ):
                     try:
-                        date_time = make_aware(parser.parse(measurement['datum_for_matning']))
+                        date_time = make_aware(
+                            parser.parse(measurement['datum_for_matning'])
+                        )
                         if not latest_measurement or date_time > latest_measurement.time:
-                            self._update('Saving {} : well({}/{}) measurement({}/{})'.format(
-                                url, well_idx + 1, well_total, measurement_idx, measurement_total)
+                            self._update(
+                                'Saving {} : well({}/{}) measurement({}/{})'.format(
+                                    url, well_idx + 1, well_total,
+                                    measurement_idx, measurement_total)
                             )
                             defaults = {
                                 'parameter': self.parameter,
-                                'value_in_m': measurement['grundvattenniva_m_o.h.']
+                                'value_in_m': measurement[
+                                    'grundvattenniva_m_o.h.']
                             }
                             obj = self._save_measurement(
                                 WellLevelMeasurement,
@@ -134,12 +158,21 @@ class SguAPI(BaseHarvester):
                                 obj.save()
                     except KeyError:
                         pass
-                generate_measurement_cache(
-                    well.id, WellLevelMeasurement.__name__)
+                self.post_processing_well(
+                    well, generate_country_cache=False
+                )
+                self.countries.append(well.country.code)
         except KeyError as e:
             pass
         try:
             os.remove('sgu.json')
         except IOError:
             pass
+
+        # Run country caches
+        self._update('Run country caches')
+        countries = list(set(self.countries))
+        for country in countries:
+            generate_data_country_cache(country)
+
         self._done('Done')

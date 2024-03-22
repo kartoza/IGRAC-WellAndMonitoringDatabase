@@ -286,3 +286,11 @@ class BaseHarvester(ABC):
         )
         attr.value = value
         attr.save()
+
+    def delete_attribute(self, key: str):
+        """Update attribute."""
+        attr, _ = HarvesterAttribute.objects.get_or_create(
+            harvester=self.harvester,
+            name=key
+        )
+        attr.delete()

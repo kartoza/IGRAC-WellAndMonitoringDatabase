@@ -5,6 +5,7 @@ from datetime import datetime
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.timezone import make_aware
@@ -31,7 +32,9 @@ MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
 
 class WellManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(organisation__active=True)
+        return super().get_queryset().filter(
+            Q(organisation__active=True) | Q(organisation__isnull=True)
+        )
 
 
 class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
@@ -294,6 +297,22 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 file.write(json_bytes)
                 file.close()
 
+    def assign_first_last(self, query):
+        """Assign first and last measurements."""
+        first = query.order_by('time').first()
+        if first and (
+                not self.first_time_measurement or
+                first.time <= self.first_time_measurement
+        ):
+            self.first_time_measurement = first.time
+
+        last = query.order_by('time').last()
+        if last and (
+                not self.last_time_measurement or
+                last.time >= self.first_time_measurement
+        ):
+            self.last_time_measurement = last.time
+
     def update_metadata(self):
         """Update metadata of well."""
         self.number_of_measurements_level = self.welllevelmeasurement_set.count()
@@ -304,6 +323,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 self.number_of_measurements_quality +
                 self.number_of_measurements_yield
         )
+        self.assign_first_last(self.welllevelmeasurement_set.all())
+        self.assign_first_last(self.wellyieldmeasurement_set.all())
+        self.assign_first_last(self.wellqualitymeasurement_set.all())
         self.save()
 
 
