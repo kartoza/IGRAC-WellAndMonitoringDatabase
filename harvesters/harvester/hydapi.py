@@ -78,7 +78,6 @@ class Hydapi(BaseHarvester):
             'data']
         for station in stations:
             self._process_station(station)
-        self._done('Done')
 
     def _process_station(self, station: dict):
         """

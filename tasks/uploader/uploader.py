@@ -17,6 +17,9 @@ from gwml2.tasks.data_file_cache import generate_data_well_cache
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
+from gwml2.tasks.data_file_cache.organisation_cache import (
+    generate_data_organisation_cache
+)
 from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal
 
@@ -137,7 +140,8 @@ class BatchUploader:
                 well_id=well_id, model=WellQualityMeasurement.__name__
             )
             generate_data_well_cache(
-                well_id=well_id, generate_country_cache=False
+                well_id=well_id, generate_country_cache=False,
+                generate_organisation_cache=False
             )
 
         # ------------------------------------
@@ -152,12 +156,31 @@ class BatchUploader:
         countries_code = list(set(countries_code))
         count = len(countries_code)
         for index, country_code in enumerate(countries_code):
-            process_percent = ((index / count) * 10) + 80
+            process_percent = ((index / count) * 5) + 80
             self.upload_session.update_step(
                 'Running country cache',
                 progress=int(process_percent)
             )
             generate_data_country_cache(country_code)
+        # ------------------------------------
+        # Run the organisation cache
+        # ------------------------------------
+        self.upload_session.update_step('Running organisation cache', 85)
+        organisation_ids = list(
+            Well.objects.filter(
+                id__in=wells_id
+            ).values_list('organisation__id', flat=True)
+        )
+        organisation_ids = list(set(organisation_ids))
+        count = len(organisation_ids)
+        for index, organisation_id in enumerate(organisation_ids):
+            process_percent = ((index / count) * 5) + 85
+            self.upload_session.update_step(
+                'Running organisation cache',
+                progress=int(process_percent)
+            )
+            generate_data_organisation_cache(organisation_id=organisation_id)
+
         # -----------------------------------------
         # FINISH
         # For report

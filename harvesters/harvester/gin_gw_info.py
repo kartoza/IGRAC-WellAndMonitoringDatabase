@@ -44,7 +44,6 @@ class GinGWInfo(BaseHarvester):
     def _process(self):
         """ Run the harvester """
         self._stations()
-        self._done('Done')
 
     def _stations(self):
         """ fetch and save wells """

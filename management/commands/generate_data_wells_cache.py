@@ -4,6 +4,9 @@ from gwml2.models.well import Well
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
+from gwml2.tasks.data_file_cache.organisation_cache import (
+    generate_data_organisation_cache
+)
 from gwml2.tasks.data_file_cache.wells_cache import generate_data_well_cache
 
 
@@ -56,18 +59,27 @@ class Command(BaseCommand):
 
         # Regenerate cache
         countries = []
+        organisations = []
         count = wells.count()
         for idx, well in enumerate(wells.order_by('id')):
             print(f'----- {idx}/{count} -----')
             generate_data_well_cache(
-                well.id, force_regenerate=force, generate_country_cache=False
+                well.id, force_regenerate=force, generate_country_cache=False,
+                generate_organisation_cache=False
             )
 
             # Save the country code
             if well.country and well.country.code not in countries:
                 countries.append(well.country.code)
+            if well.organisation and well.organisation.id not in organisations:
+                organisations.append(well.organisation.id)
 
         # Regenerate country cache
         countries.sort()
         for country in countries:
             generate_data_country_cache(country_code=country)
+
+        # Regenerate organisation cache
+        organisations.sort()
+        for organisation_id in organisations:
+            generate_data_organisation_cache(organisation_id=organisation_id)

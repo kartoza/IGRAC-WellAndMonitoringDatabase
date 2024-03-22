@@ -143,8 +143,6 @@ class EHYD(BaseHarvester):
         for country in countries:
             generate_data_country_cache(country)
 
-        self._done('Done')
-
     def process_measurement(self, data):
         """Process measurement."""
         updated = False

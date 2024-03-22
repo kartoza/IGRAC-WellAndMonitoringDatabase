@@ -9,6 +9,9 @@ from gwml2.models.well_management.user import UserUUID
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
+from gwml2.tasks.data_file_cache.organisation_cache import (
+    generate_data_organisation_cache
+)
 
 User = get_user_model()
 
@@ -18,6 +21,7 @@ def rerun_cache(modeladmin, request, queryset):
         codes = list(set(org.well_set.values_list('country__code', flat=True)))
         for country_code in codes:
             generate_data_country_cache(country_code=country_code)
+        generate_data_organisation_cache(organisation_id=org.id)
 
 
 class OrganisationAdmin(admin.ModelAdmin):

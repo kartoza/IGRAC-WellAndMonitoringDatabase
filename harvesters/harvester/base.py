@@ -24,6 +24,9 @@ from gwml2.models.well import (
 )
 from gwml2.signals.well import post_save_measurement_for_cache
 from gwml2.tasks.data_file_cache import generate_data_well_cache
+from gwml2.tasks.data_file_cache.organisation_cache import (
+    generate_data_organisation_cache
+)
 from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal, make_aware_local
 
@@ -79,6 +82,13 @@ class BaseHarvester(ABC):
                             sender=WellQualityMeasurement
                     ):
                         self._process()
+                        self._update('Run organisation caches')
+                        generate_data_organisation_cache(
+                            self.harvester.organisation.id
+                        )
+                        self._done('Done')
+        except HarvestingError as e:
+            self._error(f'{e}')
         except Exception:
             self._error(traceback.format_exc())
 

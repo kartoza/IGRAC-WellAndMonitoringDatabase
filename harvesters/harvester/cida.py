@@ -71,9 +71,7 @@ class CidaUsgs(BaseHarvester):
         try:
             response = requests.get(station_url)
             if response.status_code == 200:
-                print('Stations received')
                 self.get_stations(BeautifulSoup(response.content, "lxml"))
-                self._done()
             else:
                 self._error(f'{response.status_code} - {response.text}')
         except requests.exceptions.ConnectionError as e:

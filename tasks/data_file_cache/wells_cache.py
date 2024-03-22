@@ -23,6 +23,9 @@ from gwml2.tasks.data_file_cache.base_cache import get_data
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
+from gwml2.tasks.data_file_cache.organisation_cache import (
+    generate_data_organisation_cache
+)
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -451,12 +454,15 @@ class GenerateWellCacheFile(object):
 @shared_task(bind=True, queue='update')
 def generate_data_well_cache(
         self, well_id: int, force_regenerate: bool = True,
-        generate_country_cache: bool = True
+        generate_country_cache: bool = True,
+        generate_organisation_cache: bool = True
 ):
     try:
         well = Well.objects.get(id=well_id)
         GenerateWellCacheFile(well, force_regenerate)
         if generate_country_cache and well.country:
             generate_data_country_cache(well.country.code)
+        if generate_organisation_cache and well.organisation:
+            generate_data_organisation_cache(well.organisation.id)
     except Well.DoesNotExist:
         pass
