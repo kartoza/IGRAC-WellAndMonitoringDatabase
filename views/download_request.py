@@ -67,7 +67,7 @@ class DownloadRequestFormView(View):
             download_request.save()
             download_request.countries.add(*countries)
             download_request.organisations.add(*organisations)
-            prepare_download_file(download_request.id)
+            prepare_download_file.delay(download_request.id)
             return redirect(
                 reverse(
                     "well_download_request_download",
