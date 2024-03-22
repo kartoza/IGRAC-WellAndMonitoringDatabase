@@ -32,7 +32,7 @@ class GeneralInformation(models.Model):
 
     name = models.CharField(
         _("Name"),
-        null=True, blank=True, max_length=64
+        null=True, blank=True, max_length=512
     )
     feature_type = models.ForeignKey(
         TermFeatureType, on_delete=models.SET_NULL,

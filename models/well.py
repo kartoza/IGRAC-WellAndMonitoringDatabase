@@ -43,7 +43,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after
     IGH1397)."""
     ggis_uid = models.CharField(
-        max_length=256,
+        max_length=512,
         null=True, blank=True,
         help_text='organisation name + Original ID'
     )
