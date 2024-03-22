@@ -278,14 +278,18 @@ class BaseHarvester(ABC):
         return obj
 
     def post_processing_well(
-            self, well: Well, generate_country_cache: bool = True
+            self, well: Well,
+            generate_country_cache: bool = True,
+            generate_organisation_cache: bool = False
     ):
         """Specifically for processing cache after procesing well."""
         print(f'Generate cache for {well.original_id}')
         well.update_metadata()
         generate_measurement_cache(well.id)
         generate_data_well_cache(
-            well.id, generate_country_cache=generate_country_cache
+            well.id,
+            generate_country_cache=generate_country_cache,
+            generate_organisation_cache=generate_organisation_cache
         )
 
     def update_attribute(self, key: str, value):
