@@ -1,6 +1,6 @@
+import json
 import os
 import zipfile
-import json
 from datetime import datetime
 from uuid import uuid4
 
@@ -98,8 +98,9 @@ class DownloadRequest(models.Model):
             self._write_organisations_to_zip_file(
                 ORGANISATION_DATA_FOLDER, zip_file
             )
-        zip_file.writestr('Readme.txt',
-                          self._generate_readme_file(COUNTRY_DATA_FOLDER))
+        zip_file.writestr(
+            'Readme.txt', self._generate_readme_file(COUNTRY_DATA_FOLDER)
+        )
         zip_file.close()
 
         # Make this downloader done

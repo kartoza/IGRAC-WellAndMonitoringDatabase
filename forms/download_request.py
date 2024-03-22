@@ -97,7 +97,9 @@ class DownloadRequestForm(forms.ModelForm):
         if 'all' in organisations:
             return Organisation.objects.filter(active=True)
         else:
-            return Organisation.objects.filter(id__in=organisations)
+            return Organisation.objects.filter(
+                id__in=organisations
+            ).filter(active=True)
 
     def clean(self) -> dict[str, Any]:
         cleaned_data = super().clean()

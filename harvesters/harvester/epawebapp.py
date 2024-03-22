@@ -7,7 +7,7 @@ from zipfile import ZipFile
 import requests
 from django.utils.timezone import make_aware
 
-from gwml2.harvesters.harvester.base import BaseHarvester
+from gwml2.harvesters.harvester.base import BaseHarvester, HarvestingError
 from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.general import Unit
 from gwml2.models.management import Management
@@ -56,7 +56,7 @@ class Epawebapp(BaseHarvester):
                 pass
 
         if not layer_link:
-            self._error('Link for groundwater does not found.')
+            raise HarvestingError('Link for groundwater does not found.')
         else:
             # Check for all stations
             stations = self._request_api(self.url + layer_link)
@@ -80,7 +80,6 @@ class Epawebapp(BaseHarvester):
 
                 except (ValueError, KeyError):
                     pass
-            self._done('Done')
 
     def fetch_measurement(self, harvester_well_data, station, station_data):
         """Fetch measurements."""

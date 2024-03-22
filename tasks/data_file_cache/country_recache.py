@@ -29,8 +29,9 @@ class GenerateCountryCacheFile(WellCacheZipFileBase):
         return self.country.code
 
     def get_well_queryset(self):
-        return Well.objects.select_related(
-            'organisation').filter(country=self.country).order_by('-id')
+        return Well.objects.filter(
+            country=self.country
+        ).filter(organisation__isnull=False).order_by('original_id')
 
     def __init__(self, country):
         self.country_data = country
@@ -38,28 +39,27 @@ class GenerateCountryCacheFile(WellCacheZipFileBase):
 
     def run(self):
         super(GenerateCountryCacheFile, self).run()
+
         # generate organisations json file
         organisations = []
         ggmn_organisations = []
         wells = self.get_well_queryset()
         for well in wells:
-            if (
-                well.organisation and
-                well.organisation.name not in organisations
-            ):
-                organisations.append(well.organisation.name)
-            if (
-                well.organisation and well.number_of_measurements > 0 and
-                well.organisation.name not in ggmn_organisations
-            ):
+            organisations.append(well.organisation.name)
+            if well.is_ggmn:
                 ggmn_organisations.append(well.organisation.name)
-        self.generate_organisations_json_file(WELL_AND_MONITORING_DATA,
-                                              organisations)
-        self.generate_organisations_json_file(GGMN, ggmn_organisations)
+        self.generate_organisations_json_file(
+            WELL_AND_MONITORING_DATA, list(set(organisations))
+        )
+        self.generate_organisations_json_file(
+            GGMN, list(set(ggmn_organisations))
+        )
 
     def generate_organisations_json_file(self, data_type, organisations):
-        _file = os.path.join(self.data_folder,
-                             f'{str(self.cache_name)} - {data_type}.json')
+        _file = os.path.join(
+            self.data_folder,
+            f'{str(self.cache_name)} - {data_type}.json'
+        )
         with open(_file, "w") as outfile:
             outfile.write(json.dumps(organisations, indent=4))
 

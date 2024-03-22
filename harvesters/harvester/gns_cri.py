@@ -110,8 +110,6 @@ class GnsCri(BaseHarvester):
             self._update(f'Processing {original_id} - {idx}/{count}')
             self._process_measurement(station)
 
-        self._done('Done')
-
     def _process_measurement(self, station):
         """Process measurement of station."""
         properties = station['properties']

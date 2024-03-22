@@ -174,5 +174,3 @@ class SguAPI(BaseHarvester):
         countries = list(set(self.countries))
         for country in countries:
             generate_data_country_cache(country)
-
-        self._done('Done')

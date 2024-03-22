@@ -1,16 +1,15 @@
-import os
-import time
 import json
+import os
 import shutil
+import time
 import zipfile
 
 from celery.utils.log import get_task_logger
+from django.conf import settings
 from openpyxl import load_workbook
 
-from django.conf import settings
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.term import TermFeatureType
-
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -228,16 +227,16 @@ class WellCacheZipFileBase(WellCacheFileBase):
         for well in wells:
             self.merge_data_per_well(
                 well, self.wells_filename, well_book,
-                well_ggmn_book if well.number_of_measurements > 0 and
-                well.organisation else None,
+                well_ggmn_book if well.is_ggmn and well.organisation else None,
                 ['General Information', 'Hydrogeology', 'Management']
             )
             self.merge_data_per_well(
                 well, self.drill_filename, drilling_book,
-                drilling_ggmn_book if well.number_of_measurements > 0 and
-                well.organisation else None,
-                ['Drilling and Construction', 'Water Strike',
-                 'Stratigraphic Log', 'Structures']
+                drilling_ggmn_book if well.is_ggmn and well.organisation else None,
+                [
+                    'Drilling and Construction', 'Water Strike',
+                    'Stratigraphic Log', 'Structures'
+                ]
             )
 
         # Save book
