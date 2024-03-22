@@ -26,7 +26,7 @@ class GenerateOrganisationCacheFile(WellCacheZipFileBase):
     @property
     def cache_name(self) -> str:
         """Return name of cache object."""
-        return str(self.organisation.id)
+        return self.organisation.name
 
     def get_well_queryset(self):
         return Well.objects.select_related(

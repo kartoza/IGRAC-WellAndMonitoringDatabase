@@ -123,7 +123,7 @@ class DownloadRequest(models.Model):
 
     def _write_organisations_to_zip_file(self, data_folder, zip_file):
         for organisation in self.organisations.all():
-            data_file_name = f'{str(organisation.id)} - {self.data_type}.zip'
+            data_file_name = f'{str(organisation.name)} - {self.data_type}.zip'
             self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file)
 
