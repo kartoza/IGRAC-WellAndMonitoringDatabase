@@ -5,7 +5,6 @@ from gwml2.models.hydrogeology import PumpingTest, HydrogeologyParameter
 
 
 @receiver(post_save, sender=PumpingTest)
-@receiver(post_delete, sender=PumpingTest)
 def pumpingtest_changed(sender, instance, **kwargs):
     """ when changed
     :type instance: PumpingTest
