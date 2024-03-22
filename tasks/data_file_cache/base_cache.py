@@ -253,21 +253,11 @@ class WellCacheZipFileBase(WellCacheFileBase):
             '------'
         )
         for data_type in [WELL_AND_MONITORING_DATA, GGMN]:
-            zip_file = self.zip_file_path(data_type)
-            if os.path.exists(zip_file):
-                os.remove(zip_file)
-            zip_file = zipfile.ZipFile(zip_file, 'w')
-
-            well_file = self.file_by_type(self.wells_filename, data_type)
-            zip_file.write(
-                well_file, self.wells_filename,
-                compress_type=zipfile.ZIP_DEFLATED)
-
-            drill_file = self.file_by_type(self.drill_filename, data_type)
-            zip_file.write(
-                drill_file,
-                self.drill_filename,
-                compress_type=zipfile.ZIP_DEFLATED)
+            # Get the file path
+            zip_filepath = self.zip_file_path(data_type)
+            if os.path.exists(zip_filepath):
+                os.remove(zip_filepath)
+            zip_file = None
 
             original_ids_found = {}
             wells = self.get_well_queryset()
@@ -277,8 +267,29 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 ):
                     continue
 
+                if not zip_file:
+                    zip_file = zipfile.ZipFile(zip_filepath, 'w')
+
+                    well_file = self.file_by_type(
+                        self.wells_filename, data_type
+                    )
+                    zip_file.write(
+                        well_file, self.wells_filename,
+                        compress_type=zipfile.ZIP_DEFLATED
+                    )
+
+                    drill_file = self.file_by_type(
+                        self.drill_filename, data_type
+                    )
+                    zip_file.write(
+                        drill_file,
+                        self.drill_filename,
+                        compress_type=zipfile.ZIP_DEFLATED
+                    )
+
                 if well.number_of_measurements == 0:
                     continue
+
                 well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
                 measurement_file = os.path.join(
                     well_folder, self.monitor_filename
@@ -300,7 +311,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
                         _filename,
                         compress_type=zipfile.ZIP_DEFLATED
                     )
-            zip_file.close()
+            if zip_file:
+                zip_file.close()
         self.log(
             f'----- Finish zipping {self.cache_type}: {self.cache_name} '
             '-------'
