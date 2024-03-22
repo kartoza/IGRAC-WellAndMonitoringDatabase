@@ -43,14 +43,11 @@
             <div class="tab-pane fade" id="well-descriptor"
                  role="tabpanel" aria-labelledby="home-tab">
                 <div class="template-indicator">
-                    {% trans "This Batch Upload allows you to import several Well data at one time. The Batch Upload currently supports the upload of General Information (i.e. identification and location of your data points)." %}
-                    <br>
-                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to assign permissions on your data: is it public? which organisations can access the data?" %}
+                    {% trans "This batch upload file contains three sheets: General Information, Hydrogeology and Management. Use a different row for each well (or other data point). Use the fields below to assign a license and additional restrictions. These will apply to all the wells contained in the upload file." %}
                     <br>
                     <br>
-                    {% trans "Template" %} :
-                    <a href="{% static 'upload_template/well.xlsx' %}">
-                        {% trans "here" %}
+                    <a href="{% static 'download_template/wells.xlsx' %}">
+                        {% trans "Download the batch upload file template." %}
                     </a>
                 </div>
                 <p>
@@ -77,15 +74,11 @@
                  role="tabpanel"
                  aria-labelledby="profile-tab">
                 <div class="template-indicator">
-                    {% trans "This Batch Upload allows you to import several Monitoring Data at one time. Upload the well information before using this form." %}
-                    <br>
-                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
-
+                    {% trans "This batch upload file contains three sheets: Groundwater Level, Groundwater Quality and Abstraction-Discharge. Use a different row for each measurement." %}
                     <br>
                     <br>
-                    {% trans "Template" %} :
-                    <a href="{% static 'upload_template/monitoring_data.xlsx' %}">
-                        {% trans "here" %}
+                    <a href="{% static 'download_template/monitoring_data.xlsx' %}">
+                        {% trans "Download the batch upload file template." %}
                     </a>
                 </div>
                 <p>
@@ -98,18 +91,11 @@
                  role="tabpanel"
                  aria-labelledby="profile-tab">
                 <div class="template-indicator">
-                    {% trans "This Batch Upload allows you to import drilling and construction." %}
+                    {% trans "This batch upload file contains four sheets: Drilling, Water Strike, Stratigraphic Log and Construction. In the first sheet Drilling, use a different row for each well (or other data point). The other sheets accept multiple rows per well: multiple water strikes, multiple stratigraphic layers, and multiple construction parts." %}
                     <br>
                     <br>
-                    {% trans "WATER STRIKE, STRATIGRAPHIC LOG and STRUCTURES will replace all data." %}
-                    {% trans "Example we have well A and B. On excel, we have row Water Strike for well A. On import, it will replace Water Strike on Well A, but will keep data on B." %}
-                    {% trans "Download the templates and fill them in with your data, then simply upload these files. Don't forget to link the monitoring data with the well ID that is already imported." %}
-
-                    <br>
-                    <br>
-                    {% trans "Template" %} :
                     <a href="{% static 'download_template/drilling_and_construction.xlsx' %}">
-                        {% trans "here" %}
+                        {% trans "Download the batch upload file template." %}
                     </a>
                 </div>
                 <p>
