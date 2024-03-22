@@ -328,10 +328,13 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         self.assign_first_last(self.wellqualitymeasurement_set.all())
         self.save()
 
-    @property
-    def is_ggmn(self):
+    def is_ggmn(self, organisations):
         """Check if the well is ggmn."""
-        return self.organisation and self.number_of_measurements > 0
+        is_ggmn = (
+                self.organisation and self.number_of_measurements > 0 and
+                self.organisation.id in organisations
+        )
+        return is_ggmn
 
 
 # documents

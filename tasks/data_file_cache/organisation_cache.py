@@ -46,3 +46,9 @@ def generate_data_organisation_cache(self, organisation_id: int):
         generator.run()
     except Organisation.DoesNotExist:
         print('Country not found')
+
+
+@shared_task(bind=True, queue='update')
+def generate_data_all_organisation_cache(self):
+    for organisation in Organisation.objects.all():
+        generate_data_organisation_cache(organisation.id)

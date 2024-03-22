@@ -40,6 +40,21 @@ class Organisation(models.Model):
         """ return if editor """
         return self.is_admin(user) or user.id in self.editors
 
+    @staticmethod
+    def ggmn_organisations() -> list[int]:
+        """Return list of organisation id"""
+        from igrac.models.groundwater_layer import GroundwaterLayer
+        ggmn_organisations_list = list(
+            Organisation.objects.filter(
+                active=True
+            ).values_list('id', flat=True)
+        )
+        ggmn_layer = GroundwaterLayer.objects.filter(
+            is_ggmn_layer=True).first()
+        if ggmn_layer:
+            ggmn_organisations_list = ggmn_layer.organisations
+        return ggmn_organisations_list
+
 
 class OrganisationType(models.Model):
     """ Organisation type

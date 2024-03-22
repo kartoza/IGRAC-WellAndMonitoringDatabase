@@ -10,6 +10,7 @@ from openpyxl import load_workbook
 
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.term import TermFeatureType
+from gwml2.models.well import Organisation
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -94,14 +95,6 @@ class WellCacheFileBase(object):
         # Copy the template
         shutil.copyfile(os.path.join(TEMPLATE_FOLDER, filename), well_file)
         shutil.copyfile(os.path.join(TEMPLATE_FOLDER, filename), ggmn_file)
-
-    def return_well_and_ggmn_files(self, well, filename):
-        """Return well and ggmn files"""
-        well_file = self.file_by_type(filename, WELL_AND_MONITORING_DATA)
-        ggmn_file = None
-        if well.number_of_measurements > 0 and well.organisation:
-            ggmn_file = self.file_by_type(filename, GGMN)
-        return well_file, ggmn_file
 
     def log(self, text):
         """Print time."""
@@ -222,17 +215,24 @@ class WellCacheZipFileBase(WellCacheFileBase):
         drilling_ggmn_file = self.file_by_type(self.drill_filename, GGMN)
         drilling_ggmn_book = load_workbook(drilling_ggmn_file)
 
+        # Get list of ggmn organisation
+        ggmn_organisations_list = Organisation.ggmn_organisations()
+
         # Save the data
         wells = self.get_well_queryset()
         for well in wells:
             self.merge_data_per_well(
                 well, self.wells_filename, well_book,
-                well_ggmn_book if well.is_ggmn and well.organisation else None,
+                well_ggmn_book if well.is_ggmn(
+                    ggmn_organisations_list
+                ) and well.organisation else None,
                 ['General Information', 'Hydrogeology', 'Management']
             )
             self.merge_data_per_well(
                 well, self.drill_filename, drilling_book,
-                drilling_ggmn_book if well.is_ggmn and well.organisation else None,
+                drilling_ggmn_book if well.is_ggmn(
+                    ggmn_organisations_list
+                ) and well.organisation else None,
                 [
                     'Drilling and Construction', 'Water Strike',
                     'Stratigraphic Log', 'Structures'
@@ -272,6 +272,11 @@ class WellCacheZipFileBase(WellCacheFileBase):
             original_ids_found = {}
             wells = self.get_well_queryset()
             for well in wells:
+                if data_type == GGMN and not well.is_ggmn(
+                        ggmn_organisations_list
+                ):
+                    continue
+
                 if well.number_of_measurements == 0:
                     continue
                 well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
