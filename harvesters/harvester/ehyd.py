@@ -2,6 +2,7 @@
 
 import csv
 import os
+import re
 from datetime import datetime
 
 import pytz
@@ -23,6 +24,7 @@ from gwml2.tasks.data_file_cache.country_recache import (
 )
 
 last_file_key = 'last-file'
+check_old_data_done_key = 'check-old-data'
 
 
 class EHYD(BaseHarvester):
@@ -46,12 +48,40 @@ class EHYD(BaseHarvester):
         )
         super(EHYD, self).__init__(harvester, replace, original_id)
 
+    def process_folder(self, folder, old_data=False):
+        """process folder."""
+        if not os.path.exists(folder):
+            return
+        if old_data and self.check_old_data_done:
+            return
+        files = os.listdir(folder)
+        files.sort()
+        last_file = self.last_file
+        for filename in files:
+            name, ext = os.path.splitext(filename)
+            if ['.asc', '.dat']:
+                try:
+                    if not old_data:
+                        datetime.strptime(name, '%Y%m%d%H%M%S')
+                    if not last_file or filename > last_file:
+                        # Process it because of the file is new
+                        last_file = filename
+                        self.process_measurements(
+                            os.path.join(folder, filename)
+                        )
+                        self.update_attribute(last_file_key, filename)
+                except ValueError as e:
+                    print(e)
+                    pass
+        if old_data:
+            self.update_attribute(check_old_data_done_key, True)
+
     def _process(self):
         """Pass the process."""
-        try:
-            self.last_file = self.attributes.get(last_file_key, None)
-        except Exception:
-            pass
+        self.check_old_data_done = self.attributes.get(
+            'check-old-data-done', False
+        )
+        self.last_file = self.attributes.get(last_file_key, None)
 
         if not os.path.exists(self.folder):
             raise HarvestingError(
@@ -86,7 +116,6 @@ class EHYD(BaseHarvester):
                 date = parser.parse(
                     row['date of construction']
                 )
-                self._update(f'Checking well {row["ID"]}')
                 well, harvester_well_data = self._save_well(
                     row['ID'],
                     row['name'],
@@ -114,23 +143,8 @@ class EHYD(BaseHarvester):
             except (KeyError, ValueError):
                 continue
 
-        files = os.listdir(self.folder)
-        files.sort()
-        last_file = self.last_file
-        for filename in files:
-            name, ext = os.path.splitext(filename)
-            if ext == '.asc':
-                try:
-                    datetime.strptime(name, '%Y%m%d%H%M%S')
-                    if not last_file or filename > last_file:
-                        # Process it because of the file is new
-                        last_file = filename
-                        self.process_measurements(
-                            os.path.join(self.folder, filename)
-                        )
-                        self.update_attribute(last_file_key, filename)
-                except ValueError as e:
-                    pass
+        self.process_folder(os.path.join(self.folder, 'old'), True)
+        self.process_folder(self.folder)
 
         # Process cache
         for well in self.wells:
@@ -146,13 +160,17 @@ class EHYD(BaseHarvester):
     def process_measurement(self, data):
         """Process measurement."""
         updated = False
-        # Save the data
-        x = data['X']
-        y = data['Y']
-        point = Point(float(y), float(x), srid=31287)
-        point.transform(self.trans)
-        self._update(f'Saving measurement for well {data["Ort"]}')
-        well_metadata = self.wells_by_original_id[data['Ort']]
+        try:
+            _id = data['DBMS-Nummer']
+        except KeyError:
+            _id = data["Ort"]
+
+        self._update(f'Saving measurement for well {_id}')
+        try:
+            well_metadata = self.wells_by_original_id[_id]
+        except KeyError:
+            print('Not found')
+            return
         harvester_well_data = well_metadata['harvester_well_data']
         last_measurement = well_metadata['last_measurement']
         well = harvester_well_data.well
@@ -205,7 +223,7 @@ class EHYD(BaseHarvester):
                 continue
 
             # If it is measurements word
-            if line == 'Werte: ':
+            if 'Werte:' in line:
                 is_measurement = True
                 data['measurements'] = []
                 continue
@@ -216,6 +234,7 @@ class EHYD(BaseHarvester):
             # ------------------------------------------------
             if is_measurement:
                 try:
+                    line = re.sub(' +', ' ', line)
                     columns = line.split(' ')
                     measurement_time = datetime.strptime(
                         ' '.join([columns[0], columns[1]]),
@@ -233,9 +252,9 @@ class EHYD(BaseHarvester):
             # ------------------------------------------------
             # If not measurements
             # ------------------------------------------------
-            row_data = line.split(': ')
+            row_data = line.split(':')
             try:
-                data[row_data[0]] = row_data[1]
+                data[row_data[0]] = row_data[1].replace(' ', '')
             except IndexError:
                 pass
         self.process_measurement(data)
