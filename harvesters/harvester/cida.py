@@ -42,6 +42,8 @@ class CidaUsgs(BaseHarvester):
             self.units['feet'] = Unit.objects.get(name='ft')
             self.units['ft'] = Unit.objects.get(name='ft')
             self.units['m'] = Unit.objects.get(name='m')
+            self.units['meters'] = Unit.objects.get(name='m')
+            self.units['centimeters'] = Unit.objects.get(name='cm')
         except Unit.DoesNotExist:
             pass
 
@@ -154,7 +156,8 @@ class CidaUsgs(BaseHarvester):
                     name=site_name,
                     latitude=latitude,
                     longitude=longitude,
-                    ground_surface_elevation_masl=altitude
+                    ground_surface_elevation_masl=altitude,
+                    reassign_organisation=True
                 )
 
                 # Total depth

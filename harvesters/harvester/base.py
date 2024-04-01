@@ -170,7 +170,8 @@ class BaseHarvester(ABC):
             feature_type: typing.Optional[TermFeatureType] = None,
             ground_surface_elevation_masl: typing.Optional[float] = None,
             top_of_well_elevation_masl: typing.Optional[float] = None,
-            description: typing.Optional[str] = None
+            description: typing.Optional[str] = None,
+            reassign_organisation=False
     ):
         """ Save well """
         well = self.get_well(
@@ -233,6 +234,10 @@ class BaseHarvester(ABC):
             harvester=self.harvester,
             well=well
         )
+        if reassign_organisation:
+            if well.organisation != self.harvester.organisation:
+                well.organisation = self.harvester.organisation
+                well.save()
         return well, harvester_well_data
 
     def _save_measurement(
