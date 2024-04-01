@@ -61,8 +61,10 @@ class Command(BaseCommand):
         countries = []
         organisations = []
         count = wells.count()
-        for idx, well in enumerate(wells.order_by('id')):
-            print(f'----- {idx}/{count} -----')
+        ids = list(wells.order_by('id').values_list('id', flat=True))
+        for idx, id in enumerate(ids):
+            well = Well.objects.get(id=id)
+            print(f'----- {idx}/{count} - {well.id} -----')
             generate_data_well_cache(
                 well.id, force_regenerate=force, generate_country_cache=False,
                 generate_organisation_cache=False
