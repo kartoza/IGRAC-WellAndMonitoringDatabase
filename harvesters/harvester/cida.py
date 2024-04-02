@@ -98,6 +98,18 @@ class CidaUsgs(BaseHarvester):
         """Get stations list from featuremember."""
         members = xml.findAll('gml:featuremember')
         count = len(members)
+
+        # Get list of stations from server
+        # Make all list of stations on server
+        # but not on the response as none organisation
+        sites = []
+        for idx, member in enumerate(members):
+            sites.append(self.value_by_tag(member, 'ngwmn:site_no'))
+        Well.objects.filter(
+            organisation__id=self.harvester.organisation.id
+        ).exclude(original_id__in=sites).update(organisation=None)
+
+        # Run the harvesting
         skip = True if self.original_id else False
         for idx, member in enumerate(members):
             self.updated = False

@@ -116,6 +116,7 @@ class EHYD(BaseHarvester):
                 date = parser.parse(
                     row['date of construction']
                 )
+                self._update(f'Checking well {row["ID"]}')
                 well, harvester_well_data = self._save_well(
                     row['ID'],
                     row['name'],
