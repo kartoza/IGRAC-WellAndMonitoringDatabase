@@ -145,21 +145,41 @@ class Hubeau(BaseHarvester):
                     continue
 
                 self.updated = False
+
+                # Save the well
                 geometry = station['geometry']
                 if not geometry or not geometry['coordinates']:
                     continue
+
                 latitude = geometry['coordinates'][1]
                 longitude = geometry['coordinates'][0]
+                original_id = station[self.original_id_key]
+                site_name = station['nom_commune']
+                altitude = float(station['altitude_station'])
 
-                last_date = None
-                well = self.get_well(original_id, latitude, longitude)
+                # Save well
+                well, harvester_well_data = self._save_well(
+                    original_id=original_id,
+                    name=site_name,
+                    latitude=latitude,
+                    longitude=longitude,
+                    ground_surface_elevation_masl=altitude,
+                    reassign_organisation=True
+                )
+
+                # Prefetch well
                 self.check_prefetch_wells(well, original_id)
+
                 # We just filter by latest one
+                last_date = None
+                first_date = None
                 if well:
-                    # Remove all measurements if re-fetch
                     last = well.welllevelmeasurement_set.first()
                     if last:
                         last_date = last.time.strftime("%Y-%m-%d")
+                    first = well.welllevelmeasurement_set.last()
+                    if first:
+                        first_date = first.time.strftime("%Y-%m-%d")
 
                 # Process measurement
                 try:
@@ -168,17 +188,28 @@ class Hubeau(BaseHarvester):
                     params = {
                         'code_bss': original_id,
                         'sort': 'asc'
-
                     }
+
                     if last_date:
                         params['date_debut_mesure'] = last_date
                     self._process_measurements(
-                        self._measurement_url(params), station, None
+                        self._measurement_url(params), station,
+                        harvester_well_data
                     )
+
+                    if first_date:
+                        params = {
+                            'code_bss': original_id, 'sort': 'desc',
+                            'date_fin_mesure': first_date
+                        }
+
+                        self._process_measurements(
+                            self._measurement_url(params), station,
+                            harvester_well_data
+                        )
 
                     # -----------------------
                     # Generate cache
-                    well = self.get_well(original_id, latitude, longitude)
                     if well and self.updated:
                         self.post_processing_well(
                             well, generate_country_cache=False
@@ -206,29 +237,13 @@ class Hubeau(BaseHarvester):
         """
         response = requests.get(url)
         if response.status_code in [200, 206]:
-            original_id = station[self.original_id_key]
-            site_name = station['nom_commune']
-            altitude = float(station['altitude_station'])
-            latitude = station['geometry']['coordinates'][1]
-            longitude = station['geometry']['coordinates'][0]
-
             data = response.json()
             measurements = data['data']
             self._update(
                 f'[{self.current_idx}/{self.count}] '
-                f'{original_id} - {len(measurements)} - {url}'
+                f'{harvester_well_data.well.original_id} - {len(measurements)} - {url}'
             )
             if measurements:
-                # Save well
-                if not harvester_well_data:
-                    well, harvester_well_data = self._save_well(
-                        original_id=original_id,
-                        name=site_name,
-                        latitude=latitude,
-                        longitude=longitude,
-                        ground_surface_elevation_masl=altitude
-                    )
-
                 # Save measurements
                 for measurement in measurements:
                     time = parse(measurement['date_mesure'])
