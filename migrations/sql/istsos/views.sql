@@ -95,14 +95,11 @@ SELECT w.description     as desc_foi,
        w.feature_type_id as id_fty_fk,
        w.id              as id_foi,
        w.name            as name_foi,
-       ST_SetSRID(
-               ST_MakePoint(
-                       ST_X(w.location),
-                       ST_Y(w.location),
-                       w.altitiude
-                   ),
-               4326)
-                         as geom_foi
+       CASE
+           WHEN w.altitiude is not null THEN ST_SetSRID(ST_MakePoint(ST_X(w.location),ST_Y(w.location),w.altitiude),4326)
+           ELSE ST_SetSRID(ST_MakePoint(ST_X(w.location),ST_Y(w.location)),4326)
+           END
+       as geom_foi
 from vw_well as w;
 
 -- EVENT_TIME --
