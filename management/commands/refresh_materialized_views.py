@@ -8,8 +8,11 @@ from django.db import connections
 
 class Command(BaseCommand):
     help = 'Refresh materialized views'
+    views = ['mv_well_ggmn', 'mv_well', 'mv_well_measurement']
 
     def handle(self, *args, **options):
         with connections[settings.GWML2_DATABASE_CONFIG].cursor() as cursor:
-            cursor.execute('REFRESH MATERIALIZED VIEW mv_well_ggmn')
-            cursor.execute('REFRESH MATERIALIZED VIEW mv_well')
+            for view in self.views:
+                sql = f'REFRESH MATERIALIZED VIEW {view}'
+                print(sql)
+                cursor.execute(sql)

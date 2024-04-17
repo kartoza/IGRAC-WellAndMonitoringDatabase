@@ -95,14 +95,11 @@ SELECT w.description     as desc_foi,
        w.feature_type_id as id_fty_fk,
        w.id              as id_foi,
        w.name            as name_foi,
-       ST_SetSRID(
-               ST_MakePoint(
-                       ST_X(w.location),
-                       ST_Y(w.location),
-                       w.altitiude
-                   ),
-               4326)
-                         as geom_foi
+       CASE
+           WHEN w.altitiude is not null THEN ST_SetSRID(ST_MakePoint(ST_X(w.location),ST_Y(w.location),w.altitiude),4326)
+           ELSE ST_SetSRID(ST_MakePoint(ST_X(w.location),ST_Y(w.location)),4326)
+           END
+       as geom_foi
 from vw_well as w;
 
 -- EVENT_TIME --
@@ -110,7 +107,7 @@ CREATE VIEW istsos.event_time AS
 SELECT id      as id_eti,
        well_id as id_prc_fk,
        time    as time_eti
-from vw_well_measurement;
+from mv_well_measurement;
 
 -- MEASURES --
 CREATE VIEW istsos.measures AS
@@ -119,7 +116,7 @@ SELECT id                                                       as id_msr,
        null                                                     as id_qi_fk,
        concat(parameter_id, '-', default_unit_id, '-', well_id) as id_pro_fk,
        default_value                                            as val_msr
-from vw_well_measurement;
+from mv_well_measurement;
 
 -- POSITIONS --
 CREATE VIEW istsos.positions AS

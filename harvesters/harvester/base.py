@@ -7,6 +7,7 @@ import requests
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
+from django.core.management import call_command
 from django.db.models.signals import post_save
 from django.utils import timezone
 
@@ -91,6 +92,11 @@ class BaseHarvester(ABC):
             self._error(f'{e}')
         except Exception:
             self._error(traceback.format_exc())
+
+        # RUN MATERIALIZED VIEW
+        running = Harvester.objects.filter(is_run=True).first()
+        if not running:
+            call_command('refresh_materialized_views')
 
     @staticmethod
     def additional_attributes() -> dict:

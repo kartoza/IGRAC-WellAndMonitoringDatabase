@@ -123,3 +123,8 @@ select id,
         SELECT id, time, well_id, default_unit_id, default_value, parameter_id
         from well_yield_measurement where default_value IS NOT NULL
         ) as measurement;
+
+-- MATERIALIZED VIEW FOR ISTSOS MEASUREMENT --
+-- SCHEDULED REFRESH --
+CREATE MATERIALIZED VIEW mv_well_measurement AS
+select * FROM vw_well_measurement;
