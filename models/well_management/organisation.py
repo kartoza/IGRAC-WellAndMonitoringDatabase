@@ -1,6 +1,8 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 
+from gwml2.models.general import Country
+
 
 class Organisation(models.Model):
     """ Organisation
@@ -24,6 +26,17 @@ class Organisation(models.Model):
         models.IntegerField(), default=list, null=True)
     editors = ArrayField(
         models.IntegerField(), default=list, null=True)
+
+    country = models.ForeignKey(
+        Country, null=True, blank=True, on_delete=models.SET_NULL,
+        help_text=(
+            'Identify the country of the organisation. '
+            "It is being used to assign well's country under "
+            "this organisation. "
+            'If this is empty, all well under this organisation '
+            'will be assigned based on geometry of country.'
+        )
+    )
 
     class Meta:
         db_table = 'organisation'
