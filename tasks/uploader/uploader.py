@@ -22,6 +22,7 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 )
 from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal
+from igrac_api.tasks.cache_istsos import cache_istsos
 
 logger = get_task_logger(__name__)
 
@@ -181,10 +182,16 @@ class BatchUploader:
             )
             generate_data_organisation_cache(organisation_id=organisation_id)
 
+        # ------------------------------------
+        # Run the istsos cache for getcapabilities
+        # ------------------------------------
+        self.upload_session.update_step('Running istsos cache', 90)
+        cache_istsos.delay()
+
         # -----------------------------------------
         # FINISH
         # For report
-        self.upload_session.update_step('Create report', 90)
+        self.upload_session.update_step('Create report', 95)
         self.upload_session.create_report_excel()
 
         # Finish
