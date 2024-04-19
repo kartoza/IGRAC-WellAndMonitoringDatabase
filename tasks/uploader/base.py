@@ -1,6 +1,7 @@
 import json
 
 from celery.utils.log import get_task_logger
+from django.db.models import Q
 
 from gwml2.models.general import Unit, Country
 from gwml2.models.term import (
@@ -10,9 +11,7 @@ from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionRowStatus
 )
-from gwml2.models.well import (
-    Well
-)
+from gwml2.models.well import Well
 from gwml2.tasks.uploader.well import get_column
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.groundwater_form import WellEditing
@@ -251,6 +250,10 @@ class BaseUploader(WellEditing):
                             rel_value = TERM.objects.get(
                                 name__iexact=value
                             ).name
+                        elif TERM == Country:
+                            rel_value = TERM.objects.get(
+                                Q(name__iexact=value) | Q(code__iexact=value)
+                            ).id
                         else:
                             rel_value = TERM.objects.get(name__iexact=value).id
                         cache[value] = rel_value

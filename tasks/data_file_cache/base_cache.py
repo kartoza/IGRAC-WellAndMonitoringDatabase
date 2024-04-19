@@ -11,6 +11,7 @@ from openpyxl import load_workbook
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.term import TermFeatureType
 from gwml2.models.well import Organisation
+from gwml2.terms import SheetName
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -234,8 +235,9 @@ class WellCacheZipFileBase(WellCacheFileBase):
                     ggmn_organisations_list
                 ) and well.organisation else None,
                 [
-                    'Drilling and Construction', 'Water Strike',
-                    'Stratigraphic Log', 'Structures'
+                    SheetName.drilling_and_construction,
+                    'Water Strike', 'Stratigraphic Log',
+                    SheetName.structure
                 ]
             )
 

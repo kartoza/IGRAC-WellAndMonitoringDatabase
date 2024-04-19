@@ -126,8 +126,10 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         """Assign country to the well."""
         from gwml2.models.general_information import Country
         # Autoassign with organisation country
-        if self.organisation.country and \
-                self.organisation.country != self.country:
+        if (
+                self.organisation and self.organisation.country and
+                self.organisation.country != self.country
+        ):
             self.country = self.organisation.country
             self.save()
         # Check country from the geometry

@@ -26,6 +26,7 @@ from gwml2.tasks.data_file_cache.country_recache import (
 from gwml2.tasks.data_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
+from gwml2.terms import SheetName
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -311,8 +312,8 @@ class GenerateWellCacheFile(object):
             construction.pump_installer if construction else '',
             construction.pump_description if construction else '',
         ]
-        sheetname = 'Drilling and Construction'
-        self.write_json(folder, sheetname, [data])
+
+        self.write_json(folder, SheetName.drilling_and_construction, [data])
 
         # --------------------------------------------------------------------------
         # For drilling data
@@ -371,7 +372,7 @@ class GenerateWellCacheFile(object):
         # --------------------------------------------------------------------------
         # For Construction Data
         if construction:
-            sheetname = 'Structures'
+            sheetname = SheetName.structure
             sheet_data = []
             for structure in well.construction.constructionstructure_set.all():
                 top_depth = structure.top_depth
