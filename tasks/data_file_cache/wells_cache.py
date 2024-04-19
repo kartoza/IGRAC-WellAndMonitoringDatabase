@@ -27,6 +27,7 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
 from gwml2.terms import SheetName
+from gwml2.utilities import xlsx_to_ods
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -130,6 +131,9 @@ class GenerateWellCacheFile(object):
         self.measurements(monitor_book, well)
         monitor_book.active = 0
         monitor_book.save(monitor_file)
+
+        xlsx_to_ods(monitor_file)
+        os.remove(monitor_file)
 
     def write_json(self, folder, sheetname, data):
         """Write json by sheetname."""
