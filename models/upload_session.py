@@ -18,6 +18,7 @@ from openpyxl.styles import PatternFill, Font
 from gwml2.models.metadata.license_metadata import LicenseMetadata
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
+from gwml2.utilities import ods_to_xlsx, xlsx_to_ods
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
@@ -283,7 +284,7 @@ class UploadSession(LicenseMetadata):
     def create_report_excel(self):
         """Created excel that will contain reports."""
 
-        _file = self.upload_file.path
+        _file = ods_to_xlsx(self.upload_file.path)
         _report_file = _file.replace('.xls', '.report.xls')
         if os.path.exists(_report_file):
             os.remove(_report_file)
@@ -308,6 +309,11 @@ class UploadSession(LicenseMetadata):
                 row_status.update_sheet(worksheet, status_column_idx)
         workbook.save(_report_file)
         os.chmod(_report_file, 0o0777)
+        xlsx_to_ods(_report_file)
+
+        # Delete files
+        os.remove(_file)
+        os.remove(_report_file)
 
 
 RowStatus = [

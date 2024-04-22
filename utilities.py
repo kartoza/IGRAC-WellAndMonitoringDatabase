@@ -148,3 +148,14 @@ def xlsx_to_ods(filename):
             filename, '--outdir', os.path.dirname(filename)
         ]
     )
+
+
+def ods_to_xlsx(filename):
+    """Convert xlsx to ods."""
+    subprocess.call(
+        [
+            'soffice', '--headless', '--invisible', '--convert-to', 'xlsx',
+            filename, '--outdir', os.path.dirname(filename)
+        ]
+    )
+    return filename.replace('.ods', '.xlsx')
