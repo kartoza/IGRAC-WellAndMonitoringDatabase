@@ -121,9 +121,8 @@
                     specified in the download file.
                 </div>
                 <div class="form-actions">
-                    <button type="submit"
-                            class="btn btn-primary">
-                        {% trans "Request" %}
+                    <button type="submit" class="btn btn-primary">
+                        {% trans "Download" %}
                     </button>
                 </div>
                 <br>
@@ -187,7 +186,7 @@
                     $('#id_organisations').show();
                     $('#id_countries').hide();
                 }
-            } 
+            }
             $('input[type=radio][name=radio_filter_type]').change(function() {
                 radioFilterTypeOnChange(this.value)
             });
