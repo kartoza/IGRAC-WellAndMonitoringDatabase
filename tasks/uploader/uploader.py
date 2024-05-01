@@ -1,7 +1,6 @@
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
-from pyexcel_xls import get_data as xls_get
-from pyexcel_xlsx import get_data as xlsx_get
+from pyexcel_ods3 import get_data
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled
@@ -82,11 +81,7 @@ class BatchUploader:
         _file = self.upload_session.upload_file
         if _file:
             _file.seek(0)
-            records = None
-            if str(_file).split('.')[-1] == 'xls':
-                records = xls_get(_file, column_limit=20)
-            elif str(_file).split('.')[-1] == 'xlsx':
-                records = xlsx_get(_file, column_limit=20)
+            records = get_data(_file.path)
             if not records:
                 error = 'No data found.'
                 self.upload_session.update_progress(

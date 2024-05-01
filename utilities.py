@@ -1,4 +1,6 @@
 import math
+import os
+import subprocess
 import typing
 from typing import List
 
@@ -136,3 +138,24 @@ def make_aware_local(time):
         return make_aware(time)
     except (ValueError, AttributeError):
         return time
+
+
+def xlsx_to_ods(filename):
+    """Convert xlsx to ods."""
+    subprocess.call(
+        [
+            'soffice', '--headless', '--invisible', '--convert-to', 'ods',
+            filename, '--outdir', os.path.dirname(filename)
+        ]
+    )
+
+
+def ods_to_xlsx(filename):
+    """Convert xlsx to ods."""
+    subprocess.call(
+        [
+            'soffice', '--headless', '--invisible', '--convert-to', 'xlsx',
+            filename, '--outdir', os.path.dirname(filename)
+        ]
+    )
+    return filename.replace('.ods', '.xlsx')

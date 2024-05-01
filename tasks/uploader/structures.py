@@ -5,6 +5,7 @@ from gwml2.models.term import (
     TermReferenceElevationType, TermConstructionStructureType
 )
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.terms import SheetName
 
 logger = get_task_logger(__name__)
 
@@ -13,7 +14,7 @@ class StructuresUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'Drilling and construction'
     IS_OPTIONAL = True
-    SHEETS = ['Structures']
+    SHEETS = [SheetName.structure]
 
     # key related with the index of keys
     # value if it has tem

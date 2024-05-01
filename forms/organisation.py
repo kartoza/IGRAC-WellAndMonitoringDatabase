@@ -23,7 +23,9 @@ class OrganisationFormAdmin(forms.ModelForm):
 
     class Meta:
         model = Organisation
-        fields = ('name', 'description', 'admin_users', 'editor_users')
+        fields = (
+            'name', 'country', 'description', 'admin_users', 'editor_users'
+        )
 
     def __init__(self, *args, **kwargs):
         forms.ModelForm.__init__(self, *args, **kwargs)

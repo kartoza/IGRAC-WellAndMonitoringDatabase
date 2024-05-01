@@ -24,11 +24,20 @@ def rerun_cache(modeladmin, request, queryset):
         generate_data_organisation_cache(organisation_id=org.id)
 
 
+def reassign_wells_country(modeladmin, request, queryset):
+    for org in queryset.filter(country__isnull=False):
+        org.well_set.all().update(country=org.country)
+
+
 class OrganisationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'active')
+    list_display = ('name', 'active', 'country', 'well_number')
     list_editable = ('active',)
-    actions = (rerun_cache,)
+    list_filter = ('country',)
+    actions = (rerun_cache, reassign_wells_country)
     form = OrganisationFormAdmin
+
+    def well_number(self, org: Organisation):
+        return org.well_set.all().count()
 
 
 def fetch(modeladmin, request, queryset):

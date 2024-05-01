@@ -11,6 +11,8 @@ from openpyxl import load_workbook
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.term import TermFeatureType
 from gwml2.models.well import Organisation
+from gwml2.terms import SheetName
+from gwml2.utilities import xlsx_to_ods
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -52,7 +54,7 @@ class WellCacheFileBase(object):
     current_time = None
     wells_filename = 'wells.xlsx'
     drill_filename = 'drilling_and_construction.xlsx'
-    monitor_filename = 'monitoring_data.xlsx'
+    monitor_filename = 'monitoring_data.ods'
 
     # cache
     feature_types = {}
@@ -178,6 +180,18 @@ class WellCacheZipFileBase(WellCacheFileBase):
             except FileNotFoundError:
                 pass
 
+    def zip_excel_to_ods(self, zip_file, filename, data_type):
+        """Zip excel to ods."""
+        well_file = self.file_by_type(
+            filename, data_type
+        )
+        xlsx_to_ods(well_file)
+        zip_file.write(
+            well_file.replace('.xlsx', '.ods'),
+            filename.replace('.xlsx', '.ods'),
+            compress_type=zipfile.ZIP_DEFLATED
+        )
+
     def run(self):
         self.current_time = time.time()
         self.log(
@@ -234,8 +248,9 @@ class WellCacheZipFileBase(WellCacheFileBase):
                     ggmn_organisations_list
                 ) and well.organisation else None,
                 [
-                    'Drilling and Construction', 'Water Strike',
-                    'Stratigraphic Log', 'Structures'
+                    SheetName.drilling_and_construction,
+                    'Water Strike', 'Stratigraphic Log',
+                    SheetName.structure
                 ]
             )
 
@@ -270,21 +285,11 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 if not zip_file:
                     zip_file = zipfile.ZipFile(zip_filepath, 'w')
 
-                    well_file = self.file_by_type(
-                        self.wells_filename, data_type
+                    self.zip_excel_to_ods(
+                        zip_file, self.wells_filename, data_type
                     )
-                    zip_file.write(
-                        well_file, self.wells_filename,
-                        compress_type=zipfile.ZIP_DEFLATED
-                    )
-
-                    drill_file = self.file_by_type(
-                        self.drill_filename, data_type
-                    )
-                    zip_file.write(
-                        drill_file,
-                        self.drill_filename,
-                        compress_type=zipfile.ZIP_DEFLATED
+                    self.zip_excel_to_ods(
+                        zip_file, self.drill_filename, data_type
                     )
 
                 if well.number_of_measurements == 0:
@@ -299,11 +304,11 @@ class WellCacheZipFileBase(WellCacheFileBase):
                     try:
                         _filename = (
                             f'monitoring/{original_id} '
-                            f'({original_ids_found[original_id] + 1}).xlsx'
+                            f'({original_ids_found[original_id] + 1}).ods'
                         )
                         continue
                     except KeyError:
-                        _filename = f'monitoring/{original_id}.xlsx'
+                        _filename = f'monitoring/{original_id}.ods'
                         original_ids_found[original_id] = 0
 
                     zip_file.write(

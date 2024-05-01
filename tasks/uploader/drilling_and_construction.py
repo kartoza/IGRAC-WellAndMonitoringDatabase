@@ -3,6 +3,7 @@ from celery.utils.log import get_task_logger
 from gwml2.models.general import Unit
 from gwml2.models.term import TermDrillingMethod
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.terms import SheetName
 
 logger = get_task_logger(__name__)
 
@@ -10,7 +11,7 @@ logger = get_task_logger(__name__)
 class DrillingAndConstructionUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'Drilling and construction'
-    SHEETS = ['Drilling and Construction']
+    SHEETS = [SheetName.drilling_and_construction]
 
     # key related with the index of keys
     # value if it has tem

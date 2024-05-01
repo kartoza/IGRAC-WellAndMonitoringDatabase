@@ -27,7 +27,7 @@
         {% include "groundwater_form/well_chart.html" %}
         {% include "groundwater_form/_many-to-many.html" with id='water_strike' title=_('Water Strike') theform=water_strike help_text='' delete='yes' %}
         {% include "groundwater_form/_many-to-many.html" with id='stratigraphic_log' title=_('Stratigraphic Log') theform=stratigraphic_log help_text='' delete='yes' %}
-        {% include "groundwater_form/_many-to-many.html" with id='structure' title=_('Design') theform=structure thedata=structures help_text='' delete='yes' %}
+        {% include "groundwater_form/_many-to-many.html" with id='structure' title=_('Construction') theform=structure thedata=structures help_text='' delete='yes' %}
     </div>
     <div id="construction">
         <div id="construction-data" class="section">

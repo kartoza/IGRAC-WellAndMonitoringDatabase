@@ -17,19 +17,25 @@ class CsvWellForm(forms.Form):
 
     gw_well_file = forms.FileField(
         label=_("General information"),
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
-        required=False
+        widget=forms.FileInput(
+            attrs={'class': 'form-control', 'accept': '.ods'}
+        ),
+        required=False,
     )
 
     gw_well_monitoring_file = forms.FileField(
         label=_("Monitoring data"),
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        widget=forms.FileInput(
+            attrs={'class': 'form-control', 'accept': '.ods'}
+        ),
         required=False
     )
 
     gw_well_drilling_and_construction_file = forms.FileField(
         label=_("Drilling and donstruction data"),
-        widget=forms.FileInput(attrs={'class': 'form-control'}),
+        widget=forms.FileInput(
+            attrs={'class': 'form-control', 'accept': '.ods'}
+        ),
         required=False
     )
 
