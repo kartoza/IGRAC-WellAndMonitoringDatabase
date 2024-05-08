@@ -7,7 +7,7 @@ class DownloadRequestAdmin(admin.ModelAdmin):
     list_display = (
         'uuid', 'first_name', 'last_name', 'organization',
         'organization_types',
-        'email', 'country', 'request_at'
+        'email', 'country', 'request_at', 'age_hours'
     )
     filter_horizontal = ('countries',)
     search_fields = (

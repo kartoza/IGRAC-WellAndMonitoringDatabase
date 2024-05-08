@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from gwml2.models.general import Country
@@ -209,3 +210,8 @@ class DownloadRequest(models.Model):
             return file
         else:
             return None
+
+    @property
+    def age_hours(self):
+        diff = timezone.now() - self.request_at
+        return diff.total_seconds() / (60 * 60)
