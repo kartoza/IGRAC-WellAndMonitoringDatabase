@@ -15,7 +15,7 @@ logger = get_task_logger(__name__)
 def clean_download_file(self):
     """Run clean download file."""
     for download in DownloadRequest.objects.all():
-        if download.age_hours >= 5:
+        if download.age_hours >= 10:
             _file = download.file()
             if _file:
                 os.remove(_file)
