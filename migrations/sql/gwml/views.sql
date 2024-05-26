@@ -127,4 +127,4 @@ select id,
 -- MATERIALIZED VIEW FOR ISTSOS MEASUREMENT --
 -- SCHEDULED REFRESH --
 CREATE MATERIALIZED VIEW mv_well_measurement AS
-select * FROM vw_well_measurement;
+select *, concat(parameter_id, '-', default_unit_id, '-', well_id) as unique_fk FROM vw_well_measurement;
