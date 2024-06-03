@@ -14,6 +14,7 @@ SELECT id                                                       as id_msr,
        null                                                     as id_qi_fk,
        unique_fk                                                as id_pro_fk,
        well_id                                                  as id_prc_fk,
+       time                                                     as time_eti,
        default_value                                            as val_msr
 from mv_well_measurement;
 
