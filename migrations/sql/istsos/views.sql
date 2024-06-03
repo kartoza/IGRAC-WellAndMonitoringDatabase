@@ -184,3 +184,9 @@ from well
        LEFT JOIN hydrogeology_parameter on well.hydrogeology_parameter_id = hydrogeology_parameter.id
        LEFT JOIN term_aquifer_type on hydrogeology_parameter.aquifer_type_id = term_aquifer_type.id
        LEFT JOIN term_confinement on hydrogeology_parameter.confinement_id = term_confinement.id;
+
+-- DESCRIBE SENSOR --
+CREATE MATERIALIZED VIEW istsos.describe_sensor AS
+    SELECT def_opr, name_opr, desc_opr, constr_pro, name_uom, id_pro, po.begin_measurement as begin, po.end_measurement as end, name_prc
+    FROM istsos.observed_properties opr, istsos.proc_obs po, istsos.procedures pr, istsos.uoms um
+    WHERE opr.id_opr=po.id_opr_fk AND pr.id_prc=po.id_prc_fk AND um.id_uom = po.id_uom_fk ORDER BY id_pro;

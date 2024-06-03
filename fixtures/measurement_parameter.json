@@ -8,7 +8,8 @@
       "cm",
       "m",
       "ft"
-    ]
+    ],
+    "default_unit": "m"
   },
   "Water depth [from the top of the well]": {
     "description": "",
@@ -19,7 +20,8 @@
       "cm",
       "m",
       "ft"
-    ]
+    ],
+    "default_unit": "m"
   },
   "Water level elevation a.m.s.l.": {
     "description": "",
@@ -30,7 +32,8 @@
       "cm",
       "m",
       "ft"
-    ]
+    ],
+    "default_unit": "m"
   },
   "EC": {
     "description": "Electrical conductivity",
@@ -40,7 +43,8 @@
     "units": [
       "S/m",
       "μS/cm"
-    ]
+    ],
+    "default_unit": "S/m"
   },
   "pH": {
     "description": "Acidity",
@@ -58,7 +62,8 @@
       "°C",
       "°F",
       "°K"
-    ]
+    ],
+    "default_unit": "°C"
   },
   "NO₃": {
     "description": "Nitrate",
@@ -68,7 +73,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "Cl": {
     "description": "Cloride",
@@ -78,7 +84,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "Ca": {
     "description": "Calcium",
@@ -88,7 +95,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "Mg": {
     "description": "Magnesium",
@@ -98,7 +106,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "Na": {
     "description": "Sodium",
@@ -108,7 +117,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "K": {
     "description": "Potassium",
@@ -118,7 +128,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "HCO₃": {
     "description": "Bicarbonate",
@@ -128,7 +139,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "SO₄": {
     "description": "Sulfate",
@@ -138,7 +150,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "TDS": {
     "description": "Total dissolved solids",
@@ -148,7 +161,8 @@
     "units": [
       "mg/L",
       "ppm"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "FC": {
     "description": "Fecal coliforms",
@@ -158,7 +172,8 @@
     "units": [
       "cfu per mL",
       "cfu per 100 ml"
-    ]
+    ],
+    "default_unit": "cfu per mL"
   },
   "FS": {
     "description": "Fecal streptococci",
@@ -168,7 +183,8 @@
     "units": [
       "cfu per mL",
       "cfu per 100 ml"
-    ]
+    ],
+    "default_unit": "cfu per mL"
   },
   "E Coli": {
     "description": "Escherichia coli",
@@ -178,7 +194,8 @@
     "units": [
       "cfu per mL",
       "cfu per 100 ml"
-    ]
+    ],
+    "default_unit": "cfu per mL"
   },
   "F": {
     "description": "Fluoride",
@@ -189,7 +206,8 @@
       "ng/L",
       "μg/L",
       "mg/L"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "As": {
     "description": "Soluble arsenic",
@@ -200,7 +218,8 @@
       "ng/L",
       "μg/L",
       "mg/L"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "U": {
     "description": "Soluble uranium",
@@ -211,7 +230,8 @@
       "ng/L",
       "μg/L",
       "mg/L"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "NH₄": {
     "description": "Ammonium",
@@ -221,7 +241,8 @@
     "units": [
       "μg/L",
       "mg/L"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "Fe": {
     "description": "Soluble iron",
@@ -230,7 +251,8 @@
     ],
     "units": [
       "mg/L"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "Mn": {
     "description": "Soluble manganese",
@@ -241,7 +263,8 @@
       "ng/L",
       "μg/L",
       "mg/L"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "P": {
     "description": "orthophosphate",
@@ -251,7 +274,8 @@
     "units": [
       "μg/L",
       "mg/L"
-    ]
+    ],
+    "default_unit": "mg/L"
   },
   "Yield": {
     "description": "Yield",
@@ -263,7 +287,8 @@
       "m³/h",
       "m³/min",
       "m³/s"
-    ]
+    ],
+    "default_unit": "m³/day"
   },
   "Spring discharge": {
     "description": "Spring discharge",
@@ -275,6 +300,7 @@
       "m³/h",
       "m³/min",
       "m³/s"
-    ]
+    ],
+    "default_unit": "m³/day"
   }
 }

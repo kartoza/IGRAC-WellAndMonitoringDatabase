@@ -8,23 +8,5 @@ class Migration(migrations.Migration):
         ('gwml2', '0012_useruuid'),
     ]
 
-    sql = """
-        CREATE VIEW well_information AS
-        select w.id,
-               w.original_id                as "original_id",
-               w.name                       as "name",
-               c.name                       as "country",
-               type.name                    as "feature_type",
-               admins || editors || viewers as "users",
-               concat('<a href="/groundwater/well/', w.id, '">detail</a>') as detail,
-               w.location
-        from well as w
-            LEFT JOIN organisation org on w.organisation_id = org.id
-            LEFT JOIN country c on w.country_id = c.id
-            LEFT JOIN term_feature_type type on w.feature_type_id = type.id;
-        """
-
     operations = [
-        migrations.RunSQL('DROP VIEW IF EXISTS well_information;'),
-        migrations.RunSQL(sql)
     ]

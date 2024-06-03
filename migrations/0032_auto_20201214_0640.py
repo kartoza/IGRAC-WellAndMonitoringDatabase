@@ -9,9 +9,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL('DROP VIEW IF EXISTS well_with_uuid;'),
-        migrations.RunSQL('DROP VIEW IF EXISTS well_information_uuid;'),
-        migrations.RunSQL('DROP VIEW IF EXISTS well_information;'),
         migrations.AlterField(
             model_name='construction',
             name='pump_installer',

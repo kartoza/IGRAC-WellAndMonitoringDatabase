@@ -7,18 +7,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('gwml2', '0067_view_well'),
     ]
-
-    functions = """
-            DROP TRIGGER IF EXISTS trigger_organisation ON organisation;
-            DROP TRIGGER IF EXISTS trigger_user_uuid ON user_uuid;
-            DROP TRIGGER IF EXISTS trigger_well ON well;
-            DROP FUNCTION IF EXISTS update_mv();
-    """
     operations = [
-        migrations.RunSQL('DROP MATERIALIZED VIEW IF EXISTS mv_well_ggmn;'),
-        migrations.RunSQL('DROP MATERIALIZED VIEW IF EXISTS mv_well;'),
-        migrations.RunSQL('DROP VIEW IF EXISTS vw_well;'),
-        migrations.RunSQL(functions),
         migrations.AlterField(
             model_name='well',
             name='original_id',
