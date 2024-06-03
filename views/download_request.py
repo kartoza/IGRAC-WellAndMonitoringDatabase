@@ -8,7 +8,7 @@ from django.views.generic.list import View
 
 from gwml2.forms.download_request import DownloadRequestForm
 from gwml2.models.download_request import (
-    DownloadRequest, WELL_AND_MONITORING_DATA
+    DownloadRequest, GGMN
 )
 from gwml2.models.general import Country
 from gwml2.tasks.downloader import prepare_download_file
@@ -40,7 +40,7 @@ class DownloadRequestFormView(View):
                 country = Country.objects.get(code=country)
             except Country.DoesNotExist:
                 country = None
-        data_type = request.GET.get('data_type', WELL_AND_MONITORING_DATA)
+        data_type = request.GET.get('data_type', GGMN)
         context = {
             'form': DownloadRequestForm(
                 instance=DownloadRequest(

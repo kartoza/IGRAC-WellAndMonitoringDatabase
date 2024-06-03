@@ -14,16 +14,17 @@ SELECT id                                                       as id_msr,
        null                                                     as id_qi_fk,
        unique_fk                                                as id_pro_fk,
        well_id                                                  as id_prc_fk,
+       time                                                     as time_eti,
        default_value                                            as val_msr
 from mv_well_measurement;
 
 -- MEASURES GROUP --
 CREATE MATERIALIZED VIEW istsos.measures_group AS
 SELECT unique_fk                                                as id_pro,
-       count(id)                                                as count_measurement,
+       parameter_id                                             as parameter_id,
        min(time)                                                as begin_measurement,
        max(time)                                                as end_measurement
-from mv_well_measurement GROUP BY unique_fk;
+from mv_well_measurement GROUP BY unique_fk, parameter_id;
 
 -- PROCEDURES --
 CREATE VIEW istsos.procedures AS
@@ -184,3 +185,9 @@ from well
        LEFT JOIN hydrogeology_parameter on well.hydrogeology_parameter_id = hydrogeology_parameter.id
        LEFT JOIN term_aquifer_type on hydrogeology_parameter.aquifer_type_id = term_aquifer_type.id
        LEFT JOIN term_confinement on hydrogeology_parameter.confinement_id = term_confinement.id;
+
+-- OBSERVED PROPERTIES SENSOR --
+CREATE MATERIALIZED VIEW istsos.observed_properties_sensor AS
+    SELECT id_prc, def_opr, name_opr, desc_opr, constr_pro, name_uom, id_pro, po.begin_measurement as stime_prc, po.end_measurement as etime_prc, name_prc
+    FROM istsos.observed_properties opr, istsos.proc_obs po, istsos.procedures pr, istsos.uoms um
+    WHERE opr.id_opr=po.id_opr_fk AND pr.id_prc=po.id_prc_fk AND um.id_uom = po.id_uom_fk ORDER BY id_pro;

@@ -10,7 +10,7 @@ class Command(BaseCommand):
     help = 'Refresh materialized views'
     views = [
         'mv_well_ggmn', 'mv_well', 'mv_well_measurement',
-        'istsos.measures_group'
+        'istsos.measures_group', 'istsos.observed_properties_sensor'
     ]
 
     def handle(self, *args, **options):

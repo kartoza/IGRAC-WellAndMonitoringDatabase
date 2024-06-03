@@ -98,4 +98,10 @@ class Command(BaseCommand):
                     group.parameters.add(measurement)
                 units = Unit.objects.filter(name__in=value['units'])
                 measurement.units.add(*units)
+                try:
+                    measurement.default_unit = Unit.objects.get(
+                        name=value['default_unit']
+                    )
+                except (Unit.DoesNotExist, KeyError):
+                    pass
                 measurement.save()

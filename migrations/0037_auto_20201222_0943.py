@@ -10,7 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunSQL('DROP VIEW IF EXISTS well_with_uuid;'),
         migrations.AlterField(
             model_name='well',
             name='name',
