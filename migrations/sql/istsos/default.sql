@@ -6,7 +6,7 @@ DROP VIEW IF EXISTS istsos.event_time;
 DROP VIEW IF EXISTS istsos.foi;
 DROP VIEW IF EXISTS istsos.off_proc;
 DROP VIEW IF EXISTS istsos.feature_type;
-DROP MATERIALIZED VIEW IF EXISTS istsos.describe_sensor;
+DROP MATERIALIZED VIEW IF EXISTS istsos.observed_properties_sensor;
 DROP VIEW IF EXISTS istsos.uoms;
 DROP VIEW IF EXISTS istsos.proc_obs;
 DROP VIEW IF EXISTS istsos.observed_properties;
