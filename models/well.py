@@ -215,8 +215,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         """
         Return file path of cache file
         """
-        folder = os.path.join(settings.MEDIA_ROOT, 'measurement-cache',
-                              '{}'.format(self.id))
+        folder = os.path.join(
+            settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
+        )
         return os.path.join(folder, '{}.gz'.format(measurement_name))
 
     def measurement_data(self, measurement_name: str):
@@ -282,7 +283,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     def generate_measurement_cache(self, model=None):
         """ Generate measurement cache """
         folder = os.path.join(
-            settings.MEDIA_ROOT, 'measurement-cache', '{}'.format(self.id)
+            settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
         )
         if not os.path.exists(folder):
             os.makedirs(folder)
