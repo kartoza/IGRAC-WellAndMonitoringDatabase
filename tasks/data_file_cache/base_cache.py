@@ -143,15 +143,19 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 os.path.join(well_folder, filename),
                 well_book, ggmn_book, sheetname
             )
-        well_book.active = 0
         if ggmn_book:
             ggmn_book.active = 0
+        if well_book:
+            well_book.active = 0
 
     def merge_data_between_sheets(
             self, source_file, target_book, target_book_2, sheetname
     ):
         """Merge data between sheets"""
-        if not os.path.exists(source_file) or not target_book:
+        if (
+                not os.path.exists(source_file)
+                or (not target_book and not target_book_2)
+        ):
             return
         source_file = os.path.join(source_file, sheetname + '.json')
         data = []
@@ -160,7 +164,9 @@ class WellCacheZipFileBase(WellCacheFileBase):
             data = json.loads(_file.read())
 
         # Target book 1
-        target_sheet = target_book[sheetname]
+        target_sheet = None
+        if target_book:
+            target_sheet = target_book[sheetname]
 
         # Target book 2
         target_sheet_2 = None
@@ -169,7 +175,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
 
         # Append data from source
         for row in data:
-            target_sheet.append(row)
+            if target_book:
+                target_sheet.append(row)
             if target_book_2:
                 target_sheet_2.append(row)
 
@@ -217,7 +224,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
         # Get data
         # Well files
         well_file = self.file_by_type(
-            self.wells_filename, WELL_AND_MONITORING_DATA)
+            self.wells_filename, WELL_AND_MONITORING_DATA
+        )
         well_book = load_workbook(well_file)
         well_ggmn_file = self.file_by_type(self.wells_filename, GGMN)
         well_ggmn_book = load_workbook(well_ggmn_file)
@@ -235,18 +243,21 @@ class WellCacheZipFileBase(WellCacheFileBase):
         # Save the data
         wells = self.get_well_queryset()
         for well in wells:
+            is_ggmn = well.is_ggmn(
+                ggmn_organisations_list
+            ) and well.organisation
+            print(is_ggmn)
+
             self.merge_data_per_well(
-                well, self.wells_filename, well_book,
-                well_ggmn_book if well.is_ggmn(
-                    ggmn_organisations_list
-                ) and well.organisation else None,
+                well, self.wells_filename,
+                well_book if not is_ggmn else None,
+                well_ggmn_book if is_ggmn else None,
                 ['General Information', 'Hydrogeology', 'Management']
             )
             self.merge_data_per_well(
-                well, self.drill_filename, drilling_book,
-                drilling_ggmn_book if well.is_ggmn(
-                    ggmn_organisations_list
-                ) and well.organisation else None,
+                well, self.drill_filename,
+                drilling_book if not is_ggmn else None,
+                drilling_ggmn_book if is_ggmn else None,
                 [
                     SheetName.drilling_and_construction,
                     'Water Strike', 'Stratigraphic Log',
@@ -277,9 +288,13 @@ class WellCacheZipFileBase(WellCacheFileBase):
             original_ids_found = {}
             wells = self.get_well_queryset()
             for well in wells:
-                if data_type == GGMN and not well.is_ggmn(
-                        ggmn_organisations_list
-                ):
+                is_ggmn = well.is_ggmn(
+                    ggmn_organisations_list
+                ) and well.organisation
+
+                if data_type == GGMN and not is_ggmn:
+                    continue
+                if data_type == WELL_AND_MONITORING_DATA and is_ggmn:
                     continue
 
                 if not zip_file:

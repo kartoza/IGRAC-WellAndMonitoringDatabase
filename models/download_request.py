@@ -35,10 +35,10 @@ class DownloadRequest(models.Model):
     )
     data_type = models.CharField(
         _('Data type'),
-        default='Well and Monitoring Data',
+        default=GGMN,
         choices=(
-            (WELL_AND_MONITORING_DATA, WELL_AND_MONITORING_DATA),
             (GGMN, GGMN),
+            (WELL_AND_MONITORING_DATA, 'Other data'),
         ),
         max_length=512
     )

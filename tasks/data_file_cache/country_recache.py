@@ -45,9 +45,12 @@ class GenerateCountryCacheFile(WellCacheZipFileBase):
         ggmn_organisations = []
         wells = self.get_well_queryset()
         for well in wells:
-            organisations.append(well.organisation.name)
             if well.is_ggmn(ggmn_organisations_list):
                 ggmn_organisations.append(well.organisation.name)
+            else:
+                organisations.append(well.organisation.name)
+
+        # Save the organisation data
         self.generate_organisations_json_file(
             WELL_AND_MONITORING_DATA, list(set(organisations))
         )
