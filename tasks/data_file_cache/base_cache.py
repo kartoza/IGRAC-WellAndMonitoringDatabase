@@ -246,7 +246,6 @@ class WellCacheZipFileBase(WellCacheFileBase):
             is_ggmn = well.is_ggmn(
                 ggmn_organisations_list
             ) and well.organisation
-            print(is_ggmn)
 
             self.merge_data_per_well(
                 well, self.wells_filename,
