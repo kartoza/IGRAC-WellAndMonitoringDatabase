@@ -10,6 +10,6 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_well
-    AFTER INSERT OR UPDATE
+    AFTER INSERT
     ON well
     FOR EACH ROW EXECUTE PROCEDURE update_mv();
