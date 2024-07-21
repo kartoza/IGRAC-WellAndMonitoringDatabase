@@ -13,6 +13,7 @@ from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester, HarvestingError
 from gwml2.harvesters.models.harvester import Harvester
+from gwml2.minio import S3FileSyetem
 from gwml2.models.drilling import Drilling
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
@@ -32,7 +33,6 @@ class EHYD(BaseHarvester):
     Harvester for file sftp that they push to it
     """
     updated = False
-    folder = settings.SFTP_FOLDER
     wells_by_original_id = {}
     wells = []
     countries = []
@@ -46,18 +46,28 @@ class EHYD(BaseHarvester):
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL
         )
+        self.file_system = S3FileSyetem(
+            'IGRAC', os.environ.get(
+                'IGRAC_SFTP_S3_BUCKET_NAME', ''
+            )
+        )
         super(EHYD, self).__init__(harvester, replace, original_id)
 
-    def process_folder(self, folder, old_data=False):
+    def process_folder(self, folder=None, old_data=False):
         """process folder."""
-        if not os.path.exists(folder):
+        if not self.file_system.exist(folder):
             return
         if old_data and self.check_old_data_done:
             return
-        files = os.listdir(folder)
+        files = self.file_system.files(folder)
         files.sort()
         last_file = self.last_file
         for filename in files:
+            filename = f'{filename}'
+            prefix = f'{self.file_system.bucket}/'
+            if filename.startswith(prefix):
+                filename = filename[len(prefix):]
+
             name, ext = os.path.splitext(filename)
             if ['.asc', '.dat']:
                 try:
@@ -66,9 +76,10 @@ class EHYD(BaseHarvester):
                     if not last_file or filename > last_file:
                         # Process it because of the file is new
                         last_file = filename
-                        self.process_measurements(
-                            os.path.join(folder, filename)
-                        )
+                        filepath = filename
+                        if folder:
+                            filepath = os.path.join(folder, filename)
+                        self.process_measurements(filepath)
                         self.update_attribute(last_file_key, filename)
                 except ValueError as e:
                     print(e)
@@ -83,28 +94,20 @@ class EHYD(BaseHarvester):
         )
         self.last_file = self.attributes.get(last_file_key, None)
 
-        if not os.path.exists(self.folder):
-            raise HarvestingError(
-                'Sftp folder not found or not setup correctly. '
-                f'Current: {self.folder}'
-            )
-
         ori_coord = SpatialReference(31287)
         target_coord = SpatialReference(4326)
         self.trans = CoordTransform(ori_coord, target_coord)
 
         # Check the wells
-        well_file = os.path.join(self.folder, 'base data.csv')
-        if not os.path.exists(well_file):
+        well_file = os.path.join('base data.csv')
+        if not self.file_system.exist(well_file):
             raise HarvestingError(
                 '"base data.csv" is not exist. '
                 'Please put it to provide list of wells.'
             )
 
         # Get csv file that contains wells data
-        _file = open(
-            well_file, 'r', encoding="utf8", errors='ignore'
-        )
+        _file = self.file_system.open_file(well_file)
         reader = csv.DictReader(_file, delimiter=';')
 
         for row in list(reader):
@@ -144,8 +147,8 @@ class EHYD(BaseHarvester):
             except (KeyError, ValueError):
                 continue
 
-        self.process_folder(os.path.join(self.folder, 'old'), True)
-        self.process_folder(self.folder)
+        self.process_folder('old', True)
+        self.process_folder()
 
         # Process cache
         for well in self.wells:
@@ -200,12 +203,13 @@ class EHYD(BaseHarvester):
             updated = True
         if updated:
             self.wells.append(well)
-            self.countries.append(well.country.code)
+            if well.country:
+                self.countries.append(well.country.code)
 
     def process_measurements(self, path):
         """Process measurements."""
         self._update(f'Check file {path}')
-        _file = open(path, 'r', encoding="utf8", errors='ignore')
+        _file = self.file_system.open_file(path)
         lines = _file.readlines()
 
         data = {}
