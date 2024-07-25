@@ -1,6 +1,6 @@
-from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 User = get_user_model()
@@ -24,6 +24,7 @@ class CreationMetadata(models.Model):
         _('Last edited by'),
         null=True, blank=True
     )
+    wagtail_reference_index_ignore = True
 
     class Meta:
         abstract = True

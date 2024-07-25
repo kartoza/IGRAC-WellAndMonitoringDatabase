@@ -38,6 +38,8 @@ class Organisation(models.Model):
         )
     )
 
+    wagtail_reference_index_ignore = True
+
     class Meta:
         db_table = 'organisation'
         ordering = ['name']

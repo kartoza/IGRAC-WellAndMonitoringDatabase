@@ -67,6 +67,8 @@ class Harvester(models.Model):
         help_text=_('Default indicator : well can be downloaded.')
     )
 
+    wagtail_reference_index_ignore = True
+
     class Meta:
         db_table = 'harvester'
 
