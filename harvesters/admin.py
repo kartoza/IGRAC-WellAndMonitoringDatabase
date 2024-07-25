@@ -75,6 +75,12 @@ EHYD = (
     '(https://www.ehyd.gv.at/)',
     None
 )
+EHYD_S3 = (
+    'gwml2.harvesters.harvester.ehyd_s3.EHYDS3',
+    '(Austria) Electronic Hydrographic Data using S3 '
+    '(https://www.ehyd.gv.at/)',
+    None
+)
 
 HARVESTERS = (
     AZULBHD,
@@ -85,7 +91,8 @@ HARVESTERS = (
     HYDAPI,
     SGUAPI,
     CIDA_USGS,
-    EHYD
+    EHYD,
+    EHYD_S3
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS
