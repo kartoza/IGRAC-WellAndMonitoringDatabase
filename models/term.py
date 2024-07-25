@@ -1,5 +1,5 @@
-from django.contrib.gis.db import models
 from adminsortable.models import Sortable
+from django.contrib.gis.db import models
 
 
 class _Term(Sortable):
@@ -8,6 +8,8 @@ class _Term(Sortable):
     name = models.CharField(
         max_length=512, unique=True)
     description = models.TextField(null=True, blank=True)
+
+    wagtail_reference_index_ignore = True
 
     def __str__(self):
         return self.name
