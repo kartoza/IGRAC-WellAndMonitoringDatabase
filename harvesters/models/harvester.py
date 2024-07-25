@@ -163,7 +163,7 @@ class HarvesterWellData(models.Model):
     harvester = models.ForeignKey(
         Harvester, on_delete=models.CASCADE
     )
-    well = models.OneToOneField(
+    well = models.ForeignKey(
         Well,
         on_delete=models.CASCADE
     )
