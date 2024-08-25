@@ -166,7 +166,7 @@
                 </div>
             </td>
             <td><div class="notes">${status ? status : ''}</div></td>
-            <td class="report">${creatingReport ? 'Creating report' : data.task_status !== 'RUNNING' ? ("<a href=" + data.report_filename + " target='_blank'>report</a>") : ""}</td>
+            <td class="report">${creatingReport ? 'Creating report' : data.task_status !== 'RUNNING' ? (data.report_filename ? "<a href=" + data.report_filename + " target='_blank'>report</a>" : "-") : ""}</td>
           </tr>
         `
         if (!$row.length) {

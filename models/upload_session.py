@@ -285,7 +285,14 @@ class UploadSession(LicenseMetadata):
         """Created excel that will contain reports."""
 
         _file = ods_to_xlsx(self.upload_file.path)
-        _report_file = _file.replace('.xls', '.report.xls')
+
+        # Create file report name
+        ext = os.path.splitext(_file)[1]
+        _report_file = _file.replace(ext, f'.report{ext}')
+
+        # If file report equals file, skip create report
+        if _report_file == _file:
+            return
         if os.path.exists(_report_file):
             os.remove(_report_file)
         workbook = openpyxl.load_workbook(_file)

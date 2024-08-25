@@ -1,3 +1,5 @@
+import os
+
 from rest_framework import serializers
 
 from gwml2.models.upload_session import UploadSession
@@ -16,8 +18,15 @@ class UploadSessionSerializer(serializers.ModelSerializer):
         return obj.organisation.name if obj.organisation else '-'
 
     def get_report_filename(self, obj: UploadSession):
-        _report_file = obj.upload_file.url.replace('.xls', '.report.xls')
-        return _report_file
+        _file = obj.upload_file.url
+        _path = obj.upload_file.path
+        ext = os.path.splitext(_file)[1]
+        _report_file = _file.replace(ext, f'.report{ext}')
+        _report_path = _path.replace(ext, f'.report{ext}')
+        if os.path.exists(_report_path):
+            return _report_file
+        else:
+            return None
 
     def get_uploaded_at(self, obj: UploadSession):
         return obj.timestamp
