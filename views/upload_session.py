@@ -1,3 +1,5 @@
+import os
+
 from django.core.exceptions import PermissionDenied
 from django.views.generic.detail import DetailView
 
@@ -13,7 +15,10 @@ class UploadSessionDetailView(DetailView):
             **kwargs)
         if not self.request.user.is_superuser and self.object.uploader != self.request.user.id:
             raise PermissionDenied('You do not have permission.')
-        context['url'] = self.object.upload_file.url.replace(
-            '.xls', '.report.xls'
-        )
+
+        # Create file report name
+        _file = self.object.upload_file.url
+        ext = os.path.splitext(_file)[1]
+        _report_file = _file.replace(ext, f'.report{ext}')
+        context['url'] = _report_file
         return context
