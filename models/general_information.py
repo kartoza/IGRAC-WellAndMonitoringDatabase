@@ -1,7 +1,8 @@
 from django.contrib.gis.db import models
+from django.utils.translation import ugettext_lazy as _
+
 from gwml2.models.general import Quantity, Country
 from gwml2.models.term import TermFeatureType
-from django.utils.translation import ugettext_lazy as _
 
 
 class GeneralInformation(models.Model):
@@ -21,6 +22,17 @@ class GeneralInformation(models.Model):
         help_text=_('Ground surface elevation above sea level.'),
         related_name='ground_surface_elevation',
         verbose_name=_('Ground surface elevation')
+    )
+    glo_90m_elevation = models.OneToOneField(
+        Quantity, on_delete=models.SET_NULL,
+        null=True, blank=True,
+        help_text=_(
+            'DEM elevation based on the GLO_90m dataset above sea level.'
+        ),
+        related_name='glo_90m_elevation',
+        verbose_name=_(
+            'DEM elevation based on the GLO_90m dataset above sea level'
+        )
     )
     top_borehole_elevation = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
@@ -56,7 +68,8 @@ class GeneralInformation(models.Model):
         _("Photo"),
         null=True, blank=True,
         upload_to='gwml2/photos/',
-        help_text=_('A photo of the groundwater point. More photos can be added in annex.')
+        help_text=_(
+            'A photo of the groundwater point. More photos can be added in annex.')
     )
     description = models.TextField(
         _("Description"),

@@ -97,6 +97,12 @@ class WellView(ViewWellFormMixin, View):
                 'v': well.ground_surface_elevation.value if
                 well.ground_surface_elevation else '',
             },
+            'glo_90m_elevation': {
+                'u': well.glo_90m_elevation.unit.name if
+                well.glo_90m_elevation and well.glo_90m_elevation.unit else '',
+                'v': well.glo_90m_elevation.value if
+                well.glo_90m_elevation else '',
+            },
         }
         if well.pk and not well.ggis_uid:
             well.save()

@@ -54,6 +54,8 @@ class WellMinimizedSerializer(WellSerializer, serializers.ModelSerializer):
         result['dsc'] = self.get_val(instance.description)  # description
         result['gse'] = self.get_length_to_meter(  # Ground_surface_elevation
             instance.ground_surface_elevation)
+        result['glo_e'] = self.get_length_to_meter(  # Ground_surface_elevation
+            instance.glo_90m_elevation)
         result['tbe'] = self.get_length_to_meter(  # Top_borehole_elevation
             instance.top_borehole_elevation)
         result['c'] = self.term_val(instance.country)  # Country
