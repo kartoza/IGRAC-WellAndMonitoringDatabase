@@ -31,7 +31,7 @@ class GeneralInformation(models.Model):
         ),
         related_name='glo_90m_elevation',
         verbose_name=_(
-            'DEM elevation based on the GLO_90m dataset above sea level'
+            'DEM elevation based on the GLO_90m dataset'
         )
     )
     top_borehole_elevation = models.OneToOneField(
