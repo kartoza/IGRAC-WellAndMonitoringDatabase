@@ -48,6 +48,7 @@ class GeneralInformationSerializer(WellSerializer, serializers.ModelSerializer):
         result = super(GeneralInformationSerializer, self).to_representation(instance)
         result.update(self.quantity('ground_surface_elevation', instance.ground_surface_elevation))
         result.update(self.quantity('top_borehole_elevation', instance.top_borehole_elevation))
+        result.update(self.quantity('glo_90m_elevation', instance.glo_90m_elevation))
         return result
 
 

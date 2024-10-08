@@ -30,6 +30,8 @@ def post_delete_well(sender, instance, **kwargs):
         instance.ground_surface_elevation.delete()
     if instance.top_borehole_elevation:
         instance.top_borehole_elevation.delete()
+    if instance.glo_90m_elevation:
+        instance.glo_90m_elevation.delete()
     if instance.photo:
         if os.path.isfile(instance.photo.path):
             os.remove(instance.photo.path)

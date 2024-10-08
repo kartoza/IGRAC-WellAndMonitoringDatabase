@@ -43,7 +43,8 @@ class WellAdmin(admin.ModelAdmin):
         'ggis_uid'
     )
     raw_id_fields = (
-        'ground_surface_elevation', 'top_borehole_elevation', 'drilling',
+        'ground_surface_elevation', 'top_borehole_elevation',
+        'glo_90m_elevation', 'drilling',
         'geology', 'construction', 'management', 'hydrogeology_parameter'
     )
     search_fields = ('original_id', 'name')
