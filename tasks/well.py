@@ -9,8 +9,8 @@ logger = get_task_logger(__name__)
 @shared_task(bind=True, queue='update')
 def generate_measurement_cache(self, well_id: int, model: str = None):
     try:
-        print(f'Generate measurement for {well_id}')
-        logger.debug(f'Generate measurement for {well_id}')
+        print(f'Generate measurement for {well_id} for {model}')
+        logger.debug(f'Generate measurement for {well_id} for {model}')
         well = Well.objects.get(id=well_id)
         well.generate_measurement_cache(model)
     except Well.DoesNotExist:

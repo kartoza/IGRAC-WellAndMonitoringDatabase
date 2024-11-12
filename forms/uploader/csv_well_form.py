@@ -39,6 +39,24 @@ class CsvWellForm(forms.Form):
         required=False
     )
 
+    is_adding = forms.BooleanField(
+        label=_(
+            "Form creates new well. "
+            "If not selected, the process "
+            "will skip any well that does not exist."
+        ),
+        initial=True,
+        required=False,
+    )
+    is_updating = forms.BooleanField(
+        label=_(
+            "Form updates existing well."
+            "If not selected, the process will skip any well that does exist."
+        ),
+        initial=True,
+        required=False,
+    )
+
     # Licenses
     license = forms.ModelChoiceField(
         queryset=License.objects.all(), required=False, label=_('License'),

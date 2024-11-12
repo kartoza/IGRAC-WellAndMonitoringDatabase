@@ -1,19 +1,8 @@
 from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
+
+from gwml2.models.management import Management
 from gwml2.models.well import Well
-from gwml2.models.management import License, Management
-
-
-@receiver(post_save, sender=License)
-@receiver(post_delete, sender=License)
-def license_changed(sender, instance, **kwargs):
-    """ when changed
-    :type instance: License
-    """
-    try:
-        instance.management.well.updated()
-    except (Management.DoesNotExist, Well.DoesNotExist):
-        pass
 
 
 @receiver(post_save, sender=Management)

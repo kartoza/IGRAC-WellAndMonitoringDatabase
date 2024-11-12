@@ -127,6 +127,14 @@ class UploadSession(LicenseMetadata):
         null=True
     )
 
+    # Upload method
+    is_adding = models.BooleanField(
+        default=True, help_text='Does the upload add new data.'
+    )
+    is_updating = models.BooleanField(
+        default=False, help_text='Does the update existing data.'
+    )
+
     # noinspection PyClassicStyleClass
     class Meta:
         """Meta class for project."""

@@ -29,6 +29,8 @@ def restart_upload(modeladmin, request, queryset):
 class UploadSessionAdmin(admin.ModelAdmin):
     list_display = (
         'uploaded_at',
+        'is_adding',
+        'is_updating',
         'category',
         'is_processed',
         'is_canceled',

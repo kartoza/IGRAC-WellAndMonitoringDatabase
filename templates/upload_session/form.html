@@ -51,6 +51,14 @@
                     </a>
                 </div>
                 <p>
+                    {{ form.is_adding }}
+                    <span class="checkbox-label">{{ form.is_adding.label_tag }}</span>
+                    <br>
+                    <br>
+                    {{ form.is_updating }}
+                    <span class="checkbox-label">{{ form.is_updating.label_tag }}</span>
+                    <br>
+                    <br>
                     {{ form.license.label_tag }}
                     {{ form.license }}
                     <br>
