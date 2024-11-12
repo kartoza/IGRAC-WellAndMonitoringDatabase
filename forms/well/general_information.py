@@ -20,12 +20,17 @@ class GeneralInformationForm(WellBaseForm):
 
     class Meta:
         model = Well
-        fields = ('ggis_uid', 'original_id', 'location', 'name', 'feature_type', 'purpose',
-                  'status', 'country', 'address', 'ground_surface_elevation', 'top_borehole_elevation', 'photo', 'description')
+        fields = (
+            'ggis_uid', 'original_id', 'location', 'name', 'feature_type',
+            'purpose', 'status', 'country', 'address',
+            'ground_surface_elevation', 'top_borehole_elevation', 'photo',
+            'description', 'glo_90m_elevation'
+        )
         widgets = {
             'ground_surface_elevation': QuantityInput(unit_group='length'),
             'top_borehole_elevation': QuantityInput(unit_group='length'),
             'photo': FileSelectionInput(preview=True),
+            'glo_90m_elevation': QuantityInput(unit_group='length'),
         }
 
     def __init__(self, *args, **kwargs):
@@ -65,6 +70,8 @@ class GeneralInformationForm(WellBaseForm):
             data['ground_surface_elevation_id'] = instance.ground_surface_elevation_id
         if instance.top_borehole_elevation_id:
             data['top_borehole_elevation_id'] = instance.top_borehole_elevation_id
+        if instance.glo_90m_elevation_id:
+            data['glo_90m_elevation_id'] = instance.glo_90m_elevation_id
 
         # check the files
         form_files = {}

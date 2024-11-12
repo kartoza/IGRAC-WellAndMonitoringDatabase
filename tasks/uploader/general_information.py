@@ -30,6 +30,8 @@ class GeneralInformationUploader(BaseUploader):
         'longitude': None,
         'ground_surface_elevation_value': None,
         'ground_surface_elevation_unit': Unit,
+        'glo_90m_elevation_value': None,
+        'glo_90m_elevation_unit': Unit,
         'top_borehole_elevation_value': None,
         'top_borehole_elevation_unit': Unit,
         'country': Country,

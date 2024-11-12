@@ -150,7 +150,7 @@ class GenerateWellCacheFile(object):
         with open(_file, "w") as outfile:
             outfile.write(json.dumps(data, indent=4))
 
-    def general_information(self, folder, well):
+    def general_information(self, folder, well: Well):
         """General Information of well."""
         sheetname = 'General Information'
         license = ''
@@ -183,6 +183,12 @@ class GenerateWellCacheFile(object):
             get_data(
                 well.ground_surface_elevation.unit_id, self.units, Unit)
             if well.ground_surface_elevation else '',
+
+            # DEM elevation based on the GLO_90m dataset above sea level
+            well.glo_90m_elevation.value if well.glo_90m_elevation else '',
+            get_data(
+                well.glo_90m_elevation.unit_id, self.units, Unit)
+            if well.glo_90m_elevation else '',
 
             # Top borehole elevation
             well.top_borehole_elevation.value if well.top_borehole_elevation else '',
