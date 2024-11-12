@@ -113,7 +113,8 @@ class BatchUploader:
         self.upload_session.update_step('Running wells cache', 70)
         wells_id = list(
             self.upload_session.uploadsessionrowstatus_set.filter(
-                well__isnull=False
+                well__isnull=False,
+                status=0,
             ).values_list(
                 'well_id', flat=True
             )
@@ -123,7 +124,7 @@ class BatchUploader:
         for index, well_id in enumerate(wells_id):
             process_percent = ((index / count) * 10) + 70
             self.upload_session.update_step(
-                'Running wells cache',
+                f'Running {count} wells cache',
                 progress=int(process_percent)
             )
             generate_measurement_cache(

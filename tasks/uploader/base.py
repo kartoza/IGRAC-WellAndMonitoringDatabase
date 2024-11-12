@@ -25,6 +25,11 @@ class TermNotFound(Exception):
         self.errors = error
 
 
+class RowSkipped(Exception):
+    def __init__(self):
+        super(Exception, self).__init__()
+
+
 class BaseUploader(WellEditing):
     """ Convert excel into json and save the data """
     UPLOADER_NAME = ''
@@ -53,7 +58,11 @@ class BaseUploader(WellEditing):
         self.records = {}
         try:
             for sheet_name in self.SHEETS:
-                sheet_records = records[sheet_name][self.START_ROW:]
+                try:
+                    sheet_records = records[sheet_name][self.START_ROW:]
+                except KeyError:
+                    _sheet_name = sheet_name.replace(' ', '_')
+                    sheet_records = records[_sheet_name][self.START_ROW:]
                 self.records[sheet_name] = sheet_records
                 self.total_records += len(sheet_records)
         except KeyError as e:
@@ -133,15 +142,16 @@ class BaseUploader(WellEditing):
                             )
                             self.well_by_id[well_identifier] = well
                     except Well.DoesNotExist:
+                        if not self.upload_session.is_adding:
+                            raise RowSkipped()
                         if self.AUTOCREATE_WELL:
                             well = None
                         else:
                             raise Well.DoesNotExist()
 
-                    # TODO:
-                    #  just remove this if the data is allowed to be updated
-                    if self.get_object(sheet_name, well, record):
-                        skipped = True
+                    has_obj = self.get_object(sheet_name, well, record)
+                    if not self.upload_session.is_updating and has_obj:
+                        raise RowSkipped()
                     else:
                         well = self.update_data(well, record)
                 except Well.DoesNotExist:
@@ -152,6 +162,8 @@ class BaseUploader(WellEditing):
                     error = json.loads('{}'.format(e))
                 except FormNotValid as e:
                     error = json.loads('{}'.format(e))
+                except RowSkipped:
+                    skipped = True
                 except Exception as e:
                     error = {
                         'original_id': '{}'.format(e)

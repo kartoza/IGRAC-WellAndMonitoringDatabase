@@ -3,7 +3,6 @@ import os
 import shutil
 import time
 from shutil import copyfile
-
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -127,16 +126,19 @@ class GenerateWellCacheFile(object):
         # Monitor
         self.copy_template(self.monitor_filename)
         monitor_file = self._file(self.monitor_filename)
+
+        # Load workbook for monitoring data
         monitor_book = load_workbook(monitor_file)
         self.measurements(monitor_book, well)
         monitor_book.active = 0
         monitor_book.save(monitor_file)
+        monitor_book.close()
 
         xlsx_to_ods(monitor_file)
         os.remove(monitor_file)
 
     def write_json(self, folder, sheetname, data):
-        """Write json by sheetname."""
+        """Write JSON by sheetname."""
         _file = os.path.join(folder, sheetname + '.json')
         if not os.path.exists(folder):
             os.makedirs(folder)
