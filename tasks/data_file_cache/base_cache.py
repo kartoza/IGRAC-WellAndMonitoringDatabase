@@ -160,8 +160,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
         source_file = os.path.join(source_file, sheetname + '.json')
         data = []
         if os.path.exists(source_file):
-            _file = open(source_file, "r")
-            data = json.loads(_file.read())
+            with open(source_file, "r") as outfile:
+                data = json.loads(outfile.read())
 
         # Target book 1
         target_sheet = None
@@ -227,13 +227,14 @@ class WellCacheZipFileBase(WellCacheFileBase):
             self.wells_filename, WELL_AND_MONITORING_DATA
         )
         well_book = load_workbook(well_file)
+        drilling_file = self.file_by_type(
+            self.drill_filename, WELL_AND_MONITORING_DATA
+        )
+        drilling_book = load_workbook(drilling_file)
+
+        # GGMN Files
         well_ggmn_file = self.file_by_type(self.wells_filename, GGMN)
         well_ggmn_book = load_workbook(well_ggmn_file)
-
-        # Drilling files
-        drilling_file = self.file_by_type(
-            self.drill_filename, WELL_AND_MONITORING_DATA)
-        drilling_book = load_workbook(drilling_file)
         drilling_ggmn_file = self.file_by_type(self.drill_filename, GGMN)
         drilling_ggmn_book = load_workbook(drilling_ggmn_file)
 
@@ -266,10 +267,13 @@ class WellCacheZipFileBase(WellCacheFileBase):
 
         # Save book
         well_book.save(well_file)
+        well_book.close()
         well_ggmn_book.save(well_ggmn_file)
+        well_ggmn_book.close()
         drilling_book.save(drilling_file)
+        drilling_book.close()
         drilling_ggmn_book.save(drilling_ggmn_file)
-
+        drilling_ggmn_book.close()
         # -------------------------------------------------------------------------
         # zipping files
         # -------------------------------------------------------------------------
@@ -283,55 +287,58 @@ class WellCacheZipFileBase(WellCacheFileBase):
             if os.path.exists(zip_filepath):
                 os.remove(zip_filepath)
             zip_file = None
+            try:
+                original_ids_found = {}
+                wells = self.get_well_queryset()
+                for well in wells:
+                    is_ggmn = well.is_ggmn(
+                        ggmn_organisations_list
+                    ) and well.organisation
 
-            original_ids_found = {}
-            wells = self.get_well_queryset()
-            for well in wells:
-                is_ggmn = well.is_ggmn(
-                    ggmn_organisations_list
-                ) and well.organisation
-
-                if data_type == GGMN and not is_ggmn:
-                    continue
-                if data_type == WELL_AND_MONITORING_DATA and is_ggmn:
-                    continue
-
-                if not zip_file:
-                    zip_file = zipfile.ZipFile(zip_filepath, 'w')
-
-                    self.zip_excel_to_ods(
-                        zip_file, self.wells_filename, data_type
-                    )
-                    self.zip_excel_to_ods(
-                        zip_file, self.drill_filename, data_type
-                    )
-
-                if well.number_of_measurements == 0:
-                    continue
-
-                well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
-                measurement_file = os.path.join(
-                    well_folder, self.monitor_filename
-                )
-                if os.path.exists(measurement_file):
-                    original_id = well.original_id
-                    try:
-                        _filename = (
-                            f'monitoring/{original_id} '
-                            f'({original_ids_found[original_id] + 1}).ods'
-                        )
+                    if data_type == GGMN and not is_ggmn:
                         continue
-                    except KeyError:
-                        _filename = f'monitoring/{original_id}.ods'
-                        original_ids_found[original_id] = 0
+                    if data_type == WELL_AND_MONITORING_DATA and is_ggmn:
+                        continue
 
-                    zip_file.write(
-                        measurement_file,
-                        _filename,
-                        compress_type=zipfile.ZIP_DEFLATED
+                    if not zip_file:
+                        zip_file = zipfile.ZipFile(zip_filepath, 'w')
+
+                        self.zip_excel_to_ods(
+                            zip_file, self.wells_filename, data_type
+                        )
+                        self.zip_excel_to_ods(
+                            zip_file, self.drill_filename, data_type
+                        )
+
+                    if well.number_of_measurements == 0:
+                        continue
+
+                    well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
+                    measurement_file = os.path.join(
+                        well_folder, self.monitor_filename
                     )
-            if zip_file:
-                zip_file.close()
+                    if os.path.exists(measurement_file):
+                        original_id = well.original_id
+                        try:
+                            _filename = (
+                                f'monitoring/{original_id} '
+                                f'({original_ids_found[original_id] + 1}).ods'
+                            )
+                            continue
+                        except KeyError:
+                            _filename = f'monitoring/{original_id}.ods'
+                            original_ids_found[original_id] = 0
+
+                        zip_file.write(
+                            measurement_file,
+                            _filename,
+                            compress_type=zipfile.ZIP_DEFLATED
+                        )
+            except Exception as e:
+                raise e
+            finally:
+                if zip_file:
+                    zip_file.close()
         self.log(
             f'----- Finish zipping {self.cache_type}: {self.cache_name} '
             '-------'
