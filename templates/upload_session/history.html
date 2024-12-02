@@ -39,6 +39,30 @@
       .report {
         width: 50px;
       }
+
+      .DeleteButton {
+        background-color: unset;
+        border: unset;
+        padding: 0;
+      }
+
+      .DeleteButton i {
+        color: red;
+
+      }
+
+      .DeleteButton:hover {
+        opacity: 0.5;
+      }
+
+      .DeleteButton:disabled {
+        cursor: not-allowed !important;
+        opacity: 0.5 !important;
+      }
+
+      .DeleteButton:disabled:hover {
+        opacity: 1;
+      }
     </style>
     <table>
         <tr>
@@ -52,9 +76,10 @@
             <td>Progress</td>
             <td>Note</td>
             <td>Report</td>
+            <td></td>
         </tr>
         <tr id="loading">
-            <td colspan="8">LOADING</td>
+            <td colspan="9">LOADING</td>
         </tr>
     </table>
     <script>
@@ -89,6 +114,30 @@
               });
             }
           )()
+        })
+      }
+
+      function initDeleteButton($button, token) {
+        $button.click(function () {
+          let text = "Are you sure want to delete this history?";
+          if (confirm(text) === true) {
+            let url = '/groundwater/upload-session/' + token + '/';
+            $(this).attr("disabled", true);
+            $button.closest('tr').remove();
+            (
+              async () => {
+                await fetch(url, {
+                  method: "DELETE",
+                  headers: {
+                    'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').attr('value'),
+                  },
+                });
+                $button.closest('tr').remove()
+              }
+            )()
+          } else {
+            console.log("You canceled!");
+          }
         })
       }
 
@@ -131,8 +180,10 @@
 
         const disabledResume = $row.length ? $row.find('.ResumeButton').attr('disabled') : false
         const disabledStop = $row.length ? $row.find('.StopButton').attr('disabled') : false
+        const disabledDelete = $row.length ? $row.find('.DeleteButton').attr('disabled') : false
 
         let button = ''
+        let deleteButton = ''
         const uploadStatus = data.task_status
         const creatingReport = data.step === "Create report";
         if (data.task_status === 'STOP') {
@@ -141,9 +192,14 @@
           button = '<button class="StopButton" ' + (disabledStop ? `disabled="${disabledStop}"` : '') + '>Stop</button>'
         }
 
+        {# Delete button when not running #}
+        if (data.task_status !== 'RUNNING') {
+          deleteButton = '<button class="DeleteButton" ' + (disabledDelete ? `disabled="${disabledDelete}"` : '') + '><i class="fa fa-times-circle"></i></button>'
+        }
+
         const progressString = `${data.progress.toFixed(1)}% - ${data.step}`;
         const html = `
-          <tr id="${id}" style="background-color: ${color}11">
+          <tr id="${id}" class="row-data" style="background-color: ${color}11">
             <td> ${data.category === 'well_upload' ? 'General Information' : data.category === 'well_drilling_and_construction' ? 'Drilling and Construction' : 'Monitoring Data'}</td>
             <td class="filename" title="${data.filename}">
                 <a href="${data.file_url}">${data.filename}</a>
@@ -169,6 +225,7 @@
             </td>
             <td><div class="notes">${status ? status : ''}</div></td>
             <td class="report">${creatingReport ? 'Creating report' : data.task_status !== 'RUNNING' ? (data.report_filename ? "<a href=" + data.report_filename + " target='_blank'>report</a>" : "-") : ""}</td>
+            <td>${deleteButton}</td>
           </tr>
         `
         if (!$row.length) {
@@ -181,6 +238,7 @@
         $row = $('#' + id)
         initResumeButton($row.find('.ResumeButton'), data.token)
         initStopButton($row.find('.StopButton'), data.token)
+        initDeleteButton($row.find('.DeleteButton'), data.token)
       }
 
       $(document).ready(function () {
@@ -191,6 +249,7 @@
             success: function (data) {
               data = data.results
               data.reverse()
+              $('.row-data').not(data.map(row => `#session-${row.id}`)).remove()
               $('#loading').remove()
               data.forEach(row => {
                 updateData(row)

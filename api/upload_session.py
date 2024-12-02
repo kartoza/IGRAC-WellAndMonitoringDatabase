@@ -53,6 +53,19 @@ class UploadSessionApiView(View):
         except UploadSession.DoesNotExist:
             raise Http404('No session found')
 
+    def delete(self, request, token, *args):
+        """Resume the upload."""
+        try:
+            session = UploadSession.objects.get(token=token)
+            if not session.uploader:
+                raise PermissionDenied()
+            if request.user.id != session.uploader:
+                raise PermissionDenied()
+            session.delete()
+            return HttpResponse('ok')
+        except UploadSession.DoesNotExist:
+            raise Http404('No session found')
+
 
 class UploadSessionStopApiView(View):
     """Stop an upload."""
