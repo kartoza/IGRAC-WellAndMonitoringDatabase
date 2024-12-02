@@ -3,6 +3,7 @@ from celery.utils.log import get_task_logger
 from gwml2.models.general import Unit
 from gwml2.models.term import TermAquiferType, TermConfinement
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.utils.well_data import WellData
 
 logger = get_task_logger(__name__)
 
@@ -65,10 +66,30 @@ class HydrogeologyUploader(BaseUploader):
                 "aquifer_type": data['aquifer_type'],
                 "aquifer_thickness": data['aquifer_thickness'],
                 "confinement": data['confinement'],
+                "degree_of_confinement": data['degree_of_confinement'],
             },
         }
 
     def get_object(self, sheet_name, well, record):
         """ return object that will be used
         """
-        return None
+        return well.hydrogeology_parameter
+
+    def update_with_init_data(self, well, record):
+        """Convert record."""
+        init_data = WellData(
+            well,
+            feature_types=self.feature_types, purposes=self.purposes,
+            status=self.status, units=self.units,
+            organisations=self.organisations,
+            groundwater_uses=self.groundwater_uses,
+            confinements=self.confinements,
+            aquifer_types=self.aquifer_types
+        )
+        for key, value in init_data.hydrogeology().items():
+            if record['hydrogeology'][key] in ["", None]:
+                record['hydrogeology'][key] = value
+        for key, value in init_data.pumping_test().items():
+            if record['hydrogeology']['pumping_test'][key] in ["", None]:
+                record['hydrogeology']['pumping_test'][key] = value
+        return record

@@ -227,10 +227,10 @@ class UploadSession(LicenseMetadata):
     @property
     def task_status(self):
         """Return task status from celery."""
+        # If processed, meaning done
+        if self.is_processed:
+            return TaskStatus.DONE
         if self.task_id:
-            # If processed, meaning done
-            if self.is_processed:
-                return TaskStatus.DONE
             if self.is_canceled:
                 return TaskStatus.STOP
 

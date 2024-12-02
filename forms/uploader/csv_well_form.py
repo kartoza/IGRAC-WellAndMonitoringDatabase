@@ -41,17 +41,14 @@ class CsvWellForm(forms.Form):
 
     is_adding = forms.BooleanField(
         label=_(
-            "Form creates new well. "
-            "If not selected, the process "
-            "will skip any well that does not exist."
+            "The form will be processed for new wells."
         ),
         initial=True,
         required=False,
     )
     is_updating = forms.BooleanField(
         label=_(
-            "Form updates existing well."
-            "If not selected, the process will skip any well that does exist."
+            "The form will be used to update existing wells."
         ),
         initial=True,
         required=False,

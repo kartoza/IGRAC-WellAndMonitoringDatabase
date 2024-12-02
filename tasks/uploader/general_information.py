@@ -5,6 +5,7 @@ from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus
 )
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.utils.well_data import WellData
 
 logger = get_task_logger(__name__)
 
@@ -55,3 +56,22 @@ class GeneralInformationUploader(BaseUploader):
         """ return object that will be used
         """
         return well
+
+    def update_with_init_data(self, well, record):
+        """Convert record."""
+        init_data = WellData(
+            well,
+            feature_types=self.feature_types, purposes=self.purposes,
+            status=self.status, units=self.units,
+            organisations=self.organisations,
+            groundwater_uses=self.groundwater_uses,
+            confinements=self.confinements,
+            aquifer_types=self.aquifer_types
+        )
+        for key, value in init_data.general_information().items():
+            if record['general_information'][key] in ["", None]:
+                record['general_information'][key] = value
+        for key, value in init_data.license().items():
+            if record['well_metadata'][key] in ["", None]:
+                record['well_metadata'][key] = value
+        return record

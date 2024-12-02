@@ -39,6 +39,16 @@ class BaseUploader(WellEditing):
     RECORD_FORMAT = {}
     AUTOCREATE_WELL = False
 
+    # cache
+    feature_types = {}
+    purposes = {}
+    status = {}
+    units = {}
+    organisations = {}
+    groundwater_uses = {}
+    aquifer_types = {}
+    confinements = {}
+
     def __init__(
             self, upload_session: UploadSession, records: dict,
             min_progress: int, interval_progress: int,
@@ -53,6 +63,16 @@ class BaseUploader(WellEditing):
         self.upload_session = upload_session
         self.uploader = self.upload_session.get_uploader()
         self.relation_cache = relation_cache
+
+        # cache
+        self.feature_types = {}
+        self.purposes = {}
+        self.status = {}
+        self.units = {}
+        self.organisations = {}
+        self.groundwater_uses = {}
+        self.aquifer_types = {}
+        self.confinements = {}
 
         self.total_records = 0
         self.records = {}
@@ -145,6 +165,7 @@ class BaseUploader(WellEditing):
                         if not self.upload_session.is_adding:
                             raise RowSkipped()
                         if self.AUTOCREATE_WELL:
+                            # This is for creating new data
                             well = None
                         else:
                             raise Well.DoesNotExist()
@@ -152,8 +173,12 @@ class BaseUploader(WellEditing):
                     has_obj = self.get_object(sheet_name, well, record)
                     if not self.upload_session.is_updating and has_obj:
                         raise RowSkipped()
-                    else:
-                        well = self.update_data(well, record)
+
+                    # Need to assign the data
+                    if has_obj:
+                        record = self.update_with_init_data(well, record)
+                    # This is for updating data
+                    well = self.update_data(well, record)
                 except Well.DoesNotExist:
                     error = {
                         'original_id': 'Well does not exist'
@@ -303,6 +328,10 @@ class BaseUploader(WellEditing):
             data[key] = value
 
         return self.convert_record(sheet_name, data)
+
+    def update_with_init_data(self, well, record: dict):
+        """Convert record."""
+        return record
 
     def convert_record(self, sheet_name, data):
         """Convert record."""
