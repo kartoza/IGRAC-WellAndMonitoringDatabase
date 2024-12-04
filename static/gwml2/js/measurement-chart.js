@@ -198,12 +198,11 @@ function getTrendlines(chartData, steps) {
         });
         return [data, jumps]
     } catch (e) {
-        console.log(e)
         return [[], []]
     }
 }
 
-function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries, onChartClicked, title = '') {
+function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTrenlineData, toggleSeries, onChartClicked, title = '', reverse = false, unit = '') {
     switch (identifier) {
         case 'WellLevelMeasurement':
         case 'level_measurement':
@@ -236,6 +235,12 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
         yAxis: {
             title: {
                 text: yLabel
+            },
+            labels: {
+                formatter: function () {
+                    const val = reverse ? Math.abs(this.value) : this.value;
+                    return `${val} ${unit}`;
+                }
             }
         },
         xAxis: {
@@ -278,6 +283,12 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
             series: {
                 showInLegend: false,
                 dataGrouping: { groupPixelWidth: 50, units: [['hour', [4]], ['day', [1]], ['week', [1, 2]], ['month', [1]]] }
+            }
+        },
+        tooltip: {
+            pointFormatter: function () {
+                const val = reverse ? Math.abs(this.y) : this.y;
+                return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${parseFloat(val.toFixed(this.series.tooltipOptions.valueDecimals))} ${unit}</b><br/>`;
             }
         },
         series: [
@@ -615,6 +626,7 @@ let MeasurementChartObj = function (
         }
 
         let title = getParamGroup(this.parameterTo)
+        const reverse = [FROM_TOP_WELL, FROM_GROUND_LEVEL].includes(this.parameterTo);
         this.chart = renderMeasurementChart(
             this.identifier, this.chart,
             cleanData[this.parameterTo],
@@ -625,7 +637,9 @@ let MeasurementChartObj = function (
                     onNewStep(date.getTime());
                 }
             },
-            title
+            title,
+            reverse,
+            this.unitTo
         )
         this.$loading.hide();
     };
