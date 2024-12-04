@@ -3,9 +3,6 @@ from django.contrib import admin
 from gwml2.models.general import (
     Unit, UnitConvertion, UnitGroup, Country, Quantity
 )
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class UnitConvertionInline(admin.TabularInline):
@@ -24,4 +21,8 @@ class UnitAdmin(admin.ModelAdmin):
 admin.site.register(UnitGroup, UnitGroupAdmin)
 admin.site.register(Unit, UnitAdmin)
 admin.site.register(Quantity)
-admin.site.register(Country)
+
+
+@admin.register(Country)
+class CountryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'code')
