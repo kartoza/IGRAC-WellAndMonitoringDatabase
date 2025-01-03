@@ -13,6 +13,7 @@ from celery import current_app
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Q
 from openpyxl.styles import PatternFill, Font
 
 from gwml2.models.metadata.license_metadata import LicenseMetadata
@@ -308,7 +309,10 @@ class UploadSession(LicenseMetadata):
         query = self.uploadsessionrowstatus_set.filter(status=1)
         status_column = {}
         for sheetname in workbook.sheetnames:
-            sheet_query = query.filter(sheet_name=sheetname)
+            sheet_query = query.filter(
+                Q(sheet_name=sheetname) | Q(
+                    sheet_name=sheetname.replace('_', ' '))
+            )
             worksheet = workbook[sheetname]
             total = sheet_query.count()
 

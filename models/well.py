@@ -88,11 +88,11 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
 
     # First and last measurement time
     first_time_measurement = models.DateTimeField(
-        _('Time'),
+        _('First time measurement'),
         null=True, blank=True
     )
     last_time_measurement = models.DateTimeField(
-        _('Time'),
+        _('Last time measurement'),
         null=True, blank=True
     )
 

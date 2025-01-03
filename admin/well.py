@@ -33,10 +33,13 @@ class WellAdmin(admin.ModelAdmin):
     list_display = (
         'original_id', 'organisation', 'number_of_measurements',
         'country', 'id', 'last_measurements',
-        'first_measurement', 'last_measurement',
+        'first_time_measurement', 'last_time_measurement',
         'edit',
     )
-    list_filter = ('organisation', 'country')
+    list_filter = (
+        'organisation', 'country',
+        'first_time_measurement', 'last_time_measurement'
+    )
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
         'last_edited_by_user',
@@ -76,12 +79,6 @@ class WellAdmin(admin.ModelAdmin):
 
     def last_edited_by_user(self, obj):
         return obj.last_edited_by_username()
-
-    def first_measurement(self, obj):
-        return obj.first_time_measurement
-
-    def last_measurement(self, obj):
-        return obj.last_time_measurement
 
 
 admin.site.register(Well, WellAdmin)
