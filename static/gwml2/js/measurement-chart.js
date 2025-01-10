@@ -238,7 +238,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
             },
             labels: {
                 formatter: function () {
-                    const val = reverse ? Math.abs(this.value) : this.value;
+                    const val = reverse ? this.value * -1 : this.value;
                     return `${val} ${unit}`;
                 }
             }
@@ -287,7 +287,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
         },
         tooltip: {
             pointFormatter: function () {
-                const val = reverse ? Math.abs(this.y) : this.y;
+                const val = reverse ? this.y * -1 : this.y;
                 return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${parseFloat(val.toFixed(this.series.tooltipOptions.valueDecimals))} ${unit}</b><br/>`;
             }
         },

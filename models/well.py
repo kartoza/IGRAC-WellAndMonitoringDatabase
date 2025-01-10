@@ -256,12 +256,12 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                                          MEASUREMENT_PARAMETER_GROUND]:
                             parameter = MEASUREMENT_PARAMETER_AMSL
                             if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
-                                if top_borehole_elevation:
+                                if top_borehole_elevation and value > 0:
                                     value = top_borehole_elevation.value - value
                                 else:
                                     parameter = measurement.parameter.name
                             elif measurement.parameter.name == MEASUREMENT_PARAMETER_GROUND:
-                                if ground_surface_elevation:
+                                if ground_surface_elevation and value > 0:
                                     value = ground_surface_elevation.value - value
                                 else:
                                     parameter = measurement.parameter.name
