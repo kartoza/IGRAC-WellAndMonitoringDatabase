@@ -104,7 +104,7 @@ class Hubeau(BaseHarvester):
         """Construct url for measurement"""
         measurement_params = {
             'size': 500,
-            'fields': 'date_mesure,profondeur_nappe'
+            'fields': 'date_mesure,niveau_nappe_eau'
         }
         measurement_params.update(params_dict)
 
@@ -255,7 +255,7 @@ class Hubeau(BaseHarvester):
                         time,
                         defaults,
                         harvester_well_data,
-                        measurement['profondeur_nappe'],
+                        measurement['niveau_nappe_eau'],
                         self.unit_m
                     )
                     self.updated = True
