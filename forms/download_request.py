@@ -1,6 +1,8 @@
 from typing import Any
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import connections
 from django.utils.translation import ugettext_lazy as _
 
 from gwml2.models.download_request import DownloadRequest
@@ -43,10 +45,19 @@ class DownloadRequestForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(DownloadRequestForm, self).__init__(*args, **kwargs)
+
+        # Get country that has well
+        with connections[settings.GWML2_DATABASE_CONFIG].cursor() as cursor:
+            cursor.execute(
+                "SELECT DISTINCT country_id FROM well WHERE country_id IS NOT NULL;")
+            country_ids = [row[0] for row in cursor.fetchall()]
+
         self.fields['countries'].choices = [('all', 'All Countries')] + [
             (country.id, country.name) for
-            country in Country.objects.all() if
-            country.name]
+            country in Country.objects.filter(id__in=country_ids) if
+            country.name
+        ]
+
         self.fields['organisations'].choices = [
             ('all', 'All Data Providers')
         ] + [
