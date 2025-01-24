@@ -3,6 +3,7 @@ CREATE FUNCTION update_mv() RETURNS trigger AS
 BEGIN
         refresh materialized view mv_well_ggmn;
         refresh materialized view mv_well;
+        refresh materialized view mv_well_measurement;
     RETURN NEW;
 RETURN NEW;
 END;
@@ -10,6 +11,16 @@ END;
 LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_well
-    AFTER INSERT
+    AFTER INSERT OR UPDATE OF last_edited_at
     ON well
+    FOR EACH ROW EXECUTE PROCEDURE update_mv();
+
+CREATE TRIGGER trigger_well
+    AFTER UPDATE OF name
+    ON organisation
+    FOR EACH ROW EXECUTE PROCEDURE update_mv();
+
+CREATE TRIGGER trigger_well
+    AFTER UPDATE OF name
+    ON country
     FOR EACH ROW EXECUTE PROCEDURE update_mv();
