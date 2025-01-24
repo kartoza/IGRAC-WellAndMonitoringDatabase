@@ -77,11 +77,11 @@ class MaterializedViewWell(models.Model):
     last_time_measurement = models.DateTimeField(
         null=True, blank=True
     )
-    is_groundwater_level = models.BooleanField(
-        null=True, blank=True
+    is_groundwater_level = models.CharField(
+        null=True, blank=True, max_length=8
     )
-    is_groundwater_quality = models.BooleanField(
-        null=True, blank=True
+    is_groundwater_quality = models.CharField(
+        null=True, blank=True, max_length=8
     )
 
     def __str__(self):

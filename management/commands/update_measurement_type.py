@@ -22,7 +22,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         from gwml2.signals.well import update_well
-        count = Well.objects.count()
         _from = int(options['from'])
         with temp_disconnect_signal(
                 signal=post_save,
@@ -32,13 +31,14 @@ class Command(BaseCommand):
             for idx, well in enumerate(Well.objects.all()):
                 if idx + 1 < _from:
                     continue
-                print('{}/{}'.format(idx + 1, count))
-                well.is_groundwater_level = (
-                    False if well.welllevelmeasurement_set.count() == 0
-                    else True
-                )
-                well.is_groundwater_quality = (
-                    False if well.wellqualitymeasurement_set.count() == 0
-                    else True
-                )
+                if well.is_groundwater_level is None:
+                    well.is_groundwater_level = (
+                        'no' if well.welllevelmeasurement_set.count() == 0
+                        else 'yes'
+                    )
+                if well.is_groundwater_quality is None:
+                    well.is_groundwater_quality = (
+                        'no' if well.wellqualitymeasurement_set.count() == 0
+                        else 'yes'
+                    )
                 well.save()

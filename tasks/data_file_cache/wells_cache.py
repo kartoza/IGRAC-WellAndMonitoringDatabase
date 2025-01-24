@@ -39,6 +39,14 @@ TEMPLATE_FOLDER = os.path.join(DJANGO_ROOT, 'static', 'download_template')
 logger = get_task_logger(__name__)
 
 
+class GENERATORS(object):
+    GENERAL_INFORMATION = 'general_information'
+    HYDROGEOLOGY = 'hydrogeology'
+    MANAGEMENT = 'management'
+    DRILLING_AND_CONSTRUCTION = 'drilling_and_construction'
+    MONITOR = 'monitor'
+
+
 class GenerateWellCacheFile(object):
     current_time = None
     wells_filename = 'wells.xlsx'
@@ -84,7 +92,20 @@ class GenerateWellCacheFile(object):
         """Copy template."""
         copyfile(os.path.join(TEMPLATE_FOLDER, filename), self._file(filename))
 
-    def __init__(self, well: Well, force_regenerate: bool = True):
+    def __init__(
+            self, well: Well, force_regenerate: bool = True,
+            generators: list = None
+    ):
+        if not generators:
+            generators = [
+                GENERATORS.GENERAL_INFORMATION,
+                GENERATORS.HYDROGEOLOGY,
+                GENERATORS.MANAGEMENT,
+                GENERATORS.DRILLING_AND_CONSTRUCTION,
+                GENERATORS.MONITOR
+            ]
+
+        self.generators = generators
         self.well = well
         self.current_time = time.time()
 
@@ -116,27 +137,37 @@ class GenerateWellCacheFile(object):
         well_folder = self._file(self.wells_filename)
 
         # General information
-        self.general_information(well_folder, well)
-        self.hydrogeology(well_folder, well)
-        self.management(well_folder, well)
+        if GENERATORS.GENERAL_INFORMATION in self.generators:
+            print(f'Generate {GENERATORS.GENERAL_INFORMATION}')
+            self.general_information(well_folder, well)
+        if GENERATORS.HYDROGEOLOGY in self.generators:
+            print(f'Generate {GENERATORS.HYDROGEOLOGY}')
+            self.hydrogeology(well_folder, well)
+        if GENERATORS.MANAGEMENT in self.generators:
+            print(f'Generate {GENERATORS.MANAGEMENT}')
+            self.management(well_folder, well)
 
         # Drill
-        drill_folder = self._file(self.drill_filename)
-        self.drilling_and_construction(drill_folder, well)
+        if GENERATORS.DRILLING_AND_CONSTRUCTION in self.generators:
+            print(f'Generate {GENERATORS.DRILLING_AND_CONSTRUCTION}')
+            drill_folder = self._file(self.drill_filename)
+            self.drilling_and_construction(drill_folder, well)
 
         # Monitor
-        self.copy_template(self.monitor_filename)
-        monitor_file = self._file(self.monitor_filename)
+        if GENERATORS.MONITOR in self.generators:
+            print(f'Generate {GENERATORS.MONITOR}')
+            self.copy_template(self.monitor_filename)
+            monitor_file = self._file(self.monitor_filename)
 
-        # Load workbook for monitoring data
-        monitor_book = load_workbook(monitor_file)
-        self.measurements(monitor_book, well)
-        monitor_book.active = 0
-        monitor_book.save(monitor_file)
-        monitor_book.close()
+            # Load workbook for monitoring data
+            monitor_book = load_workbook(monitor_file)
+            self.measurements(monitor_book, well)
+            monitor_book.active = 0
+            monitor_book.save(monitor_file)
+            monitor_book.close()
 
-        xlsx_to_ods(monitor_file)
-        os.remove(monitor_file)
+            xlsx_to_ods(monitor_file)
+            os.remove(monitor_file)
 
     def write_json(self, folder, sheetname, data):
         """Write JSON by sheetname."""
@@ -211,9 +242,9 @@ class GenerateWellCacheFile(object):
             # Measurement type
 
             # Groundwater levels
-            'yes' if well.is_groundwater_level else 'no',
+            well.is_groundwater_level if well.is_groundwater_level else '',
             # Groundwater quality
-            'yes' if well.is_groundwater_quality else 'no',
+            well.is_groundwater_quality if well.is_groundwater_quality else '',
 
             # Measurement data
             well.first_time_measurement.strftime(
@@ -493,11 +524,12 @@ class GenerateWellCacheFile(object):
 def generate_data_well_cache(
         self, well_id: int, force_regenerate: bool = True,
         generate_country_cache: bool = True,
-        generate_organisation_cache: bool = True
+        generate_organisation_cache: bool = True,
+        generators: list = None
 ):
     try:
         well = Well.objects.get(id=well_id)
-        GenerateWellCacheFile(well, force_regenerate)
+        GenerateWellCacheFile(well, force_regenerate, generators=generators)
         if generate_country_cache and well.country:
             generate_data_country_cache(well.country.code)
         if generate_organisation_cache and well.organisation:

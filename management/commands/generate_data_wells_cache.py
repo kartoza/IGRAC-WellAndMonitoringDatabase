@@ -38,6 +38,12 @@ class Command(BaseCommand):
             dest='force',
             help='Force to recreate the data'
         )
+        parser.add_argument(
+            '-generators',
+            '--generators',
+            dest='generators',
+            help="Filter by generators : ['general_information','hydrogeology','management','drilling_and_construction','monitor'] in comma separator"
+        )
 
     def handle(self, *args, **options):
         id = options.get('id', False)
@@ -57,6 +63,8 @@ class Command(BaseCommand):
         if country_code:
             wells = wells.filter(country__code=country_code)
 
+        generators = options.get('generators', None)
+
         # Regenerate cache
         countries = []
         organisations = []
@@ -66,8 +74,10 @@ class Command(BaseCommand):
             well = Well.objects.get(id=id)
             print(f'----- {idx}/{count} - {well.id} -----')
             generate_data_well_cache(
-                well.id, force_regenerate=force, generate_country_cache=False,
-                generate_organisation_cache=False
+                well.id, force_regenerate=force,
+                generate_country_cache=False,
+                generate_organisation_cache=False,
+                generators=generators.split(',') if generators else None
             )
 
             # Save the country code

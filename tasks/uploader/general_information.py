@@ -48,10 +48,10 @@ class GeneralInformationUploader(BaseUploader):
         """
         key = 'is_groundwater_level'
         if data.get(key, None) is not None:
-            data[key] = True if data[key].lower() == 'yes' else False
+            data[key] = data[key].lower()
         key = 'is_groundwater_quality'
         if data.get(key, None) is not None:
-            data[key] = True if data[key].lower() == 'yes' else False
+            data[key] = data[key].lower()
 
         return {
             'general_information': data,

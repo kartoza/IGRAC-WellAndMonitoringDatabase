@@ -5,5 +5,5 @@ from gwml2.migrations.sql.view_well_migrations import ViewWellMigration
 
 class Migration(ViewWellMigration):
     dependencies = [
-        ('gwml2', '0091_auto_20250124_0553'),
+        ('gwml2', '0091_auto_20250124_0657'),
     ]
