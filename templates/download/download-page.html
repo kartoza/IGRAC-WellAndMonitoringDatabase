@@ -60,19 +60,20 @@
 
     {% if not is_ready %}
         <script>
-          async function check() {
-            const response = await fetch(window.location.href + '/status');
-            const status = await response.json();
-            if (status.result) {
-              $('.download-wrapper').removeClass('not-ready').addClass('ready')
-            } else {
-              setTimeout(function () {
-                check()
-              }, 1000);
+          document.addEventListener('DOMContentLoaded', function () {
+            async function check() {
+              const response = await fetch(window.location.href + '/status');
+              const status = await response.json();
+              if (status.result) {
+                $('.download-wrapper').removeClass('not-ready').addClass('ready')
+              } else {
+                setTimeout(function () {
+                  check()
+                }, 1000);
+              }
             }
-          }
-
-          check()
+            check()
+          });
         </script>
     {% endif %}
 {% endblock %}

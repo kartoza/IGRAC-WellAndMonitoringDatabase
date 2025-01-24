@@ -3,6 +3,7 @@ import os
 import shutil
 import time
 from shutil import copyfile
+
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -194,10 +195,32 @@ class GenerateWellCacheFile(object):
             well.top_borehole_elevation.value if well.top_borehole_elevation else '',
             get_data(well.top_borehole_elevation.unit_id, self.units, Unit)
             if well.top_borehole_elevation else '',
+
+            # Country
             self.country.code if self.country else '',
+
+            # Address
             well.address,
+
+            # License
             license,
             restriction_code_type,
+
+            # TODO:
+            # Change this when measurement type has been added
+            # Measurement type
+            '',  # Groundwater levels
+            '',  # Groundwater quality
+            '',  # Abstraction / Discharge
+
+            # Measurement data
+            well.first_time_measurement.strftime(
+                '%Y-%m-%d %H:%M:%S'
+            ) if well.first_time_measurement else '',
+            well.last_time_measurement.strftime(
+                '%Y-%m-%d %H:%M:%S'
+            ) if well.last_time_measurement else '',
+
         ]
         self.write_json(folder, sheetname, [data])
 

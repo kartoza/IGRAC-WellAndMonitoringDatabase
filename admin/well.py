@@ -7,6 +7,7 @@ from gwml2.models.well import (
     Well, WellDocument,
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
 )
+from gwml2.models.well_materialized_view import MaterializedViewWell
 
 User = get_user_model()
 
@@ -82,6 +83,24 @@ class WellAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Well, WellAdmin)
+
+
+@admin.register(MaterializedViewWell)
+class MaterializedViewWellAdmin(admin.ModelAdmin):
+    list_display = (
+        'ggis_uid', 'id', 'name', 'organisation',
+        'country', 'first_time_measurement', 'last_time_measurement',
+        'number_of_measurements_level', 'number_of_measurements_quality',
+        'number_of_measurements_yield',
+        'link',
+    )
+    list_filter = (
+        'first_time_measurement', 'last_time_measurement'
+    )
+    search_fields = ('ggis_uid', 'name')
+
+    def link(self, obj):
+        return format_html(obj.detail)
 
 
 class MeasurementAdmin(admin.ModelAdmin):

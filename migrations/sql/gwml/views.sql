@@ -75,7 +75,9 @@ ON (id) id,
     last_edited_by,
     number_of_measurements_level,
     number_of_measurements_quality,
-    number_of_measurements_yield
+    number_of_measurements_yield,
+    first_time_measurement,
+    last_time_measurement
 from vw_well
 where number_of_measurements
     > 0
@@ -106,7 +108,9 @@ ON (id) id,
     last_edited_by,
     number_of_measurements_level,
     number_of_measurements_quality,
-    number_of_measurements_yield
+    number_of_measurements_yield,
+    first_time_measurement,
+    last_time_measurement
 from vw_well;
 
 -- WELL FOR ISTSOS MEASUREMENT --
