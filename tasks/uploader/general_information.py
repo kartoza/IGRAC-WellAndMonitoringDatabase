@@ -36,12 +36,23 @@ class GeneralInformationUploader(BaseUploader):
         'top_borehole_elevation_value': None,
         'top_borehole_elevation_unit': Unit,
         'country': Country,
-        'address': None
+        'address': None,
+        'license_type': None,
+        'license_restriction': None,
+        'is_groundwater_level': None,
+        'is_groundwater_quality': None
     }
 
     def convert_record(self, sheet_name, data):
         """ return object that will be used
         """
+        key = 'is_groundwater_level'
+        if data.get(key, None) is not None:
+            data[key] = True if data[key].lower() == 'yes' else False
+        key = 'is_groundwater_quality'
+        if data.get(key, None) is not None:
+            data[key] = True if data[key].lower() == 'yes' else False
+
         return {
             'general_information': data,
             'well_metadata': {

@@ -25,7 +25,8 @@ class GeneralInformationForm(WellBaseForm):
             'ggis_uid', 'original_id', 'location', 'name', 'feature_type',
             'purpose', 'status', 'country', 'address',
             'ground_surface_elevation', 'top_borehole_elevation', 'photo',
-            'description', 'glo_90m_elevation'
+            'description', 'glo_90m_elevation',
+            'is_groundwater_level', 'is_groundwater_quality'
         )
         widgets = {
             'ground_surface_elevation': QuantityInput(unit_group='length'),
