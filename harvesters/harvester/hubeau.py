@@ -36,6 +36,9 @@ class Hubeau(BaseHarvester):
     current_idx = 0
     proceed = False
 
+    # Filter the index by using - separator
+    index_filter = 'index-filter'
+
     def __init__(
             self, harvester: Harvester, replace: bool = False,
             original_id: str = None
@@ -52,6 +55,21 @@ class Hubeau(BaseHarvester):
             self.codes = json.loads(self.attributes['codes'])
         except Exception:
             pass
+
+        self.indexes = None
+        try:
+            indexes = self.attributes['index-filter'].split('-')
+            self.indexes = [
+                int(indexes[0]), int(indexes[1])
+            ]
+        except Exception:
+            pass
+
+        if self.indexes:
+            if self.indexes[0] > self.indexes[0]:
+                raise Exception(
+                    'First index on index-filter is greater than last index'
+                )
 
         # Check last code
         self.last_code = self.attributes.get(self.last_code_key, None)
@@ -127,6 +145,13 @@ class Hubeau(BaseHarvester):
 
             for station in stations:
                 self.current_idx += 1
+                if self.indexes:
+                    if (
+                            self.current_idx < self.indexes[0] or
+                            self.current_idx > self.indexes[1]
+                    ):
+                        continue
+
                 original_id = station[self.original_id_key]
                 self._update(
                     f'[{self.current_idx}/{self.count}] '
@@ -214,7 +239,8 @@ class Hubeau(BaseHarvester):
                         self.post_processing_well(
                             well, generate_country_cache=False
                         )
-                        self.countries.append(well.country.code)
+                        if well.country:
+                            self.countries.append(well.country.code)
                 except (
                         Well.DoesNotExist, requests.exceptions.ConnectionError
                 ):
