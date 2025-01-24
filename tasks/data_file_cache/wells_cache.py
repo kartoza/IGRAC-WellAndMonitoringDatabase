@@ -209,9 +209,11 @@ class GenerateWellCacheFile(object):
             # TODO:
             # Change this when measurement type has been added
             # Measurement type
-            '',  # Groundwater levels
-            '',  # Groundwater quality
-            '',  # Abstraction / Discharge
+
+            # Groundwater levels
+            'yes' if well.is_groundwater_level else 'no',
+            # Groundwater quality
+            'yes' if well.is_groundwater_quality else 'no',
 
             # Measurement data
             well.first_time_measurement.strftime(

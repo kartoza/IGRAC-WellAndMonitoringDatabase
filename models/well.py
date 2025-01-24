@@ -113,6 +113,14 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         default=0,
         help_text=_('Indicate how many yield measurement this well has.')
     )
+
+    # Meaurement type
+    is_groundwater_level = models.BooleanField(
+        null=True, blank=True,
+    )
+    is_groundwater_quality = models.BooleanField(
+        null=True, blank=True,
+    )
     objects = WellManager()
 
     def __str__(self):

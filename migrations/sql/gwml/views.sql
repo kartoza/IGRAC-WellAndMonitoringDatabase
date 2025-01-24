@@ -29,6 +29,8 @@ select w.id,
        u.name                           as "altitiude_unit",
        w.first_time_measurement,
        w.last_time_measurement,
+       w.is_groundwater_level,
+       w.is_groundwater_quality,
        concat('<a href="/groundwater/record/', w.id,
               '">Full Data Record</a>') as detail
 from well as w
@@ -77,7 +79,9 @@ ON (id) id,
     number_of_measurements_quality,
     number_of_measurements_yield,
     first_time_measurement,
-    last_time_measurement
+    last_time_measurement,
+    is_groundwater_level,
+    is_groundwater_quality
 from vw_well
 where number_of_measurements
     > 0
@@ -110,7 +114,9 @@ ON (id) id,
     number_of_measurements_quality,
     number_of_measurements_yield,
     first_time_measurement,
-    last_time_measurement
+    last_time_measurement,
+    is_groundwater_level,
+    is_groundwater_quality
 from vw_well;
 
 -- WELL FOR ISTSOS MEASUREMENT --
@@ -130,5 +136,7 @@ select id,
 
 -- MATERIALIZED VIEW FOR ISTSOS MEASUREMENT --
 -- SCHEDULED REFRESH --
-CREATE MATERIALIZED VIEW mv_well_measurement AS
-select *, concat(parameter_id, '-', default_unit_id, '-', well_id) as unique_fk FROM vw_well_measurement;
+CREATE
+MATERIALIZED VIEW mv_well_measurement AS
+select *, concat(parameter_id, '-', default_unit_id, '-', well_id) as unique_fk
+FROM vw_well_measurement;

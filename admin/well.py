@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.db import connections
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -85,19 +86,27 @@ class WellAdmin(admin.ModelAdmin):
 admin.site.register(Well, WellAdmin)
 
 
+def refresh(modeladmin, request, queryset):
+    """Refresh materialized view."""
+    with connections['gwml2'].cursor() as cursor:
+        cursor.execute('REFRESH MATERIALIZED VIEW mv_well_ggmn;')
+        cursor.execute('REFRESH MATERIALIZED VIEW mv_well;')
+
+
 @admin.register(MaterializedViewWell)
 class MaterializedViewWellAdmin(admin.ModelAdmin):
     list_display = (
         'ggis_uid', 'id', 'name', 'organisation',
         'country', 'first_time_measurement', 'last_time_measurement',
         'number_of_measurements_level', 'number_of_measurements_quality',
-        'number_of_measurements_yield',
+        'is_groundwater_level', 'is_groundwater_quality',
         'link',
     )
     list_filter = (
         'first_time_measurement', 'last_time_measurement'
     )
     search_fields = ('ggis_uid', 'name')
+    actions = (refresh,)
 
     def link(self, obj):
         return format_html(obj.detail)

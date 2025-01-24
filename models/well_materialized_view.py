@@ -71,13 +71,16 @@ class MaterializedViewWell(models.Model):
     number_of_measurements_quality = models.IntegerField(
         null=False, blank=False,
     )
-    number_of_measurements_yield = models.IntegerField(
-        null=False, blank=False,
-    )
     first_time_measurement = models.DateTimeField(
         null=True, blank=True
     )
     last_time_measurement = models.DateTimeField(
+        null=True, blank=True
+    )
+    is_groundwater_level = models.BooleanField(
+        null=True, blank=True
+    )
+    is_groundwater_quality = models.BooleanField(
         null=True, blank=True
     )
 
