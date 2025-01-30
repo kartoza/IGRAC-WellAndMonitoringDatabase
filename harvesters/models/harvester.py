@@ -12,7 +12,6 @@ class Harvester(models.Model):
     """
     harvester_class = models.CharField(
         max_length=100,
-        unique=True,
         help_text=_(
             "The type of harvester that will be used."
             "Use class with full package.")
@@ -20,7 +19,6 @@ class Harvester(models.Model):
     name = models.CharField(
         _('Name'),
         max_length=100,
-        unique=True,
         help_text=_("Name of harvester that.")
     )
     description = models.TextField(
@@ -71,6 +69,7 @@ class Harvester(models.Model):
 
     class Meta:
         db_table = 'harvester'
+        unique_together = ('harvester_class', 'name')
 
     def __str__(self):
         return self.harvester_class

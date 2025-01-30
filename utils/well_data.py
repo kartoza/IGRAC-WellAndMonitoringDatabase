@@ -1,8 +1,5 @@
 from geonode.base.models import License, RestrictionCodeType
 from gwml2.models.general import Unit, Country
-from gwml2.models.term import (
-    TermWellPurpose
-)
 from gwml2.models.well import Well
 from gwml2.tasks.data_file_cache.base_cache import get_data
 
@@ -48,8 +45,7 @@ class WellData:
             'original_id': well.original_id,
             'name': well.name,
             'feature_type': well.feature_type_id,
-            'purpose': get_data(well.purpose_id, self.purposes,
-                                TermWellPurpose),
+            'purpose': well.purpose_id,
             'status': well.status_id,
             'description': well.description,
             'latitude': well.location.y,

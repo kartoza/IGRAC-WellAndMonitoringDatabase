@@ -29,6 +29,9 @@ MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
 MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
 MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
 
+YES = 'yes'
+NO = 'no'
+
 
 class WellManager(models.Manager):
     def get_queryset(self):
@@ -112,6 +115,24 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     number_of_measurements_yield = models.IntegerField(
         default=0,
         help_text=_('Indicate how many yield measurement this well has.')
+    )
+
+    # Measurement type
+    is_groundwater_level = models.CharField(
+        null=True, blank=True,
+        choices=(
+            (YES, YES),
+            (NO, NO),
+        ),
+        max_length=8
+    )
+    is_groundwater_quality = models.CharField(
+        null=True, blank=True,
+        choices=(
+            (YES, YES),
+            (NO, NO),
+        ),
+        max_length=8
     )
     objects = WellManager()
 
