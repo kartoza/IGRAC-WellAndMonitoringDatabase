@@ -7,6 +7,7 @@ from shutil import copyfile
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
+from django.db.models import Value, CharField, Func
 from openpyxl import load_workbook
 
 from geonode.base.models import License, RestrictionCodeType
@@ -16,7 +17,6 @@ from gwml2.models.term import (
     TermReferenceElevationType, TermConstructionStructureType,
     TermAquiferType, TermConfinement, TermGroundwaterUse
 )
-from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.tasks.data_file_cache.base_cache import get_data
@@ -96,6 +96,21 @@ class GenerateWellCacheFile(object):
             self, well: Well, force_regenerate: bool = True,
             generators: list = None
     ):
+        self.well = well
+        self.current_time = time.time()
+
+        done_file = self._file('done')
+        if not force_regenerate and os.path.exists(done_file):
+            return
+        self.log(f'----- Begin cache : id = {self.well.id}  -------')
+
+        # Prepare files
+        if not generators:
+            if os.path.exists(self.folder):
+                shutil.rmtree(self.folder)
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder)
+
         if not generators:
             generators = [
                 GENERATORS.GENERAL_INFORMATION,
@@ -106,19 +121,6 @@ class GenerateWellCacheFile(object):
             ]
 
         self.generators = generators
-        self.well = well
-        self.current_time = time.time()
-
-        done_file = self._file('done')
-        if not force_regenerate and os.path.exists(done_file):
-            return
-        self.log(f'----- Begin cache : id = {self.well.id}  -------')
-
-        # Prepare files
-        if os.path.exists(self.folder):
-            shutil.rmtree(self.folder)
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
 
         # Run the scripts
         self.run()
@@ -482,24 +484,23 @@ class GenerateWellCacheFile(object):
 
     def measurement_data(self, sheets, measurements, original_id):
         """ Measurements of well """
+        measurements = measurements.select_related(
+            'parameter', 'value', 'value__unit'
+        ).annotate(
+            original_id=Value(original_id, output_field=CharField()),
+            time_str=Func(
+                'time',
+                Value('YYYY-MM-DD HH24:MI:SS TZ'),
+                function='to_char',
+                output_field=CharField()
+            )
+        ).values_list(
+            'original_id', 'time_str', 'parameter__name', 'value__value',
+            'value__unit__name',
+            'methodology'
+        )
         for measurement in measurements:
-            value = measurement.value
-            data = [
-                original_id,
-
-                # measurement
-                measurement.time.strftime('%Y-%m-%d %H:%M:%S %Z'),
-                get_data(
-                    measurement.parameter_id, self.measurement_parameters,
-                    TermMeasurementParameter
-                ),
-
-                # value
-                value.value if value else '',
-                get_data(value.unit_id, self.units, Unit) if value else '',
-                measurement.methodology
-            ]
-            sheets.append(data)
+            sheets.append(measurement)
 
     def measurements(self, book, well):
         """ Measurements of well """
