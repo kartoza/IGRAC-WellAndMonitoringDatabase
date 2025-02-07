@@ -1,6 +1,8 @@
+import zipfile
+
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
-# from pyexcel_ods3 import get_data
+from lxml import etree
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled
@@ -22,14 +24,6 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal
 from igrac_api.tasks.cache_istsos import cache_istsos
-
-import zipfile
-from lxml import etree
-# import json
-from decimal import Decimal
-from datetime import datetime
-# import os
-# import shutil
 
 logger = get_task_logger(__name__)
 
@@ -82,37 +76,34 @@ class BatchUploader:
             with zipfile.ZipFile(file_path, 'r') as zip_ref:
                 content_xml = zip_ref.read('content.xml')
         except KeyError:
-            print("Error: 'content.xml' not found in ODS file.")
-            return {}
+            raise Exception("Error: 'content.xml' not found in ODS file.")
 
         tree = etree.XML(content_xml)
         namespace = {'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0'}
-        
+
         for sheet in tree.xpath('//table:table', namespaces=namespace):
             sheet_name = sheet.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name', 'Unknown Sheet')
-            print(f"Processing Sheet: {sheet_name}")
-            
             sheet_data = []
             headers = []
-            
+
             for row_index, row in enumerate(sheet.xpath('.//table:table-row', namespaces=namespace)):
                 row_data = []
-                
+
                 for cell in row.xpath('.//table:table-cell', namespaces=namespace):
                     cell_value = cell.xpath('.//text:p/text()', namespaces={'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'})
-                    
-                    if not cell_value: 
+
+                    if not cell_value:
                         value_type = cell.attrib.get('office:value-type')
                         if value_type == 'float':
                             cell_value = [cell.attrib.get('office:value')]
                         elif value_type == 'date':
                             cell_value = [cell.attrib.get('office:date-value')]
-                    
+
                     row_data.append(' '.join(cell_value) if cell_value else None)
-                
+
                 while row_data and row_data[-1] is None:
                     row_data.pop()
-                
+
                 if row_index == 0:
                     headers = row_data
                 else:
@@ -123,30 +114,6 @@ class BatchUploader:
                 records[sheet_name] = sheet_data
 
         return records
-    
-    '''You can use below function to create json file'''
-
-    '''def custom_default(self, obj):
-        if isinstance(obj, Decimal):
-            return float(obj)
-        elif isinstance(obj, datetime):
-            return obj.isoformat()
-        raise TypeError(f"Type {type(obj)} not serializable")
-
-    def write_to_json(self, data):
-        filename = "monitoring_data.json"
-        
-        if os.path.exists(filename):
-            shutil.copy(filename, filename.replace('.json', '_backup.json'))
-        
-        try:
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=4, default=custom_default)
-            print(f"Saved {filename}")
-            return True
-        except Exception as e:
-            print(f"Error saving file: {e}")
-            return False'''
 
     def process(
             self, upload_session: UploadSession, uploaders: list,
@@ -167,11 +134,6 @@ class BatchUploader:
             _file.seek(0)
             records = self.get_data(_file.path)
 
-            # if records:
-            #     write_to_json(records)
-            # else:
-            #     print("No data found in the ODS file.")
-            
             if not records:
                 error = 'No data found.'
                 self.upload_session.update_progress(
