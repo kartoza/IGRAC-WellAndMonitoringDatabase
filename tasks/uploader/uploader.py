@@ -69,7 +69,8 @@ class BatchUploader:
     # ------------------------------------
     # Script to read ods file
     # ------------------------------------
-    def get_data(self, file_path):
+    @staticmethod
+    def get_data(file_path):
         records = {}
 
         try:
@@ -84,7 +85,6 @@ class BatchUploader:
         for sheet in tree.xpath('//table:table', namespaces=namespace):
             sheet_name = sheet.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name', 'Unknown Sheet')
             sheet_data = []
-            headers = []
 
             for row_index, row in enumerate(sheet.xpath('.//table:table-row', namespaces=namespace)):
                 row_data = []
@@ -101,14 +101,7 @@ class BatchUploader:
 
                     row_data.append(' '.join(cell_value) if cell_value else None)
 
-                while row_data and row_data[-1] is None:
-                    row_data.pop()
-
-                if row_index == 0:
-                    headers = row_data
-                else:
-                    row_dict = {headers[i]: row_data[i] for i in range(min(len(headers), len(row_data)))}
-                    sheet_data.append(row_dict)
+                sheet_data.append(row_data)
 
             if sheet_data:
                 records[sheet_name] = sheet_data
@@ -132,7 +125,7 @@ class BatchUploader:
         _file = self.upload_session.upload_file
         if _file:
             _file.seek(0)
-            records = self.get_data(_file.path)
+            records = BatchUploader.get_data(_file.path)
 
             if not records:
                 error = 'No data found.'

@@ -252,7 +252,7 @@ class UploadSession(LicenseMetadata):
         """Run the uploader in background."""
         from gwml2.tasks import well_batch_upload
         if self.task_status != TaskStatus.RUNNING:
-            well_batch_upload.delay(self.id, restart)
+            well_batch_upload(self.id, restart)
 
     def run(self, restart: bool = False):
         """Run the upload."""
