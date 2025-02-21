@@ -9,6 +9,13 @@ from pyexcel_ods3 import get_data
 START_ROW = 2
 
 
+class ExcelOutOfDate(Exception):
+    """Exception raised when an excel file has an invalid version."""
+
+    def __init__(self, message):
+        self.message = message
+
+
 def get_records(
         sheets: list, records: dict, uploader_name: str
 ) -> (dict, int):
@@ -83,7 +90,7 @@ def compare_input_with_template(records: dict, sheet_name: str, uploader_name):
                 '  (READ ONLY)', '(READ ONLY)'
             )
     if template_headers != headers:
-        raise ValueError(
+        raise ExcelOutOfDate(
             'The file is out of date, '
             'please download the latest template on the form'
         )

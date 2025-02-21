@@ -1,5 +1,5 @@
 """Test ODS Reader."""
-
+import json
 from unittest.mock import patch
 
 from core.settings.utils import absolute_path
@@ -11,10 +11,8 @@ from gwml2.tasks.uploader import (
     MonitoringDataUploader
 )
 from gwml2.tasks.uploader.base import BaseUploader
-from gwml2.tasks.uploader.uploader import BatchUploader
 from gwml2.tests.base import GWML2Test
 from gwml2.utils.ods_reader import get_count
-from gwml2.utils.template_check import get_records
 
 captured_data = {}
 
@@ -42,7 +40,6 @@ class ODSReaderTest(GWML2Test):
         self.assertEquals(get_count(file_path, 'Hydrogeology'), 2)
         self.assertEquals(get_count(file_path, 'Management'), 2)
 
-    @patch.object(BaseUploader, "_convert_record", new=_convert_record)
     def test_sheet_not_found(self):
         """To file exist."""
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
@@ -59,27 +56,43 @@ class ODSReaderTest(GWML2Test):
             "Please check if you use the correct uploader/tab. '"
         )
 
+    def test_sheet_old_version(self):
+        """To file exist."""
+        file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
+        upload_session = UploadSession.objects.create()
+        GeneralInformationUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        upload_session.refresh_from_db()
+        self.assertEquals(
+            upload_session.status,
+            "The file is out of date, "
+            "please download the latest template on the form"
+        )
+
     @patch.object(BaseUploader, "_convert_record", new=_convert_record)
     def test_script(self):
         """To file exist."""
+        try:
+            del captured_data['General Information']
+            del captured_data['Hydrogeology']
+            del captured_data['Management']
+        except KeyError:
+            pass
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.ods')
-        results = BatchUploader.get_data(file_path)
-        get_records(
-            results.keys(), results, 'General Information'
-        )
         GeneralInformationUploader(
-            UploadSession.objects.create(), results, 0, 1,
+            UploadSession.objects.create(), 0, 1,
             file_path=file_path
         )
         HydrogeologyUploader(
-            UploadSession.objects.create(), results, 0, 1,
+            UploadSession.objects.create(), 0, 1,
             file_path=file_path
         )
         ManagementUploader(
-            UploadSession.objects.create(), results, 0, 1,
+            UploadSession.objects.create(), 0, 1,
             file_path=file_path
         )
-        print(captured_data)
         self.assertEquals(
             captured_data['General Information'][0][:20],
             [
@@ -125,6 +138,65 @@ class ODSReaderTest(GWML2Test):
         )
         self.assertEquals(
             captured_data['Management'][1][:10],
+            [
+                '2', 'Organisation 2', '', '', 'Irrigation',
+                '', '', '', '', ''
+            ]
+        )
+
+    @patch.object(BaseUploader, "_convert_record", new=_convert_record)
+    def test_resumed(self):
+        """To file exist."""
+        try:
+            del captured_data['General Information']
+            del captured_data['Hydrogeology']
+            del captured_data['Management']
+        except KeyError:
+            pass
+        file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.ods')
+        status = {
+            'General Information': {
+                'added': 1, 'error': 0, 'skipped': 0
+            },
+            'Hydrogeology': {
+                'added': 1, 'error': 0, 'skipped': 0
+            },
+            'Management': {
+                'added': 1, 'error': 0, 'skipped': 0
+            }
+        }
+        GeneralInformationUploader(
+            UploadSession.objects.create(status=json.dumps(status)), 0, 1,
+            file_path=file_path
+        )
+        HydrogeologyUploader(
+            UploadSession.objects.create(status=json.dumps(status)), 0, 1,
+            file_path=file_path
+        )
+        ManagementUploader(
+            UploadSession.objects.create(status=json.dumps(status)), 0, 1,
+            file_path=file_path
+        )
+        self.assertEquals(
+            captured_data['General Information'][0][:20],
+            [
+                '2', 'AB', 'Water well', 'Observation / monitoring',
+                '', '', '-36.351', '174.75797',
+                '', '', '', '', '', '', 'Indonesia',
+                '', '', '', '', ''
+            ]
+        )
+        self.assertEquals(
+            captured_data['Hydrogeology'][0][:14],
+            [
+                '2', 'Test 2', 'Material 2', 'Sandstone', '',
+                'Unconfined',
+                '', '', '', '', '', '',
+                '3', '1/m'
+            ],
+        )
+        self.assertEquals(
+            captured_data['Management'][0][:10],
             [
                 '2', 'Organisation 2', '', '', 'Irrigation',
                 '', '', '', '', ''

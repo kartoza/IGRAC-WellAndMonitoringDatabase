@@ -1,8 +1,5 @@
-import zipfile
-
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
-from lxml import etree
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled
@@ -66,97 +63,6 @@ class BatchUploader:
                         self.upload_session.update_step('Cancelled')
                         return
 
-    # ------------------------------------
-    # Script to read ods file
-    # ------------------------------------
-    @staticmethod
-    def get_data(file_path):
-        records = {}
-        with zipfile.ZipFile(file_path, "r") as zf:
-            with zf.open("content.xml") as xml_file:
-                context = etree.iterparse(
-                    xml_file, events=("start", "end"), huge_tree=True,
-                    recover=True
-                )
-                namespace = {
-                    'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0'}
-
-                current_sheet = None
-                current_sheet_data = []
-                for event, elem in context:
-                    if event == "start" and elem.tag.endswith("table"):
-                        if current_sheet:
-                            records[current_sheet] = current_sheet_data
-
-                        current_sheet = elem.attrib.get(
-                            '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name',
-                            'Unknown Sheet'
-                        )
-                        current_sheet_data = []
-
-                    if event == "end" and elem.tag.endswith("table-row"):
-                        row_data = []
-                        for cell in elem.xpath(
-                                './/table:table-cell', namespaces=namespace
-                        ):
-                            spanned = int(
-                                cell.attrib.get(
-                                    '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-spanned',
-                                    '1'
-                                )
-                            )
-                            repeated = int(
-                                cell.attrib.get(
-                                    '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-repeated',
-                                    '1'
-                                )
-                            )
-
-                            # Extract cell value
-                            cell_value = cell.xpath(
-                                './/text:p/text()',
-                                namespaces={
-                                    'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'
-                                }
-                            )
-                            if not cell_value:
-                                value_type = cell.attrib.get(
-                                    'office:value-type')
-                                if value_type == 'float':
-                                    cell_value = [
-                                        cell.attrib.get('office:value')
-                                    ]
-                                elif value_type == 'date':
-                                    cell_value = [
-                                        cell.attrib.get('office:date-value')
-                                    ]
-
-                            cell_content = ' '.join(
-                                cell_value
-                            ) if cell_value else ''
-
-                            # Create empty data
-                            for _ in range(spanned * repeated):
-                                if _ == 0:
-                                    row_data.append(cell_content)
-                                else:
-                                    row_data.append('')
-
-                        # Append to current sheet data
-                        try:
-                            if row_data[0]:
-                                current_sheet_data.append(row_data)
-                        except IndexError:
-                            pass
-
-                        # Free memory
-                        elem.clear()
-
-                # For the last sheet
-                if current_sheet:
-                    records[current_sheet] = current_sheet_data
-                return records
-
     def process(
             self, upload_session: UploadSession, uploaders: list,
             restart: bool = False
@@ -168,23 +74,6 @@ class BatchUploader:
             self.upload_session.status = ''
             self.upload_session.save()
 
-        # READ FILE
-        records = {}
-        self.upload_session.update_step('Reading file', progress=1)
-        _file = self.upload_session.upload_file
-        if _file:
-            _file.seek(0)
-            records = BatchUploader.get_data(_file.path)
-
-            if not records:
-                error = 'No data found.'
-                self.upload_session.update_progress(
-                    finished=True,
-                    progress=100,
-                    status=error
-                )
-                return
-
         # ------------------------------------
         # Run upload
         # ------------------------------------
@@ -195,7 +84,7 @@ class BatchUploader:
         self.upload_session.update_step('Upload data', min_progress)
         for idx, Uploader in enumerate(uploaders):
             Uploader(
-                upload_session, records,
+                upload_session,
                 min_progress, interval_progress,
                 restart, well_by_id, relation_cache,
                 file_path=upload_session.upload_file.path

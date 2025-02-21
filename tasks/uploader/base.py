@@ -13,8 +13,10 @@ from gwml2.models.upload_session import (
 )
 from gwml2.models.well import Well
 from gwml2.tasks.uploader.well import get_column
-from gwml2.utils.ods_reader import get_count
-from gwml2.utils.template_check import get_records
+from gwml2.utils.ods_reader import get_count, extract_data
+from gwml2.utils.template_check import (
+    compare_input_with_template, ExcelOutOfDate, START_ROW
+)
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.groundwater_form import WellEditing
 
@@ -37,7 +39,6 @@ class BaseUploader(WellEditing):
     UPLOADER_NAME = ''
     IS_OPTIONAL = False
     SHEETS = []
-    START_ROW = 2
     RECORD_FORMAT = {}
     AUTOCREATE_WELL = False
 
@@ -52,7 +53,7 @@ class BaseUploader(WellEditing):
     confinements = {}
 
     def __init__(
-            self, upload_session: UploadSession, records: dict,
+            self, upload_session: UploadSession,
             min_progress: int, interval_progress: int,
             restart: bool = False,
             well_by_id: dict = dict, relation_cache: dict = dict,
@@ -81,6 +82,9 @@ class BaseUploader(WellEditing):
 
         self.total_records = 0
         self.records = {}
+        self.current_index = 0
+        self.current_row = 0
+        self.resumed_index = None
 
         # New approach
         try:
@@ -103,30 +107,10 @@ class BaseUploader(WellEditing):
                 status=str(error)
             )
             return
-        except ValueError as error:
-            self.upload_session.update_progress(
-                finished=True,
-                progress=100,
-                status=str(error)
-            )
-            return
 
-        # Old approach
         try:
-            self.records, self.total_records = get_records(
-                self.SHEETS, records, self.UPLOADER_NAME
-            )
-        except KeyError as error:
-            if self.IS_OPTIONAL:
-                return
-
-            self.upload_session.update_progress(
-                finished=True,
-                progress=100,
-                status=str(error)
-            )
-            return
-        except ValueError as error:
+            self.process()
+        except ExcelOutOfDate as error:
             self.upload_session.update_progress(
                 finished=True,
                 progress=100,
@@ -134,7 +118,8 @@ class BaseUploader(WellEditing):
             )
             return
 
-        self.process()
+    def process_sheet(self):
+        """Process sheet."""
 
     def process(self):
         """ Process records """
@@ -143,157 +128,185 @@ class BaseUploader(WellEditing):
 
         logger.debug('Found {} wells'.format(total))
 
-        # ------------------------------
-        # Upload data
-        # ------------------------------
-        index = 0
-        for sheet_name, records in self.records.items():
+        for sheet_name in self.SHEETS:
+            self.current_row = 0
+            self.resumed_index = None
             progress = {
                 'added': 0,
                 'error': 0,
                 'skipped': 0,
             }
-
-            resumed_index = 0
             if not self.restart:
                 try:
                     status = json.loads(
                         self.upload_session.status
                     )[sheet_name]
-                    resumed_index = status['added'] + status['error'] + status[
-                        'skipped']
+                    self.resumed_index = status[
+                                             'added'
+                                         ] + status[
+                                             'error'
+                                         ] + status[
+                                             'skipped'
+                                         ]
                     progress = status
                 except Exception:
                     pass
+            headers = []
 
-            for row, raw_record in enumerate(records):
-                if row + 1 <= resumed_index:
-                    continue
-                if len(raw_record) == 0:
-                    continue
-                if not raw_record[0]:
-                    continue
+            def receiver(raw_record):
+                """This is for receiver"""
+                if len(headers) < START_ROW:
+                    headers.append(raw_record)
 
-                index += 1
-                curr_progress = (index / total) * self.interval_progress
-                process_percent = curr_progress + self.min_progress
+                    if len(headers) == START_ROW:
+                        compare_input_with_template(
+                            {sheet_name: headers},
+                            sheet_name,
+                            self.UPLOADER_NAME
+                        )
+                else:
+                    self.current_row += 1
 
-                # for saving records, 50%
-                error = {}
-                skipped = False
-                well = None
-                try:
-                    original_id = get_column(raw_record, 0)
-                    record = self._convert_record(sheet_name, raw_record)
+                    if len(raw_record) == 0:
+                        return
+                    if not raw_record[0]:
+                        return
+                    if (
+                            self.resumed_index is not None
+                            and self.current_row <= self.resumed_index
+                    ):
+                        return
 
-                    well_identifier = f'{organisation.id}-{original_id}'
+                    self.current_index += 1
+                    curr_progress = (
+                                            self.current_index / total
+                                    ) * self.interval_progress
+                    process_percent = curr_progress + self.min_progress
+
+                    # for saving records, 50%
+                    error = {}
+                    skipped = False
+                    well = None
                     try:
+                        original_id = get_column(raw_record, 0)
+                        record = self._convert_record(sheet_name, raw_record)
+
+                        well_identifier = f'{organisation.id}-{original_id}'
                         try:
-                            well = self.well_by_id[well_identifier]
-                        except KeyError:
-                            well = Well.objects.get(
-                                organisation_id=organisation.id,
-                                original_id=original_id
-                            )
-                            self.well_by_id[well_identifier] = well
-                    except Well.DoesNotExist:
-                        if not self.upload_session.is_adding:
+                            try:
+                                well = self.well_by_id[well_identifier]
+                            except KeyError:
+                                well = Well.objects.get(
+                                    organisation_id=organisation.id,
+                                    original_id=original_id
+                                )
+                                self.well_by_id[well_identifier] = well
+                        except Well.DoesNotExist:
+                            if not self.upload_session.is_adding:
+                                raise RowSkipped()
+                            if self.AUTOCREATE_WELL:
+                                # This is for creating new data
+                                well = None
+                            else:
+                                raise Well.DoesNotExist()
+
+                        has_obj = self.get_object(sheet_name, well, record)
+                        if not self.upload_session.is_updating and has_obj:
                             raise RowSkipped()
-                        if self.AUTOCREATE_WELL:
-                            # This is for creating new data
-                            well = None
-                        else:
-                            raise Well.DoesNotExist()
 
-                    has_obj = self.get_object(sheet_name, well, record)
-                    if not self.upload_session.is_updating and has_obj:
-                        raise RowSkipped()
+                        # Need to assign the data
+                        if has_obj:
+                            record = self.update_with_init_data(well, record)
+                        # This is for updating data
+                        well = self.update_data(well, record)
+                    except Well.DoesNotExist:
+                        error = {
+                            'original_id': 'Well does not exist'
+                        }
+                    except TermNotFound as e:
+                        error = json.loads('{}'.format(e))
+                    except FormNotValid as e:
+                        error = json.loads('{}'.format(e))
+                    except RowSkipped:
+                        skipped = True
+                    except Exception as e:
+                        error = {
+                            'original_id': '{}'.format(e)
+                        }
 
-                    # Need to assign the data
-                    if has_obj:
-                        record = self.update_with_init_data(well, record)
-                    # This is for updating data
-                    well = self.update_data(well, record)
-                except Well.DoesNotExist:
-                    error = {
-                        'original_id': 'Well does not exist'
-                    }
-                except TermNotFound as e:
-                    error = json.loads('{}'.format(e))
-                except FormNotValid as e:
-                    error = json.loads('{}'.format(e))
-                except RowSkipped:
-                    skipped = True
-                except Exception as e:
-                    error = {
-                        'original_id': '{}'.format(e)
-                    }
+                    # ---------------------------------------------
+                    # Update progress and status
+                    # ---------------------------------------------
+                    row_idx = self.current_row + START_ROW + 1
+                    if error:
+                        progress['error'] += 1
 
-                # ---------------------------------------------
-                # Update progress and status
-                # ---------------------------------------------
-                row_idx = row + self.START_ROW + 1
-                if error:
-                    progress['error'] += 1
+                        # create progress status per row
+                        for key, note in error.items():
+                            try:
+                                column = list(self.RECORD_FORMAT.keys()).index(
+                                    key)
+                            except ValueError:
+                                column = 0
+                            if type(note) is list:
+                                note = '<br>'.join(note)
+                            obj, _ = UploadSessionRowStatus.objects.get_or_create(
+                                upload_session=self.upload_session,
+                                sheet_name=sheet_name,
+                                row=row_idx,
+                                column=column,
+                                defaults={
+                                    'status': 1
+                                }
+                            )
+                            obj.well = well
+                            obj.status = 1
+                            obj.note = note
+                            obj.save()
+                    elif skipped:
+                        progress['skipped'] += 1
 
-                    # create progress status per row
-                    for key, note in error.items():
-                        try:
-                            column = list(self.RECORD_FORMAT.keys()).index(key)
-                        except ValueError:
-                            column = 0
-                        if type(note) is list:
-                            note = '<br>'.join(note)
+                        # create progress status per row
                         obj, _ = UploadSessionRowStatus.objects.get_or_create(
                             upload_session=self.upload_session,
                             sheet_name=sheet_name,
                             row=row_idx,
-                            column=column,
+                            column=0,
                             defaults={
-                                'status': 1
+                                'status': 2
                             }
                         )
                         obj.well = well
-                        obj.status = 1
-                        obj.note = note
+                        obj.status = 2
                         obj.save()
-                elif skipped:
-                    progress['skipped'] += 1
+                    else:
+                        progress['added'] += 1
 
-                    # create progress status per row
-                    obj, _ = UploadSessionRowStatus.objects.get_or_create(
-                        upload_session=self.upload_session,
-                        sheet_name=sheet_name,
-                        row=row_idx,
-                        column=0,
-                        defaults={
-                            'status': 2
-                        }
+                        # create progress status per row
+                        obj, _ = UploadSessionRowStatus.objects.get_or_create(
+                            upload_session=self.upload_session,
+                            sheet_name=sheet_name,
+                            row=row_idx,
+                            column=0,
+                            defaults={
+                                'status': 0
+                            }
+                        )
+                        obj.well = well
+                        obj.status = 0
+                        obj.save()
+
+                    self.upload_session.update_progress(
+                        progress=int(process_percent)
                     )
-                    obj.well = well
-                    obj.status = 2
-                    obj.save()
-                else:
-                    progress['added'] += 1
+                    self.upload_session.update_status(sheet_name, progress)
 
-                    # create progress status per row
-                    obj, _ = UploadSessionRowStatus.objects.get_or_create(
-                        upload_session=self.upload_session,
-                        sheet_name=sheet_name,
-                        row=row_idx,
-                        column=0,
-                        defaults={
-                            'status': 0
-                        }
-                    )
-                    obj.well = well
-                    obj.status = 0
-                    obj.save()
-
-                self.upload_session.update_progress(
-                    progress=int(process_percent)
-                )
-                self.upload_session.update_status(sheet_name, progress)
+            # Extract data per sheet
+            extract_data(
+                file_path=self.file_path,
+                sheet_name=sheet_name,
+                receiver=receiver
+            )
 
     def _convert_record(self, sheet_name, record):
         """ convert record into json data
