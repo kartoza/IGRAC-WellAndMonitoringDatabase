@@ -197,7 +197,8 @@ class BatchUploader:
             Uploader(
                 upload_session, records,
                 min_progress, interval_progress,
-                restart, well_by_id, relation_cache
+                restart, well_by_id, relation_cache,
+                file_path=upload_session.upload_file.path
             )
             min_progress += interval_progress
 

@@ -7,7 +7,8 @@ from gwml2.models.upload_session import UploadSession
 from gwml2.tasks.uploader import (
     GeneralInformationUploader,
     HydrogeologyUploader,
-    ManagementUploader
+    ManagementUploader,
+    MonitoringDataUploader
 )
 from gwml2.tasks.uploader.base import BaseUploader
 from gwml2.tasks.uploader.uploader import BatchUploader
@@ -35,19 +36,28 @@ class ODSReaderTest(GWML2Test):
     def test_count(self):
         """To file exist."""
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
+        self.assertEquals(get_count(file_path, 'General_Information'), 2)
         self.assertEquals(get_count(file_path, 'General Information'), 2)
+        self.assertEquals(get_count(file_path, 'General'), None)
         self.assertEquals(get_count(file_path, 'Hydrogeology'), 2)
         self.assertEquals(get_count(file_path, 'Management'), 2)
 
     @patch.object(BaseUploader, "_convert_record", new=_convert_record)
-    def test_script_error(self):
+    def test_sheet_not_found(self):
         """To file exist."""
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
-        results = BatchUploader.get_data(file_path)
-        with self.assertRaises(ValueError):
-            get_records(
-                results.keys(), results, 'General Information'
-            )
+        upload_session = UploadSession.objects.create()
+        MonitoringDataUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        upload_session.refresh_from_db()
+        self.assertEquals(
+            upload_session.status,
+            "'Sheet Groundwater Level in excel is not found. "
+            "This sheet is used by Monitoring Data. "
+            "Please check if you use the correct uploader/tab. '"
+        )
 
     @patch.object(BaseUploader, "_convert_record", new=_convert_record)
     def test_script(self):
@@ -58,13 +68,16 @@ class ODSReaderTest(GWML2Test):
             results.keys(), results, 'General Information'
         )
         GeneralInformationUploader(
-            UploadSession.objects.create(), results, 0, 1
+            UploadSession.objects.create(), results, 0, 1,
+            file_path=file_path
         )
         HydrogeologyUploader(
-            UploadSession.objects.create(), results, 0, 1
+            UploadSession.objects.create(), results, 0, 1,
+            file_path=file_path
         )
         ManagementUploader(
-            UploadSession.objects.create(), results, 0, 1
+            UploadSession.objects.create(), results, 0, 1,
+            file_path=file_path
         )
         print(captured_data)
         self.assertEquals(

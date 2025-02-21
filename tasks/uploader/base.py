@@ -13,6 +13,7 @@ from gwml2.models.upload_session import (
 )
 from gwml2.models.well import Well
 from gwml2.tasks.uploader.well import get_column
+from gwml2.utils.ods_reader import get_count
 from gwml2.utils.template_check import get_records
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.groundwater_form import WellEditing
@@ -54,8 +55,10 @@ class BaseUploader(WellEditing):
             self, upload_session: UploadSession, records: dict,
             min_progress: int, interval_progress: int,
             restart: bool = False,
-            well_by_id: dict = dict, relation_cache: dict = dict
+            well_by_id: dict = dict, relation_cache: dict = dict,
+            file_path: str = None
     ):
+        self.file_path = file_path
         self.min_progress = min_progress
         self.interval_progress = interval_progress
 
@@ -74,9 +77,41 @@ class BaseUploader(WellEditing):
         self.groundwater_uses = {}
         self.aquifer_types = {}
         self.confinements = {}
+        self.records = {}
 
         self.total_records = 0
         self.records = {}
+
+        # New approach
+        try:
+            for sheet_name in self.SHEETS:
+                sheet_total = get_count(self.file_path, sheet_name)
+                if sheet_total is None:
+                    raise KeyError(
+                        f'Sheet {sheet_name} in excel is not found. '
+                        f'This sheet is used by {self.UPLOADER_NAME}. '
+                        f'Please check if you use the correct uploader/tab. '
+                    )
+                self.total_records += sheet_total
+        except KeyError as error:
+            if self.IS_OPTIONAL:
+                return
+
+            self.upload_session.update_progress(
+                finished=True,
+                progress=100,
+                status=str(error)
+            )
+            return
+        except ValueError as error:
+            self.upload_session.update_progress(
+                finished=True,
+                progress=100,
+                status=str(error)
+            )
+            return
+
+        # Old approach
         try:
             self.records, self.total_records = get_records(
                 self.SHEETS, records, self.UPLOADER_NAME
