@@ -136,6 +136,8 @@ class BaseUploader(WellEditing):
                     continue
                 if len(raw_record) == 0:
                     continue
+                if not raw_record[0]:
+                    continue
 
                 index += 1
                 curr_progress = (index / total) * self.interval_progress

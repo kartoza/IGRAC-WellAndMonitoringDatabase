@@ -24,7 +24,6 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal
 from igrac_api.tasks.cache_istsos import cache_istsos
-from gwml2.utils.template_check import remove_last_empty_element
 
 logger = get_task_logger(__name__)
 
@@ -73,49 +72,95 @@ class BatchUploader:
     @staticmethod
     def get_data(file_path):
         records = {}
+        with zipfile.ZipFile(file_path, "r") as zf:
+            with zf.open("content.xml") as xml_file:
+                print('Reading zip file')
+                context = etree.iterparse(
+                    xml_file, events=("start", "end"), huge_tree=True,
+                    recover=True
+                )
+                print('Reading done')
+                namespace = {
+                    'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0'}
 
-        try:
-            with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                content_xml = zip_ref.read('content.xml')
-        except KeyError:
-            raise Exception("Error: 'content.xml' not found in ODS file.")
+                current_sheet = None
+                current_sheet_data = []
+                for event, elem in context:
+                    if event == "start" and elem.tag.endswith("table"):
+                        if current_sheet:
+                            records[current_sheet] = current_sheet_data
 
-        tree = etree.XML(content_xml)
-        namespace = {'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0'}
-
-        for sheet in tree.xpath('//table:table', namespaces=namespace):
-            sheet_name = sheet.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name', 'Unknown Sheet')
-            sheet_data = []
-
-            for row_index, row in enumerate(sheet.xpath('.//table:table-row', namespaces=namespace)):
-                row_data = []
-
-                for cell in row.xpath('.//table:table-cell', namespaces=namespace):
-                    spanned = int(cell.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-spanned', '1'))
-                    repeated = int(cell.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-repeated','1'))
-
-                    for _ in range(spanned * repeated):  # Handle repeated columns
-                        if _ != 0:
-                            row_data.append('')
-                            continue
-                        cell_value = cell.xpath(
-                            './/text:p/text()', namespaces={'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'}
+                        current_sheet = elem.attrib.get(
+                            '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name',
+                            'Unknown Sheet'
                         )
-                        if not cell_value:
-                            value_type = cell.attrib.get('office:value-type')
-                            if value_type == 'float':
-                                cell_value = [cell.attrib.get('office:value')]
-                            elif value_type == 'date':
-                                cell_value = [cell.attrib.get('office:date-value')]
+                        print('Found sheet')
+                        print(current_sheet)
+                        current_sheet_data = []
 
-                        row_data.append(' '.join(cell_value) if cell_value else '')
+                    if event == "end" and elem.tag.endswith("table-row"):
+                        row_data = []
+                        for cell in elem.xpath(
+                                './/table:table-cell', namespaces=namespace
+                        ):
+                            spanned = int(
+                                cell.attrib.get(
+                                    '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-spanned',
+                                    '1'
+                                )
+                            )
+                            repeated = int(
+                                cell.attrib.get(
+                                    '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-repeated',
+                                    '1'
+                                )
+                            )
 
-                sheet_data.append(row_data)
+                            # Extract cell value
+                            cell_value = cell.xpath(
+                                './/text:p/text()',
+                                namespaces={
+                                    'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'
+                                }
+                            )
+                            if not cell_value:
+                                value_type = cell.attrib.get(
+                                    'office:value-type')
+                                if value_type == 'float':
+                                    cell_value = [
+                                        cell.attrib.get('office:value')
+                                    ]
+                                elif value_type == 'date':
+                                    cell_value = [
+                                        cell.attrib.get('office:date-value')
+                                    ]
 
-            if sheet_data:
-                records[sheet_name] = sheet_data
+                            cell_content = ' '.join(
+                                cell_value
+                            ) if cell_value else ''
 
-        return records
+                            # Create empty data
+                            for _ in range(spanned * repeated):
+                                if _ == 0:
+                                    row_data.append(cell_content)
+                                else:
+                                    row_data.append('')
+
+                        # Append to current sheet data
+                        try:
+                            if row_data[0]:
+                                print(row_data)
+                                # current_sheet_data.append(row_data)
+                        except IndexError:
+                            pass
+
+                        # Free memory
+                        elem.clear()
+
+                # For the last sheet
+                if current_sheet:
+                    records[current_sheet] = current_sheet_data
+                return records
 
     def process(
             self, upload_session: UploadSession, uploaders: list,
