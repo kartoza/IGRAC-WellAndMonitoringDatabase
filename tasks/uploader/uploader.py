@@ -1,6 +1,5 @@
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
-from pyexcel_ods3 import get_data
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled
@@ -63,6 +62,13 @@ class BatchUploader:
                         self.upload_session.create_report_excel()
                         self.upload_session.update_step('Cancelled')
                         return
+                    except Exception as error:
+                        self.upload_session.update_progress(
+                            finished=True,
+                            progress=100,
+                            status=str(error)
+                        )
+                        return
 
     def process(
             self, upload_session: UploadSession, uploaders: list,
@@ -75,22 +81,6 @@ class BatchUploader:
             self.upload_session.status = ''
             self.upload_session.save()
 
-        # READ FILE
-        records = {}
-        self.upload_session.update_step('Reading file', progress=1)
-        _file = self.upload_session.upload_file
-        if _file:
-            _file.seek(0)
-            records = get_data(_file.path)
-            if not records:
-                error = 'No data found.'
-                self.upload_session.update_progress(
-                    finished=True,
-                    progress=100,
-                    status=error
-                )
-                return
-
         # ------------------------------------
         # Run upload
         # ------------------------------------
@@ -98,12 +88,13 @@ class BatchUploader:
         well_by_id = {}
         min_progress = 5
         interval_progress = 65 / len(uploaders)
-        self.upload_session.update_step('Upload data', min_progress)
+        self.upload_session.update_step('Reading data', min_progress)
         for idx, Uploader in enumerate(uploaders):
             Uploader(
-                upload_session, records,
+                upload_session,
                 min_progress, interval_progress,
-                restart, well_by_id, relation_cache
+                restart, well_by_id, relation_cache,
+                file_path=upload_session.upload_file.path
             )
             min_progress += interval_progress
 
