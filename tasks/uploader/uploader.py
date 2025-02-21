@@ -74,12 +74,10 @@ class BatchUploader:
         records = {}
         with zipfile.ZipFile(file_path, "r") as zf:
             with zf.open("content.xml") as xml_file:
-                print('Reading zip file')
                 context = etree.iterparse(
                     xml_file, events=("start", "end"), huge_tree=True,
                     recover=True
                 )
-                print('Reading done')
                 namespace = {
                     'table': 'urn:oasis:names:tc:opendocument:xmlns:table:1.0'}
 
@@ -94,8 +92,6 @@ class BatchUploader:
                             '{urn:oasis:names:tc:opendocument:xmlns:table:1.0}name',
                             'Unknown Sheet'
                         )
-                        print('Found sheet')
-                        print(current_sheet)
                         current_sheet_data = []
 
                     if event == "end" and elem.tag.endswith("table-row"):
@@ -149,8 +145,7 @@ class BatchUploader:
                         # Append to current sheet data
                         try:
                             if row_data[0]:
-                                print(row_data)
-                                # current_sheet_data.append(row_data)
+                                current_sheet_data.append(row_data)
                         except IndexError:
                             pass
 

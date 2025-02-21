@@ -1,14 +1,37 @@
 """Test ODS Reader."""
 
+from unittest.mock import patch
+
 from core.settings.utils import absolute_path
+from gwml2.models.upload_session import UploadSession
+from gwml2.tasks.uploader import (
+    GeneralInformationUploader,
+    HydrogeologyUploader,
+    ManagementUploader
+)
+from gwml2.tasks.uploader.base import BaseUploader
 from gwml2.tasks.uploader.uploader import BatchUploader
 from gwml2.tests.base import GWML2Test
 from gwml2.utils.template_check import get_records
+
+captured_data = {}
 
 
 class ODSReaderTest(GWML2Test):
     """Test ODS Reader."""
 
+    def _convert_record(self, sheet_name, record):
+        """ convert record into json data
+        :return: dictionary of forms
+        :rtype: dict
+        """
+        try:
+            captured_data[sheet_name].append(record)
+        except KeyError:
+            captured_data[sheet_name] = [record]
+        raise Exception('Error')
+
+    @patch.object(BaseUploader, "_convert_record", new=_convert_record)
     def test_script_error(self):
         """To file exist."""
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
@@ -18,6 +41,7 @@ class ODSReaderTest(GWML2Test):
                 results.keys(), results, 'General Information'
             )
 
+    @patch.object(BaseUploader, "_convert_record", new=_convert_record)
     def test_script(self):
         """To file exist."""
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.ods')
@@ -25,46 +49,18 @@ class ODSReaderTest(GWML2Test):
         get_records(
             results.keys(), results, 'General Information'
         )
-        self.assertEquals(
-            results['General_Information'][0][:21],
-            [
-                'ID', 'Name', 'Feature Type', 'Purpose', 'Status',
-                'Description', 'Latitude', 'Longitude',
-                'Ground surface elevation', '',
-                'DEM elevation based on the GLO_90m dataset', '',
-                'Top of well elevation', '', 'Country', 'Address',
-                'License', '', 'Measurement Type', '', 'Measurement Data'
-            ]
+        GeneralInformationUploader(
+            UploadSession.objects.create(), results, 0, 1
         )
-        self.assertEquals(
-            results['General_Information'][1][:22],
-            [
-                'As recorded in the original database.',
-                'The name of the data point.',
-                'One of the following: • Borehole • Hand-dug well • Spring If the feature type list does not include the type you need, contact the GGIS administrator : ggis@un-igrac.org.',
-                'One of the following: • Production • Observation / monitoring • Injection (Managed Aquifer Recharge) • Geothermal energy • Drainage',
-                'One of the following: • Active • Dry • Collapsed • Abandoned',
-                'A general description of the data point.',
-                'Latitude must be expressed in decimal degrees, with a comma for decimal separator.',
-                'Longitude must be expressed in decimal degrees, with a comma for decimal separator.',
-                'Measured Above Mean Sea Level (AMSL).',
-                'Unit must be either:  m  ft',
-                'Measured Above Mean Sea Level (AMSL).',
-                'Unit must be either:  m  ft',
-                'Measured Above Mean Sea Level (AMSL). The top of the well is usually higher than the ground surface elevation.',
-                'Unit must be either:  m  ft',
-                '3-letters ISO code of the country. See for example: https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3#Officially_assigned_code_elements',
-                'The address of the data point.',
-                'License type.',
-                'Restriction.',
-                'Groundwater levels: • Yes • No',
-                'Groundwater quality: • Yes • No',
-                'First Measurement (READ ONLY)',
-                'Last Measurement (READ ONLY)'
-            ],
+        HydrogeologyUploader(
+            UploadSession.objects.create(), results, 0, 1
         )
+        ManagementUploader(
+            UploadSession.objects.create(), results, 0, 1
+        )
+        print(captured_data)
         self.assertEquals(
-            results['General_Information'][2][:20],
+            captured_data['General Information'][0][:20],
             [
                 '1', 'AA', 'Water well', 'Observation / monitoring',
                 '', '', '-36.338', '174.74365',
@@ -73,7 +69,7 @@ class ODSReaderTest(GWML2Test):
             ]
         )
         self.assertEquals(
-            results['General_Information'][3][:20],
+            captured_data['General Information'][1][:20],
             [
                 '2', 'AB', 'Water well', 'Observation / monitoring',
                 '', '', '-36.351', '174.75797',
@@ -82,34 +78,7 @@ class ODSReaderTest(GWML2Test):
             ]
         )
         self.assertEquals(
-            results['Hydrogeology'][0][:19],
-            [
-                'ID', 'Aquifer Name', 'Aquifer Material',
-                'Aquifer Type',
-                'Aquifer Thickness', 'Confinement',
-                'Degree of confinement', 'Porosity',
-                'Hydraulic Conductivity', '', 'Transmissivity', '',
-                'Specific storage', '', 'Specific capacity', '',
-                'Storativity', '', 'Test type'
-            ]
-        )
-        self.assertEquals(
-            results['Hydrogeology'][1][:19],
-            [
-                'The original ID of the groundwater point.', '', '',
-                'Value must be either: • Sand and gravel • Sandstone • Carbonate-rock • Sandstone and carbonate-rock • Igneous and metamorphic • Other',
-                '',
-                'Value must be either: • Confined • Semi-confined • Unconfined',
-                '', '', '',
-                'Unit must be either: • m/day', '',
-                'Unit must be either: • m²/day', '',
-                'Unit must be either: • 1/m', '',
-                'Unit must be either: • m²/day', '',
-                'Unit must be either: • m³/day • m³/h • m³/min • m³/s', ''
-            ],
-        )
-        self.assertEquals(
-            results['Hydrogeology'][2][:14],
+            captured_data['Hydrogeology'][0][:14],
             [
                 '1', 'Test 1', 'Material 1', 'Sand and gravel', '',
                 'Confined',
@@ -118,7 +87,7 @@ class ODSReaderTest(GWML2Test):
             ],
         )
         self.assertEquals(
-            results['Hydrogeology'][3][:14],
+            captured_data['Hydrogeology'][1][:14],
             [
                 '2', 'Test 2', 'Material 2', 'Sandstone', '',
                 'Unconfined',
@@ -127,31 +96,14 @@ class ODSReaderTest(GWML2Test):
             ],
         )
         self.assertEquals(
-            results['Management'][0][:10],
-            [
-                'ID', 'Organisation', '', '', 'Groundwater use',
-                'Number of people served', 'License', '', '', '',
-            ]
-        )
-        self.assertEquals(
-            results['Management'][1][:10],
-            [
-                'The original ID of the groundwater point.',
-                'Name', 'Manager / owner', 'Description',
-                'Unit must be either:  Domestic  Irrigation  Livestock  Industrial  Services (e.g. tourism)',
-                '', 'Number', 'Valid from (yyyy-mm-dd )',
-                'Valid until (yyyy-mm-dd)', 'Description'
-            ]
-        )
-        self.assertEquals(
-            results['Management'][2][:10],
+            captured_data['Management'][0][:10],
             [
                 '1', 'Organisation 1', '', '', 'Domestic',
                 '', '', '', '', ''
             ]
         )
         self.assertEquals(
-            results['Management'][3][:10],
+            captured_data['Management'][1][:10],
             [
                 '2', 'Organisation 2', '', '', 'Irrigation',
                 '', '', '', '', ''
