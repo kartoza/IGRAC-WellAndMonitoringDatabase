@@ -12,6 +12,7 @@ from gwml2.tasks.uploader import (
 from gwml2.tasks.uploader.base import BaseUploader
 from gwml2.tasks.uploader.uploader import BatchUploader
 from gwml2.tests.base import GWML2Test
+from gwml2.utils.ods_reader import get_count
 from gwml2.utils.template_check import get_records
 
 captured_data = {}
@@ -30,6 +31,13 @@ class ODSReaderTest(GWML2Test):
         except KeyError:
             captured_data[sheet_name] = [record]
         raise Exception('Error')
+
+    def test_count(self):
+        """To file exist."""
+        file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
+        self.assertEquals(get_count(file_path, 'General Information'), 2)
+        self.assertEquals(get_count(file_path, 'Hydrogeology'), 2)
+        self.assertEquals(get_count(file_path, 'Management'), 2)
 
     @patch.object(BaseUploader, "_convert_record", new=_convert_record)
     def test_script_error(self):
