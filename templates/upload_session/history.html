@@ -83,6 +83,30 @@
         </tr>
     </table>
     <script>
+      function fetchData() {
+        $.ajax({
+          url: "{% url 'upload_session_list' %}?page_size=10",
+          type: "GET",
+          success: function (data) {
+            data = data.results
+            data.reverse()
+            $('.row-data').not(data.map(row => `#session-${row.id}`)).remove()
+            $('#loading').remove()
+            data.forEach(row => {
+              updateData(row)
+            })
+            setTimeout(function () {
+              fetchData()
+            }, 2000);
+          },
+          error: function (xhr, ajaxOptions, thrownError) {
+            setTimeout(function () {
+              fetchData()
+            }, 2000);
+          }
+        })
+      }
+
       function initResumeButton($button, token) {
         $button.click(function () {
           let url = '/groundwater/upload-session/' + token + '/';
@@ -95,6 +119,7 @@
                 method: "POST",
                 body: data,
               });
+              fetchData();
             }
           )()
         })
@@ -112,6 +137,7 @@
                 method: "POST",
                 body: data,
               });
+              fetchData();
             }
           )()
         })
@@ -242,30 +268,6 @@
       }
 
       $(document).ready(function () {
-        function fetchData() {
-          $.ajax({
-            url: "{% url 'upload_session_list' %}?page_size=20",
-            type: "GET",
-            success: function (data) {
-              data = data.results
-              data.reverse()
-              $('.row-data').not(data.map(row => `#session-${row.id}`)).remove()
-              $('#loading').remove()
-              data.forEach(row => {
-                updateData(row)
-              })
-              setTimeout(function () {
-                fetchData()
-              }, 2000);
-            },
-            error: function (xhr, ajaxOptions, thrownError) {
-              setTimeout(function () {
-                fetchData()
-              }, 2000);
-            }
-          })
-        }
-
         fetchData()
       })
     </script>

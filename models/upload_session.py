@@ -6,14 +6,16 @@ import json
 import ntpath
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import openpyxl
 from celery import current_app
+from celery.result import AsyncResult
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
+from django.utils.timezone import now, make_aware
 from openpyxl.styles import PatternFill, Font
 
 from gwml2.models.metadata.license_metadata import LicenseMetadata
@@ -246,7 +248,23 @@ class UploadSession(LicenseMetadata):
                 for task in running_tasks:
                     if task["id"] == self.task_id:
                         return TaskStatus.RUNNING
+
+        time_difference = now() - (
+            self.uploaded_at if self.uploaded_at.tzinfo else make_aware(
+                self.uploaded_at
+            )
+        )
+
+        if time_difference > timedelta(minutes=10):
+            self.is_canceled = True
+            self.save()
+
         return TaskStatus.STOP
+
+    def stop(self):
+        """Stop the progress."""
+        if self.task_id:
+            AsyncResult(self.task_id, app=current_app).revoke(terminate=True)
 
     def run_in_background(self, restart: bool = False):
         """Run the uploader in background."""

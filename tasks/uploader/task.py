@@ -11,6 +11,7 @@ def well_batch_upload(self, upload_session_id: str, restart: bool = False):
     try:
         upload_session = UploadSession.objects.get(id=upload_session_id)
         upload_session.task_id = self.request.id
+        upload_session.is_canceled = False
         upload_session.save()
         upload_session.run(restart)
     except UploadSession.DoesNotExist:

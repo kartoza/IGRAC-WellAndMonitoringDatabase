@@ -46,8 +46,6 @@ class UploadSessionApiView(View):
                 raise PermissionDenied()
             if request.user.id != session.uploader:
                 raise PermissionDenied()
-            session.is_canceled = False
-            session.save()
             session.run_in_background()
             return HttpResponse('ok')
         except UploadSession.DoesNotExist:
@@ -80,6 +78,7 @@ class UploadSessionStopApiView(View):
                 raise PermissionDenied()
             session.is_canceled = True
             session.save()
+            session.stop()
             return HttpResponse('ok')
         except UploadSession.DoesNotExist:
             raise Http404('No session found')

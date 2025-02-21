@@ -13,9 +13,9 @@ from gwml2.models.upload_session import (
 )
 from gwml2.models.well import Well
 from gwml2.tasks.uploader.well import get_column
-from gwml2.utils.ods_reader import get_count, extract_data
+from gwml2.utils.ods_reader import extract_data
 from gwml2.utils.template_check import (
-    compare_input_with_template, ExcelOutOfDate, START_ROW
+    compare_input_with_template, START_ROW
 )
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.groundwater_form import WellEditing
@@ -80,57 +80,24 @@ class BaseUploader(WellEditing):
         self.confinements = {}
         self.records = {}
 
-        self.total_records = 0
         self.records = {}
         self.current_index = 0
         self.current_row = 0
         self.resumed_index = None
+        self.has_data = False
 
         # New approach
-        try:
-            for sheet_name in self.SHEETS:
-                sheet_total = get_count(self.file_path, sheet_name)
-                if sheet_total is None:
-                    raise KeyError(
-                        f'Sheet {sheet_name} in excel is not found. '
-                        f'This sheet is used by {self.UPLOADER_NAME}. '
-                        f'Please check if you use the correct uploader/tab. '
-                    )
-                self.total_records += sheet_total
-        except KeyError as error:
-            if self.IS_OPTIONAL:
-                return
-
-            self.upload_session.update_progress(
-                finished=True,
-                progress=100,
-                status=str(error)
-            )
-            return
-
-        try:
-            self.process()
-        except ExcelOutOfDate as error:
-            self.upload_session.update_progress(
-                finished=True,
-                progress=100,
-                status=str(error)
-            )
-            return
-
-    def process_sheet(self):
-        """Process sheet."""
+        self.upload_session.update_step('Processing data')
+        self.process()
 
     def process(self):
         """ Process records """
         organisation = self.upload_session.organisation
-        total = self.total_records
-
-        logger.debug('Found {} wells'.format(total))
-
         for sheet_name in self.SHEETS:
             self.current_row = 0
             self.resumed_index = None
+            self.has_data = False
+
             progress = {
                 'added': 0,
                 'error': 0,
@@ -151,6 +118,7 @@ class BaseUploader(WellEditing):
                     progress = status
                 except Exception:
                     pass
+
             headers = []
 
             def receiver(raw_record):
@@ -165,6 +133,7 @@ class BaseUploader(WellEditing):
                             self.UPLOADER_NAME
                         )
                 else:
+                    self.has_data = True
                     self.current_row += 1
 
                     if len(raw_record) == 0:
@@ -178,10 +147,6 @@ class BaseUploader(WellEditing):
                         return
 
                     self.current_index += 1
-                    curr_progress = (
-                                            self.current_index / total
-                                    ) * self.interval_progress
-                    process_percent = curr_progress + self.min_progress
 
                     # for saving records, 50%
                     error = {}
@@ -237,7 +202,7 @@ class BaseUploader(WellEditing):
                     # ---------------------------------------------
                     # Update progress and status
                     # ---------------------------------------------
-                    row_idx = self.current_row + START_ROW + 1
+                    row_idx = self.current_row + START_ROW
                     if error:
                         progress['error'] += 1
 
@@ -296,8 +261,8 @@ class BaseUploader(WellEditing):
                         obj.status = 0
                         obj.save()
 
-                    self.upload_session.update_progress(
-                        progress=int(process_percent)
+                    self.upload_session.update_step(
+                        f'{sheet_name} : Row {row_idx}'
                     )
                     self.upload_session.update_status(sheet_name, progress)
 
@@ -307,6 +272,13 @@ class BaseUploader(WellEditing):
                 sheet_name=sheet_name,
                 receiver=receiver
             )
+
+            if not self.has_data and not self.IS_OPTIONAL:
+                raise KeyError(
+                    f'Sheet {sheet_name} in excel is not found. '
+                    f'This sheet is used by {self.UPLOADER_NAME}. '
+                    f'Please check if you use the correct uploader/tab. '
+                )
 
     def _convert_record(self, sheet_name, record):
         """ convert record into json data

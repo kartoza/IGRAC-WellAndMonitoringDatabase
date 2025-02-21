@@ -13,6 +13,7 @@ from gwml2.tasks.uploader import (
 from gwml2.tasks.uploader.base import BaseUploader
 from gwml2.tests.base import GWML2Test
 from gwml2.utils.ods_reader import get_count
+from gwml2.utils.template_check import ExcelOutOfDate
 
 captured_data = {}
 
@@ -44,32 +45,32 @@ class ODSReaderTest(GWML2Test):
         """To file exist."""
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
         upload_session = UploadSession.objects.create()
-        MonitoringDataUploader(
-            upload_session, {}, 0, 1,
-            file_path=file_path
-        )
-        upload_session.refresh_from_db()
-        self.assertEquals(
-            upload_session.status,
-            "'Sheet Groundwater Level in excel is not found. "
-            "This sheet is used by Monitoring Data. "
-            "Please check if you use the correct uploader/tab. '"
-        )
+        with self.assertRaises(KeyError) as e:
+            MonitoringDataUploader(
+                upload_session, {}, 0, 1,
+                file_path=file_path
+            )
+            self.assertEquals(
+                f'{e}',
+                "'Sheet Groundwater Level in excel is not found. "
+                "This sheet is used by Monitoring Data. "
+                "Please check if you use the correct uploader/tab. '"
+            )
 
     def test_sheet_old_version(self):
         """To file exist."""
         file_path = absolute_path('gwml2', 'tests', 'fixtures', 'test.old.ods')
         upload_session = UploadSession.objects.create()
-        GeneralInformationUploader(
-            upload_session, {}, 0, 1,
-            file_path=file_path
-        )
-        upload_session.refresh_from_db()
-        self.assertEquals(
-            upload_session.status,
-            "The file is out of date, "
-            "please download the latest template on the form"
-        )
+        with self.assertRaises(ExcelOutOfDate) as e:
+            GeneralInformationUploader(
+                upload_session, {}, 0, 1,
+                file_path=file_path
+            )
+            self.assertEquals(
+                f'{e}',
+                "The file is out of date, "
+                "please download the latest template on the form"
+            )
 
     @patch.object(BaseUploader, "_convert_record", new=_convert_record)
     def test_script(self):

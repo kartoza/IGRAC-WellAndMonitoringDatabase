@@ -62,6 +62,13 @@ class BatchUploader:
                         self.upload_session.create_report_excel()
                         self.upload_session.update_step('Cancelled')
                         return
+                    except Exception as error:
+                        self.upload_session.update_progress(
+                            finished=True,
+                            progress=100,
+                            status=str(error)
+                        )
+                        return
 
     def process(
             self, upload_session: UploadSession, uploaders: list,
@@ -81,7 +88,7 @@ class BatchUploader:
         well_by_id = {}
         min_progress = 5
         interval_progress = 65 / len(uploaders)
-        self.upload_session.update_step('Upload data', min_progress)
+        self.upload_session.update_step('Reading data', min_progress)
         for idx, Uploader in enumerate(uploaders):
             Uploader(
                 upload_session,
