@@ -24,6 +24,7 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal
 from igrac_api.tasks.cache_istsos import cache_istsos
+from gwml2.utils.template_check import remove_last_empty_element
 
 logger = get_task_logger(__name__)
 
@@ -90,16 +91,24 @@ class BatchUploader:
                 row_data = []
 
                 for cell in row.xpath('.//table:table-cell', namespaces=namespace):
-                    cell_value = cell.xpath('.//text:p/text()', namespaces={'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'})
+                    spanned = int(cell.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-spanned', '1'))
+                    repeated = int(cell.attrib.get('{urn:oasis:names:tc:opendocument:xmlns:table:1.0}number-columns-repeated','1'))
 
-                    if not cell_value:
-                        value_type = cell.attrib.get('office:value-type')
-                        if value_type == 'float':
-                            cell_value = [cell.attrib.get('office:value')]
-                        elif value_type == 'date':
-                            cell_value = [cell.attrib.get('office:date-value')]
+                    for _ in range(spanned * repeated):  # Handle repeated columns
+                        if _ != 0:
+                            row_data.append('')
+                            continue
+                        cell_value = cell.xpath(
+                            './/text:p/text()', namespaces={'text': 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'}
+                        )
+                        if not cell_value:
+                            value_type = cell.attrib.get('office:value-type')
+                            if value_type == 'float':
+                                cell_value = [cell.attrib.get('office:value')]
+                            elif value_type == 'date':
+                                cell_value = [cell.attrib.get('office:date-value')]
 
-                    row_data.append(' '.join(cell_value) if cell_value else None)
+                        row_data.append(' '.join(cell_value) if cell_value else '')
 
                 sheet_data.append(row_data)
 

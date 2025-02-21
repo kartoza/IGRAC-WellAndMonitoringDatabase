@@ -13,6 +13,7 @@ from gwml2.models.upload_session import (
 )
 from gwml2.models.well import Well
 from gwml2.tasks.uploader.well import get_column
+from gwml2.utils.template_check import get_records
 from gwml2.views.form_group.form_group import FormNotValid
 from gwml2.views.groundwater_form import WellEditing
 
@@ -77,27 +78,24 @@ class BaseUploader(WellEditing):
         self.total_records = 0
         self.records = {}
         try:
-            for sheet_name in self.SHEETS:
-                try:
-                    sheet_records = records[sheet_name][self.START_ROW:]
-                except KeyError:
-                    _sheet_name = sheet_name.replace(' ', '_')
-                    sheet_records = records[_sheet_name][self.START_ROW:]
-                self.records[sheet_name] = sheet_records
-                self.total_records += len(sheet_records)
-        except KeyError as e:
+            self.records, self.total_records = get_records(
+                self.SHEETS, records, self.UPLOADER_NAME
+            )
+        except KeyError as error:
             if self.IS_OPTIONAL:
                 return
-            error = (
-                f'Sheet {e} in excel is not found. '
-                f'This sheet is used by {self.UPLOADER_NAME}. '
-                f'Please check if you use the correct uploader/tab. '
-            )
 
             self.upload_session.update_progress(
                 finished=True,
                 progress=100,
-                status=error
+                status=str(error)
+            )
+            return
+        except ValueError as error:
+            self.upload_session.update_progress(
+                finished=True,
+                progress=100,
+                status=str(error)
             )
             return
 
