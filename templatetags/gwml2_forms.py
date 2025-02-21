@@ -1,13 +1,15 @@
 from django import template
-from django.utils.safestring import mark_safe
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 register = template.Library()
 
 
 @register.simple_tag
-def render_label(field):
-    label = field.label
+def render_label(field, label=None):
+    if not label:
+        label = field.label
+
     if field.field.required:
         return f'<b>{label}</b>'
     else:
@@ -25,7 +27,7 @@ def render_help_text(field, help_text=''):
 
 
 @register.simple_tag
-def field_as_row(field, id='', unit='', help_text=''):
+def field_as_row(field, id='', unit='', help_text='', label=None):
     if id:
         id = 'id="{}"'.format(id)
     return mark_safe(
@@ -37,7 +39,7 @@ def field_as_row(field, id='', unit='', help_text=''):
         '</tr>'.format(
             id=id,
             help_text=render_help_text(field, help_text),
-            label=render_label(field),
+            label=render_label(field, label),
             input=field,
             unit=unit
         ))
