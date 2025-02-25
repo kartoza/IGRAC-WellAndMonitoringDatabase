@@ -10,7 +10,7 @@ from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
-    Well, MEASUREMENT_PARAMETER_GROUND, WellLevelMeasurement
+    Well, MEASUREMENT_PARAMETER_AMSL, WellLevelMeasurement
 )
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
@@ -45,7 +45,8 @@ class Hubeau(BaseHarvester):
     ):
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
-            name=MEASUREMENT_PARAMETER_GROUND)
+            name=MEASUREMENT_PARAMETER_AMSL
+        )
         super(Hubeau, self).__init__(harvester, replace, original_id)
 
     def _process(self):

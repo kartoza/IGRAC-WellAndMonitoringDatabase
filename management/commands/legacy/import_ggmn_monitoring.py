@@ -2,8 +2,10 @@ __author__ = 'Irwan Fathurrahman <meomancer@gmail.com>'
 __date__ = '08/02/21'
 
 import os
+
 from django.core.management.base import BaseCommand
-from gwml2.management.commands.ggmn_importer import (
+
+from gwml2.management.commands.legacy.ggmn_importer import (
     NSGGMNData, StandardGGMNData
 )
 
