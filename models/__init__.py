@@ -20,3 +20,6 @@ from gwml2.models.well_management.user import *
 # for signals models
 from gwml2.signals import *
 from gwml2.harvesters.models import *
+
+# site preferences
+from gwml2.models.site_preference import *

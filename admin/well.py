@@ -4,6 +4,7 @@ from django.db import connections
 from django.urls import reverse
 from django.utils.html import format_html
 
+from gwml2.models.site_preference import SitePreference
 from gwml2.models.well import (
     Well, WellDocument,
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
@@ -53,6 +54,29 @@ def generate_measurement_cache_generated_at(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Change from ground to a.m.s.l')
+def change_ground_to_amsl(modeladmin, request, queryset):
+    """Change measurement from ground to a.m.s.l."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    preference = SitePreference.load()
+    if preference.parameter_from_ground_surface and preference.parameter_amsl:
+        if (
+                preference.parameter_from_ground_surface !=
+                preference.parameter_amsl
+        ):
+            return run_command(
+                request,
+                'convert_measurement_parameter',
+                args=[
+                    "--ids", ', '.join(ids),
+                    "--from_measurement_id",
+                    preference.parameter_from_ground_surface.id,
+                    "--to_measurement_id",
+                    preference.parameter_amsl.id,
+                ]
+            )
+
+
 class WellAdmin(admin.ModelAdmin):
     list_display = (
         'original_id', 'organisation', 'number_of_measurements',
@@ -80,7 +104,8 @@ class WellAdmin(admin.ModelAdmin):
     actions = [
         delete_in_background, assign_country,
         generate_measurement_cache,
-        generate_measurement_cache_generated_at
+        generate_measurement_cache_generated_at,
+        change_ground_to_amsl
     ]
 
     def edit(self, obj):

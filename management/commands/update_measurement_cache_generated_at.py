@@ -1,22 +1,13 @@
-from django.core.management.base import BaseCommand
-
-from gwml2.models.well import Well
+from gwml2.management.commands.base import WellCommand
 
 
-class Command(BaseCommand):
-    """ Update all fixtures
-    """
+class Command(WellCommand):
+    """Update measurement cache generated at field."""
     args = ''
-    help = 'Update measurement type of well.'
+    help = 'Update measurement cache generated at field.'
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '-ids',
-            '--ids',
-            dest='ids',
-            default='',
-            help='List id of wells'
-        )
+        super(Command, self).add_arguments(parser)
         parser.add_argument(
             '-force',
             '--force',
@@ -26,11 +17,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Filter by from_id
-        wells = Well.objects.all()
-        ids = options.get('ids', None)
-        if ids:
-            wells = Well.objects.filter(id__in=ids.split(','))
+        wells = self.wells(**options)
         # Check if force
         force = options.get('force', False)
         if not force:
@@ -38,5 +25,7 @@ class Command(BaseCommand):
                 measurement_cache_generated_at__isnull=True
             )
 
-        for well in wells:
+        count = wells.count()
+        for idx, well in enumerate(wells):
+            print(f"{idx + 1}/{count} : Generating {well.id}")
             well.measurement_cache_generated_at_check()
