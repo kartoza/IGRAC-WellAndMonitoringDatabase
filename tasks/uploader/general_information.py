@@ -43,7 +43,7 @@ class GeneralInformationUploader(BaseUploader):
         'is_groundwater_quality': None
     }
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         key = 'is_groundwater_level'

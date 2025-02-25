@@ -17,6 +17,7 @@ class DrillingAndConstructionUploader(BaseUploader):
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'total_depth_value': None,
         'total_depth_unit': Unit,
         'drilling_method': TermDrillingMethod,
@@ -28,7 +29,7 @@ class DrillingAndConstructionUploader(BaseUploader):
         'pump_description': None,
     }
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         return {
