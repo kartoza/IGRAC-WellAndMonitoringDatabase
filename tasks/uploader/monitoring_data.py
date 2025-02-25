@@ -23,6 +23,7 @@ class MonitoringDataUploader(BaseUploader):
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'time': None,
         'parameter': TermMeasurementParameter,
         'value_value': None,
@@ -30,7 +31,7 @@ class MonitoringDataUploader(BaseUploader):
         'methodology': None
     }
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         if sheet_name == self.SHEETS[0]:

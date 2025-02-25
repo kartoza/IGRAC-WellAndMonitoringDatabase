@@ -18,6 +18,7 @@ class HydrogeologyUploader(BaseUploader):
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'aquifer_name': None,
         'aquifer_material': None,
         'aquifer_type': TermAquiferType,
@@ -38,7 +39,7 @@ class HydrogeologyUploader(BaseUploader):
         'test_type': None,
     }
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         return {

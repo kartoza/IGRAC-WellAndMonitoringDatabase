@@ -17,6 +17,7 @@ class ManagementUploader(BaseUploader):
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'well_name': None,
         'name': None,
         'manager': None,
         'description': None,
@@ -28,7 +29,7 @@ class ManagementUploader(BaseUploader):
         'license_description': None
     }
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         return {

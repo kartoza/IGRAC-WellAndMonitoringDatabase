@@ -49,10 +49,10 @@ def compare_input_with_template(records: dict, sheet_name: str, uploader_name):
     """Compare input with the template."""
     from gwml2.tasks.data_file_cache.wells_cache import TEMPLATE_FOLDER
     try:
-        headers = records[sheet_name][:START_ROW]
+        headers = records[sheet_name][:1]
     except KeyError:
         _sheet_name = sheet_name.replace(' ', '_')
-        headers = records[_sheet_name][:START_ROW]
+        headers = records[_sheet_name][:1]
     headers = copy.deepcopy(headers)
 
     if uploader_name.lower() == 'General Information'.lower():
@@ -67,10 +67,10 @@ def compare_input_with_template(records: dict, sheet_name: str, uploader_name):
     try:
         template_headers = template_records[
                                sheet_name.replace(' ', '_')
-                           ][:START_ROW]
+                           ][:1]
     except KeyError:
         _sheet_name = sheet_name.replace('_', ' ')
-        template_headers = template_records[_sheet_name][:START_ROW]
+        template_headers = template_records[_sheet_name][:1]
     template_headers = copy.deepcopy(template_headers)
 
     # update headers
@@ -89,6 +89,7 @@ def compare_input_with_template(records: dict, sheet_name: str, uploader_name):
                 ' ', '').replace('\n', '').replace('•', '').replace(
                 '  (READ ONLY)', '(READ ONLY)'
             )
+
     if template_headers != headers:
         raise ExcelOutOfDate(
             'The file is out of date, '

@@ -17,6 +17,7 @@ class WaterStrikeUploader(BaseUploader):
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'depth_value': None,
         'depth_unit': Unit,
         'reference_elevation': TermReferenceElevationType,
@@ -24,7 +25,7 @@ class WaterStrikeUploader(BaseUploader):
     }
     well_founds = []
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         return {

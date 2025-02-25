@@ -17,6 +17,7 @@ class StratigraphicLogUploader(BaseUploader):
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'reference_elevation': TermReferenceElevationType,
         'top_depth_value': None,
         'top_depth_unit': Unit,
@@ -27,7 +28,7 @@ class StratigraphicLogUploader(BaseUploader):
     }
     well_founds = []
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         return {
