@@ -15,3 +15,6 @@ from gwml2.admin.upload_session import *
 
 # harvesters
 from gwml2.harvesters.admin import *
+
+# site preferences
+from gwml2.admin.site_preference import *

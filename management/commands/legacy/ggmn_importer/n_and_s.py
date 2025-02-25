@@ -6,7 +6,7 @@ import datetime
 import json
 import os
 from django.contrib.auth import get_user_model
-from gwml2.management.commands.fetch_from_ggmn import PARAMETER
+from gwml2.management.commands.legacy.fetch_from_ggmn import PARAMETER
 from gwml2.models.well import Well
 from gwml2.tasks.uploader.well import create_monitoring_data
 
@@ -22,7 +22,8 @@ class NSGGMNData(object):
             'GGMN data N&S'
         )
         geojson = os.path.join(
-            folder, 'IGRAC_groundwaterstations', 'IGRAC_groundwaterstations.geojson'
+            folder, 'IGRAC_groundwaterstations',
+            'IGRAC_groundwaterstations.geojson'
         )
 
         self.admin_id = User.objects.filter(
@@ -55,7 +56,8 @@ class NSGGMNData(object):
                 if code not in geojson_data_by_name[name]:
                     geojson_data_by_name[name][code] = properties
                 else:
-                    print('there is same name {} and code {}'.format(name, code))
+                    print(
+                        'there is same name {} and code {}'.format(name, code))
 
         # lets check monitoring
         for root, dirs, files in os.walk(folder):
@@ -107,20 +109,23 @@ class NSGGMNData(object):
                                     if not stasion_data['code']:
                                         continue
 
-                                    geo_data = geojson_data_by_code[stasion_data['code']]
+                                    geo_data = geojson_data_by_code[
+                                        stasion_data['code']]
                                     if len(geo_data.keys()) > 1:
                                         print('There is multiple code')
                                     else:
                                         name = list(geo_data.keys())[0]
                                         geo_data = geo_data[name]
-                                        geo_data_by_name = geojson_data_by_name[name]
+                                        geo_data_by_name = \
+                                        geojson_data_by_name[name]
                                         for name, geo_data_name in geo_data_by_name.items():
                                             code = geo_data_name['code']
                                             # skip if well is not found from before
                                             if code in not_found:
                                                 continue
 
-                                            if geo_data['geometry'] == geo_data_name['geometry']:
+                                            if geo_data['geometry'] == \
+                                                    geo_data_name['geometry']:
                                                 try:
                                                     time = datetime.datetime.strptime(
                                                         time,
@@ -128,24 +133,37 @@ class NSGGMNData(object):
                                                     )
                                                 except TypeError:
                                                     pass
-                                                str_time = time.strftime('%Y-%m-%d %H:%M:%S')
-                                                identifer = '{}-{}'.format(stasion_data['code'], str_time)
+                                                str_time = time.strftime(
+                                                    '%Y-%m-%d %H:%M:%S')
+                                                identifer = '{}-{}'.format(
+                                                    stasion_data['code'],
+                                                    str_time)
                                                 if identifer in dates:
                                                     continue
                                                 row_data = [
                                                     code,  # ID
                                                     str_time,  # Date and time
-                                                    PARAMETER[parameter],  # Parameter
+                                                    PARAMETER[parameter],
+                                                    # Parameter
                                                     value,  # Value
                                                     unit,  # Unit
                                                     '',  # Method
                                                 ]
                                                 try:
                                                     wells = Well.objects.filter(
-                                                        original_id=code, name=geo_data_name['name']).order_by('-number_of_measurements')
+                                                        original_id=code,
+                                                        name=geo_data_name[
+                                                            'name']).order_by(
+                                                        '-number_of_measurements')
                                                     if wells.count() > 1:
-                                                        print('Well {} has duplication'.format(code))
-                                                        print('File : {}'.format(os.path.join(root, file)))
+                                                        print(
+                                                            'Well {} has duplication'.format(
+                                                                code))
+                                                        print(
+                                                            'File : {}'.format(
+                                                                os.path.join(
+                                                                    root,
+                                                                    file)))
                                                     elif wells.count() == 0:
                                                         raise Well.DoesNotExist
 
@@ -158,14 +176,24 @@ class NSGGMNData(object):
                                                         },
                                                         well=wells[0]
                                                     )
-                                                    well_measurement.well.original_id = stasion_data['code']
+                                                    well_measurement.well.original_id = \
+                                                    stasion_data['code']
                                                     well_measurement.well.save()
                                                     dates.append(identifer)
                                                 except Well.DoesNotExist:
-                                                    not_found.append(geo_data_name['code'])
-                                                    print('Well {} does not exist'.format(stasion_data['code']))
-                                                    print('File : {}'.format(os.path.join(root, file)))
+                                                    not_found.append(
+                                                        geo_data_name['code'])
+                                                    print(
+                                                        'Well {} does not exist'.format(
+                                                            stasion_data[
+                                                                'code']))
+                                                    print('File : {}'.format(
+                                                        os.path.join(root,
+                                                                     file)))
 
                                 except KeyError:
-                                    print('Code {} not found in shapefile'.format(stasion_data['code']))
-                                    print('File : {}'.format(os.path.join(root, file)))
+                                    print(
+                                        'Code {} not found in shapefile'.format(
+                                            stasion_data['code']))
+                                    print('File : {}'.format(
+                                        os.path.join(root, file)))

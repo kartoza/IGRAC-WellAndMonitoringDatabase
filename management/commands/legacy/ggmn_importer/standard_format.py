@@ -6,7 +6,7 @@ import datetime
 import json
 import os
 from django.contrib.auth import get_user_model
-from gwml2.management.commands.fetch_from_ggmn import PARAMETER
+from gwml2.management.commands.legacy.fetch_from_ggmn import PARAMETER
 from gwml2.models.well import Well
 from gwml2.tasks.uploader.well import create_monitoring_data
 

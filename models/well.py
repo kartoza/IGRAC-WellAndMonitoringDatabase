@@ -134,6 +134,12 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         ),
         max_length=8
     )
+
+    # Cache indicators
+    measurement_cache_generated_at = models.DateTimeField(
+        _('Time when measurement cache generated'),
+        null=True, blank=True
+    )
     objects = WellManager()
 
     def __str__(self):
@@ -254,9 +260,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             top_borehole_elevation = convert_value(
                 top_borehole_elevation, unit_to)
 
-        for MeasurementModel in \
-                [WellLevelMeasurement, WellQualityMeasurement,
-                 WellYieldMeasurement]:
+        for MeasurementModel in MEASUREMENT_MODELS:
             if MeasurementModel.__name__ == measurement_name:
                 output = {"data": [], "page": 1, "end": True}
                 for measurement in MeasurementModel.objects.filter(well=self):
@@ -301,32 +305,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 return output
         return None
 
-    def generate_measurement_cache(self, model=None):
-        """ Generate measurement cache """
-        folder = os.path.join(
-            settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
-        )
-        if not os.path.exists(folder):
-            os.makedirs(folder)
-
-        for MeasurementModel in \
-                [WellLevelMeasurement, WellQualityMeasurement,
-                 WellYieldMeasurement]:
-            measurement_name = MeasurementModel.__name__
-            if model and measurement_name != model:
-                continue
-            output = self.measurement_data(measurement_name)
-            if output:
-                json_str = json.dumps(output) + "\n"
-                json_bytes = json_str.encode('utf-8')
-
-                filename = self.return_measurement_cache_path(measurement_name)
-                if os.path.exists(filename):
-                    os.remove(filename)
-                file = gzip.open(filename, 'wb')
-                file.write(json_bytes)
-                file.close()
-
     def assign_first_last(self, query):
         """Assign first and last measurements."""
         first = query.order_by('time').first()
@@ -365,6 +343,69 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 self.organisation.id in organisations
         )
         return is_ggmn
+
+    def generate_measurement_cache(self, model=None):
+        """ Generate measurement cache """
+        folder = os.path.join(
+            settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
+        )
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        for MeasurementModel in MEASUREMENT_MODELS:
+            measurement_name = MeasurementModel.__name__
+            if model and measurement_name != model:
+                continue
+            output = self.measurement_data(measurement_name)
+            if output:
+                json_str = json.dumps(output) + "\n"
+                json_bytes = json_str.encode('utf-8')
+
+                filename = self.return_measurement_cache_path(measurement_name)
+                if os.path.exists(filename):
+                    os.remove(filename)
+                file = gzip.open(filename, 'wb')
+                file.write(json_bytes)
+                file.close()
+        self.measurement_cache_generated_at_check()
+
+    def generate_all_measurement_caches(
+            self, measurement_name: str, force: bool = False
+    ):
+        """Generate all measurement caches."""
+        for MeasurementModel in MEASUREMENT_MODELS:
+            # skip if measurement filtered
+            if (
+                    measurement_name and
+                    MeasurementModel.__name__ != measurement_name
+            ):
+                return
+            model = MeasurementModel.__name__
+            if not force:
+                cache_file = self.return_measurement_cache_path(model)
+                if os.path.exists(cache_file):
+                    return
+            print(f"Generating : {model}")
+            self.generate_measurement_cache(model)
+
+    def measurement_cache_generated_at_check(self):
+        """Generate measurement cache at check."""
+        _time = None
+        for MeasurementModel in MEASUREMENT_MODELS:
+            model = MeasurementModel.__name__
+            cache_file = self.return_measurement_cache_path(model)
+            if os.path.exists(cache_file):
+                modified_timestamp = os.path.getmtime(cache_file)
+                modified_datetime = make_aware(
+                    datetime.fromtimestamp(modified_timestamp)
+                )
+                if (
+                        not self.measurement_cache_generated_at or
+                        modified_datetime > self.measurement_cache_generated_at
+                ):
+                    _time = modified_datetime
+        self.measurement_cache_generated_at = _time
+        self.save()
 
 
 # documents
@@ -427,3 +468,8 @@ class WellYieldMeasurement(Measurement):
     class Meta:
         db_table = 'well_yield_measurement'
         ordering = ('-time',)
+
+
+MEASUREMENT_MODELS = [
+    WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
+]

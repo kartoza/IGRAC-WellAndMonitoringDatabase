@@ -1,5 +1,4 @@
-from django.core.management.base import BaseCommand
-
+from gwml2.management.commands.base import WellCommand
 from gwml2.models.well import Well
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
@@ -10,27 +9,12 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 from gwml2.tasks.data_file_cache.wells_cache import generate_data_well_cache
 
 
-class Command(BaseCommand):
+class Command(WellCommand):
     """ Run download cache
     """
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            '-id',
-            '--id'
-        )
-        parser.add_argument(
-            '-from_id',
-            '--from_id',
-            dest='from_id',
-            help='From id'
-        )
-        parser.add_argument(
-            '-country_code',
-            '--country_code',
-            dest='country_code',
-            help='From country code'
-        )
+        super(Command, self).add_arguments(parser)
         parser.add_argument(
             '-force',
             '--force',
@@ -46,25 +30,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        id = options.get('id', False)
-        from_id = options.get('from_id', False)
-        country_code = options.get('country_code', False)
-        force = options.get('force', False)
-
-        # Filter by from_id
-        if id:
-            wells = Well.objects.filter(id=id)
-        elif from_id:
-            wells = Well.objects.filter(id__gte=from_id)
-        else:
-            wells = Well.objects.all()
-
-        # Check country code
-        if country_code:
-            wells = wells.filter(country__code=country_code)
-
+        wells = self.wells(**options)
         generators = options.get('generators', None)
-
         # Regenerate cache
         countries = []
         organisations = []
@@ -74,7 +41,8 @@ class Command(BaseCommand):
             well = Well.objects.get(id=id)
             print(f'----- {idx}/{count} - {well.id} -----')
             generate_data_well_cache(
-                well.id, force_regenerate=force,
+                well.id,
+                force_regenerate=options.get('force', False),
                 generate_country_cache=False,
                 generate_organisation_cache=False,
                 generators=generators.split(',') if generators else None
