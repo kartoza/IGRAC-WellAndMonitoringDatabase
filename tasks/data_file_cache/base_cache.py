@@ -324,7 +324,6 @@ class WellCacheZipFileBase(WellCacheFileBase):
                                 f'monitoring/{original_id} '
                                 f'({original_ids_found[original_id] + 1}).ods'
                             )
-                            continue
                         except KeyError:
                             _filename = f'monitoring/{original_id}.ods'
                             original_ids_found[original_id] = 0
