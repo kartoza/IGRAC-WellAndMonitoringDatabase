@@ -1,6 +1,7 @@
 import json
 
 from celery.utils.log import get_task_logger
+from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import Q
 
 from gwml2.models.general import Unit, Country
@@ -54,19 +55,26 @@ class BaseUploader(WellEditing):
 
     def __init__(
             self, upload_session: UploadSession,
-            min_progress: int, interval_progress: int,
+            min_progress: int,
+            interval_progress: int,
             restart: bool = False,
-            well_by_id: dict = dict, relation_cache: dict = dict,
+            well_by_id: dict = None,
+            relation_cache: dict = None,
             file_path: str = None
     ):
         self.file_path = file_path
         self.min_progress = min_progress
         self.interval_progress = interval_progress
 
+        if not well_by_id:
+            well_by_id = {}
         self.well_by_id = well_by_id
         self.restart = restart
         self.upload_session = upload_session
         self.uploader = self.upload_session.get_uploader()
+
+        if not relation_cache:
+            relation_cache = {}
         self.relation_cache = relation_cache
 
         # cache
@@ -161,11 +169,21 @@ class BaseUploader(WellEditing):
                             try:
                                 well = self.well_by_id[well_identifier]
                             except KeyError:
-                                well = Well.objects.get(
-                                    organisation_id=organisation.id,
-                                    original_id=original_id
-                                )
-                                self.well_by_id[well_identifier] = well
+                                try:
+                                    well = Well.objects.get(
+                                        organisation_id=organisation.id,
+                                        original_id=original_id
+                                    )
+                                    self.well_by_id[well_identifier] = well
+                                except MultipleObjectsReturned as e:
+                                    if get_column(raw_record, 1):
+                                        well = Well.objects.get(
+                                            organisation_id=organisation.id,
+                                            original_id=original_id,
+                                            name=get_column(raw_record, 1)
+                                        )
+                                    else:
+                                        raise e
                         except Well.DoesNotExist:
                             if not self.upload_session.is_adding:
                                 raise RowSkipped()
@@ -346,14 +364,13 @@ class BaseUploader(WellEditing):
                 except KeyError:
                     pass
             data[key] = value
-
-        return self.convert_record(sheet_name, data)
+        return self.convert_record(sheet_name, data, record)
 
     def update_with_init_data(self, well, record: dict):
         """Convert record."""
         return record
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """Convert record."""
         raise NotImplementedError
 

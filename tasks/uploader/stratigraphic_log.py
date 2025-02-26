@@ -3,6 +3,7 @@ from celery.utils.log import get_task_logger
 from gwml2.models.general import Unit
 from gwml2.models.term import TermReferenceElevationType
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.terms import SheetName
 
 logger = get_task_logger(__name__)
 
@@ -11,12 +12,13 @@ class StratigraphicLogUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'Drilling and construction'
     IS_OPTIONAL = True
-    SHEETS = ['Stratigraphic Log']
+    SHEETS = [SheetName.stratigraphic_log]
 
     # key related with the index of keys
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'reference_elevation': TermReferenceElevationType,
         'top_depth_value': None,
         'top_depth_unit': Unit,
@@ -27,7 +29,7 @@ class StratigraphicLogUploader(BaseUploader):
     }
     well_founds = []
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         return {

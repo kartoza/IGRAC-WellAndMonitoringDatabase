@@ -6,6 +6,7 @@ from gwml2.models.well import (
     WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.terms import SheetName
 
 logger = get_task_logger(__name__)
 
@@ -14,15 +15,16 @@ class MonitoringDataUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'Monitoring Data'
     SHEETS = [
-        'Groundwater Level',
-        'Groundwater Quality',
-        'Abstraction-Discharge'
+        SheetName.groundwater_level,
+        SheetName.groundwater_quality,
+        SheetName.abstraction_discharge
     ]
 
     # key related with the index of keys
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'time': None,
         'parameter': TermMeasurementParameter,
         'value_value': None,
@@ -30,7 +32,7 @@ class MonitoringDataUploader(BaseUploader):
         'methodology': None
     }
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         if sheet_name == self.SHEETS[0]:

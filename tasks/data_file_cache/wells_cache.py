@@ -271,6 +271,7 @@ class GenerateWellCacheFile(object):
 
         data = [
             well.original_id,
+            well.name,
             hydrogeology.aquifer_name if hydrogeology else '',
             hydrogeology.aquifer_material if hydrogeology else '',
 
@@ -332,6 +333,7 @@ class GenerateWellCacheFile(object):
         license = management.license if management else None
         data = [
             well.original_id,
+            well.name,
             get_data(well.organisation_id, self.organisations, Organisation),
 
             # management
@@ -362,6 +364,7 @@ class GenerateWellCacheFile(object):
 
         data = [
             well.original_id,
+            well.name,
 
             # Total depth
             geology.total_depth.value if geology and geology.total_depth else '',
@@ -395,6 +398,7 @@ class GenerateWellCacheFile(object):
                 depth = water_strike.depth
                 data = [
                     well.original_id,
+                    well.name,
 
                     # Depth
                     depth.value if depth else '',
@@ -405,6 +409,10 @@ class GenerateWellCacheFile(object):
                         water_strike.reference_elevation_id,
                         self.reference_elevations, TermReferenceElevationType
                     ),
+                    (
+                        water_strike.description if
+                        water_strike.description else ''
+                    )
                 ]
                 sheet_data.append(data)
             self.write_json(folder, sheetname, sheet_data)
@@ -417,6 +425,7 @@ class GenerateWellCacheFile(object):
                 bottom_depth = log.bottom_depth
                 data = [
                     well.original_id,
+                    well.name,
 
                     # Reference elevation
                     get_data(
@@ -450,6 +459,7 @@ class GenerateWellCacheFile(object):
                 diameter = structure.diameter
                 data = [
                     well.original_id,
+                    well.name,
 
                     # Structure
                     get_data(
@@ -482,21 +492,23 @@ class GenerateWellCacheFile(object):
                 sheet_data.append(data)
             self.write_json(folder, sheetname, sheet_data)
 
-    def measurement_data(self, sheets, measurements, original_id):
+    def measurement_data(self, sheets, measurements, original_id, well_name):
         """ Measurements of well """
         measurements = measurements.select_related(
             'parameter', 'value', 'value__unit'
         ).annotate(
             original_id=Value(original_id, output_field=CharField()),
+            name=Value(well_name, output_field=CharField()),
             time_str=Func(
                 'time',
-                Value('YYYY-MM-DD HH24:MI:SS TZ'),
+                Value('YYYY-MM-DD HH24:MI:SS'),
                 function='to_char',
                 output_field=CharField()
             )
         ).values_list(
-            'original_id', 'time_str', 'parameter__name', 'value__value',
-            'value__unit__name',
+            'original_id', 'name',
+            'time_str', 'parameter__name',
+            'value__value', 'value__unit__name',
             'methodology'
         )
         for measurement in measurements:
@@ -507,17 +519,20 @@ class GenerateWellCacheFile(object):
         self.measurement_data(
             book['Groundwater Level'],
             well.welllevelmeasurement_set.all(),
-            well.original_id
+            well.original_id,
+            well.name
         )
         self.measurement_data(
             book['Groundwater Quality'],
             well.wellqualitymeasurement_set.all(),
-            well.original_id
+            well.original_id,
+            well.name
         )
         self.measurement_data(
             book['Abstraction-Discharge'],
             well.wellyieldmeasurement_set.all(),
-            well.original_id
+            well.original_id,
+            well.name
         )
 
 

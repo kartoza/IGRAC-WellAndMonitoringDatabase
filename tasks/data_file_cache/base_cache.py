@@ -141,7 +141,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
         for sheetname in sheets:
             self.merge_data_between_sheets(
                 os.path.join(well_folder, filename),
-                well_book, ggmn_book, sheetname
+                well_book, ggmn_book, sheetname,
+                well.name
             )
         if ggmn_book:
             ggmn_book.active = 0
@@ -149,9 +150,13 @@ class WellCacheZipFileBase(WellCacheFileBase):
             well_book.active = 0
 
     def merge_data_between_sheets(
-            self, source_file, target_book, target_book_2, sheetname
+            self, source_file, target_book, target_book_2, sheetname, well_name
     ):
         """Merge data between sheets"""
+        target_column_number = SheetName().get_column_size(
+            sheet_name=sheetname
+        )
+
         if (
                 not os.path.exists(source_file)
                 or (not target_book and not target_book_2)
@@ -175,6 +180,14 @@ class WellCacheZipFileBase(WellCacheFileBase):
 
         # Append data from source
         for row in data:
+
+            # This is for shifting the name
+            if len(row) + 1 == target_column_number:
+                row.insert(1, well_name)
+            elif sheetname == SheetName.water_strike:
+                if len(row) + 2 == target_column_number:
+                    row.insert(1, well_name)
+
             if target_book:
                 target_sheet.append(row)
             if target_book_2:
@@ -252,7 +265,11 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 well, self.wells_filename,
                 well_book if not is_ggmn else None,
                 well_ggmn_book if is_ggmn else None,
-                ['General Information', 'Hydrogeology', 'Management']
+                [
+                    SheetName.general_information,
+                    SheetName.hydrogeology,
+                    SheetName.management
+                ]
             )
             self.merge_data_per_well(
                 well, self.drill_filename,
@@ -260,7 +277,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 drilling_ggmn_book if is_ggmn else None,
                 [
                     SheetName.drilling_and_construction,
-                    'Water Strike', 'Stratigraphic Log',
+                    SheetName.water_strike,
+                    SheetName.stratigraphic_log,
                     SheetName.structure
                 ]
             )
@@ -324,7 +342,6 @@ class WellCacheZipFileBase(WellCacheFileBase):
                                 f'monitoring/{original_id} '
                                 f'({original_ids_found[original_id] + 1}).ods'
                             )
-                            continue
                         except KeyError:
                             _filename = f'monitoring/{original_id}.ods'
                             original_ids_found[original_id] = 0

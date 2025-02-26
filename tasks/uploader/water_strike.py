@@ -3,6 +3,7 @@ from celery.utils.log import get_task_logger
 from gwml2.models.general import Unit
 from gwml2.models.term import TermReferenceElevationType
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.terms import SheetName
 
 logger = get_task_logger(__name__)
 
@@ -11,12 +12,13 @@ class WaterStrikeUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'Drilling and construction'
     IS_OPTIONAL = True
-    SHEETS = ['Water Strike']
+    SHEETS = [SheetName.water_strike]
 
     # key related with the index of keys
     # value if it has tem
     RECORD_FORMAT = {
         'original_id': None,
+        'name': None,
         'depth_value': None,
         'depth_unit': Unit,
         'reference_elevation': TermReferenceElevationType,
@@ -24,7 +26,7 @@ class WaterStrikeUploader(BaseUploader):
     }
     well_founds = []
 
-    def convert_record(self, sheet_name, data):
+    def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
         """
         return {
