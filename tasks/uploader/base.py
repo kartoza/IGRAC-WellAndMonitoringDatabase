@@ -176,7 +176,7 @@ class BaseUploader(WellEditing):
                                     )
                                     self.well_by_id[well_identifier] = well
                                 except MultipleObjectsReturned as e:
-                                    if not get_column(raw_record, 1):
+                                    if get_column(raw_record, 1):
                                         well = Well.objects.get(
                                             organisation_id=organisation.id,
                                             original_id=original_id,

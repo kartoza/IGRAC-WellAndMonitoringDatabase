@@ -6,6 +6,7 @@ from gwml2.models.well import (
     WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.terms import SheetName
 
 logger = get_task_logger(__name__)
 
@@ -14,9 +15,9 @@ class MonitoringDataUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'Monitoring Data'
     SHEETS = [
-        'Groundwater Level',
-        'Groundwater Quality',
-        'Abstraction-Discharge'
+        SheetName.groundwater_level,
+        SheetName.groundwater_quality,
+        SheetName.abstraction_discharge
     ]
 
     # key related with the index of keys

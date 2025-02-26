@@ -5,6 +5,7 @@ from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus
 )
 from gwml2.tasks.uploader.base import BaseUploader
+from gwml2.terms import SheetName
 from gwml2.utils.well_data import WellData
 
 logger = get_task_logger(__name__)
@@ -14,9 +15,7 @@ class GeneralInformationUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'General Information'
     AUTOCREATE_WELL = True
-    SHEETS = [
-        'General Information'
-    ]
+    SHEETS = [SheetName.general_information]
 
     # key related with the index of keys
     # value if it has tem
@@ -40,7 +39,9 @@ class GeneralInformationUploader(BaseUploader):
         'license_type': None,
         'license_restriction': None,
         'is_groundwater_level': None,
-        'is_groundwater_quality': None
+        'is_groundwater_quality': None,
+        'first_measurement': None,
+        'last_measurement': None
     }
 
     def convert_record(self, sheet_name, data, raw_record: list):
