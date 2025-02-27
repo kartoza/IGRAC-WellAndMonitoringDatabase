@@ -80,10 +80,9 @@ def change_ground_to_amsl(modeladmin, request, queryset):
 class WellAdmin(admin.ModelAdmin):
     list_display = (
         'original_id', 'organisation', 'number_of_measurements',
-        'country', 'id', 'last_measurements',
+        'country', 'id',
         'first_time_measurement', 'last_time_measurement',
-        'edit',
-        'measurement_cache_generated_at',
+        'edit', 'measurement_cache_generated_at',
     )
     list_filter = (
         'organisation', 'country',
@@ -113,19 +112,6 @@ class WellAdmin(admin.ModelAdmin):
         return format_html(
             '<a href="{}" target="_blank">Edit well</a>',
             url)
-
-    def last_measurements(self, obj: Well):
-        last_data = {}
-        query = obj.welllevelmeasurement_set.all()
-        if query.count():
-            last_data['level'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
-        query = obj.wellyieldmeasurement_set.all()
-        if query.count():
-            last_data['yield'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
-        query = obj.wellqualitymeasurement_set.all()
-        if query.count():
-            last_data['quality'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
-        return last_data
 
     def created_by_user(self, obj):
         return obj.created_by_username()
