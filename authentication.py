@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework.authentication import (
     TokenAuthentication, exceptions)
 from gwml2.models.well_management.user import UserUUID

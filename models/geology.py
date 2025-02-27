@@ -4,7 +4,7 @@ __date__ = '27/08/20'
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
 from gwml2.models.term import TermReferenceElevationType
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class Geology(models.Model):

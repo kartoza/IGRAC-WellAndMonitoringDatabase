@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from gwml2.models.general import Quantity
 from gwml2.models.term import TermDrillingMethod, TermReferenceElevationType
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class Drilling(models.Model):
