@@ -11,7 +11,6 @@ logger = get_task_logger(__name__)
 class StratigraphicLogUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'Drilling and construction'
-    IS_OPTIONAL = True
     SHEETS = [SheetName.stratigraphic_log]
 
     # key related with the index of keys
