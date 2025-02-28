@@ -15,6 +15,7 @@ class GeneralInformationUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'General Information'
     AUTOCREATE_WELL = True
+    IS_OPTIONAL = False
     SHEETS = [SheetName.general_information]
 
     # key related with the index of keys

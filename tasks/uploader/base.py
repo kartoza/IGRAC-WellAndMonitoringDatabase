@@ -38,7 +38,7 @@ class RowSkipped(Exception):
 class BaseUploader(WellEditing):
     """ Convert excel into json and save the data """
     UPLOADER_NAME = ''
-    IS_OPTIONAL = False
+    IS_OPTIONAL = True
     SHEETS = []
     RECORD_FORMAT = {}
     AUTOCREATE_WELL = False
@@ -291,7 +291,11 @@ class BaseUploader(WellEditing):
                 receiver=receiver
             )
 
-            if not self.has_data and not self.IS_OPTIONAL:
+            if (
+                    len(self.SHEETS) == 1 and
+                    not self.has_data and
+                    not self.IS_OPTIONAL
+            ):
                 raise KeyError(
                     f'Sheet {sheet_name} in excel is not found. '
                     f'This sheet is used by {self.UPLOADER_NAME}. '

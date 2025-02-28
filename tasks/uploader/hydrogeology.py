@@ -12,7 +12,6 @@ logger = get_task_logger(__name__)
 class HydrogeologyUploader(BaseUploader):
     """ Save well uploader from excel """
     UPLOADER_NAME = 'General Information'
-    IS_OPTIONAL = True
     SHEETS = [SheetName.hydrogeology]
 
     # key related with the index of keys
