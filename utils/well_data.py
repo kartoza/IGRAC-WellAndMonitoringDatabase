@@ -72,23 +72,10 @@ class WellData:
     def license(self) -> []:
         """Return init license data."""
         well = self.well
-        license = ''
-        if well.license:
-            try:
-                license = License.objects.get(id=well.license).name
-            except License.DoesNotExist:
-                pass
-        restriction_code_type = ''
-        if well.restriction_code_type:
-            try:
-                restriction_code_type = RestrictionCodeType.objects.get(
-                    id=well.restriction_code_type).description
-            except RestrictionCodeType.DoesNotExist:
-                pass
         return {
             'organisation': self.well.organisation.name,
-            'license': license,
-            'restriction_code_type': restriction_code_type,
+            'license': well.license,
+            'restriction_code_type': well.restriction_code_type,
             'constraints_other': self.well.constraints_other
         }
 
