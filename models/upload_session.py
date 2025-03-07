@@ -310,47 +310,49 @@ class UploadSession(LicenseMetadata):
 
     def create_report_excel(self):
         """Created excel that will contain reports."""
+        try:
+            _file = ods_to_xlsx(self.upload_file.path)
 
-        _file = ods_to_xlsx(self.upload_file.path)
+            # Create file report name
+            ext = os.path.splitext(_file)[1]
+            _report_file = _file.replace(ext, f'.report{ext}')
 
-        # Create file report name
-        ext = os.path.splitext(_file)[1]
-        _report_file = _file.replace(ext, f'.report{ext}')
+            # If file report equals file, skip create report
+            if _report_file == _file:
+                return
+            if os.path.exists(_report_file):
+                os.remove(_report_file)
+            workbook = openpyxl.load_workbook(_file)
 
-        # If file report equals file, skip create report
-        if _report_file == _file:
-            return
-        if os.path.exists(_report_file):
+            query = self.uploadsessionrowstatus_set.filter(status=1)
+            status_column = {}
+            for sheetname in workbook.sheetnames:
+                sheet_query = query.filter(
+                    Q(sheet_name=sheetname) | Q(
+                        sheet_name=sheetname.replace('_', ' '))
+                )
+                worksheet = workbook[sheetname]
+                total = sheet_query.count()
+
+                # We need to check latest column
+                row = worksheet[1]
+                try:
+                    status_column_idx = status_column[sheetname]
+                except KeyError:
+                    status_column_idx = len(row) + 1
+                    status_column[sheetname] = status_column_idx
+
+                for idx, row_status in enumerate(sheet_query):
+                    row_status.update_sheet(worksheet, status_column_idx)
+            workbook.save(_report_file)
+            os.chmod(_report_file, 0o0777)
+            xlsx_to_ods(_report_file)
+
+            # Delete files
+            os.remove(_file)
             os.remove(_report_file)
-        workbook = openpyxl.load_workbook(_file)
-
-        query = self.uploadsessionrowstatus_set.filter(status=1)
-        status_column = {}
-        for sheetname in workbook.sheetnames:
-            sheet_query = query.filter(
-                Q(sheet_name=sheetname) | Q(
-                    sheet_name=sheetname.replace('_', ' '))
-            )
-            worksheet = workbook[sheetname]
-            total = sheet_query.count()
-
-            # We need to check latest column
-            row = worksheet[1]
-            try:
-                status_column_idx = status_column[sheetname]
-            except KeyError:
-                status_column_idx = len(row) + 1
-                status_column[sheetname] = status_column_idx
-
-            for idx, row_status in enumerate(sheet_query):
-                row_status.update_sheet(worksheet, status_column_idx)
-        workbook.save(_report_file)
-        os.chmod(_report_file, 0o0777)
-        xlsx_to_ods(_report_file)
-
-        # Delete files
-        os.remove(_file)
-        os.remove(_report_file)
+        except Exception:
+            pass
 
 
 RowStatus = [

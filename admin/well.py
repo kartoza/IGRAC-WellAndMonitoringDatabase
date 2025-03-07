@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import Polygon
 from django.db import connections
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -13,6 +15,44 @@ from gwml2.models.well_materialized_view import MaterializedViewWell
 from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
+
+bbox = Polygon(
+    (
+        (-180, -90),
+        (-180, 90),
+        (180, 90),
+        (180, -90),
+        (-180, -90)
+    )
+)
+
+
+class InvalidCoordinatesFilter(admin.SimpleListFilter):
+    """Invalid coordinates filter."""
+
+    title = 'Invalid coordinates'
+    parameter_name = 'is_invalid_coordinates'
+
+    def lookups(self, request, model_admin):
+        """Lookup function for entity filter."""
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
+        if self.value() == "yes":
+            return queryset.filter(
+                Q(location__isnull=True) |
+                ~Q(location__within=bbox)
+            )
+        if self.value() == "no":
+            return queryset.filter(
+                location__isnull=False,
+                location__within=bbox
+            )
+        return queryset
 
 
 def assign_country(modeladmin, request, queryset):
@@ -80,6 +120,7 @@ def change_ground_to_amsl(modeladmin, request, queryset):
 class WellAdmin(admin.ModelAdmin):
     list_display = (
         'original_id', 'organisation', 'number_of_measurements',
+        'latitude', 'longitude',
         'country', 'id',
         'first_time_measurement', 'last_time_measurement',
         'edit', 'measurement_cache_generated_at',
@@ -87,7 +128,8 @@ class WellAdmin(admin.ModelAdmin):
     list_filter = (
         'organisation', 'country',
         'first_time_measurement', 'last_time_measurement',
-        'measurement_cache_generated_at'
+        'measurement_cache_generated_at',
+        InvalidCoordinatesFilter
     )
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
@@ -118,6 +160,12 @@ class WellAdmin(admin.ModelAdmin):
 
     def last_edited_by_user(self, obj):
         return obj.last_edited_by_username()
+
+    def latitude(self, obj: Well):
+        return obj.location.y
+
+    def longitude(self, obj: Well):
+        return obj.location.x
 
 
 admin.site.register(Well, WellAdmin)

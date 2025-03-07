@@ -131,6 +131,12 @@ class BatchUploader:
                 well_id=well_id, generate_country_cache=False,
                 generate_organisation_cache=False
             )
+            try:
+                well = Well.objects.get(id=well_id)
+                well.update_metadata()
+                well.save()
+            except Well.DoesNotExist:
+                pass
 
         # ------------------------------------
         # Run the country cache

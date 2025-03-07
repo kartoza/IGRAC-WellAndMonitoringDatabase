@@ -31,14 +31,5 @@ class Command(BaseCommand):
             for idx, well in enumerate(Well.objects.all()):
                 if idx + 1 < _from:
                     continue
-                if well.is_groundwater_level is None:
-                    well.is_groundwater_level = (
-                        'no' if well.welllevelmeasurement_set.count() == 0
-                        else 'yes'
-                    )
-                if well.is_groundwater_quality is None:
-                    well.is_groundwater_quality = (
-                        'no' if well.wellqualitymeasurement_set.count() == 0
-                        else 'yes'
-                    )
+                well.assign_measurement_type()
                 well.save()

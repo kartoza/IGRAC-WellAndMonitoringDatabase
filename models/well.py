@@ -334,6 +334,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         self.assign_first_last(self.welllevelmeasurement_set.all())
         self.assign_first_last(self.wellyieldmeasurement_set.all())
         self.assign_first_last(self.wellqualitymeasurement_set.all())
+
+        # Self assign measurement type
+        self.assign_measurement_type()
         self.save()
 
     def is_ggmn(self, organisations):
@@ -406,6 +409,17 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                     _time = modified_datetime
         self.measurement_cache_generated_at = _time
         self.save()
+
+    def assign_measurement_type(self):
+        """Assign measurement type."""
+        if self.is_groundwater_level in [None, 'no']:
+            self.is_groundwater_level = (
+                'yes' if self.welllevelmeasurement_set.first() else 'no'
+            )
+        if self.is_groundwater_quality in [None, 'no']:
+            self.is_groundwater_quality = (
+                'yes' if self.wellqualitymeasurement_set.first() else 'no'
+            )
 
 
 # documents
