@@ -198,6 +198,9 @@ class WellEditing(object):
         self.level_measurement.save()
         self.general_information.save()
         self.well_metadata.save()
+
+        # Assign measurements
+        well.assign_measurement_type()
         well.save()
 
         if generate_cache:
