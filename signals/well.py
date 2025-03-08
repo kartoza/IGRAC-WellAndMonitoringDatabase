@@ -68,6 +68,12 @@ def pre_save_well(sender, instance, **kwargs):
 def post_delete_measurement(sender, instance, **kwargs):
     if instance.value:
         instance.value.delete()
+
+
+@receiver(post_delete, sender=WellLevelMeasurement)
+@receiver(post_delete, sender=WellQualityMeasurement)
+@receiver(post_delete, sender=WellYieldMeasurement)
+def post_delete_measurement_trigger_well_update(sender, instance, **kwargs):
     try:
         if sender == WellLevelMeasurement:
             instance.well.number_of_measurements_level -= 1

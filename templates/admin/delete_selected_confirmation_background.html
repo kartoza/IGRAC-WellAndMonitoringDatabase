@@ -80,7 +80,7 @@
           const data = await response.json();
 
           if (data.progress < 100) {
-            $('#grp-content-title h1').html(`Deleting progress ${data.progress}%`)
+            $('#grp-content-title h1').html(`Deleting progress ${data.progress}% ${data.note ? ": " + data.note : ""}`)
             setTimeout(function () {
               getData()
             }, 1000);
