@@ -204,7 +204,7 @@ class MeasurementAdmin(admin.ModelAdmin):
     )
     search_fields = ('well__original_id',)
     raw_id_fields = ('value',)
-    list_filter = ('well',)
+    list_filter = ('well', 'time', 'well__organisation')
 
 
 class WellLevelMeasurementAdmin(MeasurementAdmin):
