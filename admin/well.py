@@ -68,6 +68,19 @@ def delete_in_background(modeladmin, request, queryset):
     return delete_well_in_background(modeladmin, request, queryset)
 
 
+@admin.action(description='Generate data cache')
+def generate_data_wells_cache(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_data_wells_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 @admin.action(description='Generate measurement cache')
 def generate_measurement_cache(modeladmin, request, queryset):
     """Generate measurement cache."""
@@ -124,11 +137,13 @@ class WellAdmin(admin.ModelAdmin):
         'country', 'id',
         'first_time_measurement', 'last_time_measurement',
         'edit', 'measurement_cache_generated_at',
+        'data_cache_generated_at'
     )
     list_filter = (
         'organisation', 'country',
         'first_time_measurement', 'last_time_measurement',
         'measurement_cache_generated_at',
+        'data_cache_generated_at',
         InvalidCoordinatesFilter
     )
     readonly_fields = (
@@ -143,9 +158,10 @@ class WellAdmin(admin.ModelAdmin):
     )
     search_fields = ('original_id', 'name')
     actions = [
-        delete_in_background, assign_country,
+        delete_in_background,
+        generate_data_wells_cache,
         generate_measurement_cache,
-        generate_measurement_cache_generated_at,
+        assign_country,
         change_ground_to_amsl
     ]
 

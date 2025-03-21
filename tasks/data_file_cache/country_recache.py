@@ -3,6 +3,7 @@ import os
 
 from celery import shared_task
 from django.conf import settings
+from django.utils import timezone
 
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.general import Country
@@ -73,6 +74,10 @@ def generate_data_country_cache(self, country_code: str):
         country = Country.objects.get(code__iexact=country_code)
         generator = GenerateCountryCacheFile(country)
         generator.run()
+
+        # Update data cache generated at
+        country.data_cache_generated_at = timezone.now()
+        country.save()
     except Country.DoesNotExist:
         print('Country not found')
 
