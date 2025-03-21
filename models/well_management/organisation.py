@@ -1,5 +1,6 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.utils.translation import ugettext_lazy as _
 
 from gwml2.models.general import Country
 
@@ -39,6 +40,10 @@ class Organisation(models.Model):
     )
 
     wagtail_reference_index_ignore = True
+    data_cache_generated_at = models.DateTimeField(
+        _('Time when data cache generated'),
+        null=True, blank=True
+    )
 
     class Meta:
         db_table = 'organisation'

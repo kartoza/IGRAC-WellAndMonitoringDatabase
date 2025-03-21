@@ -1,6 +1,8 @@
-from django.contrib.gis.db import models
-from django.contrib.auth import get_user_model
 from adminsortable.models import Sortable
+from django.contrib.auth import get_user_model
+from django.contrib.gis.db import models
+from django.utils.translation import ugettext_lazy as _
+
 from gwml2.models.term import _Term
 
 User = get_user_model()
@@ -14,6 +16,10 @@ class Country(models.Model):
         max_length=126)
     geometry = models.MultiPolygonField(
         null=True, blank=True)
+    data_cache_generated_at = models.DateTimeField(
+        _('Time when data cache generated'),
+        null=True, blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -97,7 +103,8 @@ class Quantity(models.Model):
         :param to:
         :type to: str
         """
-        if self.unit and (self.unit.name == 'ft' or self.unit.name == 'ft') and to == 'm':
+        if self.unit and (
+                self.unit.name == 'ft' or self.unit.name == 'ft') and to == 'm':
             self.unit.name = to
             return self.value / 3.281
         return self.value

@@ -6,6 +6,7 @@ from django.conf import settings
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.tasks.data_file_cache.base_cache import WellCacheZipFileBase
+from django.utils import timezone
 
 ORGANISATION_DATA_FOLDER = os.path.join(
     settings.GWML2_FOLDER, 'organisation-data'
@@ -44,6 +45,10 @@ def generate_data_organisation_cache(self, organisation_id: int):
         organisation = Organisation.objects.get(id=organisation_id)
         generator = GenerateOrganisationCacheFile(organisation)
         generator.run()
+
+        # Update data cache generated at
+        organisation.data_cache_generated_at = timezone.now()
+        organisation.save()
     except Organisation.DoesNotExist:
         print('Country not found')
 

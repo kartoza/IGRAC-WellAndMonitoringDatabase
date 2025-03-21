@@ -8,6 +8,8 @@ class WellCommand(BaseCommand):
     args = ''
     help = 'Update number of measurement of all well.'
 
+    Model = Well
+
     def add_arguments(self, parser):
         parser.add_argument(
             '-ids',
@@ -29,21 +31,27 @@ class WellCommand(BaseCommand):
             help='From country code'
         )
 
-    def wells(self, **options):
-        """Get all wells"""
-
-        # Filter by from_id
-        wells = Well.objects.all()
+    def query(self, **options):
+        """Query the model."""
+        query = self.Model.objects.all()
 
         ids = options.get('ids', None)
         if ids:
-            wells = Well.objects.filter(
+            query = self.Model.objects.filter(
                 id__in=ids.replace(' ', '').split(',')
             )
 
         from_id = options.get('from_id', False)
         if from_id:
-            wells = Well.objects.filter(id__gte=from_id)
+            query = self.Model.objects.filter(id__gte=from_id)
+
+        return query
+
+    def wells(self, **options):
+        """Get all wells"""
+
+        # Filter by from_id
+        wells = self.query(**options)
 
         # Check country code
         country_code = options.get('country_code', False)

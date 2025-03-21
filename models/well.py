@@ -140,6 +140,10 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         _('Time when measurement cache generated'),
         null=True, blank=True
     )
+    data_cache_generated_at = models.DateTimeField(
+        _('Time when data cache generated'),
+        null=True, blank=True
+    )
     objects = WellManager()
 
     def __str__(self):

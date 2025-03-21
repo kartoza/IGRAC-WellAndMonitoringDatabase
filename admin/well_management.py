@@ -6,22 +6,9 @@ from gwml2.models.well_management.organisation import (
     Organisation, OrganisationType
 )
 from gwml2.models.well_management.user import UserUUID
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
-from gwml2.tasks.data_file_cache.organisation_cache import (
-    generate_data_organisation_cache
-)
+from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
-
-
-def rerun_cache(modeladmin, request, queryset):
-    for org in queryset:
-        codes = list(set(org.well_set.values_list('country__code', flat=True)))
-        for country_code in codes:
-            generate_data_country_cache(country_code=country_code)
-        generate_data_organisation_cache(organisation_id=org.id)
 
 
 def reassign_wells_country(modeladmin, request, queryset):
@@ -29,11 +16,26 @@ def reassign_wells_country(modeladmin, request, queryset):
         org.well_set.all().update(country=org.country)
 
 
+@admin.action(description='Generate data cache')
+def generate_data_wells_cache(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_data_organisations_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 class OrganisationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'active', 'country', 'well_number')
+    list_display = (
+        'name', 'active', 'country', 'well_number', 'data_cache_generated_at'
+    )
     list_editable = ('active',)
-    list_filter = ('country',)
-    actions = (rerun_cache, reassign_wells_country)
+    list_filter = ('data_cache_generated_at', 'country')
+    actions = (generate_data_wells_cache, reassign_wells_country)
     form = OrganisationFormAdmin
 
     def well_number(self, org: Organisation):
