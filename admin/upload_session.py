@@ -42,8 +42,7 @@ def create_report(modeladmin, request, queryset):
 @admin.action(description='Stop upload.')
 def stop_upload(modeladmin, request, queryset):
     for upload_session in queryset:
-        upload_session.is_canceled = True
-        upload_session.save()
+        upload_session.stop()
 
 
 @admin.action(description='Resume upload.')
