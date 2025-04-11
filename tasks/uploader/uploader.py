@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
+from django.utils import timezone
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled
@@ -112,25 +115,31 @@ class BatchUploader:
         wells_id = list(set(wells_id))
         count = len(wells_id)
         for index, well_id in enumerate(wells_id):
-            process_percent = ((index / count) * 10) + 70
-            self.upload_session.update_step(
-                f'Running {count} wells cache',
-                progress=int(process_percent)
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellLevelMeasurement.__name__
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellYieldMeasurement.__name__
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellQualityMeasurement.__name__
-            )
-            generate_data_well_cache(
-                well_id=well_id, generate_country_cache=False,
-                generate_organisation_cache=False
-            )
             try:
+                well = Well.objects.get(id=well_id)
+                if well.data_cache_generated_at and (
+                        timezone.now() - well.data_cache_generated_at <
+                        timedelta(days=2)
+                ):
+                    continue
+                process_percent = ((index / count) * 10) + 70
+                self.upload_session.update_step(
+                    f'Running {count} wells cache',
+                    progress=int(process_percent)
+                )
+                generate_measurement_cache(
+                    well_id=well_id, model=WellLevelMeasurement.__name__
+                )
+                generate_measurement_cache(
+                    well_id=well_id, model=WellYieldMeasurement.__name__
+                )
+                generate_measurement_cache(
+                    well_id=well_id, model=WellQualityMeasurement.__name__
+                )
+                generate_data_well_cache(
+                    well_id=well_id, generate_country_cache=False,
+                    generate_organisation_cache=False
+                )
                 well = Well.objects.get(id=well_id)
                 well.update_metadata()
                 well.save()
