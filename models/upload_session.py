@@ -239,6 +239,8 @@ class UploadSession(LicenseMetadata):
                 return TaskStatus.STOP
 
             active_tasks = current_app.control.inspect().active()
+            if not active_tasks:
+                return TaskStatus.STOP
             for worker, running_tasks in active_tasks.items():
                 for task in running_tasks:
                     if task["id"] == self.task_id:
@@ -364,6 +366,20 @@ class UploadSession(LicenseMetadata):
             os.remove(_report_file)
         except Exception:
             pass
+
+    @staticmethod
+    def running_sessions():
+        """Return running session status."""
+        return UploadSession.objects.filter(
+            is_processed=False,
+            is_canceled=False,
+            progress__lt=100
+        )
+
+    def resume(self):
+        """Resume the upload."""
+        if self.task_status == TaskStatus.STOP:
+            self.run_in_background()
 
 
 RowStatus = [
