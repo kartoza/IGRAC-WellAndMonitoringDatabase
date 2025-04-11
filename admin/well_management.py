@@ -35,6 +35,7 @@ class OrganisationAdmin(admin.ModelAdmin):
     )
     list_editable = ('active',)
     list_filter = ('data_cache_generated_at', 'country')
+    search_fields = ('name',)
     actions = (generate_data_wells_cache, reassign_wells_country)
     form = OrganisationFormAdmin
 
