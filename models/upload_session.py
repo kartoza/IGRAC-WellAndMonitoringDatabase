@@ -16,6 +16,7 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
 from django.utils.timezone import now, make_aware
+from openpyxl.cell.cell import MergedCell
 from openpyxl.styles import PatternFill, Font
 
 from gwml2.models.metadata.license_metadata import LicenseMetadata
@@ -324,7 +325,7 @@ class UploadSession(LicenseMetadata):
                 os.remove(_report_file)
             workbook = openpyxl.load_workbook(_file)
 
-            query = self.uploadsessionrowstatus_set.filter(status=1)
+            query = self.uploadsessionrowstatus_set.exclude(status=0)
             status_column = {}
             for sheetname in workbook.sheetnames:
                 sheet_query = query.filter(
@@ -340,6 +341,16 @@ class UploadSession(LicenseMetadata):
                     status_column_idx = status_column[sheetname]
                 except KeyError:
                     status_column_idx = len(row) + 1
+                    last_column = False
+                    for _row in row:
+                        if isinstance(_row, MergedCell):
+                            continue
+                        if _row.value:
+                            status_column_idx = _row.column + 1
+                        elif not last_column:
+                            status_column_idx = _row.column
+                            last_column = True
+
                     status_column[sheetname] = status_column_idx
 
                 for idx, row_status in enumerate(sheet_query):

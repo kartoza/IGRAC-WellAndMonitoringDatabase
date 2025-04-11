@@ -3,6 +3,12 @@ from django.contrib import admin
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
 
 
+@admin.action(description='Create report.')
+def create_report(modeladmin, request, queryset):
+    for upload_session in queryset:
+        upload_session.create_report_excel()
+
+
 @admin.action(description='Stop upload.')
 def stop_upload(modeladmin, request, queryset):
     for upload_session in queryset:
@@ -42,7 +48,7 @@ class UploadSessionAdmin(admin.ModelAdmin):
         'is_processed',
         'is_canceled'
     )
-    actions = (stop_upload, resume_upload, restart_upload)
+    actions = (stop_upload, resume_upload, restart_upload, create_report)
 
 
 admin.site.register(UploadSession, UploadSessionAdmin)
