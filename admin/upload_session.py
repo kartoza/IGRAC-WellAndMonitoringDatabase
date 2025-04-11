@@ -3,6 +3,42 @@ from django.contrib import admin
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
 
 
+class RunningUploaderFilter(admin.SimpleListFilter):
+    """Return running uploader."""
+
+    title = 'Running uploader'
+    parameter_name = 'is_runnin_uploader'
+
+    def lookups(self, request, model_admin):
+        """Lookup function for entity filter."""
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
+        if self.value() == "yes":
+            return queryset.filter(
+                is_processed=False,
+                is_canceled=False,
+                progress__lt=100
+            )
+        if self.value() == "no":
+            return queryset.exclude(
+                is_processed=False,
+                is_canceled=False,
+                progress__lt=100
+            )
+        return queryset
+
+
+@admin.action(description='Create report.')
+def create_report(modeladmin, request, queryset):
+    for upload_session in queryset:
+        upload_session.create_report_excel()
+
+
 @admin.action(description='Stop upload.')
 def stop_upload(modeladmin, request, queryset):
     for upload_session in queryset:
@@ -40,9 +76,10 @@ class UploadSessionAdmin(admin.ModelAdmin):
     list_filter = (
         'category',
         'is_processed',
-        'is_canceled'
+        'is_canceled',
+        RunningUploaderFilter
     )
-    actions = (stop_upload, resume_upload, restart_upload)
+    actions = (stop_upload, resume_upload, restart_upload, create_report)
 
 
 admin.site.register(UploadSession, UploadSessionAdmin)

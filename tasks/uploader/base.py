@@ -148,6 +148,12 @@ class BaseUploader(WellEditing):
                         return
                     if not raw_record[0]:
                         return
+
+                    self.upload_session.update_step(
+                        f'{sheet_name} : '
+                        f'Row {self.current_row + START_ROW + 1}'
+                    )
+
                     if (
                             self.resumed_index is not None
                             and self.current_row <= self.resumed_index
@@ -155,6 +161,7 @@ class BaseUploader(WellEditing):
                         return
 
                     self.current_index += 1
+                    row_idx = self.current_row + START_ROW
 
                     # for saving records, 50%
                     error = {}
@@ -220,7 +227,6 @@ class BaseUploader(WellEditing):
                     # ---------------------------------------------
                     # Update progress and status
                     # ---------------------------------------------
-                    row_idx = self.current_row + START_ROW
                     if error:
                         progress['error'] += 1
 
@@ -279,9 +285,6 @@ class BaseUploader(WellEditing):
                         obj.status = 0
                         obj.save()
 
-                    self.upload_session.update_step(
-                        f'{sheet_name} : Row {row_idx}'
-                    )
                     self.upload_session.update_status(sheet_name, progress)
 
             # Extract data per sheet
