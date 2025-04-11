@@ -266,6 +266,8 @@ class UploadSession(LicenseMetadata):
 
     def stop(self):
         """Stop the progress."""
+        self.is_canceled = True
+        self.save()
         if self.task_id:
             AsyncResult(self.task_id, app=current_app).revoke(terminate=True)
 
