@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.contrib.gis.geos import Polygon
 from django.db import connections
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -14,6 +16,44 @@ from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
 
+bbox = Polygon(
+    (
+        (-180, -90),
+        (-180, 90),
+        (180, 90),
+        (180, -90),
+        (-180, -90)
+    )
+)
+
+
+class InvalidCoordinatesFilter(admin.SimpleListFilter):
+    """Invalid coordinates filter."""
+
+    title = 'Invalid coordinates'
+    parameter_name = 'is_invalid_coordinates'
+
+    def lookups(self, request, model_admin):
+        """Lookup function for entity filter."""
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
+        if self.value() == "yes":
+            return queryset.filter(
+                Q(location__isnull=True) |
+                ~Q(location__within=bbox)
+            )
+        if self.value() == "no":
+            return queryset.filter(
+                location__isnull=False,
+                location__within=bbox
+            )
+        return queryset
+
 
 def assign_country(modeladmin, request, queryset):
     for well in queryset:
@@ -26,6 +66,19 @@ def delete_in_background(modeladmin, request, queryset):
         delete_well_in_background
     )
     return delete_well_in_background(modeladmin, request, queryset)
+
+
+@admin.action(description='Generate data cache')
+def generate_data_wells_cache(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_data_wells_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
 
 
 @admin.action(description='Generate measurement cache')
@@ -80,15 +133,18 @@ def change_ground_to_amsl(modeladmin, request, queryset):
 class WellAdmin(admin.ModelAdmin):
     list_display = (
         'original_id', 'organisation', 'number_of_measurements',
-        'country', 'id', 'last_measurements',
+        'latitude', 'longitude',
+        'country', 'id',
         'first_time_measurement', 'last_time_measurement',
-        'edit',
-        'measurement_cache_generated_at',
+        'edit', 'measurement_cache_generated_at',
+        'data_cache_generated_at'
     )
     list_filter = (
         'organisation', 'country',
         'first_time_measurement', 'last_time_measurement',
-        'measurement_cache_generated_at'
+        'measurement_cache_generated_at',
+        'data_cache_generated_at',
+        InvalidCoordinatesFilter
     )
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
@@ -102,9 +158,10 @@ class WellAdmin(admin.ModelAdmin):
     )
     search_fields = ('original_id', 'name')
     actions = [
-        delete_in_background, assign_country,
+        delete_in_background,
+        generate_data_wells_cache,
         generate_measurement_cache,
-        generate_measurement_cache_generated_at,
+        assign_country,
         change_ground_to_amsl
     ]
 
@@ -114,24 +171,17 @@ class WellAdmin(admin.ModelAdmin):
             '<a href="{}" target="_blank">Edit well</a>',
             url)
 
-    def last_measurements(self, obj: Well):
-        last_data = {}
-        query = obj.welllevelmeasurement_set.all()
-        if query.count():
-            last_data['level'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
-        query = obj.wellyieldmeasurement_set.all()
-        if query.count():
-            last_data['yield'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
-        query = obj.wellqualitymeasurement_set.all()
-        if query.count():
-            last_data['quality'] = query[0].time.strftime("%Y-%m-%d, %H:%M:%S")
-        return last_data
-
     def created_by_user(self, obj):
         return obj.created_by_username()
 
     def last_edited_by_user(self, obj):
         return obj.last_edited_by_username()
+
+    def latitude(self, obj: Well):
+        return obj.location.y
+
+    def longitude(self, obj: Well):
+        return obj.location.x
 
 
 admin.site.register(Well, WellAdmin)
@@ -169,9 +219,8 @@ class MeasurementAdmin(admin.ModelAdmin):
         'default_unit', 'default_value'
     )
     search_fields = ('well__original_id',)
-    raw_id_fields = (
-        'value',
-    )
+    raw_id_fields = ('value',)
+    list_filter = ('well', 'time', 'well__organisation')
 
 
 class WellLevelMeasurementAdmin(MeasurementAdmin):

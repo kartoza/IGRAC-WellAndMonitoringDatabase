@@ -337,20 +337,46 @@ class ODSReaderTest(GWML2Test):
     def test_sheet_not_found(self):
         """To file exist."""
         file_path = absolute_path(
-            'gwml2', 'tests', 'fixtures', 'wells.old.ods'
+            'gwml2', 'tests', 'fixtures', 'monitoring_data.ods'
         )
         upload_session = UploadSession.objects.create()
         with self.assertRaises(KeyError) as e:
-            MonitoringDataUploader(
+            GeneralInformationUploader(
                 upload_session, {}, 0, 1,
                 file_path=file_path
             )
-            self.assertEquals(
-                f'{e}',
-                "'Sheet Groundwater Level in excel is not found. "
-                "This sheet is used by Monitoring Data. "
-                "Please check if you use the correct uploader/tab. '"
-            )
+
+        HydrogeologyUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        ManagementUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        DrillingAndConstructionUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        WaterStrikeUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        StratigraphicLogUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        StructuresUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
+        file_path = absolute_path(
+            'gwml2', 'tests', 'fixtures', 'wells.ods'
+        )
+        MonitoringDataUploader(
+            upload_session, {}, 0, 1,
+            file_path=file_path
+        )
 
     def check_old_file(self, Uploader, file_name):
         """Check old file."""

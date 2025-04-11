@@ -246,7 +246,7 @@ class EHYD(BaseHarvester):
                         'time': measurement_time,
                         'value': measurement_value
                     })
-                except ValueError:
+                except (IndexError, ValueError):
                     pass
                 continue
 

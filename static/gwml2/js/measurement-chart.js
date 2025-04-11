@@ -282,7 +282,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
         plotOptions: {
             series: {
                 showInLegend: false,
-                dataGrouping: { groupPixelWidth: 50, units: [['hour', [4]], ['day', [1]], ['week', [1, 2]], ['month', [1]]] }
+                dataGrouping: { enabled: false }
             }
         },
         tooltip: {

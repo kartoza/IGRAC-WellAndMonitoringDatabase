@@ -8,6 +8,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
 from django.db.models import Value, CharField, Func
+from django.utils import timezone
 from openpyxl import load_workbook
 
 from geonode.base.models import License, RestrictionCodeType
@@ -170,6 +171,10 @@ class GenerateWellCacheFile(object):
 
             xlsx_to_ods(monitor_file)
             os.remove(monitor_file)
+
+        # Update data cache generated at
+        well.data_cache_generated_at = timezone.now()
+        well.save()
 
     def write_json(self, folder, sheetname, data):
         """Write JSON by sheetname."""
