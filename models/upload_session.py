@@ -266,10 +266,10 @@ class UploadSession(LicenseMetadata):
 
     def stop(self):
         """Stop the progress."""
-        self.is_canceled = True
-        self.save()
         if self.task_id:
             AsyncResult(self.task_id, app=current_app).revoke(terminate=True)
+        self.is_canceled = True
+        self.save()
 
     def run_in_background(self, restart: bool = False):
         """Run the uploader in background."""

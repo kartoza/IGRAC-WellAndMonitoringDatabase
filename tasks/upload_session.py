@@ -15,6 +15,9 @@ logger = get_task_logger(__name__)
 def resume_all_uploader(self):
     """Resume all uploader."""
     preference = SitePreference.load()
+    print(
+        f'RESUME_ALL_UPLOADER settings : {preference.batch_upload_auto_resume}'
+    )
     if not preference.batch_upload_auto_resume:
         print('RESUME_ALL_UPLOADER : SKIPPED')
         return
