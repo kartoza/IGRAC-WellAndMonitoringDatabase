@@ -24,3 +24,7 @@ class SitePreference(SingletonModel):
         on_delete=models.SET_NULL,
         related_name='site_preference_parameter_amsl'
     )
+    batch_upload_auto_resume = models.BooleanField(
+        default=False,
+        help_text='Auto resume flag for batch upload.'
+    )
