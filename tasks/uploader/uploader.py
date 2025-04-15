@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from celery.utils.log import get_task_logger
 from django.db.models.signals import post_save
+from django.utils import timezone
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled
@@ -104,8 +107,7 @@ class BatchUploader:
         self.upload_session.update_step('Running wells cache', 70)
         wells_id = list(
             self.upload_session.uploadsessionrowstatus_set.filter(
-                well__isnull=False,
-                status=0,
+                well__isnull=False
             ).values_list(
                 'well_id', flat=True
             )
@@ -113,25 +115,31 @@ class BatchUploader:
         wells_id = list(set(wells_id))
         count = len(wells_id)
         for index, well_id in enumerate(wells_id):
-            process_percent = ((index / count) * 10) + 70
-            self.upload_session.update_step(
-                f'Running {count} wells cache',
-                progress=int(process_percent)
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellLevelMeasurement.__name__
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellYieldMeasurement.__name__
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellQualityMeasurement.__name__
-            )
-            generate_data_well_cache(
-                well_id=well_id, generate_country_cache=False,
-                generate_organisation_cache=False
-            )
             try:
+                well = Well.objects.get(id=well_id)
+                if well.data_cache_generated_at and (
+                        timezone.now() - well.data_cache_generated_at <
+                        timedelta(days=2)
+                ):
+                    continue
+                process_percent = ((index / count) * 10) + 70
+                self.upload_session.update_step(
+                    f'Running {count} wells cache',
+                    progress=int(process_percent)
+                )
+                generate_measurement_cache(
+                    well_id=well_id, model=WellLevelMeasurement.__name__
+                )
+                generate_measurement_cache(
+                    well_id=well_id, model=WellYieldMeasurement.__name__
+                )
+                generate_measurement_cache(
+                    well_id=well_id, model=WellQualityMeasurement.__name__
+                )
+                generate_data_well_cache(
+                    well_id=well_id, generate_country_cache=False,
+                    generate_organisation_cache=False
+                )
                 well = Well.objects.get(id=well_id)
                 well.update_metadata()
                 well.save()
@@ -144,8 +152,11 @@ class BatchUploader:
         self.upload_session.update_step('Running country cache', 80)
         countries_code = list(
             Well.objects.filter(
-                id__in=wells_id
-            ).values_list('country__code', flat=True)
+                id__in=wells_id,
+                country__isnull=False
+            ).values_list(
+                'country__code', flat=True
+            )
         )
         countries_code = list(set(countries_code))
         count = len(countries_code)
@@ -159,21 +170,12 @@ class BatchUploader:
         # ------------------------------------
         # Run the organisation cache
         # ------------------------------------
-        self.upload_session.update_step('Running organisation cache', 85)
-        organisation_ids = list(
-            Well.objects.filter(
-                id__in=wells_id
-            ).values_list('organisation__id', flat=True)
+        self.upload_session.update_step(
+            'Running organisation cache', 85
         )
-        organisation_ids = list(set(organisation_ids))
-        count = len(organisation_ids)
-        for index, organisation_id in enumerate(organisation_ids):
-            process_percent = ((index / count) * 5) + 85
-            self.upload_session.update_step(
-                'Running organisation cache',
-                progress=int(process_percent)
-            )
-            generate_data_organisation_cache(organisation_id=organisation_id)
+        generate_data_organisation_cache(
+            organisation_id=self.upload_session.organisation.id
+        )
 
         # ------------------------------------
         # Run the istsos cache for getcapabilities

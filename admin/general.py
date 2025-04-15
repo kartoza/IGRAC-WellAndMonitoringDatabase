@@ -42,3 +42,4 @@ class CountryAdmin(admin.ModelAdmin):
     list_display = ('name', 'code', 'data_cache_generated_at')
     list_filter = ('data_cache_generated_at',)
     actions = (generate_data_wells_cache,)
+    search_fields = ('name',)

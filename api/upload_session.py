@@ -76,8 +76,6 @@ class UploadSessionStopApiView(View):
                 raise PermissionDenied()
             if request.user.id != session.uploader:
                 raise PermissionDenied()
-            session.is_canceled = True
-            session.save()
             session.stop()
             return HttpResponse('ok')
         except UploadSession.DoesNotExist:
