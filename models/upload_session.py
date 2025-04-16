@@ -2,6 +2,7 @@
 """Upload session model definition.
 
 """
+import gc
 import json
 import ntpath
 import os
@@ -313,6 +314,13 @@ class UploadSession(LicenseMetadata):
                 restart
             )
 
+    @property
+    def file_report_url(self):
+        """Return URL for file report upload."""
+        _url = self.upload_file.url
+        ext = os.path.splitext(_url)[1]
+        return _url.replace(ext, f'.report{ext}')
+
     def create_report_excel(self):
         """Created excel that will contain reports."""
         try:
@@ -329,7 +337,9 @@ class UploadSession(LicenseMetadata):
                 os.remove(_report_file)
             workbook = openpyxl.load_workbook(_file)
 
-            query = self.uploadsessionrowstatus_set.exclude(status=0)
+            query = self.uploadsessionrowstatus_set.order_by(
+                'row'
+            ).exclude(status=0)
             status_column = {}
             for sheetname in workbook.sheetnames:
                 sheet_query = query.filter(
@@ -337,13 +347,12 @@ class UploadSession(LicenseMetadata):
                         sheet_name=sheetname.replace('_', ' '))
                 )
                 worksheet = workbook[sheetname]
-                total = sheet_query.count()
 
                 # We need to check latest column
-                row = worksheet[1]
                 try:
                     status_column_idx = status_column[sheetname]
                 except KeyError:
+                    row = worksheet[1]
                     status_column_idx = len(row) + 1
                     last_column = False
                     for _row in row:
@@ -360,14 +369,17 @@ class UploadSession(LicenseMetadata):
                 for idx, row_status in enumerate(sheet_query):
                     row_status.update_sheet(worksheet, status_column_idx)
             workbook.save(_report_file)
+            workbook.close()
             os.chmod(_report_file, 0o0777)
             xlsx_to_ods(_report_file)
 
             # Delete files
+            del workbook
+            gc.collect()
             os.remove(_file)
             os.remove(_report_file)
-        except Exception:
-            pass
+        except Exception as e:
+            print(f'{e}')
 
     @staticmethod
     def running_sessions():
@@ -389,6 +401,17 @@ RowStatus = [
     (1, 'Error'),
     (2, 'Skipped')
 ]
+
+ADDED_FILL = PatternFill(
+    start_color='00FF00', end_color='00FF00', fill_type='solid'
+)
+ERROR_FILL = PatternFill(
+    start_color='FF0000', end_color='FF0000', fill_type='solid'
+)
+SKIPPED_FILL = PatternFill(
+    start_color='FFFF00', end_color='FFFF00', fill_type='solid'
+)
+ERROR_FONT = Font(color="FFFFFF")
 
 
 class UploadSessionRowStatus(models.Model):
@@ -413,27 +436,25 @@ class UploadSessionRowStatus(models.Model):
 
     def update_sheet(self, worksheet, status_column_idx):
         """Update the sheet."""
+        print(self.row)
         try:
-            row = worksheet[self.row]
-            cell = row[self.column]
+            cell = worksheet.cell(
+                row=self.row, column=self.column + 1
+            )
             status = ''
             if self.status == 0:
-                cell.fill = PatternFill(
-                    start_color='00FF00', end_color='00FF00', fill_type='solid'
-                )
                 status = 'Added'
+                cell.fill = ADDED_FILL
             elif self.status == 1:
-                cell.fill = PatternFill(
-                    start_color='FF0000', end_color='FF0000', fill_type='solid'
-                )
-                cell.font = Font(color="FFFFFF")
                 status = 'Error'
-                cell.value = self.note
+                cell.fill = ERROR_FILL
+                cell.font = ERROR_FONT
+                worksheet.cell(
+                    row=self.row, column=self.column + 1
+                ).value = f'Error: {self.note}'
             elif self.status == 2:
-                cell.fill = PatternFill(
-                    start_color='FFFF00', end_color='FFFF00', fill_type='solid'
-                )
                 status = 'Skipped'
+                cell.fill = SKIPPED_FILL
             worksheet.cell(
                 row=self.row, column=status_column_idx
             ).value = status
