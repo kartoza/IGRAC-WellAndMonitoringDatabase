@@ -1,5 +1,3 @@
-import time
-
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -39,10 +37,7 @@ class RunningUploaderFilter(admin.SimpleListFilter):
 @admin.action(description='Create report.')
 def create_report(modeladmin, request, queryset):
     for upload_session in queryset:
-        start_time = time.time()
         upload_session.create_report_excel()
-        end_time = time.time()
-        print(f"Report created in {end_time - start_time:.2f} seconds")
 
 
 @admin.action(description='Stop upload.')
@@ -105,10 +100,11 @@ class UploadSessionRowStatusAdmin(admin.ModelAdmin):
         'row',
         'column',
         'status',
-        'note'
+        'note',
+        'well'
     )
     list_filter = (
-        'upload_session',
+        'upload_session', 'status'
     )
 
 

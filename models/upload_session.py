@@ -229,6 +229,12 @@ class UploadSession(LicenseMetadata):
                 'status': self.status
             }
 
+    def check_cancellation(self):
+        """Check cancellation."""
+        self.refresh_from_db()
+        if self.is_canceled:
+            raise UploadSessionCancelled('Cancelled')
+
     def update_progress(self, finished=False, status='', progress=0):
         """Update progress for current upload session
 
@@ -241,9 +247,7 @@ class UploadSession(LicenseMetadata):
         :param progress: Current progress
         :type progress: int
         """
-        self.refresh_from_db()
-        if self.is_canceled:
-            raise UploadSessionCancelled('Cancelled')
+        self.check_cancellation()
 
         if finished:
             if progress == 100:
@@ -258,6 +262,7 @@ class UploadSession(LicenseMetadata):
 
     def update_status(self, sheet_name, status):
         """Update status."""
+        self.check_cancellation()
         try:
             _status = json.loads(self.status)
         except Exception:
@@ -269,6 +274,7 @@ class UploadSession(LicenseMetadata):
 
     def update_step(self, step: str, progress: int = None):
         """Update step of upload."""
+        self.check_cancellation()
         self.step = step
         if progress:
             self.progress = progress
@@ -368,6 +374,8 @@ class UploadSession(LicenseMetadata):
 
     def create_report_excel(self):
         """Created excel that will contain reports."""
+        self.step = 'Create report'
+        self.save()
         try:
             _file = ods_to_xlsx(self.upload_file.path)
 
@@ -423,6 +431,8 @@ class UploadSession(LicenseMetadata):
             gc.collect()
             os.remove(_file)
             os.remove(_report_file)
+            self.step = 'Create report done'
+            self.save()
         except Exception as e:
             print(f'{e}')
 
