@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from gwml2.api.pagination import Pagination
 from gwml2.models.upload_session import UploadSession
 from gwml2.serializer.upload_session import UploadSessionSerializer
+from gwml2.tasks.uploader.task import well_batch_upload_create_report
 
 
 class UploadSessionListApiView(ListAPIView):
@@ -77,6 +78,7 @@ class UploadSessionStopApiView(View):
             if request.user.id != session.uploader:
                 raise PermissionDenied()
             session.stop()
+            well_batch_upload_create_report.delay(session.id)
             return HttpResponse('ok')
         except UploadSession.DoesNotExist:
             raise Http404('No session found')

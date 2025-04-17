@@ -134,11 +134,12 @@ def extract_data(file_path: str, sheet_name: str, receiver):
                         ) if cell_value else ''
 
                         # Create empty data
-                        for _ in range(spanned * repeated):
-                            if _ == 0:
-                                row_data.append(cell_content)
-                            else:
-                                row_data.append('')
+                        for repeat in range(repeated):
+                            for _ in range(spanned):
+                                if _ == 0:
+                                    row_data.append(cell_content)
+                                else:
+                                    row_data.append('')
 
                     if row_data[0]:
                         receiver(row_data)
