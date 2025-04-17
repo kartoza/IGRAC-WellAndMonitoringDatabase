@@ -64,6 +64,35 @@ class UploadSessionCancelled(Exception):
         self.errors = error
 
 
+class UploadSessionCheckpoint:
+    """Upload session checkpoint."""
+
+    SAVING_DATA = 'Saving data'
+    CACHE_WELLS = 'Cache wells'
+    CACHE_COUNTRY = 'Cache country'
+    CACHE_ORGANISATION = 'Cache organisation'
+    CREATE_REPORT = 'Create report'
+    FINISH = 'Finish'
+
+    STEP_CHECKPOINT_CHOICES = [
+        (1, SAVING_DATA),
+        (2, CACHE_WELLS),
+        (3, CACHE_COUNTRY),
+        (4, CACHE_ORGANISATION),
+        (5, CREATE_REPORT),
+        (6, FINISH),
+    ]
+
+    @staticmethod
+    def get_index(checkpoint):
+        """Get index."""
+        LABEL_TO_VALUE = {
+            label: value for value, label in
+            UploadSessionCheckpoint.STEP_CHECKPOINT_CHOICES
+        }
+        return LABEL_TO_VALUE.get(checkpoint)
+
+
 class UploadSession(LicenseMetadata):
     """Upload session model
     """
@@ -138,6 +167,22 @@ class UploadSession(LicenseMetadata):
     )
     is_updating = models.BooleanField(
         default=False, help_text='Does the update existing data.'
+    )
+
+    # Checkpoints
+    checkpoint = models.IntegerField(
+        choices=UploadSessionCheckpoint.STEP_CHECKPOINT_CHOICES,
+        default=UploadSessionCheckpoint.get_index(
+            UploadSessionCheckpoint.SAVING_DATA
+        )
+    )
+    checkpoint_ids = models.JSONField(
+        blank=True,
+        null=True,
+        help_text=(
+            'This is the ids for the checkpoint, '
+            'e.g: list of wells id for CACHE_COUNTRY checkpoint'
+        )
     )
 
     # noinspection PyClassicStyleClass
@@ -395,6 +440,13 @@ class UploadSession(LicenseMetadata):
         if self.task_status == TaskStatus.STOP:
             self.run_in_background()
 
+    def append_checkout_ids(self, value):
+        """Append checkout ids."""
+        if not self.checkpoint_ids:
+            self.checkpoint_ids = []
+        self.checkpoint_ids.append(value)
+        self.save()
+
 
 RowStatus = [
     (0, 'Added'),
@@ -436,7 +488,6 @@ class UploadSessionRowStatus(models.Model):
 
     def update_sheet(self, worksheet, status_column_idx):
         """Update the sheet."""
-        print(self.row)
         try:
             cell = worksheet.cell(
                 row=self.row, column=self.column + 1
