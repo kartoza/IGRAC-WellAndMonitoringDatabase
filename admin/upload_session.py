@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
 
@@ -70,7 +71,8 @@ class UploadSessionAdmin(admin.ModelAdmin):
         'is_processed',
         'is_canceled',
         'task_id',
-        'task_status'
+        'task_status',
+        'file_report'
     )
     list_filter = (
         'category',
@@ -79,6 +81,14 @@ class UploadSessionAdmin(admin.ModelAdmin):
         RunningUploaderFilter
     )
     actions = (stop_upload, resume_upload, restart_upload, create_report)
+
+    def file_report(self, obj: UploadSession):
+        """File report."""
+        return format_html(
+            f'<a href="{obj.file_report_url}" target="_blank">'
+            f'  {obj.file_report_url}'
+            f'</a>'
+        )
 
 
 admin.site.register(UploadSession, UploadSessionAdmin)
@@ -90,10 +100,11 @@ class UploadSessionRowStatusAdmin(admin.ModelAdmin):
         'row',
         'column',
         'status',
-        'note'
+        'note',
+        'well'
     )
     list_filter = (
-        'upload_session',
+        'upload_session', 'status'
     )
 
 
