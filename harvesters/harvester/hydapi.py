@@ -34,12 +34,12 @@ class Hydapi(BaseHarvester):
                 'parameter': TermMeasurementParameter.objects.get(
                     name='Spring discharge')
             },
-            1003: {
+            # Grunnvannstemperatur
+            2015: {
                 'model': WellQualityMeasurement,
                 'parameter': TermMeasurementParameter.objects.get(
                     name='T')
             },
-            # just get the Instantenous
             5130: {
                 'model': WellLevelMeasurement,
                 'parameter': TermMeasurementParameter.objects.get(
@@ -187,6 +187,7 @@ class Hydapi(BaseHarvester):
             ).replace(microsecond=0).isoformat().split('+')[0] + 'Z'
             self._update(
                 f"{station['stationId']} : {parameter} "
+                f"({series.get('parameterName', 'no parameter name')}) "
                 f"- {from_date_str} - {to_date_str}"
             )
             # Fetch measurements data
