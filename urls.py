@@ -1,8 +1,7 @@
 # coding=utf-8
 """Urls for igrac apps."""
 
-from django.conf.urls import url
-from django.urls import include
+from django.urls import include, re_path
 from django.views.generic import TemplateView
 
 from gwml2.api.authentication import TokenAuth
@@ -47,149 +46,212 @@ from gwml2.views.upload_session import UploadSessionDetailView
 from gwml2.views.well_uploader import WellUploadView
 
 well_relation = [
-    url(r'^delete',
+    re_path(
+        r'^delete',
         view=WellRelationDeleteView.as_view(),
-        name='well-relation-delete'),
+        name='well-relation-delete'
+    ),
 ]
 well_detail_urls = [
-    url(r'^(?P<model>[\w\+%_& ]+)/(?P<model_id>\d+)/', include(well_relation)),
-    url(r'^(?P<model>[\w\+%_& ]+)/list', WellRelationListView.as_view(),
-        name='well-relation-list'),
-    url(r'^measurements/WellLevelMeasurement/chart-data',
+    re_path(
+        r'^(?P<model>[\w\+%_& ]+)/(?P<model_id>\d+)/',
+        include(well_relation)
+    ),
+    re_path(
+        r'^(?P<model>[\w\+%_& ]+)/list$',
+        WellRelationListView.as_view(),
+        name='well-relation-list'
+    ),
+    re_path(
+        r'^measurements/WellLevelMeasurement/chart-data',
         WellLevelMeasurementData.as_view(),
-        name='well-level-measurement-chart-data'),
-    url(r'^measurements/(?P<model>[\w\+%_& ]+)/data',
+        name='well-level-measurement-chart-data'
+    ),
+    re_path(
+        r'^measurements/(?P<model>[\w\+%_& ]+)/data$',
         WellMeasurementDataView.as_view(),
-        name='well-measurement-chart-data'),
-    url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart/iframe',
+        name='well-measurement-chart-data'
+    ),
+    re_path(
+        r'^measurements/(?P<model>[\w\+%_& ]+)/chart/iframe$',
         MeasurementChartIframe.as_view(),
-        name='well-measurement-chart-iframe'),
-    url(r'^measurements/(?P<model>[\w\+%_& ]+)/chart',
+        name='well-measurement-chart-iframe'
+    ),
+    re_path(
+        r'^measurements/(?P<model>[\w\+%_& ]+)/chart$',
         MeasurementChart.as_view(),
-        name='well-measurement-chart'),
-    url(r'^edit',
+        name='well-measurement-chart'
+    ),
+    re_path(
+        r'^edit',
         view=WellFormView.as_view(),
-        name='well_form'),
-    url(r'^',
+        name='well_form'
+    ),
+    re_path(
+        r'^',
         view=WellView.as_view(),
-        name='well_view'),
+        name='well_view'
+    ),
 ]
 
 well_url = [
-    url(r'^download/(?P<uuid>[0-9a-f-]+)/status$',
+    re_path(
+        r'^download/(?P<uuid>[0-9a-f-]+)/status$',
         view=DownloadRequestDownloadStatus.as_view(),
-        name='well_download_request_status'),
-    url(r'^download/(?P<uuid>[0-9a-f-]+)$',
+        name='well_download_request_status'
+    ),
+    re_path(
+        r'^download/(?P<uuid>[0-9a-f-]+)$',
         view=DownloadRequestDownloadView.as_view(),
-        name='well_download_request_download'),
-    url(r'^download$',
+        name='well_download_request_download'
+    ),
+    re_path(
+        r'^download$',
         view=DownloadRequestFormView.as_view(),
-        name='well_download_request'),
-    url(r'^create/',
+        name='well_download_request'
+    ),
+    re_path(
+        r'^create/',
         view=WellFormCreateView.as_view(),
-        name='well_create'),
-    url(r'^(?P<id>\d+)/', include(well_detail_urls)),
+        name='well_create'
+    ),
+    re_path(r'^(?P<id>\d+)/', include(well_detail_urls)),
 ]
 
 organisation_url = [
-    url(r'^(?P<pk>\d+)/edit',
+    re_path(
+        r'^(?P<pk>\d+)/edit',
         view=OrganisationFormView.as_view(),
-        name='organisation_form'),
-    url(r'^',
+        name='organisation_form'
+    ),
+    re_path(
+        r'^',
         view=OrganisationListView.as_view(),
-        name='organisation_list')
+        name='organisation_list'
+    )
 ]
 
 user_url = [
-    url(r'^uuid/',
+    re_path(
+        r'^uuid/',
         view=UserUUIDAPI.as_view(),
-        name='user_uuid')
+        name='user_uuid'
+    )
 ]
 
 api_minimized_url = [
-    url(r'^create',
+    re_path(
+        r'^create',
         view=WellCreateMinimizedAPI.as_view(),
-        name='well_create_api'),
-    url(r'^(?P<id>\d+)/edit',
+        name='well_create_api'
+    ),
+    re_path(
+        r'^(?P<id>\d+)/edit',
         view=WellEditMinimizedAPI.as_view(),
-        name='well_edit_api'),
-    url(r'^(?P<id>\d+)/(?P<measurement_type>[\w\+%_& ]+)',
+        name='well_edit_api'
+    ),
+    re_path(
+        r'^(?P<id>\d+)/(?P<measurement_type>[\w\+%_& ]+)',
         view=WellMeasurementListMinimizedAPI.as_view(),
-        name='well_measurement_list_minimized_api'),
-    url(r'^',
+        name='well_measurement_list_minimized_api'
+    ),
+    re_path(
+        r'^',
         view=WellListMinimizedAPI.as_view(),
-        name='well_list_minimized_api'),
+        name='well_list_minimized_api'
+    ),
 ]
 api_url = [
-    url(r'^well/minimized/', include(api_minimized_url)),
+    re_path(r'^well/minimized/', include(api_minimized_url)),
 
     # autocomplete
-    url(r'^organisation/autocomplete',
+    re_path(
+        r'^organisation/autocomplete',
         view=OrganisationAutocompleteAPI.as_view(),
-        name='organisation_autocomplete'),
-    url(r'^user/autocomplete',
+        name='organisation_autocomplete'
+    ),
+    re_path(
+        r'^user/autocomplete',
         view=UserAutocompleteAPI.as_view(),
-        name='user_autocomplete'),
-    url(r'^country/autocomplete',
+        name='user_autocomplete'
+    ),
+    re_path(
+        r'^country/autocomplete',
         view=CountryAutocompleteAPI.as_view(),
-        name='country_autocomplete'),
+        name='country_autocomplete'
+    ),
 ]
 upload_session_url = [
-    url(r'^list',
+    re_path(
+        r'^list',
         view=UploadSessionListApiView.as_view(),
-        name='upload_session_list'),
-    url(r'^'
+        name='upload_session_list'
+    ),
+    re_path(
+        r'^'
         r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/stop',
         view=UploadSessionStopApiView.as_view(),
-        name='upload_session_stop'),
-    url(r'^'
+        name='upload_session_stop'
+    ),
+    re_path(
+        r'^'
         r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/',
         view=UploadSessionApiView.as_view(),
-        name='upload_session_progress'),
-    url(r'^(?P<pk>\d+)/detail',
+        name='upload_session_progress'
+    ),
+    re_path(
+        r'^(?P<pk>\d+)/detail',
         view=UploadSessionDetailView.as_view(),
-        name='upload_session_detail'),
+        name='upload_session_detail'
+    ),
 ]
 
 urlpatterns = [
-    url(r'^token-auth',
+    re_path(
+        r'^token-auth',
         view=TokenAuth.as_view(),
-        name='gwml2-token-aut'),
-    url(
+        name='gwml2-token-aut'
+    ),
+    re_path(
         r'^batch-upload/history',
         TemplateView.as_view(template_name='upload_session/history.html'),
         name='well_upload_history_view'
     ),
-    url(r'^batch-upload',
+    re_path(
+        r'^batch-upload',
         view=WellUploadView.as_view(),
         name='well_upload_view'
-        ),
-    url(r'^progress-upload',
+    ),
+    re_path(
+        r'^progress-upload',
         view=get_progress_upload,
-        name='progress_upload'),
-    url(r'^task/(?P<task_id>.+)/progress/',
+        name='progress_upload'
+    ),
+    re_path(
+        r'^task/(?P<task_id>.+)/progress/',
         view=TaskProgress.as_view(),
-        name='task_progress'),
-    url(
+        name='task_progress'
+    ),
+    re_path(
         r'^delete/well/progress/(?P<uuid>[0-9a-f-]+)/data',
         view=WellDeletionAPI.as_view(),
         name='delete-well-progress-data'
     ),
-    url(
+    re_path(
         r'^delete/well/progress/(?P<uuid>[0-9a-f-]+)',
         view=DeleteWellProgressView.as_view(),
         name='delete-well-progress-view'
     ),
-    url(
+    re_path(
         r'^delete/well/',
         view=DeleteWellPostView.as_view(),
         name='delete-well-confirmation-view'
     ),
-    url(r'^api/', include(api_url)),
-    url(r'^record/', include(well_url)),
-    url(r'^user/', include(user_url)),
-    url(r'^organisation/', include(organisation_url)),
-    url(r'^upload-session/', include(upload_session_url)),
+    re_path(r'^api/', include(api_url)),
+    re_path(r'^record/', include(well_url)),
+    re_path(r'^user/', include(user_url)),
+    re_path(r'^organisation/', include(organisation_url)),
+    re_path(r'^upload-session/', include(upload_session_url)),
 ]
