@@ -23,7 +23,6 @@ class Hydapi(BaseHarvester):
     api_key = None
     max_oldest_time = parser.parse('1800-01-01T00:00:00Z')
     parameters = {}
-    resolution_time = 1440
     updated = False
 
     def __init__(self, harvester: Harvester, replace: bool = False,
@@ -129,30 +128,30 @@ class Hydapi(BaseHarvester):
                 well=harvester_well_data.well,
                 parameter=measurement_parameter['parameter']
             ).order_by('-time').first()
+            from_time_data = None
 
             # Change the from and to time based on the measurements
             if not latest_measurement:
-                harvester_well_data.from_time_data = self.max_oldest_time
+                from_time_data = self.max_oldest_time
             else:
-                if not harvester_well_data.from_time_data:
-                    harvester_well_data.from_time_data = latest_measurement.time
+                from_time_data = latest_measurement.time
 
-                if latest_measurement.time > harvester_well_data.from_time_data:
-                    harvester_well_data.from_time_data = latest_measurement.time
-
-            # CHeck if from date is less than the series
+            # Get resolution time
+            resolution_time = None
             for resolution in series['resolutionList']:
-                if resolution['resTime'] == self.resolution_time:
-                    date_from = parser.parse(resolution['dataFromTime'])
-                    if harvester_well_data.from_time_data < date_from:
-                        harvester_well_data.from_time_data = date_from
+                if resolution['resTime'] == 1440:
+                    resolution_time = resolution
+            if not resolution_time:
+                for resolution in series['resolutionList']:
+                    if resolution['resTime'] == 60:
+                        resolution_time = resolution
 
-            harvester_well_data.save()
-
-            self._fetch_measurements(
-                station, harvester_well_data,
-                harvester_well_data.from_time_data, series
-            )
+            # If resolution time is exist
+            if resolution_time:
+                self._fetch_measurements(
+                    station, harvester_well_data,
+                    from_time_data, series, resolution_time['resTime']
+                )
 
         # generate cache
         if self.updated:
@@ -163,7 +162,9 @@ class Hydapi(BaseHarvester):
             station: dict,
             harvester_well_data: HarvesterWellData,
             from_date,
-            series: dict):
+            series: dict,
+            resolution_time: int
+    ):
         """ Processing older measurements """
         try:
             parameter = series['parameter']
@@ -194,7 +195,7 @@ class Hydapi(BaseHarvester):
             params = [
                 f"StationId={station['stationId']}",
                 f"Parameter={parameter}",
-                f"ResolutionTime={self.resolution_time}",
+                f"ResolutionTime={resolution_time}",
                 f'ReferenceTime={from_date_str}/{to_date_str}'
             ]
             url = 'https://hydapi.nve.no/api/v1/Observations?{}'.format(
@@ -239,13 +240,12 @@ class Hydapi(BaseHarvester):
                         print(f'{e}')
             except Exception:
                 pass
-            harvester_well_data.from_time_data = to_date
-            harvester_well_data.save()
 
             if not is_last:
                 time.sleep(1)
                 self._fetch_measurements(
-                    station, harvester_well_data, to_date, series
+                    station, harvester_well_data, to_date, series,
+                    resolution_time
                 )
         except KeyError:
             pass
