@@ -128,7 +128,6 @@ class Hydapi(BaseHarvester):
                 well=harvester_well_data.well,
                 parameter=measurement_parameter['parameter']
             ).order_by('-time').first()
-            from_time_data = None
 
             # Change the from and to time based on the measurements
             if not latest_measurement:
@@ -148,6 +147,10 @@ class Hydapi(BaseHarvester):
 
             # If resolution time is exist
             if resolution_time:
+                date_from = parser.parse(resolution_time['dataFromTime'])
+                if from_time_data < date_from:
+                    from_time_data = date_from
+
                 self._fetch_measurements(
                     station, harvester_well_data,
                     from_time_data, series, resolution_time['resTime']
