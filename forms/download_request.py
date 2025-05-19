@@ -1,4 +1,5 @@
 from typing import Any
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -19,11 +20,11 @@ class DownloadRequestForm(forms.ModelForm):
     radio_filter_type = forms.ChoiceField(
         label='Filter by',
         choices=[
-            ('countries', 'Countries'),
-            ('data_providers', 'Data Providers')
+            ('data_providers', 'Data Providers'),
+            ('countries', 'Countries')
         ],
         widget=forms.RadioSelect,
-        initial='countries'
+        initial='data_providers'
     )
     countries = forms.MultipleChoiceField(
         label='Select the countries whose data you want to download.',
