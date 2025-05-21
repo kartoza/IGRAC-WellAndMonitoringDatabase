@@ -49,6 +49,13 @@ class Organisation(models.Model):
         db_table = 'organisation'
         ordering = ['name']
 
+    def save(self, *args, **kwargs):
+        if self.pk:
+            old = Organisation.objects.get(pk=self.pk)
+            if old.name != self.name:
+                self.update_ggis_uid()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.name
 
@@ -74,6 +81,21 @@ class Organisation(models.Model):
         if ggmn_layer:
             ggmn_organisations_list = ggmn_layer.organisations
         return ggmn_organisations_list
+
+    def update_ggis_uid(self):
+        """Update the id of the organisation """
+        from gwml2.models.well import Well
+        from django.db import transaction
+
+        # Do it in batch
+        BATCH_SIZE = 10000
+        wells = list(self.well_set.all())
+        for i in range(0, len(wells), BATCH_SIZE):
+            batch = wells[i:i + BATCH_SIZE]
+            for well in batch:
+                well.update_ggis_uid()
+            with transaction.atomic():
+                Well.objects.bulk_update(batch, ['ggis_uid'])
 
 
 class OrganisationType(models.Model):
