@@ -172,6 +172,13 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 self.country = country
                 self.save()
 
+    def update_ggis_uid(self):
+        """Update ggis uid."""
+        if self.organisation:
+            self.ggis_uid = '{}-{}'.format(
+                self.organisation.name, self.original_id
+            )
+
     def updated(self):
         """ update time updated when well updated """
         from gwml2.signals.well import update_well
@@ -181,10 +188,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 sender=Well
         ):
             self.last_edited_at = make_aware(datetime.now())
-            if self.organisation:
-                self.ggis_uid = '{}-{}'.format(
-                    self.organisation.name, self.original_id
-                )
+            self.update_ggis_uid()
             self.assign_country()
             try:
                 self.save()

@@ -1,4 +1,4 @@
-CREATE VIEW view_well AS
+CREATE VIEW vw_well AS
 select w.id,
        w.description,
        w.number_of_measurements         as "number_of_measurements",
@@ -25,10 +25,8 @@ select w.id,
        created_by.username              as "created_by",
        w.last_edited_at                 as "last_edited_at",
        last_edited_by.username          as "last_edited_by",
-       q.value                          as "ground_surface_elevation",
-       u.name                           as "ground_surface_elevation_unit",
-       dem.value                        as "dem_elevation",
-       demu.name                        as "dem_elevation_unit",
+       q.value                          as "altitiude",
+       u.name                           as "altitiude_unit",
        w.first_time_measurement,
        w.last_time_measurement,
        w.is_groundwater_level,
@@ -49,88 +47,28 @@ from well as w
          LEFT JOIN user_uuid created_by ON w.created_by = created_by.user_id
          LEFT JOIN user_uuid last_edited_by
                    ON w.last_edited_by = last_edited_by.user_id
-
-        -- ground_surface_elevation --
-         LEFT JOIN quantity q ON q.id = w.ground_surface_elevation_id
+         LEFT JOIN quantity q ON q.id = w.id
          LEFT JOIN unit u ON u.id = q.unit_id
-
-        -- dem_elevation --
-         LEFT JOIN quantity dem ON dem.id = w.glo_90m_elevation_id
-         LEFT JOIN unit demu ON demu.id = dem.unit_id
 WHERE org.active = True;
 
--- WELL VIEW --
-CREATE
-MATERIALIZED VIEW mv_well_ggmn AS
-select DISTINCT
-ON (id) id,
-    organisation || '-' || original_id AS ggis_uid,
-    original_id,
-    name,
-    feature_type,
-    purpose,
-    status,
-    organisation,
-    organisation_id,
-    country,
-    year_of_drilling,
-    aquifer_name,
-    aquifer_type,
-    manager,
-    detail,
-    location,
-    created_at,
-    created_by,
-    last_edited_at,
-    last_edited_by,
-    number_of_measurements_level,
-    number_of_measurements_quality,
-    number_of_measurements_yield,
-    first_time_measurement,
-    last_time_measurement,
-    is_groundwater_level,
-    is_groundwater_quality,
-    ground_surface_elevation,
-    ground_surface_elevation_unit,
-    dem_elevation,
-    dem_elevation_unit
-from view_well
-where number_of_measurements
-    > 0
-  and organisation is not null;
+-- WELL FOR ISTSOS MEASUREMENT --
+CREATE VIEW vw_well_measurement AS
+select id,
+        time, well_id, default_unit_id, default_value, parameter_id
+        from (
+        SELECT id, time, well_id, default_unit_id, default_value, parameter_id
+        from well_level_measurement where default_value IS NOT NULL
+        UNION
+        SELECT id, time, well_id, default_unit_id, default_value, parameter_id
+        from well_quality_measurement where default_value IS NOT NULL
+        UNION
+        SELECT id, time, well_id, default_unit_id, default_value, parameter_id
+        from well_yield_measurement where default_value IS NOT NULL
+        ) as measurement;
 
+-- MATERIALIZED VIEW FOR ISTSOS MEASUREMENT --
+-- SCHEDULED REFRESH --
 CREATE
-MATERIALIZED VIEW mv_well AS
-select DISTINCT
-ON (id) id,
-    organisation || '-' || original_id AS ggis_uid,
-    original_id,
-    name,
-    feature_type,
-    purpose,
-    status,
-    organisation,
-    organisation_id,
-    country,
-    year_of_drilling,
-    aquifer_name,
-    aquifer_type,
-    manager,
-    detail,
-    location,
-    created_at,
-    created_by,
-    last_edited_at,
-    last_edited_by,
-    number_of_measurements_level,
-    number_of_measurements_quality,
-    number_of_measurements_yield,
-    first_time_measurement,
-    last_time_measurement,
-    is_groundwater_level,
-    is_groundwater_quality,
-    ground_surface_elevation,
-    ground_surface_elevation_unit,
-    dem_elevation,
-    dem_elevation_unit
-from view_well;
+MATERIALIZED VIEW mv_well_measurement AS
+select *, concat(parameter_id, '-', default_unit_id, '-', well_id) as unique_fk
+FROM vw_well_measurement;

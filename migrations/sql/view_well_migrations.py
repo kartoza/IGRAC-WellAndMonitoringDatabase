@@ -14,6 +14,22 @@ class ViewWellMigration(ABC, migrations.Migration):
     gwml_views = load_sql('gwml', 'views.sql')
     gwml_functions = load_sql('gwml', 'functions.sql')
 
+    operations_defaults = [
+        migrations.RunSQL(gwml_default, gwml_default),
+    ]
+    operations_creations = [
+        migrations.RunSQL(gwml_views, gwml_default),
+        migrations.RunSQL(gwml_functions, gwml_default),
+    ]
+    operations = operations_defaults + operations_creations
+
+
+class IstSOSMigration(ABC, migrations.Migration):
+    """Migrations for istsos."""
+
+    gwml_default = load_sql('istsos_gwml', 'default.sql')
+    gwml_views = load_sql('istsos_gwml', 'views.sql')
+
     istsos_default = load_sql('istsos', 'default.sql')
     istsos_views = load_sql('istsos', 'views.sql')
 
@@ -23,7 +39,6 @@ class ViewWellMigration(ABC, migrations.Migration):
     ]
     operations_creations = [
         migrations.RunSQL(gwml_views, gwml_default),
-        migrations.RunSQL(gwml_functions, gwml_default),
         migrations.RunSQL(istsos_views, istsos_default)
     ]
     operations = operations_defaults + operations_creations
