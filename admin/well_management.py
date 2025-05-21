@@ -29,6 +29,13 @@ def generate_data_wells_cache(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Update ggis uid of wells')
+def update_ggis_uid(modeladmin, request, queryset):
+    """Update ggis uid."""
+    for org in queryset:
+        org.update_ggis_uid()
+
+
 class OrganisationAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'active', 'country', 'well_number', 'data_cache_generated_at'
@@ -36,7 +43,9 @@ class OrganisationAdmin(admin.ModelAdmin):
     list_editable = ('active',)
     list_filter = ('data_cache_generated_at', 'country')
     search_fields = ('name',)
-    actions = (generate_data_wells_cache, reassign_wells_country)
+    actions = (
+        generate_data_wells_cache, reassign_wells_country, update_ggis_uid
+    )
     form = OrganisationFormAdmin
 
     def well_number(self, org: Organisation):
