@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import ugettext_lazy as _
-from django.db import transaction
+
 from gwml2.models.general import Country
 
 
