@@ -32,8 +32,9 @@ def generate_data_wells_cache(modeladmin, request, queryset):
 @admin.action(description='Update ggis uid of wells')
 def update_ggis_uid(modeladmin, request, queryset):
     """Update ggis uid."""
+    from gwml2.tasks.organisation import update_ggis_uid
     for org in queryset:
-        org.update_ggis_uid()
+        update_ggis_uid.delay(org.id)
 
 
 class OrganisationAdmin(admin.ModelAdmin):

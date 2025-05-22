@@ -50,11 +50,14 @@ class Organisation(models.Model):
         ordering = ['name']
 
     def save(self, *args, **kwargs):
+        updated = False
         if self.pk:
             old = Organisation.objects.get(pk=self.pk)
             if old.name != self.name:
-                self.update_ggis_uid()
+                updated = True
         super().save(*args, **kwargs)
+        if updated:
+            self.update_ggis_uid_background()
 
     def __str__(self):
         return self.name
@@ -82,10 +85,16 @@ class Organisation(models.Model):
             ggmn_organisations_list = ggmn_layer.organisations
         return ggmn_organisations_list
 
+    def update_ggis_uid_background(self):
+        """Update the id of the organisation """
+        from gwml2.tasks.organisation import update_ggis_uid
+        update_ggis_uid.delay(self.pk)
+
     def update_ggis_uid(self):
         """Update the id of the organisation """
         from gwml2.models.well import Well
         from django.db import transaction
+        print(f'Update GGIS UID for organisation {self.name}')
 
         # Do it in batch
         BATCH_SIZE = 10000
