@@ -161,8 +161,7 @@ class WellAdmin(admin.ModelAdmin):
         delete_in_background,
         generate_data_wells_cache,
         generate_measurement_cache,
-        assign_country,
-        change_ground_to_amsl
+        assign_country
     ]
 
     def edit(self, obj):
