@@ -1,7 +1,7 @@
 from django import forms
 from django.forms.models import model_to_dict
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from geonode.base.models import License, RestrictionCodeType
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation

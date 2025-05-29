@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import check_password
 from django.http.response import HttpResponseBadRequest
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import serializers
