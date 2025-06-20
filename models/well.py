@@ -300,7 +300,8 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                                     parameter = measurement.parameter.name
 
                     try:
-                        value = round(value, 3)
+                        if round(value, 3) != 0:
+                            value = round(value, 3)
                     except ValueError:
                         pass
 

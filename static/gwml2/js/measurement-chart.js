@@ -288,7 +288,11 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
         tooltip: {
             pointFormatter: function () {
                 const val = reverse ? this.y * -1 : this.y;
-                return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${parseFloat(val.toFixed(this.series.tooltipOptions.valueDecimals))} ${unit}</b><br/>`;
+                let fixedValue = parseFloat(val.toFixed(this.series.tooltipOptions.valueDecimals))
+                if (fixedValue === 0) {
+                    fixedValue = val
+                }
+                return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${fixedValue} ${unit}</b><br/>`;
             }
         },
         series: [
