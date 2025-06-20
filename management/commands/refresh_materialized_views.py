@@ -9,7 +9,7 @@ from django.db import connections
 class Command(BaseCommand):
     help = 'Refresh materialized views'
     views = [
-        'mv_well_ggmn', 'mv_well', 'mv_well_measurement',
+        'mv_well', 'mv_well_measurement',
         'istsos.measures_group', 'istsos.observed_properties_sensor'
     ]
 

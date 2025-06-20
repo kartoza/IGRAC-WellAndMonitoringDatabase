@@ -189,7 +189,6 @@ admin.site.register(Well, WellAdmin)
 def refresh(modeladmin, request, queryset):
     """Refresh materialized view."""
     with connections['gwml2'].cursor() as cursor:
-        cursor.execute('REFRESH MATERIALIZED VIEW mv_well_ggmn;')
         cursor.execute('REFRESH MATERIALIZED VIEW mv_well;')
 
 
