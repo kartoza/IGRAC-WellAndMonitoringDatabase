@@ -300,7 +300,8 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                                     parameter = measurement.parameter.name
 
                     try:
-                        value = round(value, 3)
+                        if round(value, 3) != 0:
+                            value = round(value, 3)
                     except ValueError:
                         pass
 
@@ -349,11 +350,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
 
     def is_ggmn(self, organisations):
         """Check if the well is ggmn."""
-        is_ggmn = (
-                self.organisation and self.number_of_measurements > 0 and
-                self.organisation.id in organisations
-        )
-        return is_ggmn
+        return self.organisation and self.organisation.id in organisations
 
     def generate_measurement_cache(self, model=None):
         """ Generate measurement cache """

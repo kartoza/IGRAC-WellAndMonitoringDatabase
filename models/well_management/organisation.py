@@ -80,7 +80,8 @@ class Organisation(models.Model):
             ).values_list('id', flat=True)
         )
         ggmn_layer = GroundwaterLayer.objects.filter(
-            is_ggmn_layer=True).first()
+            is_ggmn_layer=True
+        ).first()
         if ggmn_layer:
             ggmn_organisations_list = ggmn_layer.organisations
         return ggmn_organisations_list

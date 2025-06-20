@@ -38,7 +38,7 @@ class DownloadRequest(models.Model):
         default=GGMN,
         choices=(
             (GGMN, GGMN),
-            (WELL_AND_MONITORING_DATA, 'Other data'),
+            (WELL_AND_MONITORING_DATA, 'Groundwater Observations Repository'),
         ),
         max_length=512
     )

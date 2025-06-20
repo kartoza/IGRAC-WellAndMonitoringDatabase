@@ -59,46 +59,6 @@ from well as w
          LEFT JOIN unit demu ON demu.id = dem.unit_id
 WHERE org.active = True;
 
--- WELL VIEW --
-CREATE
-MATERIALIZED VIEW mv_well_ggmn AS
-select DISTINCT
-ON (id) id,
-    organisation || '-' || original_id AS ggis_uid,
-    original_id,
-    name,
-    feature_type,
-    purpose,
-    status,
-    organisation,
-    organisation_id,
-    country,
-    year_of_drilling,
-    aquifer_name,
-    aquifer_type,
-    manager,
-    detail,
-    location,
-    created_at,
-    created_by,
-    last_edited_at,
-    last_edited_by,
-    number_of_measurements_level,
-    number_of_measurements_quality,
-    number_of_measurements_yield,
-    first_time_measurement,
-    last_time_measurement,
-    is_groundwater_level,
-    is_groundwater_quality,
-    ground_surface_elevation,
-    ground_surface_elevation_unit,
-    dem_elevation,
-    dem_elevation_unit
-from view_well
-where number_of_measurements
-    > 0
-  and organisation is not null;
-
 CREATE
 MATERIALIZED VIEW mv_well AS
 select DISTINCT
