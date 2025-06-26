@@ -25,6 +25,9 @@ from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import temp_disconnect_signal, convert_value
 
+GWML2_FOLDER = settings.GWML2_FOLDER
+WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
+
 MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
 MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
 MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
@@ -144,6 +147,13 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         _('Time when data cache generated'),
         null=True, blank=True
     )
+    data_cache_information = models.JSONField(
+        help_text=_(
+            'Information about the data cache, '
+            'like the time of file is being generated.'
+        ),
+        null=True, blank=True
+    )
     objects = WellManager()
 
     def __str__(self):
@@ -152,6 +162,11 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     class Meta:
         db_table = 'well'
         ordering = ['original_id']
+
+    @property
+    def data_cache_folder(self) -> str:
+        """Return data cache folder.."""
+        return os.path.join(WELL_FOLDER, f'{self.id}')
 
     def assign_country(self, force=False):
         """Assign country to the well."""
@@ -425,6 +440,33 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             self.is_groundwater_quality = (
                 'yes' if self.wellqualitymeasurement_set.first() else 'no'
             )
+
+    def assign_data_cache_information(self):
+        """Assign data cache information.
+
+        We not use this on generator, just on the django admin command.
+        """
+        from gwml2.signals.well import update_well
+        with temp_disconnect_signal(
+                signal=post_save,
+                receiver=update_well,
+                sender=Well
+        ):
+            self.data_cache_information = None
+            self.save()
+            if os.path.exists(self.data_cache_folder):
+                self.data_cache_information = {}
+                for root, dirs, files in os.walk(self.data_cache_folder):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        modified_time = os.path.getmtime(file_path)
+                        readable_time = datetime.fromtimestamp(modified_time)
+                        if file == 'done':
+                            continue
+                        self.data_cache_information[file] = (
+                            readable_time.strftime('%Y-%m-%d %H:%M:%S')
+                        )
+                self.save()
 
 
 # documents

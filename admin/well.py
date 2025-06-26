@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
@@ -107,6 +109,14 @@ def generate_measurement_cache_generated_at(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Generate data cache information')
+def generate_data_cache_information(modeladmin, request, queryset):
+    """Generate data cache information."""
+    queryset.update(data_cache_information=None)
+    for well in queryset:
+        well.assign_data_cache_information()
+
+
 @admin.action(description='Change from ground to a.m.s.l')
 def change_ground_to_amsl(modeladmin, request, queryset):
     """Change measurement from ground to a.m.s.l."""
@@ -132,12 +142,12 @@ def change_ground_to_amsl(modeladmin, request, queryset):
 
 class WellAdmin(admin.ModelAdmin):
     list_display = (
-        'original_id', 'organisation', 'number_of_measurements',
+        'original_id', 'organisation', 'measurements',
         'latitude', 'longitude',
         'country', 'id',
         'first_time_measurement', 'last_time_measurement',
         'edit', 'measurement_cache_generated_at',
-        'data_cache_generated_at'
+        'data_cache_generated_at', 'data_cache_info'
     )
     list_filter = (
         'organisation', 'country',
@@ -149,7 +159,7 @@ class WellAdmin(admin.ModelAdmin):
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
         'last_edited_by_user',
-        'ggis_uid'
+        'ggis_uid', 'data_cache_information'
     )
     raw_id_fields = (
         'ground_surface_elevation', 'top_borehole_elevation',
@@ -161,7 +171,8 @@ class WellAdmin(admin.ModelAdmin):
         delete_in_background,
         generate_data_wells_cache,
         generate_measurement_cache,
-        assign_country
+        assign_country,
+        generate_data_cache_information
     ]
 
     def edit(self, obj):
@@ -169,6 +180,9 @@ class WellAdmin(admin.ModelAdmin):
         return format_html(
             '<a href="{}" target="_blank">Edit well</a>',
             url)
+
+    def measurements(self, obj: Well):
+        return obj.number_of_measurements
 
     def created_by_user(self, obj):
         return obj.created_by_username()
@@ -181,6 +195,22 @@ class WellAdmin(admin.ModelAdmin):
 
     def longitude(self, obj: Well):
         return obj.location.x
+
+    def data_cache_info(self, obj):
+        if not obj.data_cache_information:
+            return "-"
+        try:
+            single_line = json.dumps(obj.data_cache_information)
+            return format_html(
+                f"<div style='white-space: nowrap'>"
+                f"{single_line.replace('{', '').replace('}', '')}"
+                f"</div>"
+            )
+        except Exception as e:
+            print(e)
+            return str(obj.data_cache_information)
+
+    data_cache_info.short_description = "Data cache information"
 
 
 admin.site.register(Well, WellAdmin)
