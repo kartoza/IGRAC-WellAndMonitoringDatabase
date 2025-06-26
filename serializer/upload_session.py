@@ -36,5 +36,5 @@ class UploadSessionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'organisation', 'token', 'uploaded_at', 'status', 'progress',
             'filename', 'category', 'report_filename', 'is_processed',
-            'is_canceled', 'task_status', 'step', 'file_url'
+            'is_canceled', 'task_status', 'step', 'file_url', 'retry'
         ]

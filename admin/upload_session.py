@@ -72,7 +72,8 @@ class UploadSessionAdmin(admin.ModelAdmin):
         'is_canceled',
         'task_id',
         'task_status',
-        'file_report'
+        'file_report',
+        'retry'
     )
     list_filter = (
         'category',

@@ -210,7 +210,7 @@
 
         let button = ''
         let deleteButton = ''
-        const uploadStatus = data.task_status
+        const uploadStatus = data.is_canceled ? 'Canceled' : data.task_status === 'STOP' && data.retry > 5 ? 'The worker has stopped after 5 retry attempts and must be resumed manually.' : data.task_status === 'STOP' ? 'The worker stopped, it will be back online and resume shortly' : data.task_status;
         const creatingReport = data.step === "Create report";
         if (data.task_status === 'STOP') {
           button = '<button class="ResumeButton" ' + (disabledResume ? `disabled="${disabledResume}"` : '') + '>Resume</button>'
