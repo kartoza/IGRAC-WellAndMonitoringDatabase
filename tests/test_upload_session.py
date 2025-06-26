@@ -2,10 +2,12 @@
 
 import json
 import os
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.core.files import File
+from django.utils import timezone
 
 from core.settings.utils import absolute_path
 from gwml2.models.upload_session import (
@@ -14,6 +16,7 @@ from gwml2.models.upload_session import (
 )
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
+from gwml2.tasks.upload_session import uploads_to_be_resumed
 from gwml2.tests.base import GWML2Test
 
 
@@ -594,3 +597,32 @@ class UploadSessionTest(GWML2Test):
         )
 
         self.assertEquals(session.progress, 100)
+
+    def test_resumed_upload(self):
+        """Test resume upload."""
+        UploadSession.objects.create(
+            is_processed=True,
+            progress=100,
+        )  # This is processed, not resumed
+        UploadSession.objects.create(
+            is_canceled=True,
+            progress=95,
+        )  # This is cancelled, not resumed
+        UploadSession.objects.create(
+            progress=100,
+        )  # This is 100%, not resumed
+        UploadSession.objects.create(
+            progress=95,
+        )  # This is 95%, resumed
+        UploadSession.objects.create(
+            retry=5,
+        )  # This is 95% and retry is still 5, resumed
+        UploadSession.objects.create(
+            retry=6,
+        )  # This is 95% but retyr is 6, not resumed
+        from_date = timezone.now() - timedelta(days=31)
+        UploadSession.objects.create(
+            progress=95,
+            uploaded_at=from_date,
+        )  # This is older than 31, not resumed
+        self.assertEqual(uploads_to_be_resumed().count(), 2)

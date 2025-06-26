@@ -7,7 +7,7 @@ import json
 import ntpath
 import os
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import openpyxl
 from celery import current_app
@@ -16,7 +16,6 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
-from django.utils.timezone import now, make_aware
 from openpyxl.cell.cell import MergedCell
 from openpyxl.styles import PatternFill, Font
 
@@ -184,6 +183,7 @@ class UploadSession(LicenseMetadata):
             'e.g: list of wells id for CACHE_COUNTRY checkpoint'
         )
     )
+    retry = models.IntegerField(default=0)
 
     # noinspection PyClassicStyleClass
     class Meta:
@@ -304,16 +304,6 @@ class UploadSession(LicenseMetadata):
                     if task["id"] == self.task_id:
                         return TaskStatus.RUNNING
 
-        time_difference = now() - (
-            self.uploaded_at if self.uploaded_at.tzinfo else make_aware(
-                self.uploaded_at
-            )
-        )
-
-        if time_difference > timedelta(minutes=10):
-            self.is_canceled = True
-            self.save()
-
         return TaskStatus.STOP
 
     def stop(self):
@@ -331,6 +321,8 @@ class UploadSession(LicenseMetadata):
 
     def run(self, restart: bool = False):
         """Run the upload."""
+        self.retry += 1
+        self.save()
         from gwml2.tasks.uploader.uploader import BatchUploader
         from gwml2.tasks.uploader import (
             DrillingAndConstructionUploader,
