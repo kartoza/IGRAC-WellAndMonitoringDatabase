@@ -6,7 +6,6 @@ from shutil import copyfile
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from django.db.models import Value, CharField, Func
 from django.utils import timezone
 from openpyxl import load_workbook
@@ -30,8 +29,6 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 from gwml2.terms import SheetName
 from gwml2.utilities import xlsx_to_ods
 
-GWML2_FOLDER = settings.GWML2_FOLDER
-WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
 DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
@@ -78,7 +75,7 @@ class GenerateWellCacheFile(object):
     @property
     def folder(self) -> str:
         """Return folder.."""
-        return os.path.join(WELL_FOLDER, f'{self.well.id}')
+        return self.well.data_cache_folder
 
     @property
     def country(self) -> Country:
