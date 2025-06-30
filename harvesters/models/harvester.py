@@ -3,6 +3,7 @@ from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.term import TermFeatureType
+from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 
@@ -118,6 +119,25 @@ class HarvesterAttribute(models.Model):
         unique_together = ('harvester', 'name')
 
 
+class HarvesterParameterMap(models.Model):
+    """Mapping parameters for harvester with igrac parameter and unit."""
+    harvester = models.ForeignKey(
+        Harvester, on_delete=models.CASCADE
+    )
+    parameter = models.ForeignKey(
+        TermMeasurementParameter, on_delete=models.CASCADE
+    )
+    key = models.CharField(
+        max_length=512,
+        help_text=_("The key on the api")
+    )
+
+    class Meta:
+        db_table = 'harvester_parameter_map'
+        unique_together = ('harvester', 'parameter')
+        ordering = ('parameter__name',)
+
+
 RUNNING = 'Running'
 ERROR = 'Error'
 DONE = 'Done'
@@ -155,6 +175,8 @@ class HarvesterLog(models.Model):
         ordering = ('-start_time',)
 
 
+# TODO:
+#  Clean this, as we can remove this needs
 class HarvesterWellData(models.Model):
     """
     Well of data that is harvested
