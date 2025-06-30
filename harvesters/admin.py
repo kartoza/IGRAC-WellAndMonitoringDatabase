@@ -2,7 +2,9 @@ from django import forms
 from django.contrib import admin
 
 from gwml2.harvesters.models.harvester import (
-    Harvester, HarvesterAttribute, HarvesterLog, HarvesterWellData)
+    Harvester, HarvesterAttribute, HarvesterParameterMap,
+    HarvesterLog, HarvesterWellData
+)
 from gwml2.tasks.harvester import run_harvester
 
 # Argentine
@@ -52,14 +54,6 @@ HYDAPI = (
     'Norwegian Water Resources and Energy Directorate NVE (Norway)'
 )
 
-# Sweden
-SGUAPI = (
-    'gwml2.harvesters.harvester.sgu.SguAPI',
-    '(Sweden) Groundwater in Sweden '
-    '(https://apps.sgu.se/grundvattennivaer-rest/stationer)',
-    'Geological Survey of Sweden (Sweden)'
-)
-
 # USA
 CIDA_USGS = (
     'gwml2.harvesters.harvester.cida.CidaUsgs',
@@ -82,6 +76,16 @@ EHYD_S3 = (
     None
 )
 
+# ---------------------------------------------
+# Sweden
+# ---------------------------------------------
+SGU_GROUNDWATER_API = (
+    'gwml2.harvesters.harvester.sgu.water_level.SguWaterLevelAPI',
+    '(Sweden) Groundwater in Sweden '
+    '(https://apps.sgu.se/grundvattennivaer-rest/stationer)',
+    'Geological Survey of Sweden (Sweden)'
+)
+
 HARVESTERS = (
     AZULBHD,
     GINGWINFO,
@@ -89,7 +93,7 @@ HARVESTERS = (
     EPAWEBAPP,
     GNSCRI,
     HYDAPI,
-    SGUAPI,
+    SGU_GROUNDWATER_API,
     CIDA_USGS,
     EHYD,
     EHYD_S3
@@ -101,6 +105,12 @@ HARVESTERS_CHOICES = (
 
 class HarvesterAttributeInline(admin.TabularInline):
     model = HarvesterAttribute
+    readonly_fields = ('harvester',)
+    extra = 0
+
+
+class HarvesterParameterMapInline(admin.TabularInline):
+    model = HarvesterParameterMap
     readonly_fields = ('harvester',)
     extra = 0
 
@@ -127,12 +137,15 @@ def harvest_data(modeladmin, request, queryset):
         run_harvester.delay(harvester.id)
 
 
-harvest_data.short_description = 'Harvest data of the harvester'
+harvest_data.short_description = 'Run'
 
 
 class HarvesterAdmin(admin.ModelAdmin):
     form = HarvesterForm
-    inlines = [HarvesterAttributeInline, HarvesterLogInline]
+    inlines = [
+        HarvesterAttributeInline, HarvesterParameterMapInline,
+        HarvesterLogInline
+    ]
     list_display = (
         'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class',
         'last_run'
