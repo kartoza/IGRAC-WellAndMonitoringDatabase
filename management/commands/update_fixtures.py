@@ -1,7 +1,10 @@
 import json
 import os
+
 from django.apps import apps
+from django.contrib.gis.geos import GEOSGeometry
 from django.core.management.base import BaseCommand
+
 from gwml2.models import (
     Country, Unit, UnitConvertion, UnitGroup,
     TermMeasurementParameter, TermMeasurementParameterGroup
@@ -31,7 +34,8 @@ class Command(BaseCommand):
                 unit, created = Unit.objects.get_or_create(
                     name=unit_name,
                     defaults={
-                        'description': value['description'] if 'description' in value else None,
+                        'description': value[
+                            'description'] if 'description' in value else None,
                         'html': value['html'] if 'html' in value else None,
                     }
                 )
@@ -72,23 +76,33 @@ class Command(BaseCommand):
         fixture_file = os.path.join(fixture_folder, 'country.json')
         with open(fixture_file) as json_file:
             data = json.load(json_file)
-            for country in data:
-                Country.objects.get_or_create(
+            for _country in data:
+                country = _country['fields']
+                obj, _ = Country.objects.get_or_create(
                     name=country['name'],
                     defaults={
                         'code': country['code']
                     }
                 )
+                try:
+                    if not obj.geometry:
+                        obj.geometry = GEOSGeometry(country['geometry'])
+                        obj.save()
+                except (KeyError, TypeError):
+                    pass
 
         # measurement fixture
-        fixture_file = os.path.join(fixture_folder, 'measurement_parameter.json')
+        fixture_file = os.path.join(
+            fixture_folder, 'measurement_parameter.json'
+        )
         with open(fixture_file) as json_file:
             data = json.load(json_file)
             for measurement_name, value in data.items():
                 measurement, created = TermMeasurementParameter.objects.get_or_create(
                     name=measurement_name,
                     defaults={
-                        'description': value['description'] if 'description' in value else None
+                        'description': value[
+                            'description'] if 'description' in value else None
                     }
                 )
                 for group_name in value['groups']:
