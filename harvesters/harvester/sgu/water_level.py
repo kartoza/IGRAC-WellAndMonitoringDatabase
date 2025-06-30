@@ -15,8 +15,8 @@ from gwml2.models.well import (
 
 class SguWaterLevelAPI(SguAPI):
     """Harvester for
-    https://www.sgu.se/grundvatten/grundvattennivaer/matstationer/."""
-    countries = []
+    https://www.sgu.se/grundvatten/grundvattennivaer/matstationer/.
+    """
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -25,9 +25,7 @@ class SguWaterLevelAPI(SguAPI):
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL)
-        super(SguWaterLevelAPI, self).__init__(
-            harvester, replace, original_id
-        )
+        super(SguWaterLevelAPI, self).__init__(harvester, replace, original_id)
 
     def process_well(
             self, harvester_well_data: HarvesterWellData, note: str

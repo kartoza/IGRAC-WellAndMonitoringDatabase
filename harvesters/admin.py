@@ -81,8 +81,15 @@ EHYD_S3 = (
 # ---------------------------------------------
 SGU_GROUNDWATER_API = (
     'gwml2.harvesters.harvester.sgu.water_level.SguWaterLevelAPI',
-    '(Sweden) Groundwater in Sweden '
+    '(Sweden) Water level in Sweden '
     '(https://apps.sgu.se/grundvattennivaer-rest/stationer)',
+    'Geological Survey of Sweden (Sweden)'
+)
+
+SGU_QUALITY_API = (
+    'gwml2.harvesters.harvester.sgu.quality.SguQualityAPI',
+    '(Sweden) Quality in Sweden '
+    '(https://www.sgu.se/grundvatten/miljoovervakning-av-grundvatten/kartvisare-och-diagram-for-miljoovervakning-av-grundvattenkemi/)',
     'Geological Survey of Sweden (Sweden)'
 )
 
@@ -94,6 +101,7 @@ HARVESTERS = (
     GNSCRI,
     HYDAPI,
     SGU_GROUNDWATER_API,
+    SGU_QUALITY_API,
     CIDA_USGS,
     EHYD,
     EHYD_S3

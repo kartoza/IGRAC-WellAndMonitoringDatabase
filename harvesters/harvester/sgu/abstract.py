@@ -1,5 +1,3 @@
-import json
-
 import requests
 from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.geos import Point
@@ -51,7 +49,7 @@ class SguAPI(BaseHarvester):
         response = requests.get(url)
         if response.status_code == 404:
             return
-        data = json.loads(response.text)
+        data = response.json()
         self.crs = data['crs']['properties']['name']
         return data['features']
 

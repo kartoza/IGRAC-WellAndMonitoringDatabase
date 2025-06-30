@@ -135,6 +135,7 @@ class HarvesterParameterMap(models.Model):
     class Meta:
         db_table = 'harvester_parameter_map'
         unique_together = ('harvester', 'parameter')
+        ordering = ('parameter__name',)
 
 
 RUNNING = 'Running'
