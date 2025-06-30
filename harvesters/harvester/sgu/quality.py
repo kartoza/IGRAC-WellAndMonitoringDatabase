@@ -15,6 +15,10 @@ from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
 
+LANSKOD_KEY = 'lanskod'
+STATIONSID_KEY = 'stationsid'
+LANSKOD_MAX_KEY = 'lanskod_max'
+
 
 class SkipStationeer(Exception):
     """Raised stationeer done."""
@@ -30,6 +34,13 @@ class SguQualityAPI(SguAPI):
             self, harvester: Harvester, replace: bool = False,
             original_id: str = None
     ):
+        # Get previous lanskod
+        attr, _ = HarvesterAttribute.objects.get_or_create(
+            harvester=harvester,
+            name=LANSKOD_MAX_KEY,
+            defaults={'value': '26'}
+        )
+        self.lanskod_max = int(attr.value)
         super(SguQualityAPI, self).__init__(harvester, replace, original_id)
 
     def well_from_station(self, station: dict) -> HarvesterWellData:
@@ -79,7 +90,7 @@ class SguQualityAPI(SguAPI):
             lanskod = int(
                 HarvesterAttribute.objects.get(
                     harvester=self.harvester,
-                    name='lanskod'
+                    name=LANSKOD_KEY
                 ).value
             )
         except (HarvesterAttribute.DoesNotExist, AttributeError):
@@ -89,13 +100,13 @@ class SguQualityAPI(SguAPI):
         try:
             previous_station = HarvesterAttribute.objects.get(
                 harvester=self.harvester,
-                name='stationsid'
+                name=STATIONSID_KEY
             ).value
         except (HarvesterAttribute.DoesNotExist, AttributeError):
             pass
 
-        try:
-            while True:
+        while lanskod <= self.lanskod_max:
+            try:
                 try:
                     stations = self.get_stations(lanskod=lanskod)
                 except requests.exceptions.JSONDecodeError:
@@ -121,7 +132,7 @@ class SguQualityAPI(SguAPI):
                     previous_station = None
                     HarvesterAttribute.objects.update_or_create(
                         harvester=self.harvester,
-                        name='stationsid',
+                        name=STATIONSID_KEY,
                         defaults={
                             'value': stationsid,
                         }
@@ -135,28 +146,33 @@ class SguQualityAPI(SguAPI):
                         )
                     except SkipProcessWell:
                         pass
-                lanskod += 1
+            except SkipStationeer:
+                pass
 
-                # Save for last lanskod
-                HarvesterAttribute.objects.update_or_create(
-                    harvester=self.harvester,
-                    name='lanskod',
-                    defaults={
-                        'value': lanskod,
-                    }
-                )
-        except SkipStationeer:
-            pass
+            lanskod += 1
+            # Save for last lanskod
+            HarvesterAttribute.objects.update_or_create(
+                harvester=self.harvester,
+                name=LANSKOD_KEY,
+                defaults={
+                    'value': lanskod,
+                }
+            )
+            try:
+                HarvesterAttribute.objects.filter(
+                    harvester=self.harvester
+                ).filter(
+                    name=STATIONSID_KEY
+                ).delete()
+            except HarvesterAttribute.DoesNotExist:
+                pass
 
         # Delete the old one
-        try:
-            HarvesterAttribute.objects.filter(
-                harvester=self.harvester
-            ).filter(
-                name__in=['lanskod', 'stationsid']
-            ).delete()
-        except HarvesterAttribute.DoesNotExist:
-            pass
+        HarvesterAttribute.objects.filter(
+            harvester=self.harvester
+        ).filter(
+            name__in=[LANSKOD_KEY, STATIONSID_KEY]
+        ).delete()
 
         # Run country caches
         self._update('Run country caches')
