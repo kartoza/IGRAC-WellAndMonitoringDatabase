@@ -93,6 +93,13 @@ SGU_QUALITY_API = (
     'Geological Survey of Sweden (Sweden)'
 )
 
+SGU_SPRINGS_API = (
+    'gwml2.harvesters.harvester.sgu.spring.SguSpringAPI',
+    '(Sweden) Spring in Sweden '
+    '(https://apps.sgu.se/kartvisare/kartvisare-kallor.html)',
+    'Geological Survey of Sweden (Sweden)'
+)
+
 HARVESTERS = (
     AZULBHD,
     GINGWINFO,
@@ -102,6 +109,7 @@ HARVESTERS = (
     HYDAPI,
     SGU_GROUNDWATER_API,
     SGU_QUALITY_API,
+    SGU_SPRINGS_API,
     CIDA_USGS,
     EHYD,
     EHYD_S3

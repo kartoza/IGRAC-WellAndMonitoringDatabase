@@ -34,3 +34,17 @@ class TermMeasurementParameterGroup(_Term):
 
     class Meta(Sortable.Meta):
         db_table = 'term_measurement_parameter_group'
+
+    @staticmethod
+    def get_measurement_model(name):
+        """Return measurement model by name."""
+        from gwml2.models.well import (
+            WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
+        )
+        if name == 'Level Measurement':
+            return WellLevelMeasurement
+        elif name == 'Quality Measurement':
+            return WellQualityMeasurement
+        elif name == 'Yield Measurement':
+            return WellYieldMeasurement
+        raise KeyError('Unknown measurement {}'.format(name))
