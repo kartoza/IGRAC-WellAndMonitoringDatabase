@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 
+from gwml2.models import Unit
 from gwml2.models.term import TermFeatureType
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
@@ -127,6 +128,9 @@ class HarvesterParameterMap(models.Model):
     parameter = models.ForeignKey(
         TermMeasurementParameter, on_delete=models.CASCADE
     )
+    unit = models.ForeignKey(
+        Unit, null=True, blank=True, on_delete=models.CASCADE
+    )
     key = models.CharField(
         max_length=512,
         help_text=_("The key on the api")
@@ -136,6 +140,17 @@ class HarvesterParameterMap(models.Model):
         db_table = 'harvester_parameter_map'
         unique_together = ('harvester', 'parameter')
         ordering = ('parameter__name',)
+
+    @staticmethod
+    def get_json(harvester: Harvester) -> dict:
+        """Return json of attribute."""
+        return {
+            obj.key: {
+                "parameter": obj.parameter,
+                "unit": obj.unit
+            }
+            for obj in harvester.harvesterparametermap_set.all()
+        }
 
 
 RUNNING = 'Running'
