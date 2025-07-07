@@ -71,9 +71,6 @@ class Hydapi(BaseHarvester):
         self.parameters = {
             int(key): value for key, value in self.parameters.items()
         }
-        del self.parameters[1001]
-        del self.parameters[2015]
-        del self.parameters[5130]
         super(Hydapi, self).__init__(harvester, replace, original_id)
 
     @staticmethod
