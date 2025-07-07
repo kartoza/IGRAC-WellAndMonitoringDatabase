@@ -27,10 +27,8 @@ last_file_key = 'last-file'
 check_old_data_done_key = 'check-old-data'
 
 
-class EHYD(BaseHarvester):
-    """
-    Harvester for file sftp that they push to it
-    """
+class FileBase(BaseHarvester):
+    """Harvester for file sftp that they push to it."""
     updated = False
     folder = settings.SFTP_FOLDER
     wells_by_original_id = {}
@@ -46,7 +44,7 @@ class EHYD(BaseHarvester):
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL
         )
-        super(EHYD, self).__init__(harvester, replace, original_id)
+        super(FileBase, self).__init__(harvester, replace, original_id)
 
     def process_folder(self, folder, old_data=False):
         """process folder."""

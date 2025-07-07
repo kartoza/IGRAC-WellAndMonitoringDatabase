@@ -84,7 +84,14 @@ class Harvester(models.Model):
         """ Run the harvester if active
         """
         if self.active and self.organisation:
-            self.get_harvester_class(self, replace, original_id)
+            try:
+                self.get_harvester_class(self, replace, original_id)
+            except Exception as e:
+                HarvesterLog.objects.create(
+                    harvester=self,
+                    status=ERROR,
+                    note=f'{e}'
+                )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

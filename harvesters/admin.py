@@ -62,16 +62,12 @@ CIDA_USGS = (
     None
 )
 
+# ---------------------------------------------
 # EHYD
+# ---------------------------------------------
 EHYD = (
-    'gwml2.harvesters.harvester.ehyd.EHYD',
+    'gwml2.harvesters.harvester.ehyd.FileBase',
     '(Austria) Electronic Hydrographic Data '
-    '(https://www.ehyd.gv.at/)',
-    None
-)
-EHYD_S3 = (
-    'gwml2.harvesters.harvester.ehyd_s3.EHYDS3',
-    '(Austria) Electronic Hydrographic Data using S3 '
     '(https://www.ehyd.gv.at/)',
     None
 )
@@ -111,8 +107,7 @@ HARVESTERS = (
     SGU_QUALITY_API,
     SGU_SPRINGS_API,
     CIDA_USGS,
-    EHYD,
-    EHYD_S3
+    EHYD
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS
