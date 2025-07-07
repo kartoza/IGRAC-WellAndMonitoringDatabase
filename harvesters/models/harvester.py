@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.contrib.gis.db import models
+from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 
@@ -7,6 +10,7 @@ from gwml2.models.term import TermFeatureType
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
+from gwml2.utils.celery import id_task_is_running
 
 
 class Harvester(models.Model):
@@ -59,8 +63,10 @@ class Harvester(models.Model):
     #  We remove this after permissions has been merged
     public = models.BooleanField(
         default=True,
-        help_text=_('Default indicator for : well can be viewed by '
-                    'non organisation user.')
+        help_text=_(
+            'Default indicator for : well can be viewed by '
+            'non organisation user.'
+        )
     )
     downloadable = models.BooleanField(
         default=True,
@@ -68,6 +74,11 @@ class Harvester(models.Model):
     )
 
     wagtail_reference_index_ignore = True
+
+    task_id = models.TextField(
+        blank=True,
+        null=True
+    )
 
     class Meta:
         db_table = 'harvester'
@@ -81,17 +92,23 @@ class Harvester(models.Model):
         return import_string(self.harvester_class)
 
     def run(self, replace=False, original_id=None):
-        """ Run the harvester if active
-        """
-        if self.active and self.organisation:
-            try:
+        """ Run the harvester if active."""
+        try:
+            if self.active and self.organisation:
                 self.get_harvester_class(self, replace, original_id)
-            except Exception as e:
-                HarvesterLog.objects.create(
-                    harvester=self,
-                    status=ERROR,
-                    note=f'{e}'
-                )
+            elif not self.active:
+                raise Exception('Harvester is not active')
+            elif not self.organisation:
+                raise Exception('Organisation is not setup')
+        except Exception as e:
+            self.task_id = None
+            self.save()
+            HarvesterLog.objects.create(
+                harvester=self,
+                status=ERROR,
+                end_time=timezone.now(),
+                note=f'{e}'
+            )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -104,6 +121,52 @@ class Harvester(models.Model):
                     'value': value
                 }
             )
+
+    @property
+    def is_running_on_celery(self):
+        """Is running on celery."""
+        return id_task_is_running(self.task_id)
+
+    @property
+    def last_run(self):
+        """Return last run."""
+        last_log = self.harvesterlog_set.all().first()
+        if not last_log:
+            return None
+        return last_log.start_time
+
+    @property
+    def is_actual_running(self):
+        """Check if the harvester is actual running."""
+        if not self.last_run:
+            return False
+
+        if not self.task_id:
+            return False
+
+        if timezone.now() - self.last_run <= timedelta(hours=1):
+            return True
+
+        return self.is_running_on_celery
+
+    @staticmethod
+    def return_running_harvesters():
+        """Return running harvesters."""
+        ids = []
+        for obj in Harvester.objects.filter(active=True).all():
+            if obj.is_actual_running:
+                ids.append(obj.id)
+            else:
+                obj.reset()
+        return Harvester.objects.filter(id__in=ids)
+
+    def reset(self):
+        """Reset harvester."""
+        self.is_run = False
+        self.harvesterlog_set.filter(status=RUNNING).update(
+            status=ERROR, note='Worker stopped'
+        )
+        self.save()
 
 
 class HarvesterAttribute(models.Model):
