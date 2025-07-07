@@ -36,11 +36,15 @@ class TermMeasurementParameterGroup(_Term):
         db_table = 'term_measurement_parameter_group'
 
     @staticmethod
-    def get_measurement_model(name):
+    def get_measurement_model(parameter: TermMeasurementParameter):
         """Return measurement model by name."""
         from gwml2.models.well import (
             WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
         )
+        group = TermMeasurementParameterGroup.objects.get(
+            parameters__id=parameter.id
+        )
+        name = group.name
         if name == 'Level Measurement':
             return WellLevelMeasurement
         elif name == 'Quality Measurement':

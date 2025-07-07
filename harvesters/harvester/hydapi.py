@@ -6,12 +6,14 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.models.harvester import Harvester, HarvesterWellData
+from gwml2.harvesters.models.harvester import (
+    HarvesterWellData, Harvester, HarvesterParameterMap
+)
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
-    Well, WellLevelMeasurement, WellYieldMeasurement, WellQualityMeasurement
+    Well, WellLevelMeasurement
 )
 
 
@@ -25,26 +27,45 @@ class Hydapi(BaseHarvester):
     parameters = {}
     updated = False
 
-    def __init__(self, harvester: Harvester, replace: bool = False,
-                 original_id: str = None):
-        self.parameters = {
-            1001: {
-                'model': WellYieldMeasurement,
+    def default_parameters(self, harvester: Harvester):
+        """This is for legacy one."""
+        HarvesterParameterMap.objects.update_or_create(
+            harvester=harvester,
+            key='1001',
+            defaults={
                 'parameter': TermMeasurementParameter.objects.get(
-                    name='Spring discharge')
-            },
-            # Grunnvannstemperatur
-            2015: {
-                'model': WellQualityMeasurement,
+                    name='Spring discharge'
+                ),
+                'unit': Unit.objects.get(name='m³/s')
+            }
+        )
+        HarvesterParameterMap.objects.update_or_create(
+            harvester=harvester,
+            key='2015',
+            defaults={
                 'parameter': TermMeasurementParameter.objects.get(
-                    name='T')
-            },
-            5130: {
-                'model': WellLevelMeasurement,
+                    name='T'
+                ),
+                'unit': Unit.objects.get(name='°C')
+            }
+        )
+        HarvesterParameterMap.objects.update_or_create(
+            harvester=harvester,
+            key='5130',
+            defaults={
                 'parameter': TermMeasurementParameter.objects.get(
-                    name=MEASUREMENT_PARAMETER_GROUND)
-            },
-        }
+                    name=MEASUREMENT_PARAMETER_GROUND
+                ),
+                'unit': Unit.objects.get(name='m')
+            }
+        )
+
+    def __init__(
+            self, harvester: Harvester, replace: bool = False,
+            original_id: str = None
+    ):
+        self.default_parameters(harvester)
+        self.parameters = HarvesterParameterMap.get_json(harvester)
         super(Hydapi, self).__init__(harvester, replace, original_id)
 
     @staticmethod
