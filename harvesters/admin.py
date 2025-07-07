@@ -98,6 +98,7 @@ SGU_SPRINGS_API = (
 
 HARVESTERS = (
     AZULBHD,
+    EHYD,
     GINGWINFO,
     HUBEAU,
     EPAWEBAPP,
@@ -107,7 +108,6 @@ HARVESTERS = (
     SGU_QUALITY_API,
     SGU_SPRINGS_API,
     CIDA_USGS,
-    EHYD
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS
@@ -124,6 +124,7 @@ class HarvesterParameterMapInline(admin.TabularInline):
     model = HarvesterParameterMap
     readonly_fields = ('harvester',)
     extra = 0
+    ordering = ['key']
 
 
 class HarvesterLogInline(admin.TabularInline):
@@ -163,6 +164,7 @@ class HarvesterAdmin(admin.ModelAdmin):
     )
     list_editable = ('active',)
     actions = (harvest_data,)
+    ordering = ['name']
 
     def last_run(self, obj: Harvester):
         last_log = obj.harvesterlog_set.first()

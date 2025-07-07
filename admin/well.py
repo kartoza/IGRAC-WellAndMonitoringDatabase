@@ -140,7 +140,7 @@ class WellAdmin(admin.ModelAdmin):
         'data_cache_generated_at'
     )
     list_filter = (
-        'organisation', 'country',
+        'organisation', 'country', 'feature_type',
         'first_time_measurement', 'last_time_measurement',
         'measurement_cache_generated_at',
         'data_cache_generated_at',
