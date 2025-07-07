@@ -62,16 +62,12 @@ CIDA_USGS = (
     None
 )
 
+# ---------------------------------------------
 # EHYD
+# ---------------------------------------------
 EHYD = (
-    'gwml2.harvesters.harvester.ehyd.EHYD',
+    'gwml2.harvesters.harvester.ehyd.FileBase',
     '(Austria) Electronic Hydrographic Data '
-    '(https://www.ehyd.gv.at/)',
-    None
-)
-EHYD_S3 = (
-    'gwml2.harvesters.harvester.ehyd_s3.EHYDS3',
-    '(Austria) Electronic Hydrographic Data using S3 '
     '(https://www.ehyd.gv.at/)',
     None
 )
@@ -102,6 +98,7 @@ SGU_SPRINGS_API = (
 
 HARVESTERS = (
     AZULBHD,
+    EHYD,
     GINGWINFO,
     HUBEAU,
     EPAWEBAPP,
@@ -111,8 +108,6 @@ HARVESTERS = (
     SGU_QUALITY_API,
     SGU_SPRINGS_API,
     CIDA_USGS,
-    EHYD,
-    EHYD_S3
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS
@@ -129,6 +124,7 @@ class HarvesterParameterMapInline(admin.TabularInline):
     model = HarvesterParameterMap
     readonly_fields = ('harvester',)
     extra = 0
+    ordering = ['key']
 
 
 class HarvesterLogInline(admin.TabularInline):
@@ -168,6 +164,7 @@ class HarvesterAdmin(admin.ModelAdmin):
     )
     list_editable = ('active',)
     actions = (harvest_data,)
+    ordering = ['name']
 
     def last_run(self, obj: Harvester):
         last_log = obj.harvesterlog_set.first()

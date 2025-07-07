@@ -84,7 +84,14 @@ class Harvester(models.Model):
         """ Run the harvester if active
         """
         if self.active and self.organisation:
-            self.get_harvester_class(self, replace, original_id)
+            try:
+                self.get_harvester_class(self, replace, original_id)
+            except Exception as e:
+                HarvesterLog.objects.create(
+                    harvester=self,
+                    status=ERROR,
+                    note=f'{e}'
+                )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -125,21 +132,21 @@ class HarvesterParameterMap(models.Model):
     harvester = models.ForeignKey(
         Harvester, on_delete=models.CASCADE
     )
+    key = models.CharField(
+        max_length=512,
+        help_text=_("The key on the api")
+    )
     parameter = models.ForeignKey(
         TermMeasurementParameter, on_delete=models.CASCADE
     )
     unit = models.ForeignKey(
         Unit, null=True, blank=True, on_delete=models.CASCADE
     )
-    key = models.CharField(
-        max_length=512,
-        help_text=_("The key on the api")
-    )
 
     class Meta:
         db_table = 'harvester_parameter_map'
-        unique_together = ('harvester', 'parameter')
-        ordering = ('parameter__name',)
+        unique_together = ('harvester', 'key')
+        ordering = ('key',)
 
     @staticmethod
     def get_json(harvester: Harvester) -> dict:

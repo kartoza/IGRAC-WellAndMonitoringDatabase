@@ -51,6 +51,9 @@ class SguSpringAPI(SguAPI):
             latitude=point.y,
             longitude=point.x,
         )
+        if well.feature_type != self.harvester.feature_type:
+            well.feature_type = self.harvester.feature_type
+            well.save()
         return harvester_well_data
 
     def _process(self):
@@ -111,12 +114,9 @@ class SguSpringAPI(SguAPI):
                     if isinstance(value, str):
                         value = value.replace(',', '.')
 
-                    group = TermMeasurementParameterGroup.objects.get(
-                        parameters__id=parameter.id
-                    )
                     MeasurementModel = (
                         TermMeasurementParameterGroup.get_measurement_model(
-                            group.name
+                            parameter
                         )
                     )
                     self._save_measurement(

@@ -6,12 +6,16 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.models.harvester import Harvester, HarvesterWellData
+from gwml2.harvesters.models.harvester import (
+    HarvesterWellData, Harvester, HarvesterParameterMap
+)
 from gwml2.models.general import Quantity, Unit
-from gwml2.models.term_measurement_parameter import TermMeasurementParameter
+from gwml2.models.term_measurement_parameter import (
+    TermMeasurementParameterGroup, TermMeasurementParameter
+)
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
-    Well, WellLevelMeasurement, WellYieldMeasurement, WellQualityMeasurement
+    Well, WellLevelMeasurement
 )
 
 
@@ -25,26 +29,51 @@ class Hydapi(BaseHarvester):
     parameters = {}
     updated = False
 
-    def __init__(self, harvester: Harvester, replace: bool = False,
-                 original_id: str = None):
+    def default_parameters(self, harvester: Harvester):
+        """This is for legacy one."""
+        HarvesterParameterMap.objects.get_or_create(
+            harvester=harvester,
+            key='1001',
+            defaults={
+                'parameter': TermMeasurementParameter.objects.get(
+                    name='Spring discharge'
+                ),
+                'unit': Unit.objects.get(name='m³/s')
+            }
+        )
+        HarvesterParameterMap.objects.get_or_create(
+            harvester=harvester,
+            key='2015',
+            defaults={
+                'parameter': TermMeasurementParameter.objects.get(
+                    name='T'
+                ),
+                'unit': Unit.objects.get(name='°C')
+            }
+        )
+        HarvesterParameterMap.objects.get_or_create(
+            harvester=harvester,
+            key='5130',
+            defaults={
+                'parameter': TermMeasurementParameter.objects.get(
+                    name=MEASUREMENT_PARAMETER_GROUND
+                ),
+                'unit': Unit.objects.get(name='m')
+            }
+        )
+
+    def __init__(
+            self, harvester: Harvester, replace: bool = False,
+            original_id: str = None
+    ):
+        self.default_parameters(harvester)
+        self.parameters = HarvesterParameterMap.get_json(harvester)
         self.parameters = {
-            1001: {
-                'model': WellYieldMeasurement,
-                'parameter': TermMeasurementParameter.objects.get(
-                    name='Spring discharge')
-            },
-            # Grunnvannstemperatur
-            2015: {
-                'model': WellQualityMeasurement,
-                'parameter': TermMeasurementParameter.objects.get(
-                    name='T')
-            },
-            5130: {
-                'model': WellLevelMeasurement,
-                'parameter': TermMeasurementParameter.objects.get(
-                    name=MEASUREMENT_PARAMETER_GROUND)
-            },
+            int(key): value for key, value in self.parameters.items()
         }
+        del self.parameters[1001]
+        del self.parameters[2015]
+        del self.parameters[5130]
         super(Hydapi, self).__init__(harvester, replace, original_id)
 
     @staticmethod
@@ -120,13 +149,22 @@ class Hydapi(BaseHarvester):
         for series in series_list:
             # Check the latest from and to date
             parameter = series['parameter']
-            measurement_parameter = self.parameters[parameter]
-            model = measurement_parameter['model']
+            try:
+                _parameter = self.parameters[parameter]
+                parameter = _parameter['parameter']
+                unit = _parameter['unit']
+                model = (
+                    TermMeasurementParameterGroup.get_measurement_model(
+                        parameter
+                    )
+                )
+            except KeyError:
+                continue
 
             # check latest date
             latest_measurement = model.objects.filter(
                 well=harvester_well_data.well,
-                parameter=measurement_parameter['parameter']
+                parameter=parameter
             ).order_by('-time').first()
 
             # Change the from and to time based on the measurements
@@ -153,7 +191,12 @@ class Hydapi(BaseHarvester):
 
                 self._fetch_measurements(
                     station, harvester_well_data,
-                    from_time_data, series, resolution_time['resTime']
+                    from_time_data, series, resolution_time['resTime'],
+
+                    # Parameter data
+                    model,
+                    parameter,
+                    unit
                 )
 
         # generate cache
@@ -166,13 +209,16 @@ class Hydapi(BaseHarvester):
             harvester_well_data: HarvesterWellData,
             from_date,
             series: dict,
-            resolution_time: int
+            resolution_time: int,
+
+            # Parameter data
+            model,
+            parameter,
+            unit
     ):
         """ Processing older measurements """
         try:
-            parameter = series['parameter']
-            measurement_parameter = self.parameters[parameter]
-            model = measurement_parameter['model']
+            parameter_key = series['parameter']
 
             # check from and to date
             to_date = from_date + relativedelta(months=2)
@@ -190,14 +236,14 @@ class Hydapi(BaseHarvester):
                 pytz.utc
             ).replace(microsecond=0).isoformat().split('+')[0] + 'Z'
             self._update(
-                f"{station['stationId']} : {parameter} "
+                f"{station['stationId']} : {parameter_key} "
                 f"({series.get('parameterName', 'no parameter name')}) "
                 f"- {from_date_str} - {to_date_str}"
             )
             # Fetch measurements data
             params = [
                 f"StationId={station['stationId']}",
-                f"Parameter={parameter}",
+                f"Parameter={parameter_key}",
                 f"ResolutionTime={resolution_time}",
                 f'ReferenceTime={from_date_str}/{to_date_str}'
             ]
@@ -209,19 +255,17 @@ class Hydapi(BaseHarvester):
                 for data in response['data']:
                     method = data['method']
                     try:
-                        unit = Unit.objects.get(name=data['unit'])
                         for measurement in data['observations']:
                             if measurement['value'] is not None:
                                 value = measurement['value']
 
                                 # specifically based on parameter
-                                if parameter == 5130:
+                                if parameter_key == 5130:
                                     value = abs(value)
 
                                 defaults = {
                                     'methodology': method,
-                                    'parameter': measurement_parameter[
-                                        'parameter']
+                                    'parameter': parameter
                                 }
                                 if model == WellLevelMeasurement:
                                     defaults['value_in_m'] = value
@@ -248,7 +292,12 @@ class Hydapi(BaseHarvester):
                 time.sleep(1)
                 self._fetch_measurements(
                     station, harvester_well_data, to_date, series,
-                    resolution_time
+                    resolution_time,
+
+                    # Parameter data
+                    model,
+                    parameter,
+                    unit
                 )
         except KeyError:
             pass
