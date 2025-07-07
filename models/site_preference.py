@@ -1,6 +1,7 @@
 from django.db import models
 
 from core.singleton import SingletonModel
+from gwml2.harvesters.models import Harvester
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 
 
@@ -28,3 +29,19 @@ class SitePreference(SingletonModel):
         default=False,
         help_text='Auto resume flag for batch upload.'
     )
+
+    # Harvester
+    running_harvesters_concurrency_count = models.IntegerField(
+        default=2
+    )
+    running_harvesters = models.ManyToManyField(
+        Harvester, blank=True
+    )
+
+    @staticmethod
+    def update_running_harvesters():
+        """Update running harvesters."""
+        preferences = SitePreference.load()
+        preferences.running_harvesters.set(
+            Harvester.return_running_harvesters()
+        )

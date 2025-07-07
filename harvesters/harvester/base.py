@@ -54,6 +54,7 @@ class BaseHarvester(ABC):
             self.attributes[attribute.name] = attribute.value
 
         # check if it is already run
+        self.harvester.refresh_from_db()
         if self.harvester.is_run:
             return
         if self.harvester.harvesterlog_set.filter(
@@ -82,6 +83,7 @@ class BaseHarvester(ABC):
                             receiver=post_save_measurement_for_cache,
                             sender=WellQualityMeasurement
                     ):
+                        raise Exception('Skip harvester')
                         self._process()
                         self._update('Run organisation caches')
                         generate_data_organisation_cache(
@@ -97,6 +99,10 @@ class BaseHarvester(ABC):
         running = Harvester.objects.filter(is_run=True).first()
         if not running:
             call_command('refresh_materialized_views')
+
+        # Make the task id non
+        harvester.task_id = None
+        harvester.save()
 
     @staticmethod
     def additional_attributes() -> dict:

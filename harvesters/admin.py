@@ -5,6 +5,7 @@ from gwml2.harvesters.models.harvester import (
     Harvester, HarvesterAttribute, HarvesterParameterMap,
     HarvesterLog, HarvesterWellData
 )
+from gwml2.models.site_preference import SitePreference
 from gwml2.tasks.harvester import run_harvester
 
 # Argentine
@@ -160,17 +161,24 @@ class HarvesterAdmin(admin.ModelAdmin):
     ]
     list_display = (
         'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class',
-        'last_run'
+        'last_run', 'task_id', 'task_status'
     )
     list_editable = ('active',)
     actions = (harvest_data,)
     ordering = ['name']
 
     def last_run(self, obj: Harvester):
-        last_log = obj.harvesterlog_set.first()
-        if not last_log:
-            return '-'
-        return last_log.start_time
+        """Return last run time."""
+        return obj.last_run
+
+    def task_status(self, obj: Harvester):
+        """If status is running on celery."""
+        pref = SitePreference.load()
+        try:
+            pref.running_harvesters.get(id=obj.id)
+            return 'RUNNING'
+        except pref.running_harvesters.model.DoesNotExist:
+            return None
 
 
 class HarvesterWellDataAdmin(admin.ModelAdmin):

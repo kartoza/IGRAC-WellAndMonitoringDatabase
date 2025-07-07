@@ -23,6 +23,7 @@ from gwml2.models.metadata.license_metadata import LicenseMetadata
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import ods_to_xlsx, xlsx_to_ods
+from gwml2.utils.celery import id_task_is_running
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
@@ -286,23 +287,16 @@ class UploadSession(LicenseMetadata):
         # If processed, meaning done
         if self.is_processed:
             return TaskStatus.DONE
-        if self.task_id:
-            if self.is_canceled:
-                return TaskStatus.STOP
 
-            active_tasks = current_app.control.inspect().active()
-            if not active_tasks:
-                return TaskStatus.STOP
-            for worker, running_tasks in active_tasks.items():
-                for task in running_tasks:
-                    if task["id"] == self.task_id:
-                        return TaskStatus.RUNNING
+        if not self.task_id:
+            return TaskStatus.STOP
 
-            active_tasks = current_app.control.inspect().reserved()
-            for worker, running_tasks in active_tasks.items():
-                for task in running_tasks:
-                    if task["id"] == self.task_id:
-                        return TaskStatus.RUNNING
+        if self.is_canceled:
+            return TaskStatus.STOP
+
+        is_task_running = id_task_is_running(self.task_id)
+        if is_task_running:
+            return TaskStatus.RUNNING
 
         return TaskStatus.STOP
 
