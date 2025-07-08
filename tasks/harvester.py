@@ -57,8 +57,6 @@ def run_all_harvester(self):
         harvesters.order_by('id').values_list('id', flat=True)
     )
 
-    print(upcoming_ids)
-
     SitePreference.update_running_harvesters()
     pref.refresh_from_db()
     running_count = pref.running_harvesters.order_by('id').count()
