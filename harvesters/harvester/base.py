@@ -83,7 +83,6 @@ class BaseHarvester(ABC):
                             receiver=post_save_measurement_for_cache,
                             sender=WellQualityMeasurement
                     ):
-                        raise Exception('Skip harvester')
                         self._process()
                         self._update('Run organisation caches')
                         generate_data_organisation_cache(
