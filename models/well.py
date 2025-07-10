@@ -350,8 +350,14 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         self.assign_measurement_type()
         self.save()
 
-    def is_ggmn(self, organisations):
+    def is_ggmn(self):
         """Check if the well is ggmn."""
+        from gwml2.models.well_management.organisation import OrganisationGroup
+        organisations = list(
+            OrganisationGroup.get_ggmn_group().organisations.values_list(
+                'id', flat=True
+            )
+        )
         return self.organisation and self.organisation.id in organisations
 
     def generate_measurement_cache(self, model=None):

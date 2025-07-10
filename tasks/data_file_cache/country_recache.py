@@ -40,13 +40,12 @@ class GenerateCountryCacheFile(WellCacheZipFileBase):
 
     def run(self):
         super(GenerateCountryCacheFile, self).run()
-        ggmn_organisations_list = Organisation.ggmn_organisations()
         # generate organisations json file
         organisations = []
         ggmn_organisations = []
         wells = self.get_well_queryset()
         for well in wells:
-            if well.is_ggmn(ggmn_organisations_list):
+            if well.is_ggmn():
                 ggmn_organisations.append(well.organisation.name)
             else:
                 organisations.append(well.organisation.name)

@@ -124,22 +124,6 @@ class Organisation(LicenseMetadata):
             pass
         return ''
 
-    @staticmethod
-    def ggmn_organisations() -> list[int]:
-        """Return list of organisation id"""
-        from igrac.models.groundwater_layer import GroundwaterLayer
-        ggmn_organisations_list = list(
-            Organisation.objects.filter(
-                active=True
-            ).values_list('id', flat=True)
-        )
-        ggmn_layer = GroundwaterLayer.objects.filter(
-            is_ggmn_layer=True
-        ).first()
-        if ggmn_layer:
-            ggmn_organisations_list = ggmn_layer.organisations
-        return ggmn_organisations_list
-
     def update_ggis_uid_background(self):
         """Update the id of the organisation """
         from gwml2.tasks.organisation import update_ggis_uid
@@ -281,6 +265,13 @@ class OrganisationGroup(models.Model):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def get_ggmn_group():
+        """Get ggmn group."""
+        return OrganisationGroup.objects.filter(
+            name__icontains='ggmn'
+        ).first()
 
 
 class OrganisationType(models.Model):

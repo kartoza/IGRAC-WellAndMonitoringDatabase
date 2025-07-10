@@ -10,7 +10,6 @@ from openpyxl import load_workbook
 
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.term import TermFeatureType
-from gwml2.models.well import Organisation
 from gwml2.terms import SheetName
 from gwml2.utilities import xlsx_to_ods
 
@@ -251,15 +250,10 @@ class WellCacheZipFileBase(WellCacheFileBase):
         drilling_ggmn_file = self.file_by_type(self.drill_filename, GGMN)
         drilling_ggmn_book = load_workbook(drilling_ggmn_file)
 
-        # Get list of ggmn organisation
-        ggmn_organisations_list = Organisation.ggmn_organisations()
-
         # Save the data
         wells = self.get_well_queryset()
         for well in wells:
-            is_ggmn = well.is_ggmn(
-                ggmn_organisations_list
-            ) and well.organisation
+            is_ggmn = well.organisation and well.is_ggmn()
 
             self.merge_data_per_well(
                 well, self.wells_filename,
@@ -309,9 +303,7 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 original_ids_found = {}
                 wells = self.get_well_queryset()
                 for well in wells:
-                    is_ggmn = well.is_ggmn(
-                        ggmn_organisations_list
-                    ) and well.organisation
+                    is_ggmn = well.organisation and well.is_ggmn()
 
                     if data_type == GGMN and not is_ggmn:
                         continue

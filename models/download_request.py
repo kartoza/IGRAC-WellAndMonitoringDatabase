@@ -10,7 +10,9 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.general import Country
-from gwml2.models.well_management.organisation import Organisation
+from gwml2.models.well_management.organisation import (
+    Organisation, OrganisationGroup
+)
 from igrac.models import SitePreference
 
 WELL_AND_MONITORING_DATA = 'Well and Monitoring Data'
@@ -143,9 +145,9 @@ class DownloadRequest(models.Model):
         pref = SitePreference.objects.first()
         if pref is None:
             return DEFAULT_README_HEADER_TEXT
-        header_text = ''
         if self.data_type == GGMN:
-            header_text = pref.ggmn_download_readme_text
+            ggmn_group = OrganisationGroup.get_ggmn_group()
+            header_text = ggmn_group.download_readme_text
         else:
             header_text = pref.download_readme_text
         return header_text if header_text else DEFAULT_README_HEADER_TEXT
