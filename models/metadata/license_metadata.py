@@ -66,3 +66,17 @@ class LicenseMetadataObject:
                 )
             except License.DoesNotExist:
                 pass
+
+    @property
+    def license_name(self):
+        """Return license name."""
+        if self.license:
+            return self.license.name
+        return '-'
+
+    @property
+    def restriction_code_type_name(self):
+        """Return restriction_code_type name."""
+        if self.restriction_code_type:
+            return self.restriction_code_type.gn_description
+        return '-'

@@ -1,4 +1,3 @@
-from geonode.base.models import License, RestrictionCodeType
 from gwml2.models.general import Unit, Country
 from gwml2.models.well import Well
 from gwml2.tasks.data_file_cache.base_cache import get_data
@@ -38,7 +37,7 @@ class WellData:
         """Return folder.."""
         return self.well.country
 
-    def general_information(self) -> []:
+    def general_information(self) -> {}:
         """General Information of well."""
         well = self.well
         return {
@@ -69,17 +68,18 @@ class WellData:
             'address': well.address
         }
 
-    def license(self) -> []:
+    def license(self) -> {}:
         """Return init license data."""
         well = self.well
+        license = well.get_license()
         return {
             'organisation': self.well.organisation.name,
-            'license': well.license,
-            'restriction_code_type': well.restriction_code_type,
-            'constraints_other': self.well.constraints_other
+            'license': license.license_id,
+            'restriction_code_type': license.restriction_code_type_id,
+            'constraints_other': license.constraints_other
         }
 
-    def management(self) -> []:
+    def management(self) -> {}:
         """Return init management data."""
         well = self.well
         management = well.management
@@ -90,7 +90,7 @@ class WellData:
             "number_of_users": management.number_of_users if management else ''
         }
 
-    def management_license(self) -> []:
+    def management_license(self) -> {}:
         """Return init management data."""
         well = self.well
         management = well.management
@@ -104,7 +104,7 @@ class WellData:
             "description": license.description if license else ''
         }
 
-    def hydrogeology(self) -> []:
+    def hydrogeology(self) -> {}:
         """Return init pumping test data."""
         well = self.well
         hydrogeology = well.hydrogeology_parameter
@@ -125,7 +125,7 @@ class WellData:
             )
         }
 
-    def pumping_test(self) -> []:
+    def pumping_test(self) -> {}:
         """Return init pumping test data."""
         well = self.well
         hydrogeology = well.hydrogeology_parameter
