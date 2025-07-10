@@ -260,6 +260,29 @@ class OrganisationLink(models.Model):
         return f"{self.organisation.name} - {self.url}"
 
 
+class OrganisationGroup(models.Model):
+    """Organisation group model.."""
+    name = models.CharField(max_length=512)
+    organisations = models.ManyToManyField(
+        'Organisation',
+        related_name='groups',
+        blank=True
+    )
+    download_readme_text = models.TextField(
+        blank=True,
+        null=True,
+        help_text=(
+            'Readme text to be included in the download zip file.'
+        )
+    )
+
+    class Meta:
+        db_table = 'organisation_group'
+
+    def __str__(self):
+        return self.name
+
+
 class OrganisationType(models.Model):
     """ Organisation type."""
     name = models.CharField(

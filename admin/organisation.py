@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 
 from gwml2.forms.organisation import OrganisationFormAdmin
 from gwml2.models.well_management.organisation import (
-    Organisation, OrganisationType, OrganisationLink
+    Organisation, OrganisationType, OrganisationLink, OrganisationGroup
 )
 from gwml2.utils.management_commands import run_command
 
@@ -72,6 +72,19 @@ class OrganisationAdmin(admin.ModelAdmin):
         return list(
             org.links.values_list('url', flat=True)
         )
+
+
+@admin.register(OrganisationGroup)
+class OrganisationGroupAdmin(admin.ModelAdmin):
+    """Admin for OrganisationGroup model."""
+    list_display = (
+        'name', '_organisations'
+    )
+    filter_horizontal = ('organisations',)
+
+    def _organisations(self, org: OrganisationGroup):
+        """Return organisations in the group."""
+        return list(org.organisations.all().values_list('name', flat=True))
 
 
 admin.site.register(OrganisationType, admin.ModelAdmin)
