@@ -9,7 +9,9 @@ class LicenseMetadata(models.Model):
     constraints_other_help_text = _(
         'other restrictions and legal prerequisites for accessing and using the resource or'
         ' metadata')
-    license_help_text = _('license of the dataset. this is ID of license in geonode.')
+    license_help_text = _(
+        'license of the dataset. this is ID of license in geonode.'
+    )
 
     restriction_code_type = models.IntegerField(
         verbose_name=_('Restrictions'),
@@ -30,3 +32,37 @@ class LicenseMetadata(models.Model):
 
     class Meta:
         abstract = True
+
+
+class LicenseMetadataObject:
+    """ License metadata for object """
+
+    restriction_code_type = None
+    license = None
+
+    def __init__(
+            self,
+            obj: LicenseMetadata,
+            convert=False
+    ):
+        """Init license metadata object."""
+        from geonode.base.models import RestrictionCodeType, License
+        self.constraints_other = obj.constraints_other
+        self.restriction_code_type_id = obj.restriction_code_type
+        self.license_id = obj.license
+        if convert:
+            # Get restriction code type
+            try:
+                self.restriction_code_type = RestrictionCodeType.objects.get(
+                    id=self.restriction_code_type_id
+                )
+            except RestrictionCodeType.DoesNotExist:
+                pass
+
+            # Get license
+            try:
+                self.license = License.objects.get(
+                    id=self.license_id
+                )
+            except License.DoesNotExist:
+                pass
