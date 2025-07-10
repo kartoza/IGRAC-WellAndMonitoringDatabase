@@ -11,7 +11,6 @@ from django.db.models import Value, CharField, Func
 from django.utils import timezone
 from openpyxl import load_workbook
 
-from geonode.base.models import License, RestrictionCodeType
 from gwml2.models.general import Country, Unit
 from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus, TermDrillingMethod,
@@ -192,19 +191,7 @@ class GenerateWellCacheFile(object):
     def general_information(self, folder, well: Well):
         """General Information of well."""
         sheetname = 'General Information'
-        license = ''
-        if well.license:
-            try:
-                license = License.objects.get(id=well.license).name
-            except License.DoesNotExist:
-                pass
-        restriction_code_type = ''
-        if well.restriction_code_type:
-            try:
-                restriction_code_type = RestrictionCodeType.objects.get(
-                    id=well.restriction_code_type).description
-            except RestrictionCodeType.DoesNotExist:
-                pass
+        license_obj = well.get_license(convert=True)
         data = [
             well.original_id,
             well.name,
@@ -241,8 +228,8 @@ class GenerateWellCacheFile(object):
             well.address,
 
             # License
-            license,
-            restriction_code_type,
+            license_obj.license_name,
+            license_obj.restriction_code_type_name,
 
             # TODO:
             # Change this when measurement type has been added

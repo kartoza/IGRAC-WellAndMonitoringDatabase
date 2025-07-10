@@ -20,7 +20,9 @@ from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.management import Management
 from gwml2.models.measurement import Measurement
 from gwml2.models.metadata.creation import CreationMetadata
-from gwml2.models.metadata.license_metadata import LicenseMetadata
+from gwml2.models.metadata.license_metadata import (
+    LicenseMetadata, LicenseMetadataObject
+)
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import temp_disconnect_signal, convert_value
@@ -348,8 +350,14 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         self.assign_measurement_type()
         self.save()
 
-    def is_ggmn(self, organisations):
+    def is_ggmn(self):
         """Check if the well is ggmn."""
+        from gwml2.models.well_management.organisation import OrganisationGroup
+        organisations = list(
+            OrganisationGroup.get_ggmn_group().organisations.values_list(
+                'id', flat=True
+            )
+        )
         return self.organisation and self.organisation.id in organisations
 
     def generate_measurement_cache(self, model=None):
@@ -425,6 +433,15 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             self.is_groundwater_quality = (
                 'yes' if self.wellqualitymeasurement_set.first() else 'no'
             )
+
+    # TODO:
+    #  For now we are going to use this to return the license
+    def get_license(self, convert=False) -> LicenseMetadataObject:
+        """Get license."""
+        if self.organisation is None:
+            return LicenseMetadataObject(Organisation(), convert=convert)
+
+        return LicenseMetadataObject(self.organisation, convert=convert)
 
 
 # documents
