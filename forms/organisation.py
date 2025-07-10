@@ -50,6 +50,22 @@ class OrganisationFormAdmin(forms.ModelForm):
             self.fields['editor_users'].initial = User.objects.filter(
                 id__in=self.instance.editors)
 
+    def clean_license(self):
+        """Clean license."""
+        license = self.cleaned_data.get('license', None)
+        if license is not None:
+            license = license.id
+        return license
+
+    def clean_restriction_code_type(self):
+        """Clean restriction_code_type."""
+        restriction_code_type = self.cleaned_data.get(
+            'restriction_code_type', None
+        )
+        if restriction_code_type is not None:
+            restriction_code_type = restriction_code_type.id
+        return restriction_code_type
+
     def save(self, commit=True):
         """Save admin and editor users."""
         instance = super(OrganisationFormAdmin, self).save(commit)
