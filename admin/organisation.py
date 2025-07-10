@@ -3,20 +3,19 @@ from django.contrib.auth import get_user_model
 
 from gwml2.forms.organisation import OrganisationFormAdmin
 from gwml2.models.well_management.organisation import (
-    Organisation, OrganisationType
+    Organisation, OrganisationType, OrganisationLink
 )
-from gwml2.models.well_management.user import UserUUID
 from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
 
 
 def reassign_wells_country(modeladmin, request, queryset):
+    """Reassign wells country by the organisation country."""
     for org in queryset.filter(country__isnull=False):
         org.well_set.all().update(country=org.country)
 
 
-@admin.action(description='Generate data cache')
 def generate_data_wells_cache(modeladmin, request, queryset):
     """Generate measurement cache."""
     ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
@@ -37,49 +36,42 @@ def update_ggis_uid(modeladmin, request, queryset):
         update_ggis_uid.delay(org.id)
 
 
+def assign_data(modeladmin, request, queryset):
+    """Assign data to the organisation."""
+    for org in queryset:
+        org.assign_data()
+
+
+class OrganisationLinkInline(admin.TabularInline):
+    """OrganisationLinkInline."""
+    model = OrganisationLink
+
+
+@admin.register(Organisation)
 class OrganisationAdmin(admin.ModelAdmin):
+    """Admin for Organisation model."""
     list_display = (
-        'name', 'active', 'country', 'well_number', 'data_cache_generated_at'
+        'name', 'description', 'links', 'data_types', 'time_range',
+        'license_name', 'active', 'country', 'well_number',
+        'data_cache_generated_at'
     )
     list_editable = ('active',)
     list_filter = ('data_cache_generated_at', 'country')
     search_fields = ('name',)
     actions = (
-        generate_data_wells_cache, reassign_wells_country, update_ggis_uid
+        generate_data_wells_cache, reassign_wells_country, update_ggis_uid,
+        assign_data
     )
+    inlines = [OrganisationLinkInline]
     form = OrganisationFormAdmin
 
     def well_number(self, org: Organisation):
         return org.well_set.all().count()
 
-
-def fetch(modeladmin, request, queryset):
-    for user in User.objects.exclude(
-            id__in=list(UserUUID.objects.values_list('user_id', flat=True))):
-        UserUUID.objects.get_or_create(user_id=user.id)
-
-
-fetch.short_description = "Create uuid for other users"
+    def links(self, org: Organisation):
+        return list(
+            org.links.values_list('url', flat=True)
+        )
 
 
-def update_username(modeladmin, request, queryset):
-    for query in queryset:
-        query.update_username()
-
-
-update_username.short_description = "Update username"
-
-
-class UserUUIDAdmin(admin.ModelAdmin):
-    list_display = ('user', 'uuid', 'username')
-    actions = [fetch, update_username]
-
-    def user(self, obj):
-        try:
-            return User.objects.get(id=obj.user_id).username
-        except User.DoesNotExist:
-            return '-'
-
-
-admin.site.register(Organisation, OrganisationAdmin)
 admin.site.register(OrganisationType, admin.ModelAdmin)
