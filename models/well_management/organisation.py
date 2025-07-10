@@ -1,5 +1,7 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.signals import m2m_changed
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.general import Country
@@ -286,3 +288,25 @@ class OrganisationType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@receiver(m2m_changed, sender=OrganisationGroup.organisations.through)
+def groundwater_layer_saved(
+        sender, instance: OrganisationGroup, using, **kwargs
+):
+    from igrac.models.groundwater_layer import GroundwaterLayer
+    from gwml2.tasks.data_file_cache.country_recache import (
+        generate_data_all_country_cache
+    )
+    from gwml2.tasks.data_file_cache.organisation_cache import (
+        generate_data_all_organisation_cache
+    )
+    if instance == OrganisationGroup.get_ggmn_group():
+        generate_data_all_country_cache.delay()
+        generate_data_all_organisation_cache.delay()
+
+    # Update the layer
+    for layer in GroundwaterLayer.objects.filter(
+            organisation_groups__contains=[instance.id]
+    ):
+        layer.update_layer()
