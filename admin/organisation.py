@@ -83,6 +83,13 @@ class OrganisationAdmin(admin.ModelAdmin):
             return '-'
         return groups
 
+    def license_name(self, org: Organisation):
+        """Return license name."""
+        license = org.license_data
+        if license:
+            return license.name
+        return '-'
+
 
 @admin.register(OrganisationGroup)
 class OrganisationGroupAdmin(admin.ModelAdmin):

@@ -116,15 +116,16 @@ class Organisation(LicenseMetadata):
         """ return if editor """
         return self.is_admin(user) or user.id in self.editors
 
-    def license_name(self):
+    @property
+    def license_data(self):
         """Return license name."""
         from geonode.base.models import License
         try:
             if self.license:
-                return License.objects.get(id=self.license).name
+                return License.objects.get(id=self.license)
         except License.DoesNotExist:
             pass
-        return ''
+        return None
 
     def update_ggis_uid_background(self):
         """Update the id of the organisation """
