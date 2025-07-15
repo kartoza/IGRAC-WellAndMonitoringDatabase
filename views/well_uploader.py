@@ -62,13 +62,8 @@ class WellUploadView(LoginRequiredMixin, FormView):
                     category=UPLOAD_SESSION_CATEGORY_WELL_UPLOAD,
                     upload_file=gw_well_file,
                     uploader=request.user.id,
-                    license=form.cleaned_data['license'],
                     is_adding=form.cleaned_data.get('is_adding', False),
-                    is_updating=form.cleaned_data.get('is_updating', False),
-                    restriction_code_type=form.cleaned_data[
-                        'restriction_code_type'
-                    ],
-                    constraints_other=form.cleaned_data['constraints_other'],
+                    is_updating=form.cleaned_data.get('is_updating', False)
                 )
             elif gw_monitoring_file:
                 upload_session = UploadSession.objects.create(

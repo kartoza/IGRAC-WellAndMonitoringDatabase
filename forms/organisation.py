@@ -3,6 +3,7 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
+from geonode.base.models import License, RestrictionCodeType
 from gwml2.forms.widgets.multi_value import MultiValueInput
 from gwml2.models.well_management.organisation import Organisation
 
@@ -10,6 +11,10 @@ User = get_user_model()
 
 
 class OrganisationFormAdmin(forms.ModelForm):
+    """Organisation form for admin.
+
+    This is needed for user and editor selector.
+    """
     admin_users = forms.ModelMultipleChoiceField(
         User.objects.all(),
         widget=FilteredSelectMultiple('admin_users', False),
@@ -20,11 +25,21 @@ class OrganisationFormAdmin(forms.ModelForm):
         widget=FilteredSelectMultiple('editor_users', False),
         required=False
     )
+    license = forms.ModelChoiceField(
+        License.objects.all(), required=False
+    )
+    restriction_code_type = forms.ModelChoiceField(
+        RestrictionCodeType.objects.all(), required=False
+    )
 
     class Meta:
         model = Organisation
         fields = (
-            'name', 'country', 'description', 'admin_users', 'editor_users'
+            'name', 'country', 'description',
+            'data_is_from_api', 'data_date_start', 'data_date_end',
+            'data_is_groundwater_level', 'data_is_groundwater_quality',
+            'admin_users', 'editor_users',
+            'license', 'restriction_code_type', 'constraints_other'
         )
 
     def __init__(self, *args, **kwargs):
@@ -35,7 +50,24 @@ class OrganisationFormAdmin(forms.ModelForm):
             self.fields['editor_users'].initial = User.objects.filter(
                 id__in=self.instance.editors)
 
+    def clean_license(self):
+        """Clean license."""
+        license = self.cleaned_data.get('license', None)
+        if license is not None:
+            license = license.id
+        return license
+
+    def clean_restriction_code_type(self):
+        """Clean restriction_code_type."""
+        restriction_code_type = self.cleaned_data.get(
+            'restriction_code_type', None
+        )
+        if restriction_code_type is not None:
+            restriction_code_type = restriction_code_type.id
+        return restriction_code_type
+
     def save(self, commit=True):
+        """Save admin and editor users."""
         instance = super(OrganisationFormAdmin, self).save(commit)
         admin_users = self.cleaned_data.get('admin_users', None)
         if admin_users is not None:
@@ -50,6 +82,11 @@ class OrganisationFormAdmin(forms.ModelForm):
 
 
 class OrganisationForm(OrganisationFormAdmin):
+    """Organisation form for frontend.
+
+    Having autocomplete widget for user.
+    """
+
     def __init__(self, *args, **kwargs):
         super(OrganisationForm, self).__init__(*args, **kwargs)
         # init widget

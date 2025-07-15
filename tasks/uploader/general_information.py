@@ -84,7 +84,4 @@ class GeneralInformationUploader(BaseUploader):
         for key, value in init_data.general_information().items():
             if record['general_information'][key] in ["", None]:
                 record['general_information'][key] = value
-        for key, value in init_data.license().items():
-            if record['well_metadata'][key] in ["", None]:
-                record['well_metadata'][key] = value
         return record

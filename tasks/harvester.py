@@ -4,7 +4,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.utils import timezone
 
-from gwml2.harvesters.models.harvester import Harvester, HarvesterLog
+from gwml2.harvesters.models.harvester import Harvester, HarvesterLog, DONE
 
 logger = get_task_logger(__name__)
 
@@ -45,7 +45,8 @@ def run_all_harvester(self):
     # And from first
     one_day_ago = timezone.now() - timedelta(days=1)
     recent_harvesters = HarvesterLog.objects.filter(
-        end_time__gte=one_day_ago
+        end_time__gte=one_day_ago,
+        status=DONE
     ).values_list('harvester_id', flat=True)
     harvesters = Harvester.objects.filter(active=True).exclude(
         id__in=running_ids
