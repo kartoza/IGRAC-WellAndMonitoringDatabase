@@ -52,7 +52,7 @@ class OrganisationAdmin(admin.ModelAdmin):
     """Admin for Organisation model."""
     list_display = (
         'name', 'description', 'links', 'data_types', 'time_range',
-        'license_name', 'active', 'country', 'well_number',
+        'license_name', 'active', 'country', '_groups', 'well_number',
         'data_cache_generated_at'
     )
     list_editable = ('active',)
@@ -72,6 +72,16 @@ class OrganisationAdmin(admin.ModelAdmin):
         return list(
             org.links.values_list('url', flat=True)
         )
+
+    def _groups(self, org: Organisation):
+        groups = list(
+            OrganisationGroup.objects.filter(
+                organisations__in=[org]
+            ).values_list('name', flat=True)
+        )
+        if not len(groups):
+            return '-'
+        return groups
 
 
 @admin.register(OrganisationGroup)

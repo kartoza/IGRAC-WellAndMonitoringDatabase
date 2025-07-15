@@ -301,12 +301,17 @@ def groundwater_layer_saved(
     from gwml2.tasks.data_file_cache.organisation_cache import (
         generate_data_all_organisation_cache
     )
-    if instance == OrganisationGroup.get_ggmn_group():
-        generate_data_all_country_cache.delay()
-        generate_data_all_organisation_cache.delay()
+    try:
+        action = kwargs['action']
+    except KeyError:
+        action = None
+    if action in ['post_add', 'post_remove', 'post_clear']:
+        if instance == OrganisationGroup.get_ggmn_group():
+            generate_data_all_country_cache.delay()
+            generate_data_all_organisation_cache.delay()
 
-    # Update the layer
-    for layer in GroundwaterLayer.objects.filter(
-            organisation_groups__contains=[instance.id]
-    ):
-        layer.update_layer()
+        # Update the layer
+        for layer in GroundwaterLayer.objects.filter(
+                organisation_groups__contains=[instance.id]
+        ):
+            layer.update_layer(layer.all_organisations, layer.additional_sql)
