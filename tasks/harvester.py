@@ -11,7 +11,17 @@ logger = get_task_logger(__name__)
 
 @shared_task(bind=True, queue='update')
 def run_harvester(self, harvester_id: int):
+    from gwml2.models.site_preference import SitePreference
     try:
+        SitePreference.update_running_harvesters()
+        pref = SitePreference.load()
+        running_ids = pref.running_harvesters.values_list(
+            'id', flat=True
+        ).order_by('id')
+
+        if harvester_id in running_ids:
+            return
+
         harvester = Harvester.objects.get(id=harvester_id)
         if self.request.id:
             harvester.task_id = self.request.id
@@ -24,7 +34,10 @@ def run_harvester(self, harvester_id: int):
 @shared_task(
     bind=True,
     name='gwml2.tasks.harvester.run_all_harvester',
-    queue='update'
+    queue='update',
+    acks_late=False,
+    autoretry_for=(),
+    max_retries=0
 )
 def run_all_harvester(self):
     """Run All harvesters."""

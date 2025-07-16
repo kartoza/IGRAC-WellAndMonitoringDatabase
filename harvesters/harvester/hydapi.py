@@ -7,9 +7,10 @@ from django.utils import timezone
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import (
-    HarvesterWellData, Harvester, HarvesterParameterMap
+    HarvesterParameterMap, HarvesterWellData, Harvester, HarvesterAttribute
 )
 from gwml2.models.general import Quantity, Unit
+from gwml2.models.term import TermWellStatus
 from gwml2.models.term_measurement_parameter import (
     TermMeasurementParameterGroup, TermMeasurementParameter
 )
@@ -17,6 +18,8 @@ from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
     Well, WellLevelMeasurement
 )
+
+STATIONSID_KEY = 'stationsid'
 
 
 class Hydapi(BaseHarvester):
@@ -98,10 +101,39 @@ class Hydapi(BaseHarvester):
         if not self.api_key:
             raise Exception('Api key is not provided.')
 
+        # Previous station id
+        previous_station = None
+        try:
+            previous_station = HarvesterAttribute.objects.get(
+                harvester=self.harvester,
+                name=STATIONSID_KEY
+            ).value
+        except (HarvesterAttribute.DoesNotExist, AttributeError):
+            pass
+
         # fetch stations first
         stations = self._request_api('https://hydapi.nve.no/api/v1/Stations')[
             'data']
         for station in stations:
+            # Current stationid
+            stationsid = station['stationId']
+
+            # If not same with previous stationid, skip it.
+            if previous_station and stationsid != previous_station:
+                continue
+
+            previous_station = None
+
+            # Save as previous stationid
+            HarvesterAttribute.objects.update_or_create(
+                harvester=self.harvester,
+                name=STATIONSID_KEY,
+                defaults={
+                    'value': stationsid,
+                }
+            )
+
+            # Process station
             self._process_station(station)
 
     def _process_station(self, station: dict):
@@ -140,6 +172,16 @@ class Hydapi(BaseHarvester):
                 station['longitude'],
                 ground_surface_elevation_masl=station['masl']
             )
+            status = None
+            try:
+                if station['stationStatusName'] == 'Aktiv':
+                    status = TermWellStatus.objects.get(
+                        name__iexact='Active'
+                    )
+            except TermWellStatus.DoesNotExist:
+                pass
+            well.status = status
+            well.save()
         except Well.DoesNotExist:
             return
 
