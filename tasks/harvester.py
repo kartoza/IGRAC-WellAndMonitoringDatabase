@@ -24,7 +24,10 @@ def run_harvester(self, harvester_id: int):
 @shared_task(
     bind=True,
     name='gwml2.tasks.harvester.run_all_harvester',
-    queue='update'
+    queue='update',
+    acks_late=False,
+    autoretry_for=(),
+    max_retries=0
 )
 def run_all_harvester(self):
     """Run All harvesters."""

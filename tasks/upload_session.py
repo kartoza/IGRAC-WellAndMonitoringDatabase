@@ -21,7 +21,10 @@ def uploads_to_be_resumed():
 @shared_task(
     bind=True,
     name='gwml2.tasks.upload_session.resume_all_uploader',
-    queue='update'
+    queue='update',
+    acks_late=False,
+    autoretry_for=(),
+    max_retries=0
 )
 def resume_all_uploader(self):
     """Resume all uploader."""

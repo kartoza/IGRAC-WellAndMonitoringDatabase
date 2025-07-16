@@ -9,7 +9,7 @@ from gwml2.harvesters.models.harvester import (
 from gwml2.models.term_measurement_parameter import (
     TermMeasurementParameterGroup
 )
-from gwml2.models.well import Well
+from gwml2.models.well import Well, HydrogeologyParameter
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
@@ -69,6 +69,22 @@ class SguSpringAPI(SguAPI):
             try:
                 harvester_well_data = self.well_from_station(station)
                 well = harvester_well_data.well
+
+                # Description
+                description = station['properties']['vne_txt']
+                well.description = description
+                well.save()
+
+                # Aquifer name
+                aquifer_name = station['properties']['akvtyp_txt']
+                if aquifer_name:
+                    hydrogeology_parameter = well.hydrogeology_parameter
+                    if not well.hydrogeology_parameter:
+                        hydrogeology_parameter = HydrogeologyParameter()
+                    hydrogeology_parameter.aquifer_name = aquifer_name
+                    hydrogeology_parameter.save()
+                    well.hydrogeology_parameter = hydrogeology_parameter
+                    well.save()
 
                 try:
                     self.process_station(
