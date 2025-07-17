@@ -2,11 +2,15 @@ from datetime import timedelta
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
+from django.core.cache import cache
 from django.utils import timezone
 
 from gwml2.harvesters.models.harvester import Harvester, HarvesterLog, DONE
 
 logger = get_task_logger(__name__)
+
+LOCK_EXPIRE = 60 * 5
+LOCK_ID = 'run_all_harvester_lock'
 
 
 @shared_task(bind=True, queue='update')
@@ -43,50 +47,62 @@ def run_all_harvester(self):
     """Run All harvesters."""
     # 1. Get current running harvesters
     from gwml2.models.site_preference import SitePreference
-    pref = SitePreference.load()
 
-    # Get the current latest running id
-    running_ids = pref.running_harvesters.values_list(
-        'id', flat=True
-    ).order_by('id')
-    latest_id = running_ids.last()
-    if not latest_id:
-        latest_id = 0
+    acquire_lock = lambda: cache.add(LOCK_ID, 'true', LOCK_EXPIRE)
+    if not acquire_lock():
+        logger.info('RUN_ALL_HARVESTER: Task is already running. Skipping.')
+        return
 
-    # Get upcoming ids
-    # Greater than equal to the latest running id
-    # And from first
-    one_day_ago = timezone.now() - timedelta(days=1)
-    recent_harvesters = HarvesterLog.objects.filter(
-        end_time__gte=one_day_ago,
-        status=DONE
-    ).values_list('harvester_id', flat=True)
-    harvesters = Harvester.objects.filter(active=True).exclude(
-        id__in=running_ids
-    ).exclude(id__in=recent_harvesters)
-    upcoming_ids = list(
-        harvesters.filter(id__gt=latest_id).order_by('id').values_list(
-            'id', flat=True)
-    ) + list(
-        harvesters.order_by('id').values_list('id', flat=True)
-    )
+    try:
+        logger.info('RUN_ALL_HARVESTER: Running.')
 
-    SitePreference.update_running_harvesters()
-    pref.refresh_from_db()
-    running_count = pref.running_harvesters.order_by('id').count()
+        pref = SitePreference.load()
 
-    # Get the different between max and running count
-    number_of_new_harvester = (
-            pref.running_harvesters_concurrency_count - running_count
-    )
+        # Get the current latest running id
+        running_ids = pref.running_harvesters.values_list(
+            'id', flat=True
+        ).order_by('id')
+        latest_id = running_ids.last()
+        if not latest_id:
+            latest_id = 0
 
-    # Run every id for the next queue in the remaining slot
-    for idx in range(number_of_new_harvester):
-        try:
-            _id = upcoming_ids[idx]
-            run_harvester.delay(_id)
-        except (Harvester.DoesNotExist, IndexError):
-            pass
+        # Get upcoming ids
+        # Greater than equal to the latest running id
+        # And from first
+        one_day_ago = timezone.now() - timedelta(days=1)
+        recent_harvesters = HarvesterLog.objects.filter(
+            end_time__gte=one_day_ago,
+            status=DONE
+        ).values_list('harvester_id', flat=True)
+        harvesters = Harvester.objects.filter(active=True).exclude(
+            id__in=running_ids
+        ).exclude(id__in=recent_harvesters)
+        upcoming_ids = list(
+            harvesters.filter(id__gt=latest_id).order_by('id').values_list(
+                'id', flat=True)
+        ) + list(
+            harvesters.order_by('id').values_list('id', flat=True)
+        )
 
-    SitePreference.update_running_harvesters()
-    pref.refresh_from_db()
+        SitePreference.update_running_harvesters()
+        pref.refresh_from_db()
+        running_count = pref.running_harvesters.order_by('id').count()
+
+        # Get the different between max and running count
+        number_of_new_harvester = (
+                pref.running_harvesters_concurrency_count - running_count
+        )
+
+        # Run every id for the next queue in the remaining slot
+        for idx in range(number_of_new_harvester):
+            try:
+                _id = upcoming_ids[idx]
+                run_harvester.delay(_id)
+            except (Harvester.DoesNotExist, IndexError):
+                pass
+
+        SitePreference.update_running_harvesters()
+        pref.refresh_from_db()
+
+    finally:
+        cache.delete(LOCK_ID)
