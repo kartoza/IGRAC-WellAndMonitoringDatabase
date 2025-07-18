@@ -31,7 +31,7 @@ class HubeauWaterQuality(HubeauHarvester):
     @property
     def measurement_fields(self) -> list[str]:
         """Measurement of fields to be returned."""
-        return ["date_mesure", "niveau_nappe_eau"]
+        return ["date_debut_prelevement", "resultat"]
 
     @property
     def measurement_date_debut_key(self):
