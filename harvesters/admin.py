@@ -23,9 +23,12 @@ GINGWINFO = (
     'Geological Survey Canada (Canada)'
 )
 
-# France
+
+# ---------------------------------------------
+# FRANCE (HUBEAU)
+# ---------------------------------------------
 HUBEAU = (
-    'gwml2.harvesters.harvester.hubeau.Hubeau',
+    'gwml2.harvesters.harvester.hubeau.level.HubeauWaterLevel',
     '(France) French Geological Survey '
     '(https://hubeau.eaufrance.fr/page/api-piezometrie)',
     'French Geological Survey (France)'
@@ -64,7 +67,7 @@ CIDA_USGS = (
 )
 
 # ---------------------------------------------
-# EHYD
+# AUSTRIA (EHYD)
 # ---------------------------------------------
 EHYD = (
     'gwml2.harvesters.harvester.ehyd.FileBase',
@@ -74,7 +77,7 @@ EHYD = (
 )
 
 # ---------------------------------------------
-# Sweden
+# Sweden (SGU)
 # ---------------------------------------------
 SGU_GROUNDWATER_API = (
     'gwml2.harvesters.harvester.sgu.water_level.SguWaterLevelAPI',

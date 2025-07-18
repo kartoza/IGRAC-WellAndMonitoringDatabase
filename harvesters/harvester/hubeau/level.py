@@ -17,7 +17,7 @@ from gwml2.tasks.data_file_cache.country_recache import (
 )
 
 
-class Hubeau(BaseHarvester):
+class HubeauWaterLevel(BaseHarvester):
     """
     Harvester for https://hubeau.eaufrance.fr/page/api-piezometrie
 
@@ -47,7 +47,7 @@ class Hubeau(BaseHarvester):
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL
         )
-        super(Hubeau, self).__init__(harvester, replace, original_id)
+        super(HubeauWaterLevel, self).__init__(harvester, replace, original_id)
 
     def _process(self):
         """Processing the data."""
@@ -183,32 +183,32 @@ class Hubeau(BaseHarvester):
                 site_name = station['nom_commune']
                 altitude = float(station['altitude_station'])
 
-                # Save well
-                well, harvester_well_data = self._save_well(
-                    original_id=original_id,
-                    name=site_name,
-                    latitude=latitude,
-                    longitude=longitude,
-                    ground_surface_elevation_masl=altitude,
-                    reassign_organisation=True
-                )
-
-                # Prefetch well
-                self.check_prefetch_wells(well, original_id)
-
-                # We just filter by latest one
-                last_date = None
-                first_date = None
-                if well:
-                    last = well.welllevelmeasurement_set.first()
-                    if last:
-                        last_date = last.time.strftime("%Y-%m-%d")
-                    first = well.welllevelmeasurement_set.last()
-                    if first:
-                        first_date = first.time.strftime("%Y-%m-%d")
-
                 # Process measurement
                 try:
+                    # Save well
+                    well, harvester_well_data = self._save_well(
+                        original_id=original_id,
+                        name=site_name,
+                        latitude=latitude,
+                        longitude=longitude,
+                        ground_surface_elevation_masl=altitude,
+                        reassign_organisation=True
+                    )
+
+                    # Prefetch well
+                    self.check_prefetch_wells(well, original_id)
+
+                    # We just filter by latest one
+                    last_date = None
+                    first_date = None
+                    if well:
+                        last = well.welllevelmeasurement_set.first()
+                        if last:
+                            last_date = last.time.strftime("%Y-%m-%d")
+                        first = well.welllevelmeasurement_set.last()
+                        if first:
+                            first_date = first.time.strftime("%Y-%m-%d")
+
                     # -----------------------
                     # Process after
                     params = {

@@ -27,4 +27,4 @@ class OrganisationContributorSerializer(serializers.ModelSerializer):
     def get_data_types(self, obj: Organisation):
         """Get data types."""
 
-        return ','.join(obj.data_types)
+        return ', '.join(obj.data_types)
