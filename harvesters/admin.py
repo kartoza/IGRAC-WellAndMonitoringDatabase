@@ -23,17 +23,6 @@ GINGWINFO = (
     'Geological Survey Canada (Canada)'
 )
 
-
-# ---------------------------------------------
-# FRANCE (HUBEAU)
-# ---------------------------------------------
-HUBEAU = (
-    'gwml2.harvesters.harvester.hubeau.level.HubeauWaterLevel',
-    '(France) French Geological Survey '
-    '(https://hubeau.eaufrance.fr/page/api-piezometrie)',
-    'French Geological Survey (France)'
-)
-
 # Ireland
 EPAWEBAPP = (
     'gwml2.harvesters.harvester.epawebapp.Epawebapp',
@@ -77,6 +66,22 @@ EHYD = (
 )
 
 # ---------------------------------------------
+# FRANCE (HUBEAU)
+# ---------------------------------------------
+HUBEAU_WATER_LEVEL = (
+    'gwml2.harvesters.harvester.hubeau.level.HubeauWaterLevel',
+    '(France) Water Level in France '
+    '(https://hubeau.eaufrance.fr/page/api-piezometrie)',
+    'French Geological Survey (France)'
+)
+HUBEAU_WATER_QUALITY = (
+    'gwml2.harvesters.harvester.hubeau.quality.HubeauWaterQuality',
+    '(France) Water Quality in France '
+    '(https://hubeau.eaufrance.fr/page/api-qualite-nappes)',
+    'French Geological Survey (France)'
+)
+
+# ---------------------------------------------
 # Sweden (SGU)
 # ---------------------------------------------
 SGU_GROUNDWATER_API = (
@@ -104,7 +109,8 @@ HARVESTERS = (
     AZULBHD,
     EHYD,
     GINGWINFO,
-    HUBEAU,
+    HUBEAU_WATER_LEVEL,
+    HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
     GNSCRI,
     HYDAPI,
