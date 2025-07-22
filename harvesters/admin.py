@@ -163,6 +163,7 @@ harvest_data.short_description = 'Run'
 
 
 class HarvesterAdmin(admin.ModelAdmin):
+    """Admin for Harvester model."""
     form = HarvesterForm
     inlines = [
         HarvesterAttributeInline, HarvesterParameterMapInline,
@@ -170,7 +171,7 @@ class HarvesterAdmin(admin.ModelAdmin):
     ]
     list_display = (
         'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class',
-        'last_run', 'task_id', 'task_status'
+        'last_run', 'task_id', 'task_status', 'last_log'
     )
     list_editable = ('active',)
     actions = (harvest_data,)
@@ -188,6 +189,13 @@ class HarvesterAdmin(admin.ModelAdmin):
             return 'RUNNING'
         except pref.running_harvesters.model.DoesNotExist:
             return None
+
+    def last_log(self, obj: Harvester):
+        """Return last log."""
+        log = obj.harvesterlog_set.first()
+        if not log:
+            return '-'
+        return f'{log.status} : {log.note}'
 
 
 class HarvesterWellDataAdmin(admin.ModelAdmin):
