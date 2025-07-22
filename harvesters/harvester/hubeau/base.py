@@ -120,13 +120,13 @@ class HubeauHarvester(BaseHarvester):
                     f'{original_id} - Checking'
                 )
 
+                if self.codes and original_id not in self.codes:
+                    continue
+
                 # Check last code, if there, skip if not found yet
                 if self.last_code:
                     if original_id == self.last_code:
                         self.proceed = True
-
-                if self.codes and original_id not in self.codes:
-                    continue
 
                 if not self.proceed:
                     continue

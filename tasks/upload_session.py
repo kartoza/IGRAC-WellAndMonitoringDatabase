@@ -2,14 +2,15 @@ from datetime import timedelta
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.core.cache import cache
 from django.utils import timezone
 
 from gwml2.models.site_preference import SitePreference
 from gwml2.models.upload_session import UploadSession
+from gwml2.tasks.file_lock import file_lock
 
 LOCK_EXPIRE = 60 * 10
-LOCK_ID = 'resume_all_uploader_lock'
+LOCK_ID = 'resume_all_uploader.lock'
+
 logger = get_task_logger(__name__)
 
 
@@ -31,26 +32,20 @@ def uploads_to_be_resumed():
 )
 def resume_all_uploader(self):
     """Resume all uploader."""
-    acquire_lock = lambda: cache.add(LOCK_ID, 'true', LOCK_EXPIRE)
+    with file_lock(LOCK_ID) as lock:
+        if lock is None:
+            return
 
-    if not acquire_lock():
-        print('RESUME_ALL_UPLOADER: Another instance is running. Skipping.')
-        return
-
-    try:
         preference = SitePreference.load()
         print(
-            f'RESUME_ALL_UPLOADER settings : {preference.batch_upload_auto_resume}'
+            f'{LOCK_ID} settings : {preference.batch_upload_auto_resume}'
         )
         if not preference.batch_upload_auto_resume:
-            print('RESUME_ALL_UPLOADER : SKIPPED')
+            print(f'{LOCK_ID} : SKIPPED')
             return
 
         query = uploads_to_be_resumed()
-        print(f'RESUME_ALL_UPLOADER : {query.count()}')
+        print(f'{LOCK_ID} : {query.count()}')
         for session in query:
-            print(f'Resume {session.id}')
+            print(f'{LOCK_ID} Resume {session.id}')
             session.resume()
-
-    finally:
-        cache.delete(LOCK_ID)
