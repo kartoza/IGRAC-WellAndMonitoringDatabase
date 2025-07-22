@@ -2,15 +2,14 @@ from datetime import timedelta
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.core.cache import cache
 from django.utils import timezone
 
 from gwml2.harvesters.models.harvester import Harvester, HarvesterLog, DONE
+from gwml2.tasks.file_lock import file_lock
 
 logger = get_task_logger(__name__)
 
-LOCK_EXPIRE = 60 * 5
-LOCK_ID = 'run_all_harvester_lock'
+LOCK_ID = 'run_all_harvester.lock'
 
 
 @shared_task(bind=True, queue='update')
@@ -47,14 +46,9 @@ def run_all_harvester(self):
     """Run All harvesters."""
     # 1. Get current running harvesters
     from gwml2.models.site_preference import SitePreference
-
-    acquire_lock = lambda: cache.add(LOCK_ID, 'true', LOCK_EXPIRE)
-    if not acquire_lock():
-        logger.info('RUN_ALL_HARVESTER: Task is already running. Skipping.')
-        return
-
-    try:
-        logger.info('RUN_ALL_HARVESTER: Running.')
+    with file_lock(LOCK_ID) as lock:
+        if lock is None:
+            return
 
         pref = SitePreference.load()
 
@@ -103,6 +97,3 @@ def run_all_harvester(self):
 
         SitePreference.update_running_harvesters()
         pref.refresh_from_db()
-
-    finally:
-        cache.delete(LOCK_ID)
