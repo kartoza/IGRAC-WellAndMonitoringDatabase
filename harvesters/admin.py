@@ -23,17 +23,6 @@ GINGWINFO = (
     'Geological Survey Canada (Canada)'
 )
 
-
-# ---------------------------------------------
-# FRANCE (HUBEAU)
-# ---------------------------------------------
-HUBEAU = (
-    'gwml2.harvesters.harvester.hubeau.level.HubeauWaterLevel',
-    '(France) French Geological Survey '
-    '(https://hubeau.eaufrance.fr/page/api-piezometrie)',
-    'French Geological Survey (France)'
-)
-
 # Ireland
 EPAWEBAPP = (
     'gwml2.harvesters.harvester.epawebapp.Epawebapp',
@@ -77,6 +66,22 @@ EHYD = (
 )
 
 # ---------------------------------------------
+# FRANCE (HUBEAU)
+# ---------------------------------------------
+HUBEAU_WATER_LEVEL = (
+    'gwml2.harvesters.harvester.hubeau.level.HubeauWaterLevel',
+    '(France) Water Level in France '
+    '(https://hubeau.eaufrance.fr/page/api-piezometrie)',
+    'French Geological Survey (France)'
+)
+HUBEAU_WATER_QUALITY = (
+    'gwml2.harvesters.harvester.hubeau.quality.HubeauWaterQuality',
+    '(France) Water Quality in France '
+    '(https://hubeau.eaufrance.fr/page/api-qualite-nappes)',
+    'French Geological Survey (France)'
+)
+
+# ---------------------------------------------
 # Sweden (SGU)
 # ---------------------------------------------
 SGU_GROUNDWATER_API = (
@@ -104,7 +109,8 @@ HARVESTERS = (
     AZULBHD,
     EHYD,
     GINGWINFO,
-    HUBEAU,
+    HUBEAU_WATER_LEVEL,
+    HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
     GNSCRI,
     HYDAPI,
@@ -157,6 +163,7 @@ harvest_data.short_description = 'Run'
 
 
 class HarvesterAdmin(admin.ModelAdmin):
+    """Admin for Harvester model."""
     form = HarvesterForm
     inlines = [
         HarvesterAttributeInline, HarvesterParameterMapInline,
@@ -164,7 +171,7 @@ class HarvesterAdmin(admin.ModelAdmin):
     ]
     list_display = (
         'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class',
-        'last_run', 'task_id', 'task_status'
+        'last_run', 'task_id', 'task_status', 'last_log'
     )
     list_editable = ('active',)
     actions = (harvest_data,)
@@ -182,6 +189,13 @@ class HarvesterAdmin(admin.ModelAdmin):
             return 'RUNNING'
         except pref.running_harvesters.model.DoesNotExist:
             return None
+
+    def last_log(self, obj: Harvester):
+        """Return last log."""
+        log = obj.harvesterlog_set.first()
+        if not log:
+            return '-'
+        return f'{log.status} : {log.note}'
 
 
 class HarvesterWellDataAdmin(admin.ModelAdmin):
