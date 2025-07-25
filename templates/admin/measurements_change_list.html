@@ -6,6 +6,7 @@
       function selectDuplicates() {
         let prevData = []
         let found = false
+        let foundCount = 0
         $('.grp-row').each(function (index, element) {
           const well = $(element).find('.field-well').text();
           if (!well) {
@@ -19,18 +20,22 @@
           if (JSON.stringify(currData) === JSON.stringify(prevData)) {
             $(element).find('.action-select').click();
             found = true
+            foundCount++
           }
           prevData = currData
         })
 
         if (found) {
           $('.grp-changelist-actions select').val('delete_selected')
+          $('.select-duplicates').html(`Select duplicates (${foundCount})`)
+        } else {
+          $('.select-duplicates').html(`Select duplicates`)
         }
       }
     </script>
     <ul class="grp-object-tools">
         <li>
-            <a class="grp-add-link grp-state-focus"
+            <a class="grp-add-link grp-state-focus select-duplicates"
                onclick="selectDuplicates()">
                 Select duplicates
             </a>

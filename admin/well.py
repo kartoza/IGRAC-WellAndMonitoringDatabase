@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
+from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from django.db import connections
@@ -211,31 +213,6 @@ class MaterializedViewWellAdmin(admin.ModelAdmin):
         return format_html(obj.detail)
 
 
-class MeasurementAdmin(admin.ModelAdmin):
-    list_display = (
-        'well', 'time', 'parameter', 'methodology', 'value',
-        'default_unit', 'default_value'
-    )
-    search_fields = ('well__original_id',)
-    raw_id_fields = ('value',)
-    list_filter = ('time',)
-    ordering = ('well', 'parameter', 'time')
-    change_list_template = "admin/measurements_change_list.html"
-
-
-class WellLevelMeasurementAdmin(MeasurementAdmin):
-    list_display = (
-        'well', 'time', 'parameter', 'methodology', 'value', 'value_in_m',
-        'default_unit', 'default_value'
-    )
-    readonly_fields = ('value_in_m',)
-
-
-admin.site.register(WellLevelMeasurement, WellLevelMeasurementAdmin)
-admin.site.register(WellQualityMeasurement, MeasurementAdmin)
-admin.site.register(WellYieldMeasurement, MeasurementAdmin)
-
-
 class DocumentAdmin(admin.ModelAdmin):
     list_display = ('well', 'uploaded_at', 'file')
     search_fields = ('well__original_id',)
@@ -250,3 +227,78 @@ class DocumentAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WellDocument, DocumentAdmin)
+
+
+# --------------------------------------------------------------------
+# MEASUREMENTS
+# --------------------------------------------------------------------
+
+
+class PageSizeFilter(SimpleListFilter):
+    title = 'Page size'
+    parameter_name = 'page_size'
+
+    def lookups(self, request, model_admin):
+        """Lookups."""
+        return [
+            ('10', '10'),
+            ('100', '100'),
+            ('250', '250'),
+            ('500', '500'),
+            ('1000', '1000'),
+            ('5000', '5000'),
+            ('10000', '10000'),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
+        return queryset
+
+
+class PageSizeChangeList(ChangeList):
+    """Page size change list."""
+
+    def get_results(self, request):
+        self.list_per_page = self.get_page_size(request)
+        super().get_results(request)
+
+    def get_page_size(self, request):
+        try:
+            return int(request.GET.get('page_size', self.list_per_page))
+        except (TypeError, ValueError):
+            return self.list_per_page
+
+
+class MeasurementAdmin(admin.ModelAdmin):
+    list_display = (
+        'well', 'time', 'parameter', 'methodology', 'value',
+        'default_unit', 'default_value'
+    )
+    search_fields = ('well__original_id',)
+    raw_id_fields = ('value',)
+    list_filter = (PageSizeFilter, 'time')
+    ordering = ('well', 'parameter', 'time')
+    change_list_template = "admin/measurements_change_list.html"
+
+    def get_changelist(self, request, **kwargs):
+        return PageSizeChangeList
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['page_size'] = request.GET.get(
+            'page_size', self.list_per_page
+        )
+        return super().changelist_view(request, extra_context=extra_context)
+
+
+class WellLevelMeasurementAdmin(MeasurementAdmin):
+    list_display = (
+        'well', 'time', 'parameter', 'methodology', 'value', 'value_in_m',
+        'default_unit', 'default_value'
+    )
+    readonly_fields = ('value_in_m',)
+
+
+admin.site.register(WellLevelMeasurement, WellLevelMeasurementAdmin)
+admin.site.register(WellQualityMeasurement, MeasurementAdmin)
+admin.site.register(WellYieldMeasurement, MeasurementAdmin)
