@@ -277,7 +277,6 @@ class MeasurementAdmin(admin.ModelAdmin):
     search_fields = ('well__original_id',)
     raw_id_fields = ('value',)
     list_filter = (PageSizeFilter, 'time')
-    ordering = ('well', 'parameter', 'time')
     change_list_template = "admin/measurements_change_list.html"
 
     def get_changelist(self, request, **kwargs):
