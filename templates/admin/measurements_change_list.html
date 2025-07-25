@@ -1,0 +1,49 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block object-tools %}
+    <script>
+      function selectDuplicates() {
+        let prevData = []
+        let found = false
+        $('.grp-row').each(function (index, element) {
+          const well = $(element).find('.field-well').text();
+          if (!well) {
+            return
+          }
+          const currData = [
+            $(element).find('.field-well').text(),
+            $(element).find('.field-time').text(),
+            $(element).find('.field-parameter').text(),
+          ]
+          if (JSON.stringify(currData) === JSON.stringify(prevData)) {
+            $(element).find('.action-select').click();
+            found = true
+          }
+          prevData = currData
+        })
+
+        if (found) {
+          $('.grp-changelist-actions select').val('delete_selected')
+        }
+      }
+    </script>
+    <ul class="grp-object-tools">
+        <li>
+            <a class="grp-add-link grp-state-focus"
+               onclick="selectDuplicates()">
+                Select duplicates
+            </a>
+        </li>
+        {% block object-tools-items %}
+            {% if has_add_permission %}
+                {% url cl.opts|admin_urlname:'add' as add_url %}
+                <li>
+                    <a href="{% add_preserved_filters add_url is_popup to_field %}"
+                       class="grp-add-link grp-state-focus">
+                        {% blocktrans with cl.opts.verbose_name as name %}Add
+                            {{ name }}{% endblocktrans %}</a></li>
+            {% endif %}
+        {% endblock %}
+    </ul>
+{% endblock %}
