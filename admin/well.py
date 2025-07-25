@@ -10,7 +10,7 @@ from django.utils.html import format_html
 
 from gwml2.models.site_preference import SitePreference
 from gwml2.models.well import (
-    Well, WellDocument,
+    Well, WellDocument, Measurement,
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
@@ -138,8 +138,8 @@ class WellAdmin(admin.ModelAdmin):
         'latitude', 'longitude',
         'country', 'id',
         'first_time_measurement', 'last_time_measurement',
-        'edit', 'measurement_cache_generated_at',
-        'data_cache_generated_at'
+        'edit', '_measurement_cache_generated',
+        '_data_cache_generated'
     )
     list_filter = (
         'organisation', 'country', 'feature_type',
@@ -183,6 +183,15 @@ class WellAdmin(admin.ModelAdmin):
 
     def longitude(self, obj: Well):
         return obj.location.x
+
+    def _measurement_cache_generated(self, obj: Well):
+        return obj.measurement_cache_generated_at
+
+    def _data_cache_generated(self, obj: Well):
+        return obj.data_cache_generated_at
+
+    _measurement_cache_generated.admin_order_field = 'measurement_cache_generated_at'
+    _data_cache_generated.admin_order_field = 'data_cache_generated_at'
 
 
 admin.site.register(Well, WellAdmin)
@@ -271,8 +280,7 @@ class PageSizeChangeList(ChangeList):
 
 class MeasurementAdmin(admin.ModelAdmin):
     list_display = (
-        'well', 'time', 'parameter', 'methodology', 'value',
-        'default_unit', 'default_value'
+        '_well_id', 'time', 'parameter_name', '_default_unit', 'default_value'
     )
     search_fields = ('well__original_id',)
     raw_id_fields = ('value',)
@@ -289,15 +297,20 @@ class MeasurementAdmin(admin.ModelAdmin):
         )
         return super().changelist_view(request, extra_context=extra_context)
 
+    def _well_id(self, obj: WellLevelMeasurement):
+        return obj.well_id
 
-class WellLevelMeasurementAdmin(MeasurementAdmin):
-    list_display = (
-        'well', 'time', 'parameter', 'methodology', 'value', 'value_in_m',
-        'default_unit', 'default_value'
-    )
-    readonly_fields = ('value_in_m',)
+    def parameter_name(self, obj: Measurement):
+        return obj.parameter.__str__()
+
+    def _default_unit(self, obj: Measurement):
+        return obj.default_unit.__str__()
+
+    _well_id.short_description = 'Well ID'
+    _well_id.admin_order_field = 'well_id'
+    parameter_name.admin_order_field = 'parameter'
 
 
-admin.site.register(WellLevelMeasurement, WellLevelMeasurementAdmin)
+admin.site.register(WellLevelMeasurement, MeasurementAdmin)
 admin.site.register(WellQualityMeasurement, MeasurementAdmin)
 admin.site.register(WellYieldMeasurement, MeasurementAdmin)

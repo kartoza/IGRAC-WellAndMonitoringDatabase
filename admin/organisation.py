@@ -36,10 +36,22 @@ def update_ggis_uid(modeladmin, request, queryset):
         update_ggis_uid.delay(org.id)
 
 
-def assign_data(modeladmin, request, queryset):
+def assign_data_types(modeladmin, request, queryset):
     """Assign data to the organisation."""
     for org in queryset:
-        org.assign_data()
+        org.assign_data_types()
+
+
+def assign_date_range(modeladmin, request, queryset):
+    """Assign data to the organisation."""
+    for org in queryset:
+        org.assign_date_range()
+
+
+def assign_license(modeladmin, request, queryset):
+    """Assign data to the organisation."""
+    for org in queryset:
+        org.assign_license()
 
 
 class OrganisationLinkInline(admin.TabularInline):
@@ -51,8 +63,8 @@ class OrganisationLinkInline(admin.TabularInline):
 class OrganisationAdmin(admin.ModelAdmin):
     """Admin for Organisation model."""
     list_display = (
-        'name', 'description', 'links', 'data_types', 'time_range',
-        'license_name', 'active', 'country', '_groups', 'well_number',
+        'name', 'links', 'data_types', 'time_range',
+        'license_name', 'active', 'country', '_groups', 'description',
         'data_cache_generated_at'
     )
     list_editable = ('active',)
@@ -60,13 +72,10 @@ class OrganisationAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     actions = (
         generate_data_wells_cache, reassign_wells_country, update_ggis_uid,
-        assign_data
+        assign_data_types, assign_date_range, assign_license
     )
     inlines = [OrganisationLinkInline]
     form = OrganisationFormAdmin
-
-    def well_number(self, org: Organisation):
-        return org.well_set.all().count()
 
     def links(self, org: Organisation):
         return list(
