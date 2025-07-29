@@ -254,6 +254,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     # ------------------------------------------------
     def remove_cache(self):
         """Remove cache."""
+        GWML2_FOLDER = settings.GWML2_FOLDER
+        WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
+
         # Remove measurement cache
         folder = self.return_measurement_cache_folder()
         if os.path.exists(folder):
@@ -266,6 +269,11 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             # Remove the file
             if os.path.exists(filename):
                 os.remove(filename)
+
+        # Remove data cache
+        folder = os.path.join(WELL_FOLDER, f'{self.id}')
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
 
     def return_measurement_cache_folder(self):
         return os.path.join(

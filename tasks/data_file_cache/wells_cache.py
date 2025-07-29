@@ -105,7 +105,8 @@ class GenerateWellCacheFile(object):
             if lock is None:
                 return
 
-            if not force_regenerate:
+            _file = os.path.join(self.folder, 'data.json')
+            if not force_regenerate and os.path.exists(_file):
                 return
 
             self.log(f'----- Begin cache : id = {self.well.id}  -------')
@@ -115,13 +116,18 @@ class GenerateWellCacheFile(object):
                 os.makedirs(self.folder)
 
             # Delete wells_filename
+            _folder = os.path.join(self.folder, 'done')
+            if os.path.exists(_folder):
+                if os.path.isfile(_folder):
+                    os.remove(_folder)
+                elif os.path.isdir(_folder):
+                    shutil.rmtree(_folder)
             _folder = os.path.join(self.folder, self.wells_filename)
             if os.path.exists(_folder):
                 if os.path.isfile(_folder):
                     os.remove(_folder)
                 elif os.path.isdir(_folder):
                     shutil.rmtree(_folder)
-            # Delete wells_filename
             _folder = os.path.join(self.folder, self.drill_filename)
             if os.path.exists(_folder):
                 if os.path.isfile(_folder):
@@ -147,22 +153,27 @@ class GenerateWellCacheFile(object):
     def run(self):
         """ Run wells """
         well = self.well
+        generated = False
 
         # General information
         if GENERATORS.GENERAL_INFORMATION in self.generators:
             print(f'Generate {GENERATORS.GENERAL_INFORMATION}')
             self.general_information(well)
+            generated =True
         if GENERATORS.HYDROGEOLOGY in self.generators:
             print(f'Generate {GENERATORS.HYDROGEOLOGY}')
             self.hydrogeology(well)
+            generated =True
         if GENERATORS.MANAGEMENT in self.generators:
             print(f'Generate {GENERATORS.MANAGEMENT}')
             self.management(well)
+            generated =True
 
         # Drill
         if GENERATORS.DRILLING_AND_CONSTRUCTION in self.generators:
             print(f'Generate {GENERATORS.DRILLING_AND_CONSTRUCTION}')
             self.drilling_and_construction(well)
+            generated =True
 
         # ----------------------------------------
         # Monitor data
@@ -182,22 +193,30 @@ class GenerateWellCacheFile(object):
 
             xlsx_to_ods(monitor_file)
             os.remove(monitor_file)
+            generated =True
 
         # Update data cache generated at
-        well.data_cache_generated_at = timezone.now()
-        well.save()
+        if generated:
+            well.data_cache_generated_at = timezone.now()
+            well.save()
 
     def write_json(self, sheetname, data):
         """Write JSON by sheetname."""
-
         _file = os.path.join(self.folder, sheetname + '.json')
-
         if os.path.exists(_file):
             os.remove(_file)
 
+        _file = os.path.join(self.folder, 'data.json')
+        if os.path.exists(_file):
+            with open(_file, 'r') as f:
+                curr_data = json.load(f)
+        else:
+            curr_data = {}
+        curr_data[sheetname] = data
+
         # Writing to sample.json
         with open(_file, "w") as outfile:
-            outfile.write(json.dumps(data, indent=4))
+            outfile.write(json.dumps(curr_data, indent=4))
 
     def general_information(self, well: Well):
         """General Information of well."""

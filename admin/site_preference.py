@@ -2,7 +2,8 @@ from django.contrib import admin
 
 from gwml2.models.site_preference import SitePreference
 from gwml2.tasks.data_file_cache.clean_cache import (
-    clean_dangling_measurement_cache
+    clean_dangling_measurement_cache,
+    clean_dangling_well_data_cache
 )
 from gwml2.tasks.harvester import run_all_harvester
 
@@ -23,6 +24,12 @@ def clean_dangling_measurement_cache_action(modeladmin, request, queryset):
     clean_dangling_measurement_cache.delay()
 
 
+@admin.action(description='Clean dangling well data cache')
+def clean_dangling_well_data_cache_action(modeladmin, request, queryset):
+    """Clean danglin measurement cache"""
+    clean_dangling_well_data_cache.delay()
+
+
 @admin.register(SitePreference)
 class SitePreferenceAdmin(admin.ModelAdmin):
     """SitePreference Admin."""
@@ -34,7 +41,8 @@ class SitePreferenceAdmin(admin.ModelAdmin):
     filter_horizontal = ('running_harvesters',)
     actions = (
         update_running_harvester, running_all_harvesters,
-        clean_dangling_measurement_cache_action
+        clean_dangling_measurement_cache_action,
+        clean_dangling_well_data_cache_action
     )
 
     def _running_harvesters(self, obj: SitePreference):
