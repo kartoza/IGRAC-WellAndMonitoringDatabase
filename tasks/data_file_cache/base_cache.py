@@ -137,8 +137,19 @@ class WellCacheZipFileBase(WellCacheFileBase):
     ):
         """Merge data per well.."""
         well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
+
+        # Load data of well
+        well_data = None
+        data_file = os.path.join(well_folder, 'data.json')
+        if os.path.exists(data_file):
+            try:
+                with open(data_file, 'r') as f:
+                    well_data = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                pass
         for sheetname in sheets:
             self.merge_data_between_sheets(
+                well_data,
                 os.path.join(well_folder, filename),
                 well_book, ggmn_book, sheetname,
                 well.name
@@ -149,23 +160,39 @@ class WellCacheZipFileBase(WellCacheFileBase):
             well_book.active = 0
 
     def merge_data_between_sheets(
-            self, source_file, target_book, target_book_2, sheetname, well_name
+            self, well_data,
+            source_folder, target_book, target_book_2, sheetname,
+            well_name
     ):
         """Merge data between sheets"""
         target_column_number = SheetName().get_column_size(
             sheet_name=sheetname
         )
 
-        if (
-                not os.path.exists(source_file)
-                or (not target_book and not target_book_2)
-        ):
-            return
-        source_file = os.path.join(source_file, sheetname + '.json')
-        data = []
-        if os.path.exists(source_file):
-            with open(source_file, "r") as outfile:
-                data = json.loads(outfile.read())
+        # -------------------------------
+        # This is new approach
+        # -------------------------------
+        if well_data:
+            try:
+                data = well_data[sheetname]
+            except KeyError:
+                return
+        else:
+            # -------------------------------
+            # This is old approach
+            # -------------------------------
+            if not os.path.exists(source_folder) or (
+                    not target_book and not target_book_2
+            ):
+                return
+            source_file = os.path.join(source_folder, f'{sheetname}.json')
+            if not os.path.exists(source_file):
+                return
+            with open(source_file, 'r') as f:
+                try:
+                    data = json.load(f)
+                except json.JSONDecodeError:
+                    return
 
         # Target book 1
         target_sheet = None
