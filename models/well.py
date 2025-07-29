@@ -1,6 +1,7 @@
 import gzip
 import json
 import os
+import shutil
 from datetime import datetime
 
 from django.conf import settings
@@ -248,14 +249,19 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             return False
         return user.id in self.organisation.editors or user.id in self.organisation.admins
 
-    def return_measurement_cache_path(self, measurement_name: str):
-        """
-        Return file path of cache file
-        """
-        folder = os.path.join(
+    # ------------------------------------------------
+    # Measurement cache
+    # ------------------------------------------------
+    def return_measurement_cache_folder(self):
+        return os.path.join(
             settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
         )
-        return os.path.join(folder, '{}.gz'.format(measurement_name))
+
+    def return_measurement_cache_path(self, measurement_name: str):
+        """Return a file path of cache file."""
+        return os.path.join(
+            settings.MEASUREMENTS_FOLDER, f'{self.id}-{measurement_name}.gz'
+        )
 
     def measurement_data(self, measurement_name: str):
         """ Return measurement data """
@@ -286,9 +292,11 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                     parameter = measurement.parameter.name
 
                     if MeasurementModel == WellLevelMeasurement:
-                        if parameter in [MEASUREMENT_PARAMETER_AMSL,
-                                         MEASUREMENT_PARAMETER_TOP,
-                                         MEASUREMENT_PARAMETER_GROUND]:
+                        if parameter in [
+                            MEASUREMENT_PARAMETER_AMSL,
+                            MEASUREMENT_PARAMETER_TOP,
+                            MEASUREMENT_PARAMETER_GROUND
+                        ]:
                             parameter = MEASUREMENT_PARAMETER_AMSL
                             if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
                                 if top_borehole_elevation and value > 0:
@@ -362,27 +370,33 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
 
     def generate_measurement_cache(self, model=None):
         """ Generate measurement cache """
-        folder = os.path.join(
-            settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
-        )
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+        folder = self.return_measurement_cache_folder()
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
 
         for MeasurementModel in MEASUREMENT_MODELS:
             measurement_name = MeasurementModel.__name__
             if model and measurement_name != model:
                 continue
             output = self.measurement_data(measurement_name)
-            if output:
-                json_str = json.dumps(output) + "\n"
-                json_bytes = json_str.encode('utf-8')
+            filename = self.return_measurement_cache_path(measurement_name)
 
-                filename = self.return_measurement_cache_path(measurement_name)
-                if os.path.exists(filename):
-                    os.remove(filename)
-                file = gzip.open(filename, 'wb')
-                file.write(json_bytes)
-                file.close()
+            # Remove the file
+            if os.path.exists(filename):
+                os.remove(filename)
+
+            # If it has output data, write to file
+            try:
+                if output['data']:
+                    print(f"Saving : {filename}")
+                    json_str = json.dumps(output) + "\n"
+                    json_bytes = json_str.encode('utf-8')
+                    file = gzip.open(filename, 'wb')
+                    file.write(json_bytes)
+                    file.close()
+            except KeyError:
+                pass
+
         self.measurement_cache_generated_at_check()
 
     def generate_all_measurement_caches(
@@ -401,7 +415,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 cache_file = self.return_measurement_cache_path(model)
                 if os.path.exists(cache_file):
                     return
-            print(f"Generating : {model}")
             self.generate_measurement_cache(model)
 
     def measurement_cache_generated_at_check(self):

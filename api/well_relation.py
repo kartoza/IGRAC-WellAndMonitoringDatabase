@@ -2,12 +2,14 @@ __author__ = 'Irwan Fathurrahman <meomancer@gmail.com>'
 __date__ = '20/10/20'
 
 import os
-from django.http import HttpResponse, Http404, JsonResponse, HttpResponseBadRequest
+
+from braces.views import StaffuserRequiredMixin
+from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import View
-from braces.views import StaffuserRequiredMixin
-from gwml2.models import Well
+
 from gwml2.forms import get_form_from_model
+from gwml2.models import Well
 from gwml2.templatetags.gwml2_forms import delete_url
 
 
@@ -56,7 +58,18 @@ class WellMeasurementDataView(View):
         """ Return data of measurement
         """
         well = get_object_or_404(Well, id=id)
+
+        # This is using new path
         cache_file = well.return_measurement_cache_path(model)
+
+        if not os.path.exists(cache_file):
+            # TODO:
+            #  Deprecated, we are going to always use new path
+            #  This is using old path
+            cache_file = os.path.join(
+                well.return_measurement_cache_folder(), f'{model}.gz'
+            )
+
         if os.path.exists(cache_file):
             _file = open(cache_file, "rb")
             compressed_content = _file.read()
@@ -65,13 +78,13 @@ class WellMeasurementDataView(View):
             response['Content-Length'] = str(len(compressed_content))
             return response
         else:
-            return HttpResponseBadRequest('Cache is not exist yet.')
+            raise Http404('Cache is not exist yet.')
 
 
 class WellRelationDeleteView(StaffuserRequiredMixin, WellRelationAPI):
     def post(self, request, id, model, model_id, *args, **kwargs):
         object = self.get_object(id, model, model_id)
         if not object:
-            return Http404('instance is not found')
+            raise Http404('instance is not found')
         object.delete()
         return HttpResponse('OK')
