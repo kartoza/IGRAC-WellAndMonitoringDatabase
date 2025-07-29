@@ -26,6 +26,7 @@ from gwml2.tasks.data_file_cache.country_recache import (
 from gwml2.tasks.data_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
+from gwml2.tasks.file_lock import file_lock
 from gwml2.terms import SheetName
 from gwml2.utilities import xlsx_to_ods
 
@@ -85,7 +86,7 @@ class GenerateWellCacheFile(object):
         return self.well.country
 
     def _file(self, filename) -> str:
-        """Return folder.."""
+        """Return folder"""
         return os.path.join(self.folder, filename)
 
     def copy_template(self, filename):
@@ -99,63 +100,74 @@ class GenerateWellCacheFile(object):
         self.well = well
         self.current_time = time.time()
 
-        done_file = self._file('done')
-        if not force_regenerate and os.path.exists(done_file):
-            return
-        self.log(f'----- Begin cache : id = {self.well.id}  -------')
+        lock_id = f'wells_cache_{self.well.id}.lock'
+        with file_lock(lock_id) as lock:
+            if lock is None:
+                return
 
-        # Prepare files
-        if not generators:
-            if os.path.exists(self.folder):
-                shutil.rmtree(self.folder)
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
+            if not force_regenerate:
+                return
 
-        if not generators:
-            generators = [
-                GENERATORS.GENERAL_INFORMATION,
-                GENERATORS.HYDROGEOLOGY,
-                GENERATORS.MANAGEMENT,
-                GENERATORS.DRILLING_AND_CONSTRUCTION,
-                GENERATORS.MONITOR
-            ]
+            self.log(f'----- Begin cache : id = {self.well.id}  -------')
 
-        self.generators = generators
+            # Prepare files
+            if not os.path.exists(self.folder):
+                os.makedirs(self.folder)
 
-        # Run the scripts
-        self.run()
+            # Delete wells_filename
+            _folder = os.path.join(self.folder, self.wells_filename)
+            if os.path.exists(_folder):
+                if os.path.isfile(_folder):
+                    os.remove(_folder)
+                elif os.path.isdir(_folder):
+                    shutil.rmtree(_folder)
+            # Delete wells_filename
+            _folder = os.path.join(self.folder, self.drill_filename)
+            if os.path.exists(_folder):
+                if os.path.isfile(_folder):
+                    os.remove(_folder)
+                elif os.path.isdir(_folder):
+                    shutil.rmtree(_folder)
 
-        # done
-        with open(done_file, 'w') as f:
-            f.write('Done')
+            if not generators:
+                generators = [
+                    GENERATORS.GENERAL_INFORMATION,
+                    GENERATORS.HYDROGEOLOGY,
+                    GENERATORS.MANAGEMENT,
+                    GENERATORS.DRILLING_AND_CONSTRUCTION,
+                    GENERATORS.MONITOR
+                ]
 
-        self.log(f'----- End cache : id = {self.well.id}  -------')
+            self.generators = generators
+
+            # Run the scripts
+            self.run()
+            self.log(f'----- End cache : id = {self.well.id}  -------')
 
     def run(self):
         """ Run wells """
         well = self.well
 
-        # copy files
-        well_folder = self._file(self.wells_filename)
-
         # General information
         if GENERATORS.GENERAL_INFORMATION in self.generators:
             print(f'Generate {GENERATORS.GENERAL_INFORMATION}')
-            self.general_information(well_folder, well)
+            self.general_information(well)
         if GENERATORS.HYDROGEOLOGY in self.generators:
             print(f'Generate {GENERATORS.HYDROGEOLOGY}')
-            self.hydrogeology(well_folder, well)
+            self.hydrogeology(well)
         if GENERATORS.MANAGEMENT in self.generators:
             print(f'Generate {GENERATORS.MANAGEMENT}')
-            self.management(well_folder, well)
+            self.management(well)
 
         # Drill
         if GENERATORS.DRILLING_AND_CONSTRUCTION in self.generators:
             print(f'Generate {GENERATORS.DRILLING_AND_CONSTRUCTION}')
-            drill_folder = self._file(self.drill_filename)
-            self.drilling_and_construction(drill_folder, well)
+            self.drilling_and_construction(well)
 
-        # Monitor
+        # ----------------------------------------
+        # Monitor data
+        # It is using ods file
+        # ----------------------------------------
         if GENERATORS.MONITOR in self.generators:
             print(f'Generate {GENERATORS.MONITOR}')
             self.copy_template(self.monitor_filename)
@@ -175,11 +187,10 @@ class GenerateWellCacheFile(object):
         well.data_cache_generated_at = timezone.now()
         well.save()
 
-    def write_json(self, folder, sheetname, data):
+    def write_json(self, sheetname, data):
         """Write JSON by sheetname."""
-        _file = os.path.join(folder, sheetname + '.json')
-        if not os.path.exists(folder):
-            os.makedirs(folder)
+
+        _file = os.path.join(self.folder, sheetname + '.json')
 
         if os.path.exists(_file):
             os.remove(_file)
@@ -188,7 +199,7 @@ class GenerateWellCacheFile(object):
         with open(_file, "w") as outfile:
             outfile.write(json.dumps(data, indent=4))
 
-    def general_information(self, folder, well: Well):
+    def general_information(self, well: Well):
         """General Information of well."""
         sheetname = 'General Information'
         license_obj = well.get_license(convert=True)
@@ -249,9 +260,9 @@ class GenerateWellCacheFile(object):
             ) if well.last_time_measurement else '',
 
         ]
-        self.write_json(folder, sheetname, [data])
+        self.write_json(sheetname, [data])
 
-    def hydrogeology(self, folder, well):
+    def hydrogeology(self, well):
         """Hydrogeology of well."""
         hydrogeology = well.hydrogeology_parameter
         pumping_test = hydrogeology.pumping_test if hydrogeology else None
@@ -317,9 +328,9 @@ class GenerateWellCacheFile(object):
         ]
 
         sheetname = 'Hydrogeology'
-        self.write_json(folder, sheetname, [data])
+        self.write_json(sheetname, [data])
 
-    def management(self, folder, well):
+    def management(self, well):
         """Management of well."""
         management = well.management
         license = management.license if management else None
@@ -346,9 +357,9 @@ class GenerateWellCacheFile(object):
         ]
 
         sheetname = 'Management'
-        self.write_json(folder, sheetname, [data])
+        self.write_json(sheetname, [data])
 
-    def drilling_and_construction(self, folder, well):
+    def drilling_and_construction(self, well):
         """Drilling and construction of well."""
         geology = well.geology if well.geology else None
         drilling = well.drilling if well.drilling else None
@@ -378,7 +389,7 @@ class GenerateWellCacheFile(object):
             construction.pump_description if construction else '',
         ]
 
-        self.write_json(folder, SheetName.drilling_and_construction, [data])
+        self.write_json(SheetName.drilling_and_construction, [data])
 
         # --------------------------------------------------------------------------
         # For drilling data
@@ -407,7 +418,7 @@ class GenerateWellCacheFile(object):
                     )
                 ]
                 sheet_data.append(data)
-            self.write_json(folder, sheetname, sheet_data)
+            self.write_json(sheetname, sheet_data)
 
             # stratigraphic
             sheet_data = []
@@ -438,7 +449,7 @@ class GenerateWellCacheFile(object):
                     log.stratigraphic_unit,
                 ]
                 sheet_data.append(data)
-            self.write_json(folder, sheetname, sheet_data)
+            self.write_json(sheetname, sheet_data)
 
         # --------------------------------------------------------------------------
         # For Construction Data
@@ -482,7 +493,7 @@ class GenerateWellCacheFile(object):
                     structure.description
                 ]
                 sheet_data.append(data)
-            self.write_json(folder, sheetname, sheet_data)
+            self.write_json(sheetname, sheet_data)
 
     def measurement_data(self, sheets, measurements, original_id, well_name):
         """ Measurements of well """
