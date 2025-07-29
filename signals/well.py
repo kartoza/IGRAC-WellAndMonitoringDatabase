@@ -36,6 +36,8 @@ def post_delete_well(sender, instance, **kwargs):
         if os.path.isfile(instance.photo.path):
             os.remove(instance.photo.path)
 
+    instance.remove_cache()
+
 
 @receiver(post_save, sender=Well)
 def update_well(sender, instance, **kwargs):

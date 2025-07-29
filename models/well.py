@@ -252,6 +252,21 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
     # ------------------------------------------------
     # Measurement cache
     # ------------------------------------------------
+    def remove_cache(self):
+        """Remove cache."""
+        # Remove measurement cache
+        folder = self.return_measurement_cache_folder()
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+
+        for MeasurementModel in MEASUREMENT_MODELS:
+            measurement_name = MeasurementModel.__name__
+            filename = self.return_measurement_cache_path(measurement_name)
+
+            # Remove the file
+            if os.path.exists(filename):
+                os.remove(filename)
+
     def return_measurement_cache_folder(self):
         return os.path.join(
             settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
