@@ -388,16 +388,15 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             # If it has output data, write to file
             try:
                 if output['data']:
-                    print(f"Saving : {filename}")
                     json_str = json.dumps(output) + "\n"
                     json_bytes = json_str.encode('utf-8')
                     file = gzip.open(filename, 'wb')
                     file.write(json_bytes)
                     file.close()
+                    print(f"Saving : {filename}")
+                    self.measurement_cache_generated_at_check(model)
             except KeyError:
                 pass
-
-        self.measurement_cache_generated_at_check()
 
     def generate_all_measurement_caches(
             self, measurement_name: str, force: bool = False
@@ -417,24 +416,23 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                     return
             self.generate_measurement_cache(model)
 
-    def measurement_cache_generated_at_check(self):
+    def measurement_cache_generated_at_check(self, model):
         """Generate measurement cache at check."""
         _time = None
-        for MeasurementModel in MEASUREMENT_MODELS:
-            model = MeasurementModel.__name__
-            cache_file = self.return_measurement_cache_path(model)
-            if os.path.exists(cache_file):
-                modified_timestamp = os.path.getmtime(cache_file)
-                modified_datetime = make_aware(
-                    datetime.fromtimestamp(modified_timestamp)
-                )
-                if (
-                        not self.measurement_cache_generated_at or
-                        modified_datetime > self.measurement_cache_generated_at
-                ):
-                    _time = modified_datetime
-        self.measurement_cache_generated_at = _time
-        self.save()
+        cache_file = self.return_measurement_cache_path(model)
+        if os.path.exists(cache_file):
+            modified_timestamp = os.path.getmtime(cache_file)
+            modified_datetime = make_aware(
+                datetime.fromtimestamp(modified_timestamp)
+            )
+            if (
+                    not self.measurement_cache_generated_at or
+                    modified_datetime > self.measurement_cache_generated_at
+            ):
+                _time = modified_datetime
+        if _time:
+            self.measurement_cache_generated_at = _time
+            self.save()
 
     def assign_measurement_type(self):
         """Assign measurement type."""

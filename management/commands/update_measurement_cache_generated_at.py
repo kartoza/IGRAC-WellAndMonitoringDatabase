@@ -1,4 +1,5 @@
 from gwml2.management.commands.base import WellCommand
+from gwml2.models.well import MEASUREMENT_MODELS
 
 
 class Command(WellCommand):
@@ -28,4 +29,7 @@ class Command(WellCommand):
         count = wells.count()
         for idx, well in enumerate(wells):
             print(f"{idx + 1}/{count} : Generating {well.id}")
-            well.measurement_cache_generated_at_check()
+
+            for MeasurementModel in MEASUREMENT_MODELS:
+                model = MeasurementModel.__name__
+                well.measurement_cache_generated_at_check(model)
