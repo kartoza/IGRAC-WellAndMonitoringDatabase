@@ -148,10 +148,25 @@ class Organisation(LicenseMetadata):
             with transaction.atomic():
                 Well.objects.bulk_update(batch, ['ggis_uid'])
 
-    def assign_data(self):
-        """Automatically assign data to this
-        organization based on current data."""
+    # -------------------------------------
+    # Assign data
+    # -------------------------------------
 
+    def assign_data_types(self):
+        """Assign data types to this organisation based on current data."""
+        from gwml2.models import (
+            WellLevelMeasurement, WellQualityMeasurement
+        )
+        self.data_is_groundwater_level = WellLevelMeasurement.objects.filter(
+            well__organisation=self
+        ).exists()
+        self.data_is_groundwater_quality = WellQualityMeasurement.objects.filter(
+            well__organisation=self
+        ).exists()
+        self.save()
+
+    def assign_date_range(self):
+        """Assign date range to this organisation based on current data."""
         from gwml2.models import (
             Harvester, WellLevelMeasurement, WellQualityMeasurement,
             WellYieldMeasurement
@@ -162,25 +177,7 @@ class Organisation(LicenseMetadata):
             organisation=self
         ).exists()
         self.data_is_from_api = data_is_from_api
-        self.data_is_groundwater_level = WellLevelMeasurement.objects.filter(
-            well__organisation=self
-        ).exists()
-        self.data_is_groundwater_quality = WellQualityMeasurement.objects.filter(
-            well__organisation=self
-        ).exists()
         self.save()
-
-        # Update license
-        if self.license is None:
-            well = self.well_set.filter(
-                license__isnull=False
-            ).first()
-
-            if well:
-                self.license = well.license
-                self.restriction_code_type = well.restriction_code_type
-                self.constraints_other = well.constraints_other
-                self.save()
 
         if not data_is_from_api:
             # --------------------------------
@@ -225,6 +222,27 @@ class Organisation(LicenseMetadata):
             if end_dates:
                 self.data_date_end = max(end_dates)
             self.save()
+
+    def assign_license(self):
+        """Assign license to this organisation based on current data."""
+        # Update license
+        if self.license is None:
+            well = self.well_set.filter(
+                license__isnull=False
+            ).first()
+
+            if well:
+                self.license = well.license
+                self.restriction_code_type = well.restriction_code_type
+                self.constraints_other = well.constraints_other
+                self.save()
+
+    def assign_data(self):
+        """Automatically assign data to this
+        organization based on current data."""
+        self.assign_data_types()
+        self.assign_date_range()
+        self.assign_license()
 
 
 class OrganisationLink(models.Model):
