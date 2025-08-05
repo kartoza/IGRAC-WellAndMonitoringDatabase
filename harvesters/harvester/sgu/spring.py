@@ -86,6 +86,11 @@ class SguSpringAPI(SguAPI):
                     well.hydrogeology_parameter = hydrogeology_parameter
                     well.save()
 
+                # Estimated flow
+                estimated_flow = station['properties']['fl_txt']
+                well.estimated_flow = estimated_flow
+                well.save()
+
                 try:
                     self.process_station(
                         station, harvester_well_data,

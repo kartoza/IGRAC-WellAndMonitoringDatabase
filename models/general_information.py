@@ -77,5 +77,12 @@ class GeneralInformation(models.Model):
         help_text=_('A general description of the groundwater point.')
     )
 
+    # Springs attributes
+    estimated_flow = models.CharField(
+        _("Estimated flow"),
+        null=True, blank=True, max_length=512,
+        help_text=_('Estimated flow rate for springs.')
+    )
+
     class Meta:
         abstract = True
