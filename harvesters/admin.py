@@ -11,47 +11,49 @@ from gwml2.tasks.harvester import run_harvester
 # Argentine
 AZULBHD = (
     'gwml2.harvesters.harvester.azul_bdh.AzulBdh',
-    '(Argentine) Institute of Plains Hydrology - IHLLA '
-    '(http://www.azul.bdh.org.ar/bdh3/leaflet/index.html)',
+    '(Argentine) Institute of Plains Hydrology - IHLLA',
     None
 )
 
 # Canada
 GINGWINFO = (
     'gwml2.harvesters.harvester.gin_gw_info.GinGWInfo',
-    '(Canada) Canadian Groundwater Information (https://gin.gw-info.net/)',
+    '(Canada) Canadian Groundwater Information',
     'Geological Survey Canada (Canada)'
 )
 
 # Ireland
 EPAWEBAPP = (
     'gwml2.harvesters.harvester.epawebapp.Epawebapp',
-    '(Ireland) Groundwater in Ireland '
-    '(https://epawebapp.epa.ie/hydronet/#Groundwater)',
+    '(Ireland) Groundwater in Ireland',
     None
 )
 
 # New Zealand
 GNSCRI = (
     'gwml2.harvesters.harvester.gns_cri.GnsCri',
-    '(New Zealand) GNS Science, Te Pū Ao '
-    '(https://data.gns.cri.nz/)',
+    '(New Zealand) GNS Science, Te Pū Ao ',
     'GNS Science, Te Pū Ao (New Zealand)'
 )
 
 # Norway
 HYDAPI = (
     'gwml2.harvesters.harvester.hydapi.Hydapi',
-    '(Norway) The Norwegian Water Resources and Energy Directorate '
-    '(https://hydapi.nve.no/)',
+    '(Norway) The Norwegian Water Resources and Energy Directorate ',
     'Norwegian Water Resources and Energy Directorate NVE (Norway)'
 )
 
-# USA
-CIDA_USGS = (
-    'gwml2.harvesters.harvester.cida.CidaUsgs',
-    '(United States) National Ground-Water Monitoring Network (United States) '
-    '(https://cida.usgs.gov/ngwmn/index.jsp)',
+# ------------------------------------------
+# USA (CIDA)
+# ------------------------------------------
+CIDA_USGS_WATER_LEVEL = (
+    'gwml2.harvesters.harvester.cida.level.CidaUsgsWaterLevel',
+    '(United States) National Ground-Water Monitoring Network - Water Level ',
+    None
+)
+CIDA_USGS_WATER_QUALITY = (
+    'gwml2.harvesters.harvester.cida.quality.CidaUsgsWaterQuality',
+    '(United States) National Ground-Water Monitoring Network - Water Quality ',
     None
 )
 
@@ -60,8 +62,7 @@ CIDA_USGS = (
 # ---------------------------------------------
 EHYD = (
     'gwml2.harvesters.harvester.ehyd.FileBase',
-    '(Austria) Electronic Hydrographic Data '
-    '(https://www.ehyd.gv.at/)',
+    '(Austria) Electronic Hydrographic Data',
     None
 )
 
@@ -70,14 +71,12 @@ EHYD = (
 # ---------------------------------------------
 HUBEAU_WATER_LEVEL = (
     'gwml2.harvesters.harvester.hubeau.level.HubeauWaterLevel',
-    '(France) Water Level in France '
-    '(https://hubeau.eaufrance.fr/page/api-piezometrie)',
+    '(France) Water Level in France',
     'French Geological Survey (France)'
 )
 HUBEAU_WATER_QUALITY = (
     'gwml2.harvesters.harvester.hubeau.quality.HubeauWaterQuality',
-    '(France) Water Quality in France '
-    '(https://hubeau.eaufrance.fr/page/api-qualite-nappes)',
+    '(France) Water Quality in France',
     'French Geological Survey (France)'
 )
 
@@ -86,22 +85,19 @@ HUBEAU_WATER_QUALITY = (
 # ---------------------------------------------
 SGU_GROUNDWATER_API = (
     'gwml2.harvesters.harvester.sgu.water_level.SguWaterLevelAPI',
-    '(Sweden) Water level in Sweden '
-    '(https://apps.sgu.se/grundvattennivaer-rest/stationer)',
+    '(Sweden) Water level in Sweden',
     'Geological Survey of Sweden (Sweden)'
 )
 
 SGU_QUALITY_API = (
     'gwml2.harvesters.harvester.sgu.quality.SguQualityAPI',
-    '(Sweden) Quality in Sweden '
-    '(https://www.sgu.se/grundvatten/miljoovervakning-av-grundvatten/kartvisare-och-diagram-for-miljoovervakning-av-grundvattenkemi/)',
+    '(Sweden) Quality in Sweden',
     'Geological Survey of Sweden (Sweden)'
 )
 
 SGU_SPRINGS_API = (
     'gwml2.harvesters.harvester.sgu.spring.SguSpringAPI',
-    '(Sweden) Spring in Sweden '
-    '(https://apps.sgu.se/kartvisare/kartvisare-kallor.html)',
+    '(Sweden) Spring in Sweden',
     'Geological Survey of Sweden (Sweden)'
 )
 
@@ -117,7 +113,7 @@ HARVESTERS = (
     SGU_GROUNDWATER_API,
     SGU_QUALITY_API,
     SGU_SPRINGS_API,
-    CIDA_USGS,
+    CIDA_USGS_WATER_LEVEL,
 )
 HARVESTERS_CHOICES = (
     (harvester[0], harvester[1]) for harvester in HARVESTERS
