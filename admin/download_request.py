@@ -9,7 +9,7 @@ class DownloadRequestAdmin(admin.ModelAdmin):
         'organization_types',
         'email', 'country', 'data_type', 'age_hours'
     )
-    filter_horizontal = ('countries',)
+    filter_horizontal = ('countries', 'organisations')
     search_fields = (
         'first_name', 'last_name', 'organization', 'email', 'country'
     )
