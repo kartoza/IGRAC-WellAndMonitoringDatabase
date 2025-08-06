@@ -1,5 +1,7 @@
 .measurement-chart-plugin {
     position: relative;
+    font-family: "Montserrat", sans-serif !important;
+    font-size: 14px;
 }
 
 .measurement-chart-plugin .nav-right {
@@ -328,4 +330,9 @@ input:disabled, textarea:disabled, select:disabled,
     padding-top: 5rem;
     text-align: center;
     width: 100%;
+}
+
+.measurement-chart-plugin input[type="checkbox"] {
+    height: 12px;
+    width: 12px;;
 }
