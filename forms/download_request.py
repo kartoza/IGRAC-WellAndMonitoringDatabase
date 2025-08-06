@@ -1,9 +1,7 @@
 from typing import Any
 
 from django import forms
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import connections
 from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.download_request import DownloadRequest
@@ -26,14 +24,6 @@ class DownloadRequestForm(forms.ModelForm):
         widget=forms.RadioSelect,
         initial='data_providers'
     )
-    countries = forms.MultipleChoiceField(
-        label='Select the countries whose data you want to download.',
-        required=False
-    )
-    organisations = forms.MultipleChoiceField(
-        label='Select the data providers whose data you want to download.',
-        required=False
-    )
     organization_types = forms.MultipleChoiceField()
 
     class Meta:
@@ -47,25 +37,12 @@ class DownloadRequestForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(DownloadRequestForm, self).__init__(*args, **kwargs)
 
-        # Get country that has well
-        with connections[settings.GWML2_DATABASE_CONFIG].cursor() as cursor:
-            cursor.execute(
-                "SELECT DISTINCT country_id FROM well WHERE country_id IS NOT NULL;")
-            country_ids = [row[0] for row in cursor.fetchall()]
-
-        self.fields['countries'].choices = [('all', 'All Countries')] + [
-            (country.id, country.name) for
-            country in Country.objects.filter(id__in=country_ids) if
-            country.name
-        ]
-
-        self.fields['organisations'].choices = [
-            ('all', 'All Data Providers')
-        ] + [
-            (organisation.id, organisation.name) for
-            organisation in Organisation.objects.filter(
-                active=True).order_by('name')
-        ]
+        self.fields['countries'].label = (
+            'Select the countries whose data you want to download.'
+        )
+        self.fields['organisations'].label = (
+            'Select the data providers whose data you want to download.'
+        )
 
         types = [_type.name for _type in OrganisationType.objects.all()]
         self.fields['organization_types'].choices = [
@@ -125,8 +102,8 @@ class DownloadRequestForm(forms.ModelForm):
                 }
             )
         if (
-            field_name == 'data_providers' and
-            not cleaned_data.get('organisations')
+                field_name == 'data_providers' and
+                not cleaned_data.get('organisations')
         ):
             raise forms.ValidationError(
                 {

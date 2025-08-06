@@ -27,17 +27,18 @@ def render_help_text(field, help_text=''):
 
 
 @register.simple_tag
-def field_as_row(field, id='', unit='', help_text='', label=None):
+def field_as_row(field, id='', unit='', help_text='', label=None, class_name=''):
     if id:
         id = 'id="{}"'.format(id)
     return mark_safe(
-        '<tr {id} class="input-column">'
+        '<tr {id} class="input-column {class_name}">'
         '   <td>{label} {help_text}</td>'
         '   <td>'
         '       <div class="input">{input} {unit}</div>'
         '   </td>'
         '</tr>'.format(
             id=id,
+            class_name=class_name,
             help_text=render_help_text(field, help_text),
             label=render_label(field, label),
             input=field,

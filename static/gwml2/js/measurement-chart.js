@@ -359,30 +359,6 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
                     }
                 },
                 visible: toggleSeries['trend']
-            },
-            {
-                type: 'spline',
-                name: 'Step Trendline',
-                data: stepTrenlineData,
-                lineWidth: 1,
-                states: {
-                    hover: {
-                        lineWidth: 1
-                    }
-                },
-                color: '#F48020',
-                tooltip: {
-                    valueDecimals: 3
-                },
-                visible: toggleSeries['step'],
-                events: {
-                    hide: function (e) {
-                        toggleSeries['step'] = false;
-                    },
-                    show: function (e) {
-                        toggleSeries['step'] = true;
-                    }
-                }
             }
         ]
     }
@@ -407,7 +383,7 @@ let MeasurementChartObj = function (
     this.$dataTo = $loadMore.closest('.measurement-chart-plugin').find('#data-to');
     this.$units = $units;
     this.$parameters = $parameters;
-    this.$trend = $(`#${identifier}-trend`);
+    this.$linearTrend = $(`#${identifier}-linear-trend`);
     this.data = null;
     this.chart = null;
     this.unitTo = null;
@@ -752,34 +728,15 @@ let MeasurementChartObj = function (
     })
     $parameters.trigger('change');
 
-    this.$trend.change(function () {
+    this.$linearTrend.change(function () {
         const chart = that.chart;
-        $(`#${identifier}-step`).hide();
-        that.isTrendLine = false;
-        if (chart) {
-            chart.series[0].show();
-            switch ($(this).val()) {
-                case 'both':
-                    chart.series[1].show();
-                    chart.series[2].show();
-                    $(`#${identifier}-step`).show();
-                    that.isTrendLine = true;
-                    break
-                case 'linear':
-                    chart.series[1].show();
-                    chart.series[2].hide();
-                    break
-                case 'step':
-                    chart.series[1].hide();
-                    chart.series[2].show();
-                    $(`#${identifier}-step`).show();
-                    that.isTrendLine = true;
-                    break
-                case 'no':
-                    chart.series[1].hide();
-                    chart.series[2].hide();
-                    break
-            }
+        chart.series[0].show();
+        if ($(this).is(':checked')) {
+          that.isTrendLine = true;
+          chart.series[1].show();
+        } else {
+          that.isTrendLine = false;
+          chart.series[1].hide();
         }
     })
 }

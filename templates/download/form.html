@@ -22,55 +22,79 @@
     <script type="text/javascript"
             src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
     <style>
-        .form-group {
-            margin-bottom: 25px;
-        }
+      .form-group {
+        margin-bottom: 25px;
+      }
 
-        form .row {
-            margin: 0;
-        }
+      form .row {
+        margin: 0;
+      }
 
-        form .row {
-            display: flex;
-        }
+      form .row {
+        display: flex;
+      }
 
-        form .col {
-            width: 100%;
-            padding: 0 5px;
-        }
+      form .col {
+        width: 100%;
+        padding: 0 5px;
+      }
 
-        form .row .col:first-child {
-            padding-left: 0;
-        }
+      form .row .col:first-child {
+        padding-left: 0;
+      }
 
-        form .row .col:last-child {
-            padding-right: 0;
-        }
+      form .row .col:last-child {
+        padding-right: 0;
+      }
 
-        .helptext {
-            margin: 0 0 20px 0;
-        }
+      .helptext {
+        margin: 0 0 20px 0;
+      }
 
-        #id_organization_types .select2-container input {
-            min-width: 411px !important;
-        }
+      #id_organization_types .select2-container input {
+        min-width: 411px !important;
+      }
 
-        #id_countries .select2-container input {
-            min-width: 138px !important;
-        }
+      #id_countries .select2-container input {
+        min-width: 138px !important;
+      }
 
-        .form-actions button {
-            width: 100%;
-        }
-        #id_radio_filter_type {
-            padding-left: 0;
-        }
-        #id_radio_filter_type label {
-            font-weight: 400 !important;
-        }
-        form .error-msg ul.errorlist {
-            padding-inline-start: 0;
-        }
+      .form-actions button {
+        width: 100%;
+      }
+
+      #id_radio_filter_type {
+        padding-left: 0;
+      }
+
+      #id_radio_filter_type label {
+        font-weight: 400 !important;
+      }
+
+      form .error-msg ul.errorlist {
+        padding-inline-start: 0;
+      }
+
+      .select2-results__options {
+        margin-bottom: 0!important;
+      }
+
+      .select2-container {
+        width: 100% !important;
+      }
+
+      .select-data-action {
+        margin-top: -0.5rem;
+        display: flex;
+        justify-content: space-between;
+      }
+      .select-data-action div {
+        padding: 3px 5px;
+        background-color: #eee;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        border-radius: 5px;
+      }
     </style>
 {% endblock %}
 
@@ -94,6 +118,11 @@
                 {{ form.radio_filter_type|field_as_bootstrap }}
                 {{ form.countries|field_as_bootstrap }}
                 {{ form.organisations|field_as_bootstrap }}
+                <div class="select-data-action">
+                    <div id="select-all">Select all</div>
+                    <div id="clear-all">Clear all</div>
+                </div>
+                <br/>
                 {{ form.email|field_as_bootstrap }}
                 <div class="group">
                     <div class="row">
@@ -134,14 +163,77 @@
 
 {% block extra_script %}
     <script>
+      let lastRequest = {};
+      function updateSelect(id, url, dataType, placeholder, key) {
+        {# Options #}
+        {# Initiate select on fetch #}
+        const $select = $(`#${id} select`)
+        $select.select2('destroy');
+        $select.select2({
+            placeholder: 'Loading...'
+        });
+        $select.empty();
+
+        {# Request #}
+        const currentRequest = new Date().getTime();
+        lastRequest[key] = currentRequest;
+        fetch(`${url}?data_type=${dataType}`)
+          .then(response => response.json())
+          .then(data => {
+            if(currentRequest !== lastRequest[key]) return;
+
+            {# Render #}
+            const $select = $(`#${id} select`)
+            $select.select2('destroy');
+            $select.select2({
+                placeholder: placeholder
+            });
+            $select.empty();
+            data.forEach(function (item) {
+              $select.append(new Option(item.label, item.id));
+            });
+
+          })
+          .catch(error => console.error('Error:', error));
+
+      }
+
       $(document).ready(function () {
+
+        {# Select countries and data providers #}
+        const countryPlaceholder = "Select countries.";
+        const organisationPlaceholder = "Select data providers.";
         {
-          const placeholder = "Select countries.";
           $('#id_countries select').select2({
-            placeholder: placeholder
-          }).on('select2:open', function (e) {
-            $('#id_countries  input.select2-search__field').prop('placeholder', placeholder);
-          });
+            placeholder: countryPlaceholder
+          })
+        }
+        {
+          $('#id_organisations select').select2({
+            placeholder: organisationPlaceholder
+          })
+        }
+
+        {# When the filter by is changed #}
+        {
+          function radioFilterTypeOnChange(value) {
+            if (value === 'countries') {
+              $('#id_organisations').hide();
+              $('#id_countries').show();
+            } else if (value === 'data_providers') {
+              $('#id_organisations').show();
+              $('#id_countries').hide();
+            }
+          }
+        }
+        {
+            $('#id_data_type').change(function () {
+              const value = $('#id_data_type option:selected').val();
+              {# Options #}
+              updateSelect('id_organisations', `/groundwater/api/organisation/autocomplete`, value, organisationPlaceholder, 'Data Providers')
+              updateSelect('id_countries', `/groundwater/api/country/autocomplete`, value, countryPlaceholder, 'Countries')
+            });
+            $('#id_data_type').trigger('change');
         }
         {
           const placeholder = "Select an organization type or more or create by typing new one.";
@@ -167,32 +259,35 @@
             $('#id_organization_types input.select2-search__field').prop('placeholder', placeholder);
           });
         }
+
+        {# For radio filter #}
         {
-          const placeholder = "Select data providers.";
-          $('#id_organisations select').select2({
-            placeholder: placeholder
-          }).on('select2:open', function (e) {
-            $('#id_organisations  input.select2-search__field').prop('placeholder', placeholder);
+          $('input[type=radio][name=radio_filter_type]').change(function () {
+            radioFilterTypeOnChange(this.value)
           });
+          // set initial
+          var initial = $('input[type=radio][name=radio_filter_type]:checked').val();
+          radioFilterTypeOnChange(initial);
         }
-        {
-            function radioFilterTypeOnChange(value) {
-                if (value === 'countries') {
-                    $('#id_organisations').hide();
-                    $('#id_countries').show();
-                }
-                else if (value === 'data_providers') {
-                    $('#id_organisations').show();
-                    $('#id_countries').hide();
-                }
+
+        $("#select-all").click(() => {
+          ["#id_organisations", "#id_countries"].forEach(id => {
+            if ($(id).is(':visible')) {
+              let allValues = $(`${id} option`).map(function() {
+                return $(this).val();
+              }).get();
+              $(`${id} select`).val(allValues).trigger('change');
             }
-            $('input[type=radio][name=radio_filter_type]').change(function() {
-                radioFilterTypeOnChange(this.value)
-            });
-            // set initial
-            var initial = $('input[type=radio][name=radio_filter_type]:checked').val();
-            radioFilterTypeOnChange(initial);
-        }
+          })
+        })
+
+        $("#clear-all").click(() => {
+          ["#id_organisations", "#id_countries"].forEach(id => {
+            if ($(id).is(':visible')) {
+              $(`${id} select`).val(null).trigger('change');
+            }
+          })
+        })
       });
     </script>
 {% endblock %}

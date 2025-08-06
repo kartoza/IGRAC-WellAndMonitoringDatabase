@@ -2,7 +2,6 @@
 
 import requests
 from bs4 import BeautifulSoup
-from dateutil.parser import parse
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import Harvester
@@ -12,27 +11,32 @@ from gwml2.models.management import Management
 from gwml2.models.term import (
     TermConfinement, TermReferenceElevationType, TermWellPurpose
 )
-from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
-    Well,
-    MEASUREMENT_PARAMETER_GROUND, WellLevelMeasurement, HydrogeologyParameter
+    Well, HydrogeologyParameter
 )
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
 
 
-class CidaUsgs(BaseHarvester):
-    """
-    Harvester for https://cida.usgs.gov/ngwmn/index.jsp
-    """
+class CidaUsgsApi(BaseHarvester):
+    """Harvester for https://cida.usgs.gov/ngwmn/index.jsp."""
+
     units = {}
     updated = False
-    countries = []
-    stations_url_key = 'stations-url'
     last_code_key = 'last-code'
     proceed = False
     retry = 0
+
+    @staticmethod
+    def cql_filter_method():
+        """Return station url."""
+        raise NotImplementedError
+
+    @property
+    def cql_filter(self):
+        """Return station url."""
+        raise NotImplementedError
 
     def __init__(
             self, harvester: Harvester, replace: bool = False,
@@ -46,17 +50,53 @@ class CidaUsgs(BaseHarvester):
             self.units['centimeters'] = Unit.objects.get(name='cm')
         except Unit.DoesNotExist:
             pass
-
-        self.parameter = TermMeasurementParameter.objects.get(
-            name=MEASUREMENT_PARAMETER_GROUND
-        )
         try:
             self.purpose = TermWellPurpose.objects.get(
                 name='Observation / monitoring'
             )
         except TermWellPurpose.DoesNotExist:
             self.purpose = None
-        super(CidaUsgs, self).__init__(harvester, replace, original_id)
+        super(CidaUsgsApi, self).__init__(harvester, replace, original_id)
+
+    def clean_process(self):
+        """Clean process."""
+        from .level import CidaUsgsWaterLevel
+        from .quality import CidaUsgsWaterQuality
+
+        self._update('Cleaning process...')
+        station_url = (
+            "https://www.usgs.gov/apps/ngwmn/geoserver/ngwmn/wfs?request=GetFeature&SERVICE=WFS&VERSION=1.1.0&srsName=EPSG:4326&outputFormat=GML2&typeName=ngwmn:VW_GWDP_GEOSERVER&"
+            f"CQL_FILTER={CidaUsgsWaterLevel.cql_filter_method()} OR {CidaUsgsWaterQuality.cql_filter_method()}"
+        )
+        try:
+            response = requests.get(station_url)
+            if response.status_code == 200:
+                xml = BeautifulSoup(response.content, "lxml")
+                members = xml.findAll('gml:featuremember')
+                count = len(members)
+                self._update(f'Found all members : {count}')
+
+                # Get list of stations from server
+                # Make all list of stations on server
+                # but not on the response as none organisation
+                # This is for the case when our well is being deleted from the sites
+                sites = [
+                    self.value_by_tag(member, 'ngwmn:site_no') for member in
+                    members
+                ]
+
+                # Make the not found wells to none organisation
+                Well.objects.filter(
+                    organisation__id=self.harvester.organisation.id
+                ).exclude(original_id__in=sites).update(organisation=None)
+            else:
+                self._error(f'{response.status_code} - {response.text}')
+        except requests.exceptions.ConnectionError as e:
+            self.retry += 1
+            if self.retry == 3:
+                raise Exception(e)
+            else:
+                self._process()
 
     def _process(self):
         # Check last code
@@ -64,11 +104,13 @@ class CidaUsgs(BaseHarvester):
         if not self.last_code:
             self.proceed = True
 
-        station_url = self.attributes.get(
-            self.stations_url_key, (
-                f'https://cida.usgs.gov/ngwmn/geoserver/wfs?'
-                f'request=GetFeature&SERVICE=WFS&VERSION=1.0.0&srsName=EPSG%3A4326&outputFormat=GML2&typeName=ngwmn%3AVW_GWDP_GEOSERVER&CQL_FILTER=((WL_SN_FLAG%20%3D%20%271%27)%20AND%20(WL_WELL_TYPE%20%3D%20%272%27))'
-            )
+        # Clean process
+        self.clean_process()
+        self.retry = 1
+
+        station_url = (
+            "https://www.usgs.gov/apps/ngwmn/geoserver/ngwmn/wfs?request=GetFeature&SERVICE=WFS&VERSION=1.1.0&srsName=EPSG:4326&outputFormat=GML2&typeName=ngwmn:VW_GWDP_GEOSERVER&"
+            f"CQL_FILTER={self.cql_filter}"
         )
         try:
             response = requests.get(station_url)
@@ -99,29 +141,14 @@ class CidaUsgs(BaseHarvester):
         members = xml.findAll('gml:featuremember')
         count = len(members)
 
-        # Get list of stations from server
-        # Make all list of stations on server
-        # but not on the response as none organisation
-        sites = []
-        for idx, member in enumerate(members):
-            sites.append(self.value_by_tag(member, 'ngwmn:site_no'))
-        Well.objects.filter(
-            organisation__id=self.harvester.organisation.id
-        ).exclude(original_id__in=sites).update(organisation=None)
-
         # Run the harvesting
-        skip = True if self.original_id else False
+        # Skip if we have origi
         for idx, member in enumerate(members):
             self.updated = False
             site_no = self.value_by_tag(member, 'ngwmn:site_no')
             site_id = self.value_by_tag(member, 'ngwmn:my_siteid')
             message = f'{idx + 1}/{count} - {site_id}'
             self._update(message)
-            if skip:
-                if site_no == self.original_id:
-                    skip = False
-                else:
-                    continue
 
             # Check last code, if there, skip if not found yet
             if self.last_code:
@@ -177,7 +204,8 @@ class CidaUsgs(BaseHarvester):
                     try:
                         well_depth = float(
                             self.value_by_tag(
-                                member, 'ngwmn:well_depth')
+                                member, 'ngwmn:well_depth'
+                            )
                         )
                         well_depth_unit = self.units[
                             self.value_by_tag(
@@ -188,7 +216,8 @@ class CidaUsgs(BaseHarvester):
                             well_depth, well_depth_unit
                         )
                         elevation_type = TermReferenceElevationType.objects.get(
-                            name='Ground Surface Level ASL')
+                            name='Ground Surface Level ASL'
+                        )
                         well.geology = Geology.objects.create(
                             total_depth=Quantity.objects.create(
                                 value=well_depth,
@@ -206,10 +235,12 @@ class CidaUsgs(BaseHarvester):
                     confinement = self.value_by_tag(member, 'ngwmn:aqfr_char')
                     try:
                         confinement = TermConfinement.objects.get(
-                            name__iexact=confinement.lower())
+                            name__iexact=confinement.lower()
+                        )
                         well.hydrogeology_parameter = HydrogeologyParameter.objects.create(
                             aquifer_name=self.value_by_tag(
-                                member, 'ngwmn:local_aquifer_name'),
+                                member, 'ngwmn:local_aquifer_name'
+                            ),
                             confinement=confinement,
 
                         )
@@ -241,8 +272,6 @@ class CidaUsgs(BaseHarvester):
                     self.post_processing_well(
                         well, generate_country_cache=False
                     )
-                    if well.country:
-                        self.countries.append(well.country.code)
 
                 self.update_attribute(
                     self.last_code_key, site_no
@@ -259,57 +288,8 @@ class CidaUsgs(BaseHarvester):
 
         # Run country caches
         self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
+        generate_data_country_cache(self.harvester.organisation.country.code)
 
     def get_measurements(self, well_data, harvester_well_data):
         """Get and save measurements."""
-        url = (
-            f'https://cida.usgs.gov/ngwmn_cache/direct/flatXML/waterlevel/'
-            f'{well_data["agency_code"]}/{well_data["site_no"]}'
-        )
-        response = requests.get(url)
-        if response.status_code != 200:
-            print('Measurements not found')
-        else:
-            xml = BeautifulSoup(response.content, "lxml")
-            samples = xml.findAll('sample')
-            count = len(samples)
-            print(f'Measurements found : {count}')
-            last_time = None
-            last_data = harvester_well_data.well.welllevelmeasurement_set.all().first()
-            if last_data:
-                last_time = last_data.time
-
-            for idx, measurement in enumerate(samples):
-                try:
-                    time = self.value_by_tag(measurement, 'time')
-                    time = parse(time)
-                    if last_time and time <= last_time:
-                        continue
-
-                    print(f'{idx}/{count} - {time}')
-                    unit = self.units[
-                        self.value_by_tag(measurement, 'unit').lower()
-                    ]
-                    value = float(
-                        self.value_by_tag(
-                            measurement, 'from-landsurface-value'
-                        )
-                    )
-                    value, unit = self.change_value_to_meter(value, unit)
-                    defaults = {
-                        'parameter': self.parameter
-                    }
-                    self._save_measurement(
-                        WellLevelMeasurement,
-                        time,
-                        defaults,
-                        harvester_well_data,
-                        value,
-                        unit
-                    )
-                    self.updated = True
-                except (ValueError, KeyError, TypeError) as e:
-                    pass
+        raise NotImplementedError()
