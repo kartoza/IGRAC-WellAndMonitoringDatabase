@@ -138,6 +138,17 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         max_length=8
     )
 
+    # ---------------------------
+    # Quality control
+    # ---------------------------
+    bad_quality_time_gap = models.TextField(
+        null=True, blank=True,
+        help_text=_('Filled with some of bad quality info by time gap.')
+    )
+    bad_quality_time_gap_generated_time = models.DateTimeField(
+        null=True, blank=True
+    )
+
     # Cache indicators
     measurement_cache_generated_at = models.DateTimeField(
         _('Time when measurement cache generated'),

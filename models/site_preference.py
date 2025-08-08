@@ -38,6 +38,15 @@ class SitePreference(SingletonModel):
         Harvester, blank=True
     )
 
+    # Quality control
+    quality_control_days_gap = models.IntegerField(
+        default=1095,
+        help_text=(
+            'Quality control days gap. '
+            'The gap is more than the value, it is basically a bad quality.'
+        )
+    )
+
     @staticmethod
     def update_running_harvesters():
         """Update running harvesters."""

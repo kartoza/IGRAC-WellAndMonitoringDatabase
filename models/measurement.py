@@ -64,3 +64,49 @@ class Measurement(CreationMetadata):
                 elif not self.default_unit:
                     self.default_unit = self.parameter.default_unit
                     self.default_value = self.value
+        return None
+
+    # ---------------------------------
+    # Quality check
+    # ---------------------------------
+    @classmethod
+    def longest_days_gap(cls, well_id, parameter_id=None):
+        """Return quality check for time gap in days."""
+        from django.db import connections
+        query = f"""
+            SELECT
+                parameter_id,
+                time AS current_time,
+                prev_time,
+                EXTRACT(EPOCH FROM (time - prev_time)) / 86400 AS gap_in_days
+            FROM (
+                SELECT
+                    well_id,
+                    parameter_id,
+                    time,
+                    LAG(time) OVER (
+                        PARTITION BY well_id, parameter_id
+                        ORDER BY time
+                    ) AS prev_time
+                FROM {cls._meta.db_table}
+                WHERE well_id = {well_id}
+                  {f"AND parameter_id = {parameter_id}" if parameter_id else ''}
+                  AND time IS NOT NULL
+            ) sub
+            WHERE prev_time IS NOT NULL
+            ORDER BY gap_in_days DESC
+            LIMIT 1;
+        """
+        with connections['gwml2'].cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            try:
+                value = rows[0]
+                return {
+                    "parameter_id": value[0],
+                    "time": value[1].strftime('%Y-%m-%d %H:%M:%S'),
+                    "previous_time": value[2].strftime('%Y-%m-%d %H:%M:%S'),
+                    "gap_in_days": float(value[3])
+                }
+            except (KeyError, IndexError):
+                return None
