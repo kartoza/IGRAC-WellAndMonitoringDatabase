@@ -1,5 +1,6 @@
 """Test Well Quality Control."""
 
+from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import (
     TermMeasurementParameter, TermMeasurementParameterGroup
 )
@@ -54,13 +55,21 @@ class TestWellQualityControl(GWML2Test):
             name='Well 1',
             original_id=self.original_id
         )
+        unit = Unit.objects.create(name='m')
         WellLevelMeasurementF(
             well=self.well_1, parameter=self.parameter,
-            time='2020-01-01 00:00:00'
+            time='2019-01-01 00:00:00',
+            value=Quantity.objects.create(value=1, unit=unit)
         )
         WellLevelMeasurementF(
             well=self.well_1, parameter=self.parameter,
-            time='2025-01-01 00:00:00'
+            time='2020-01-01 00:00:00',
+            value=Quantity.objects.create(value=60, unit=unit)
+        )
+        WellLevelMeasurementF(
+            well=self.well_1, parameter=self.parameter,
+            time='2025-01-01 00:00:00',
+            value=Quantity.objects.create(value=6, unit=unit)
         )
 
         WellQualityMeasurementF(
@@ -103,11 +112,13 @@ class TestWellQualityControl(GWML2Test):
         )
         WellLevelMeasurementF(
             well=self.well_2, parameter=self.parameter,
-            time='2020-01-01 00:00:00'
+            time='2020-01-01 00:00:00',
+            value=Quantity.objects.create(value=1, unit=unit)
         )
         WellLevelMeasurementF(
             well=self.well_2, parameter=self.parameter,
-            time='2020-01-02 00:00:00'
+            time='2020-01-02 00:00:00',
+            value=Quantity.objects.create(value=2, unit=unit)
         )
 
         WellQualityMeasurementF(
@@ -152,14 +163,28 @@ class TestWellQualityControl(GWML2Test):
         self.well_2.refresh_from_db()
 
         self.assertTrue(
-            f'"parameter_id": {self.parameter.id}, "time": "2025-01-01 00:00:00", "previous_time": "2020-01-01 00:00:00", "gap_in_days": 1827.0' in self.well_1.bad_quality_time_gap
+            f'"parameter_id": {self.parameter.id}, "current": "2025-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 1827.0' in self.well_1.bad_quality_time_gap
         )
         self.assertTrue(
-            f'"parameter_id": {self.parameter_2.id}, "time": "2026-01-01 00:00:00", "previous_time": "2020-01-01 00:00:00", "gap_in_days": 2192.0'  in self.well_1.bad_quality_time_gap
+            f'"parameter_id": {self.parameter_2.id}, "current": "2026-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 2192.0' in self.well_1.bad_quality_time_gap
         )
         self.assertTrue(
-            f'"parameter_id": {self.parameter_4.id}, "time": "2024-01-01 00:00:00", "previous_time": "2020-01-01 00:00:00", "gap_in_days": 1461.0' in self.well_1.bad_quality_time_gap
+            f'"parameter_id": {self.parameter_4.id}, "current": "2024-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 1461.0' in self.well_1.bad_quality_time_gap
         )
         self.assertIsNotNone(self.well_1.bad_quality_time_gap_generated_time)
         self.assertIsNone(self.well_2.bad_quality_time_gap)
         self.assertIsNotNone(self.well_2.bad_quality_time_gap_generated_time)
+
+    def test_level_quality_control(self):
+        """To gap quality control."""
+        WellQualityControl(self.well_1).gap_level_quality()
+        WellQualityControl(self.well_2).gap_level_quality()
+        self.well_1.refresh_from_db()
+        self.well_2.refresh_from_db()
+
+        self.assertTrue(
+            f'"parameter_id": {self.parameter.id}, "current": 60.0, "previous": 1.0, "gap": 59.0' in self.well_1.bad_quality_level_gap
+        )
+        self.assertIsNotNone(self.well_1.bad_quality_level_gap_generated_time)
+        self.assertIsNone(self.well_2.bad_quality_level_gap)
+        self.assertIsNotNone(self.well_2.bad_quality_level_gap_generated_time)

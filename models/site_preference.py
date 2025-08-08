@@ -46,6 +46,13 @@ class SitePreference(SingletonModel):
             'The gap is more than the value, it is basically a bad quality.'
         )
     )
+    quality_control_level_gap = models.IntegerField(
+        default=50,
+        help_text=(
+            'Quality control level gap. Specifically for well measurement.'
+            'The gap is more than the value, it is basically a bad quality.'
+        )
+    )
 
     @staticmethod
     def update_running_harvesters():

@@ -104,9 +104,54 @@ class Measurement(CreationMetadata):
                 value = rows[0]
                 return {
                     "parameter_id": value[0],
-                    "time": value[1].strftime('%Y-%m-%d %H:%M:%S'),
-                    "previous_time": value[2].strftime('%Y-%m-%d %H:%M:%S'),
-                    "gap_in_days": float(value[3])
+                    "current": value[1].strftime('%Y-%m-%d %H:%M:%S'),
+                    "previous": value[2].strftime('%Y-%m-%d %H:%M:%S'),
+                    "gap": float(value[3])
+                }
+            except (KeyError, IndexError):
+                return None
+
+    @classmethod
+    def longest_level_gap(cls, well_id, parameter_id=None):
+        """Return quality check for value gap."""
+        if cls._meta.db_table != 'well_level_measurement':
+            raise ValueError('Just for well_level_measurement.')
+
+        from django.db import connections
+        query = f"""
+            SELECT
+                parameter_id,
+                value_in_m AS current_value,
+                prev_value,
+                value_in_m - prev_value AS gap
+            FROM (
+                SELECT
+                    well_id,
+                    parameter_id,
+                    value_in_m,
+                    LAG(value_in_m) OVER (
+                        PARTITION BY well_id, parameter_id
+                        ORDER BY time
+                    ) AS prev_value
+                FROM well_level_measurement
+                WHERE well_id = {well_id}
+                  {f"AND parameter_id = {parameter_id}" if parameter_id else ''}
+                  AND value_in_m IS NOT NULL
+            ) sub
+            WHERE prev_value IS NOT NULL
+            ORDER BY gap DESC
+            LIMIT 1;
+        """
+        with connections['gwml2'].cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            try:
+                value = rows[0]
+                return {
+                    "parameter_id": value[0],
+                    "current": value[1],
+                    "previous": value[2],
+                    "gap": float(value[3])
                 }
             except (KeyError, IndexError):
                 return None
