@@ -3,6 +3,9 @@ import json
 from django.db.models.signals import post_save
 from django.utils import timezone
 
+from gwml2.models.term_measurement_parameter import (
+    TermMeasurementParameter, TermMeasurementParameterGroup
+)
 from gwml2.models.well import (
     Well, WellLevelMeasurement
 )
@@ -23,12 +26,31 @@ class WellQualityControl:
         gap_limit = preferences.quality_control_days_gap
 
         quality = []
+
+        def save_value(_value):
+            try:
+                if _value['gap_in_days'] >= gap_limit:
+                    quality.append(_value)
+            except KeyError:
+                pass
+
+        # Check for well level measurement
         value = WellLevelMeasurement.longest_days_gap(self.well.id)
-        try:
-            if value['gap_in_days'] >= gap_limit:
-                quality.append(value)
-        except KeyError:
-            pass
+        save_value(value)
+
+        # Check other parameters
+        for parameter in TermMeasurementParameter.objects.all():
+            try:
+                model = TermMeasurementParameterGroup.get_measurement_model(
+                    parameter
+                )
+                if model != WellLevelMeasurement:
+                    value = model.longest_days_gap(
+                        self.well.id, parameter_id=parameter.id
+                    )
+                    save_value(value)
+            except KeyError:
+                pass
 
         # Save the well
         with temp_disconnect_signal(
