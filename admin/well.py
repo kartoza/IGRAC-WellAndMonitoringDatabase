@@ -131,7 +131,7 @@ class WellAdmin(admin.ModelAdmin):
         'latitude', 'longitude',
         'id',
         'first_time_measurement', 'last_time_measurement',
-        'edit', '_measurement_cache_generated',
+        'links', '_measurement_cache_generated',
         '_data_cache_generated'
     )
     list_filter = (
@@ -160,11 +160,14 @@ class WellAdmin(admin.ModelAdmin):
         quality_control_time_gap
     ]
 
-    def edit(self, obj):
+    def links(self, obj):
         url = reverse('well_form', args=[obj.id])
         return format_html(
-            '<a href="{}" target="_blank">Edit well</a>',
-            url)
+            f'<a href="{url}" target="_blank">Edit well</a><br/>'
+            f'<a href="/admin/gwml2/welllevelmeasurement/?well_id__exact={obj.id}" target="_blank">Level Measurements</a><br/>'
+            f'<a href="/admin/gwml2/wellqualitymeasurement/?well_id__exact={obj.id}" target="_blank">Quality Measurements</a><br/>'
+            f'<a href="/admin/gwml2/wellyieldmeasurement/?well_id__exact={obj.id}" target="_blank">Yield Measurements</a>'
+        )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -176,14 +179,6 @@ class WellAdmin(admin.ModelAdmin):
             'number_of_measurements',
             'first_time_measurement', 'last_time_measurement'
         )
-
-    # @admin.display(ordering='organisation__name')
-    # def _organisation(self, obj: Well):
-    #     return obj.organisation
-    #
-    # @admin.display(ordering='country__name')
-    # def _country(self, obj: Well):
-    #     return obj.country
 
     def created_by_user(self, obj):
         return obj.created_by_username()
@@ -293,11 +288,12 @@ class PageSizeChangeList(ChangeList):
 
 class MeasurementAdmin(admin.ModelAdmin):
     list_display = (
-        '_well_id', 'time', 'parameter_name', '_default_unit', 'default_value'
+        '_well_id', 'time', '_parameter_id', '_default_unit_id',
+        'default_value'
     )
     search_fields = ('well__original_id',)
     raw_id_fields = ('value',)
-    list_filter = (PageSizeFilter, 'time')
+    list_filter = (PageSizeFilter, 'time', 'parameter', 'default_unit')
     change_list_template = "admin/measurements_change_list.html"
 
     def get_changelist(self, request, **kwargs):
@@ -313,15 +309,16 @@ class MeasurementAdmin(admin.ModelAdmin):
     def _well_id(self, obj: WellLevelMeasurement):
         return obj.well_id
 
-    def parameter_name(self, obj: Measurement):
-        return obj.parameter.__str__()
+    @admin.display(ordering='parameter__id')
+    def _parameter_id(self, obj: Measurement):
+        return obj.parameter_id
 
-    def _default_unit(self, obj: Measurement):
-        return obj.default_unit.__str__()
+    @admin.display(ordering='default_unit_id')
+    def _default_unit_id(self, obj: Measurement):
+        return obj.default_unit_id
 
     _well_id.short_description = 'Well ID'
     _well_id.admin_order_field = 'well_id'
-    parameter_name.admin_order_field = 'parameter'
 
 
 admin.site.register(WellLevelMeasurement, MeasurementAdmin)
