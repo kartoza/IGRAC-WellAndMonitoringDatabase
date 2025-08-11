@@ -114,8 +114,8 @@ class ValueStrangeQualityFilter(admin.SimpleListFilter):
 class WellQualityControlAdmin(admin.ModelAdmin):
     list_display = (
         'well',
-        # 'organisation',
-        # 'country',
+        '_organisation',
+        '_country',
         '_groundwater_level_time_gap_quality',
         'groundwater_level_time_gap_generated_time',
         '_groundwater_level_value_gap_quality',
@@ -124,10 +124,29 @@ class WellQualityControlAdmin(admin.ModelAdmin):
         'groundwater_level_strange_value_generated_time',
         'edit'
     )
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related(
+            'well', 'well__organisation', 'well__country'
+        ).only(
+            'well__original_id',
+            'well__organisation__id', 'well__organisation__name',
+            'well__country__id', 'well__country__name'
+        )
+
     list_filter = (
         OrganisationFilter, CountryFilter,
         TimeGapQualityFilter, ValueGapQualityFilter, ValueStrangeQualityFilter
     )
+
+    @admin.display(ordering='well__organisation__name')
+    def _organisation(self, obj: WellQualityControl):
+        return obj.well.organisation
+
+    @admin.display(ordering='well__country__name')
+    def _country(self, obj: WellQualityControl):
+        return obj.well.country
 
     def edit(self, obj: WellQualityControl):
         url = reverse('well_form', args=[obj.well.id])

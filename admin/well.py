@@ -122,10 +122,14 @@ def quality_control_time_gap(modeladmin, request, queryset):
 
 
 class WellAdmin(admin.ModelAdmin):
+    """Well admin."""
     list_display = (
-        'original_id', 'organisation', 'number_of_measurements',
+        'original_id',
+        'organisation',
+        'country',
+        'number_of_measurements',
         'latitude', 'longitude',
-        'country', 'id',
+        'id',
         'first_time_measurement', 'last_time_measurement',
         'edit', '_measurement_cache_generated',
         '_data_cache_generated'
@@ -161,6 +165,25 @@ class WellAdmin(admin.ModelAdmin):
         return format_html(
             '<a href="{}" target="_blank">Edit well</a>',
             url)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('organisation', 'country').only(
+            'id',
+            'original_id',
+            'organisation__id', 'organisation__name',
+            'country__id', 'country__name',
+            'number_of_measurements',
+            'first_time_measurement', 'last_time_measurement'
+        )
+
+    # @admin.display(ordering='organisation__name')
+    # def _organisation(self, obj: Well):
+    #     return obj.organisation
+    #
+    # @admin.display(ordering='country__name')
+    # def _country(self, obj: Well):
+    #     return obj.country
 
     def created_by_user(self, obj):
         return obj.created_by_username()
