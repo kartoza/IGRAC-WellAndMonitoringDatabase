@@ -66,9 +66,9 @@ class Measurement(CreationMetadata):
                     self.default_value = self.value
         return None
 
-    # ---------------------------------
+    # -----------------------------------------------------------------------------------
     # Quality check
-    # ---------------------------------
+    # -----------------------------------------------------------------------------------
     @classmethod
     def longest_days_gap(cls, well_id, parameter_id=None):
         """Return quality check for time gap in days."""

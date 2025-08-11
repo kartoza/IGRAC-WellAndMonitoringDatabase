@@ -138,27 +138,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         max_length=8
     )
 
-    # ---------------------------
-    # Quality control
-    # ---------------------------
-    bad_quality_time_gap = models.TextField(
-        null=True, blank=True,
-        help_text=_('Filled with some of bad quality info by time gap.')
-    )
-    bad_quality_time_gap_generated_time = models.DateTimeField(
-        null=True, blank=True
-    )
-    bad_quality_level_gap = models.TextField(
-        null=True, blank=True,
-        help_text=_(
-            'Filled with some of bad quality info by level gap.'
-            'Specifically for level measurement.'
-        )
-    )
-    bad_quality_level_gap_generated_time = models.DateTimeField(
-        null=True, blank=True
-    )
-
     # Cache indicators
     measurement_cache_generated_at = models.DateTimeField(
         _('Time when measurement cache generated'),
@@ -497,6 +476,15 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             return LicenseMetadataObject(Organisation(), convert=convert)
 
         return LicenseMetadataObject(self.organisation, convert=convert)
+
+    @property
+    def quality_control(self):
+        """Return quality control."""
+        from gwml2.models.well_quality_control import WellQualityControl
+        quality_control, _ = WellQualityControl.objects.get_or_create(
+            well=self
+        )
+        return quality_control
 
 
 # documents

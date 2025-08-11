@@ -39,18 +39,25 @@ class SitePreference(SingletonModel):
     )
 
     # Quality control
-    quality_control_days_gap = models.IntegerField(
+    groundwater_level_quality_control_days_gap = models.IntegerField(
         default=1095,
         help_text=(
-            'Quality control days gap. '
+            'Quality control days gap for groundwater level measurement. '
             'The gap is more than the value, it is basically a bad quality.'
         )
     )
-    quality_control_level_gap = models.IntegerField(
+    groundwater_level_quality_control_level_gap = models.IntegerField(
         default=50,
         help_text=(
-            'Quality control level gap. Specifically for well measurement.'
+            'Quality control level gap for groundwater level measurement. '
             'The gap is more than the value, it is basically a bad quality.'
+        )
+    )
+    groundwater_level_strange_value_filter = models.TextField(
+        default="value IN (0, -9999)",
+        help_text=(
+            'This is for query filter for the strange value.'
+            'Use postgres filter syntax. '
         )
     )
 

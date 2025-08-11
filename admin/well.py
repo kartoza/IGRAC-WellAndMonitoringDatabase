@@ -108,12 +108,17 @@ def generate_measurement_cache_generated_at(modeladmin, request, queryset):
     )
 
 
-@admin.action(description='Quality Control: Time Gap')
+@admin.action(description='Quality Control')
 def quality_control_time_gap(modeladmin, request, queryset):
     """Run quality control for time gap."""
-    from gwml2.utils.well_quality_control import WellQualityControl
-    for well in queryset:
-        WellQualityControl(well).gap_time_quality()
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_well_quality_control',
+        args=[
+            "--ids", ', '.join(ids)
+        ]
+    )
 
 
 class WellAdmin(admin.ModelAdmin):

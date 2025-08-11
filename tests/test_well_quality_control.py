@@ -9,7 +9,6 @@ from gwml2.tests.model_factories import (
     WellF, WellLevelMeasurementF,
     WellQualityMeasurementF, WellYieldMeasurementF
 )
-from gwml2.utils.well_quality_control import WellQualityControl
 
 
 class TestWellQualityControl(GWML2Test):
@@ -155,36 +154,41 @@ class TestWellQualityControl(GWML2Test):
             time='2021-01-02 00:00:00'
         )
 
-    def test_gap_quality_control(self):
+    def test_time_quality_control(self):
         """To gap quality control."""
-        WellQualityControl(self.well_1).gap_time_quality()
-        WellQualityControl(self.well_2).gap_time_quality()
-        self.well_1.refresh_from_db()
-        self.well_2.refresh_from_db()
+        self.well_1.quality_control.gap_time_quality()
+        self.well_2.quality_control.gap_time_quality()
 
         self.assertTrue(
-            f'"parameter_id": {self.parameter.id}, "current": "2025-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 1827.0' in self.well_1.bad_quality_time_gap
+            f'"parameter_id": {self.parameter.id}, "current": "2025-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 1827.0' in
+            self.well_1.quality_control.groundwater_level_time_gap
         )
-        self.assertTrue(
-            f'"parameter_id": {self.parameter_2.id}, "current": "2026-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 2192.0' in self.well_1.bad_quality_time_gap
+        self.assertIsNotNone(
+            self.well_1.quality_control.groundwater_level_time_gap_generated_time
         )
-        self.assertTrue(
-            f'"parameter_id": {self.parameter_4.id}, "current": "2024-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 1461.0' in self.well_1.bad_quality_time_gap
+        self.assertIsNone(
+            self.well_2.quality_control.groundwater_level_time_gap)
+        self.assertIsNotNone(
+            self.well_2.quality_control.groundwater_level_time_gap_generated_time
         )
-        self.assertIsNotNone(self.well_1.bad_quality_time_gap_generated_time)
-        self.assertIsNone(self.well_2.bad_quality_time_gap)
-        self.assertIsNotNone(self.well_2.bad_quality_time_gap_generated_time)
 
     def test_level_quality_control(self):
         """To gap quality control."""
-        WellQualityControl(self.well_1).gap_level_quality()
-        WellQualityControl(self.well_2).gap_level_quality()
+        self.well_1.quality_control.gap_level_quality()
+        self.well_2.quality_control.gap_level_quality()
         self.well_1.refresh_from_db()
         self.well_2.refresh_from_db()
 
         self.assertTrue(
-            f'"parameter_id": {self.parameter.id}, "current": 60.0, "previous": 1.0, "gap": 59.0' in self.well_1.bad_quality_level_gap
+            f'"parameter_id": {self.parameter.id}, "current": 60.0, "previous": 1.0, "gap": 59.0' in
+            self.well_1.quality_control.groundwater_level_value_gap
         )
-        self.assertIsNotNone(self.well_1.bad_quality_level_gap_generated_time)
-        self.assertIsNone(self.well_2.bad_quality_level_gap)
-        self.assertIsNotNone(self.well_2.bad_quality_level_gap_generated_time)
+        self.assertIsNotNone(
+            self.well_1.quality_control.groundwater_level_value_gap_generated_time
+        )
+        self.assertIsNone(
+            self.well_2.quality_control.groundwater_level_value_gap
+        )
+        self.assertIsNotNone(
+            self.well_2.quality_control.groundwater_level_value_gap_generated_time
+        )
