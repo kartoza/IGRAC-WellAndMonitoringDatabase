@@ -121,6 +121,7 @@ class Measurement(CreationMetadata):
         query = f"""
             SELECT
                 parameter_id,
+                time AS current_time,
                 value_in_m AS current_value,
                 prev_value,
                 value_in_m - prev_value AS gap
@@ -129,6 +130,7 @@ class Measurement(CreationMetadata):
                     well_id,
                     parameter_id,
                     value_in_m,
+                    time,
                     LAG(value_in_m) OVER (
                         PARTITION BY well_id, parameter_id
                         ORDER BY time
@@ -149,9 +151,36 @@ class Measurement(CreationMetadata):
                 value = rows[0]
                 return {
                     "parameter_id": value[0],
-                    "current": value[1],
-                    "previous": value[2],
-                    "gap": float(value[3])
+                    "time": value[1].strftime('%Y-%m-%d %H:%M:%S'),
+                    "current": value[2],
+                    "previous": value[3],
+                    "gap": float(value[4])
                 }
             except (KeyError, IndexError):
                 return None
+
+    @classmethod
+    def strange_value(cls, well_id, sql_filter):
+        """Return quality check for value gap."""
+        if cls._meta.db_table != 'well_level_measurement':
+            raise ValueError('Just for well_level_measurement.')
+
+        from django.db import connections
+        query = f"""
+            SELECT
+                parameter_id,
+                time,
+                value_in_m
+            FROM well_level_measurement
+            WHERE well_id = {well_id} AND ({sql_filter});
+        """
+        with connections['gwml2'].cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            return [
+                {
+                    "parameter_id": value[0],
+                    "time": value[1].strftime('%Y-%m-%d %H:%M:%S'),
+                    "value": value[2]
+                } for value in rows
+            ]

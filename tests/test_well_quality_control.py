@@ -1,5 +1,7 @@
 """Test Well Quality Control."""
 
+import json
+
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import (
     TermMeasurementParameter, TermMeasurementParameterGroup
@@ -54,21 +56,21 @@ class TestWellQualityControl(GWML2Test):
             name='Well 1',
             original_id=self.original_id
         )
-        unit = Unit.objects.create(name='m')
+        self.unit = Unit.objects.create(name='m')
         WellLevelMeasurementF(
             well=self.well_1, parameter=self.parameter,
             time='2019-01-01 00:00:00',
-            value=Quantity.objects.create(value=1, unit=unit)
+            value=Quantity.objects.create(value=1, unit=self.unit)
         )
         WellLevelMeasurementF(
             well=self.well_1, parameter=self.parameter,
             time='2020-01-01 00:00:00',
-            value=Quantity.objects.create(value=60, unit=unit)
+            value=Quantity.objects.create(value=60, unit=self.unit)
         )
         WellLevelMeasurementF(
             well=self.well_1, parameter=self.parameter,
             time='2025-01-01 00:00:00',
-            value=Quantity.objects.create(value=6, unit=unit)
+            value=Quantity.objects.create(value=6, unit=self.unit)
         )
 
         WellQualityMeasurementF(
@@ -112,12 +114,12 @@ class TestWellQualityControl(GWML2Test):
         WellLevelMeasurementF(
             well=self.well_2, parameter=self.parameter,
             time='2020-01-01 00:00:00',
-            value=Quantity.objects.create(value=1, unit=unit)
+            value=Quantity.objects.create(value=1, unit=self.unit)
         )
         WellLevelMeasurementF(
             well=self.well_2, parameter=self.parameter,
             time='2020-01-02 00:00:00',
-            value=Quantity.objects.create(value=2, unit=unit)
+            value=Quantity.objects.create(value=2, unit=self.unit)
         )
 
         WellQualityMeasurementF(
@@ -160,8 +162,8 @@ class TestWellQualityControl(GWML2Test):
         self.well_2.quality_control.gap_time_quality()
 
         self.assertTrue(
-            f'"parameter_id": {self.parameter.id}, "current": "2025-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "gap": 1827.0' in
-            self.well_1.quality_control.groundwater_level_time_gap
+            f'"gap": 1827.0, "current": "2025-01-01 00:00:00", "previous": "2020-01-01 00:00:00", "parameter_id": {self.parameter.id}' in
+            json.dumps(self.well_1.quality_control.groundwater_level_time_gap)
         )
         self.assertIsNotNone(
             self.well_1.quality_control.groundwater_level_time_gap_generated_time
@@ -180,8 +182,8 @@ class TestWellQualityControl(GWML2Test):
         self.well_2.refresh_from_db()
 
         self.assertTrue(
-            f'"parameter_id": {self.parameter.id}, "current": 60.0, "previous": 1.0, "gap": 59.0' in
-            self.well_1.quality_control.groundwater_level_value_gap
+            f'"gap": 59.0, "time": "2020-01-01 00:00:00", "current": 60.0, "previous": 1.0, "parameter_id": {self.parameter.id}' in
+            json.dumps(self.well_1.quality_control.groundwater_level_value_gap)
         )
         self.assertIsNotNone(
             self.well_1.quality_control.groundwater_level_value_gap_generated_time
@@ -191,4 +193,50 @@ class TestWellQualityControl(GWML2Test):
         )
         self.assertIsNotNone(
             self.well_2.quality_control.groundwater_level_value_gap_generated_time
+        )
+
+    def test_strange_value(self):
+        """To gap quality control."""
+        WellLevelMeasurementF(
+            well=self.well_1, parameter=self.parameter,
+            time='2019-01-02 00:00:00',
+            value=Quantity.objects.create(value=0, unit=self.unit)
+        )
+
+        WellLevelMeasurementF(
+            well=self.well_1, parameter=self.parameter,
+            time='2019-01-03 00:00:00',
+            value=Quantity.objects.create(value=-9999, unit=self.unit)
+        )
+
+        WellLevelMeasurementF(
+            well=self.well_1, parameter=self.parameter,
+            time='2019-01-04 00:00:00',
+            value=Quantity.objects.create(value=-100, unit=self.unit)
+        )
+
+        self.well_1.quality_control.strange_value_quality()
+        self.well_2.quality_control.strange_value_quality()
+        self.well_1.refresh_from_db()
+        self.well_2.refresh_from_db()
+        self.assertTrue(
+            f'"time": "2019-01-02 00:00:00", "value": 0.0, "parameter_id": {self.parameter.id}' in
+            json.dumps(
+                self.well_1.quality_control.groundwater_level_strange_value
+            )
+        )
+        self.assertTrue(
+            f'"time": "2019-01-03 00:00:00", "value": -9999.0, "parameter_id": {self.parameter.id}' in
+            json.dumps(
+                self.well_1.quality_control.groundwater_level_strange_value
+            )
+        )
+        self.assertIsNotNone(
+            self.well_1.quality_control.groundwater_level_strange_value_generated_time
+        )
+        self.assertIsNone(
+            self.well_2.quality_control.groundwater_level_strange_value
+        )
+        self.assertIsNotNone(
+            self.well_2.quality_control.groundwater_level_strange_value_generated_time
         )

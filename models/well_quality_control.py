@@ -1,5 +1,3 @@
-import json
-
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
 from django.utils import timezone
@@ -86,7 +84,7 @@ class WellQualityControl(models.Model):
                 sender=Well
         ):
             if quality:
-                self.groundwater_level_time_gap = json.dumps(quality)
+                self.groundwater_level_time_gap = quality
             else:
                 self.groundwater_level_time_gap = None
             self.groundwater_level_time_gap_generated_time = timezone.now()
@@ -122,8 +120,33 @@ class WellQualityControl(models.Model):
                 sender=Well
         ):
             if quality:
-                self.groundwater_level_value_gap = json.dumps(quality)
+                self.groundwater_level_value_gap = quality
             else:
                 self.groundwater_level_value_gap = None
             self.groundwater_level_value_gap_generated_time = timezone.now()
+            self.save()
+
+    def strange_value_quality(self):
+        """Check if value has strange."""
+        from gwml2.models.site_preference import SitePreference
+
+        from gwml2.models.well import WellLevelMeasurement
+        from gwml2.signals.well import update_well
+        from gwml2.utilities import temp_disconnect_signal
+        preferences = SitePreference.load()
+        qsl_filter = preferences.groundwater_level_strange_value_filter
+
+        quality = WellLevelMeasurement.strange_value(self.well.id, qsl_filter)
+
+        # Save the well
+        with temp_disconnect_signal(
+                signal=post_save,
+                receiver=update_well,
+                sender=Well
+        ):
+            if quality:
+                self.groundwater_level_strange_value = quality
+            else:
+                self.groundwater_level_strange_value = None
+            self.groundwater_level_strange_value_generated_time = timezone.now()
             self.save()

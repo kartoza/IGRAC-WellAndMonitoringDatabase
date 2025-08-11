@@ -54,7 +54,7 @@ class SitePreference(SingletonModel):
         )
     )
     groundwater_level_strange_value_filter = models.TextField(
-        default="value IN (0, -9999)",
+        default="value_in_m IN (0, -9999)",
         help_text=(
             'This is for query filter for the strange value.'
             'Use postgres filter syntax. '
