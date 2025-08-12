@@ -9,6 +9,7 @@ from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.general import Country
 from gwml2.models.term import TermFeatureType
 from gwml2.models.well import Well
+from gwml2.models.well_quality_control import WellQualityControl
 
 
 class GeneralInformationForm(WellBaseForm):
@@ -21,6 +22,12 @@ class GeneralInformationForm(WellBaseForm):
     longitude = forms.FloatField(
         help_text=_('Longitude must be expressed in decimal degrees.'),
         required=True)
+
+    # Data Quality
+    data_quality = forms.CharField(
+        required=False,
+        disabled=True
+    )
 
     class Meta:
         model = Well
@@ -40,6 +47,8 @@ class GeneralInformationForm(WellBaseForm):
         }
 
     def __init__(self, *args, **kwargs):
+        from gwml2.models.site_preference import SitePreference
+        preferences = SitePreference.load()
         super(GeneralInformationForm, self).__init__(*args, **kwargs)
 
         self.fields['ggis_uid'].disabled = True
@@ -54,6 +63,48 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['address'].widget.attrs['maxlength'] = 200
         self.fields['original_id'].widget.attrs['maxlength'] = 256
         self.fields['name'].widget.attrs['maxlength'] = 64
+
+        instance = None
+        if self.instance.id:
+            instance = self.instance
+        try:
+            if kwargs.get('initial', None):
+                if kwargs.get('initial').get('id', None):
+                    instance = Well.objects.get(
+                        id=kwargs.get('initial').get('id')
+                    )
+        except Exception:
+            pass
+
+        if instance:
+            flags = []
+            try:
+                # This is for data quality
+                quality_control = WellQualityControl.objects.get(well=instance)
+                if quality_control.groundwater_level_time_gap:
+                    flags.append(
+                        f'There is a data gap of more than '
+                        f'{preferences.groundwater_level_quality_control_days_gap / 365} '
+                        f'years'
+                    )
+                if quality_control.groundwater_level_value_gap:
+                    flags.append(
+                        f'There is a jump of '
+                        f'+{preferences.groundwater_level_quality_control_level_gap}m '
+                        f'or '
+                        f'-{preferences.groundwater_level_quality_control_level_gap}m '
+                    )
+                if quality_control.groundwater_level_strange_value:
+                    flags.append(
+                        f'There is a strange value.'
+                    )
+            except WellQualityControl.DoesNotExist:
+                pass
+            if flags:
+                self.fields['data_quality'].initial = 'Needs review'
+                self.fields['data_quality'].help_text = '<br>'.join(flags)
+            else:
+                self.fields['data_quality'].initial = 'No flags'
 
     @staticmethod
     def make_from_data(instance, data, files):

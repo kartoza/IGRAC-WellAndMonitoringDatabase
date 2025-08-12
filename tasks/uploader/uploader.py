@@ -137,6 +137,7 @@ class BatchUploader:
     def cache_well_data(self, well_id):
         """Cache well data."""
         # This is specifically for cache well data
+        well = Well.objects.get(id=well_id)
         if (
                 self.upload_session.category ==
                 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
@@ -150,12 +151,12 @@ class BatchUploader:
             generate_measurement_cache(
                 well_id=well_id, model=WellQualityMeasurement.__name__
             )
+            well.quality_control.run()
 
         generate_data_well_cache(
             well_id=well_id, generate_country_cache=False,
             generate_organisation_cache=False
         )
-        well = Well.objects.get(id=well_id)
         well.update_metadata()
         well.save()
 

@@ -10,3 +10,4 @@ from gwml2.tasks.organisation import update_ggis_uid
 from gwml2.tasks.upload_session import resume_all_uploader
 from gwml2.tasks.uploader.task import well_batch_upload
 from gwml2.tasks.well import generate_measurement_cache
+from gwml2.tasks.well_quality_control import run_well_quality_control

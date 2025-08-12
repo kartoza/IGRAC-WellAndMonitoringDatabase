@@ -41,14 +41,17 @@ class TermMeasurementParameterGroup(_Term):
         from gwml2.models.well import (
             WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
         )
-        group = TermMeasurementParameterGroup.objects.get(
-            parameters__id=parameter.id
-        )
-        name = group.name
-        if name == 'Level Measurement':
-            return WellLevelMeasurement
-        elif name == 'Quality Measurement':
-            return WellQualityMeasurement
-        elif name == 'Yield Measurement':
-            return WellYieldMeasurement
-        raise KeyError('Unknown measurement {}'.format(name))
+        try:
+            group = TermMeasurementParameterGroup.objects.get(
+                parameters__id=parameter.id
+            )
+            name = group.name
+            if name == 'Level Measurement':
+                return WellLevelMeasurement
+            elif name == 'Quality Measurement':
+                return WellQualityMeasurement
+            elif name == 'Yield Measurement':
+                return WellYieldMeasurement
+        except TermMeasurementParameterGroup.DoesNotExist:
+            pass
+        raise KeyError(f'Unknown group for {parameter.name}')

@@ -265,8 +265,8 @@ class BaseHarvester(ABC):
         try:
             obj, created = model.objects.get_or_create(
                 well=harvester_well_data.well,
-                time=make_aware_local(time),
                 parameter=defaults.get('parameter', None),
+                time=make_aware_local(time),
                 defaults=defaults
             )
             if created:

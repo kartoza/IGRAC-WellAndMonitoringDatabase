@@ -44,6 +44,37 @@ class SitePreferenceAdmin(admin.ModelAdmin):
         clean_dangling_measurement_cache_action,
         clean_dangling_well_data_cache_action
     )
+    fieldsets = (
+        (
+            'Background Process',
+            {
+                'fields': (
+                    'batch_upload_auto_resume',
+                    'running_harvesters_concurrency_count',
+                    'running_harvesters'
+                )
+            },
+        ),
+        (
+            'Quality Control: Groundwater Level',
+            {
+                'fields': (
+                    'groundwater_level_quality_control_days_gap',
+                    'groundwater_level_quality_control_level_gap',
+                    'groundwater_level_strange_value_filter'
+                )
+            },
+        ),
+        (
+            'Parameters', {
+            'fields': (
+                'parameter_from_ground_surface',
+                'parameter_from_top_well',
+                'parameter_amsl'
+            )
+        }
+        )
+    )
 
     def _running_harvesters(self, obj: SitePreference):
         """Running harvesters."""
