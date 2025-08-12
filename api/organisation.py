@@ -34,6 +34,7 @@ class OrganisationAutocompleteAPI(APIView):
                 query = query.none()
 
         # Return data
+        query = query.filter(active=True)
         return Response([
             {
                 'id': obj.id,
