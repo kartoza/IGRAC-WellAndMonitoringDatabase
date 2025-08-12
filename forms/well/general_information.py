@@ -77,8 +77,8 @@ class GeneralInformationForm(WellBaseForm):
             pass
 
         if instance:
-            flags = []
             try:
+                flags = []
                 # This is for data quality
                 quality_control = WellQualityControl.objects.get(well=instance)
                 if quality_control.groundwater_level_time_gap:
@@ -98,13 +98,13 @@ class GeneralInformationForm(WellBaseForm):
                     flags.append(
                         f'There is a strange value.'
                     )
+                if flags:
+                    self.fields['data_quality'].initial = 'Needs review'
+                    self.fields['data_quality'].help_text = '<br>'.join(flags)
+                else:
+                    self.fields['data_quality'].initial = 'No flags'
             except WellQualityControl.DoesNotExist:
-                pass
-            if flags:
-                self.fields['data_quality'].initial = 'Needs review'
-                self.fields['data_quality'].help_text = '<br>'.join(flags)
-            else:
-                self.fields['data_quality'].initial = 'No flags'
+                self.fields['data_quality'].initial = '-'
 
     @staticmethod
     def make_from_data(instance, data, files):
