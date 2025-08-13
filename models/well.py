@@ -514,10 +514,10 @@ class WellLevelMeasurement(Measurement):
     class Meta:
         db_table = 'well_level_measurement'
         ordering = ('-time',)
-        indexes = [
-            models.Index(fields=['well', 'time']),
-            models.Index(fields=['well', 'parameter', 'time']),
-        ]
+        # indexes = [
+        #     models.Index(fields=['well', 'time']),
+        #     models.Index(fields=['well', 'parameter', 'time']),
+        # ]
 
 
 @receiver(post_save, sender=WellLevelMeasurement)
@@ -541,9 +541,9 @@ class WellQualityMeasurement(Measurement):
     class Meta:
         db_table = 'well_quality_measurement'
         ordering = ('-time',)
-        indexes = [
-            models.Index(fields=['well', 'parameter', 'time']),
-        ]
+        # indexes = [
+        #     models.Index(fields=['well', 'parameter', 'time']),
+        # ]
 
 
 class WellYieldMeasurement(Measurement):
@@ -554,9 +554,9 @@ class WellYieldMeasurement(Measurement):
     class Meta:
         db_table = 'well_yield_measurement'
         ordering = ('-time',)
-        indexes = [
-            models.Index(fields=['well', 'parameter', 'time']),
-        ]
+        # indexes = [
+        #     models.Index(fields=['well', 'parameter', 'time']),
+        # ]
 
 
 MEASUREMENT_MODELS = [
