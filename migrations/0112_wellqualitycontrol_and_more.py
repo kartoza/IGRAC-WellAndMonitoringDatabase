@@ -88,33 +88,6 @@ class Migration(migrations.Migration):
                 help_text="This is for query filter for the strange value.Use postgres filter syntax. ",
             ),
         ),
-        migrations.AddIndex(
-            model_name="welllevelmeasurement",
-            index=models.Index(
-                fields=["well", "time"], name="well_level__well_id_1108af_idx"
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="welllevelmeasurement",
-            index=models.Index(
-                fields=["well", "parameter", "time"],
-                name="well_level__well_id_5c4700_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="wellqualitymeasurement",
-            index=models.Index(
-                fields=["well", "parameter", "time"],
-                name="well_qualit_well_id_209aae_idx",
-            ),
-        ),
-        migrations.AddIndex(
-            model_name="wellyieldmeasurement",
-            index=models.Index(
-                fields=["well", "parameter", "time"],
-                name="well_yield__well_id_f1e2fb_idx",
-            ),
-        ),
         migrations.AddField(
             model_name="wellqualitycontrol",
             name="well",
