@@ -13,6 +13,9 @@ from gwml2.models.general import Country
 from gwml2.models.well_management.organisation import (
     Organisation, OrganisationGroup
 )
+from gwml2.serializer.organisation_contributor import (
+    OrganisationContributorSerializer
+)
 from igrac.models import SitePreference
 
 WELL_AND_MONITORING_DATA = 'Well and Monitoring Data'
@@ -152,52 +155,34 @@ class DownloadRequest(models.Model):
             header_text = pref.download_readme_text
         return header_text if header_text else DEFAULT_README_HEADER_TEXT
 
-    def _get_organisations_in_countries_readme(self, country_data_folder):
-        """Return organisations of countries for readme."""
-        header_text = ''
-        for country in self.countries.all():
-            _organisation_file_name = (
-                f'{country.code} - {self.data_type}.json'
-            )
-            _file_path = os.path.join(
-                country_data_folder,
-                _organisation_file_name
-            )
-            if not os.path.exists(_file_path):
-                continue
-            data = []
+    def _get_organisations_in_countries(
+            self, country: Country, country_data_folder
+    ):
+        """Return organisations of countries."""
+        # This is new approach
+        _organisation_file_name = (
+            f'{country.code} - organisations.json'
+        )
+        _file_path = os.path.join(
+            country_data_folder,
+            _organisation_file_name
+        )
+        if os.path.exists(_file_path):
             with open(_file_path, "r") as _file:
-                data = json.loads(_file.read())
-            if len(data) == 0:
-                continue
-            _organisation_str = ', '.join(data)
-            header_text += f'{country.name} - {_organisation_str};\r\n'
-        return header_text
-
-    def _get_organisations_in_readme(self):
-        """Return organisations to readme."""
-        header_text = ''
-        for organisation in list(set(self.organisations_found)):
-            header_text += f'{organisation};\r\n'
-        return header_text
+                try:
+                    data = json.loads(_file.read())
+                    organisations = data[self.data_type]
+                    return Organisation.objects.filter(id__in=organisations)
+                except KeyError:
+                    pass
+        return None
 
     def _generate_readme_file(self, country_data_folder):
         """Generate readme."""
         header_text = self._get_readme_text()
         header_text += '\r\n'
         header_text += '\r\n'
-        header_text += (
-            'Organisations contributing with groundwater '
-            'monitoring data are:\r\n'
-        )
-        if self.countries.exists():
-            header_text += self._get_organisations_in_countries_readme(
-                country_data_folder
-            )
-        elif self.organisations.exists():
-            header_text += self._get_organisations_in_readme()
-
-        header_text += '\r\n'
+        header_text += self._generate_contributors(country_data_folder)
         header_text += (
             '======================================================='
         )
@@ -217,3 +202,43 @@ class DownloadRequest(models.Model):
     def age_hours(self):
         diff = timezone.now() - self.request_at
         return diff.total_seconds() / (60 * 60)
+
+    def _generate_contributors(self, country_data_folder):
+        """Generate readme."""
+        header_text = (
+            'Organisations contributing with groundwater '
+            'monitoring data are:\r\n'
+        )
+        header_text += '\r\n'
+        organisation_id = []
+        if self.countries.exists():
+            for country in self.countries.all():
+                try:
+                    organisation_id += self._get_organisations_in_countries(
+                        country, country_data_folder
+                    ).values_list('id', flat=True)
+                except AttributeError:
+                    pass
+        elif self.organisations.exists():
+            organisation_id += self.organisations.values_list('id', flat=True)
+
+        organisation_id = list(set(organisation_id))
+        for organisation in Organisation.objects.select_related(
+                'country'
+        ).filter(id__in=organisation_id).order_by('name'):
+            _data = OrganisationContributorSerializer(organisation).data
+            if organisation.country:
+                header_text += f'{organisation.country.name} - '
+            header_text += f'{organisation.name}'
+            header_text += '\r\n'
+            header_text += f'Data type : {_data["data_types"]}'
+            header_text += '\r\n'
+            header_text += f'Time range : {_data["time_range"]}'
+            header_text += '\r\n'
+            if organisation.license_data:
+                header_text += f'License : {organisation.license_data.name}'
+            else:
+                header_text += f'License :  -'
+            header_text += '\r\n'
+            header_text += '\r\n'
+        return header_text
