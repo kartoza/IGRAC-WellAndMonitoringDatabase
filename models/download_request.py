@@ -110,10 +110,6 @@ class DownloadRequest(models.Model):
         zip_file.writestr(
             'Readme.txt', self._generate_readme_file(COUNTRY_DATA_FOLDER)
         )
-        zip_file.writestr(
-            'Contributors.txt',
-            self._generate_contributors(COUNTRY_DATA_FOLDER)
-        )
         zip_file.close()
 
         # Make this downloader done
@@ -181,62 +177,12 @@ class DownloadRequest(models.Model):
                     pass
         return None
 
-    def _get_organisations_in_countries_readme(self, country_data_folder):
-        """Return organisations of countries for readme."""
-        header_text = ''
-        for country in self.countries.all():
-            _organisations = self._get_organisations_in_countries(
-                country, country_data_folder
-            )
-            if _organisations is not None:
-                _organisation_str = ', '.join(
-                    _organisations.values_list('name', flat=True)
-                )
-                header_text += f'{country.name} - {_organisation_str};\r\n'
-                continue
-
-            _organisation_file_name = (
-                f'{country.code} - {self.data_type}.json'
-            )
-            _file_path = os.path.join(
-                country_data_folder,
-                _organisation_file_name
-            )
-            if not os.path.exists(_file_path):
-                continue
-            data = []
-            with open(_file_path, "r") as _file:
-                data = json.loads(_file.read())
-            if len(data) == 0:
-                continue
-            _organisation_str = ', '.join(data)
-            header_text += f'{country.name} - {_organisation_str};\r\n'
-        return header_text
-
-    def _get_organisations_in_readme(self):
-        """Return organisations to readme."""
-        header_text = ''
-        for organisation in list(set(self.organisations_found)):
-            header_text += f'{organisation};\r\n'
-        return header_text
-
     def _generate_readme_file(self, country_data_folder):
         """Generate readme."""
         header_text = self._get_readme_text()
         header_text += '\r\n'
         header_text += '\r\n'
-        header_text += (
-            'Organisations contributing with groundwater '
-            'monitoring data are:\r\n'
-        )
-        if self.countries.exists():
-            header_text += self._get_organisations_in_countries_readme(
-                country_data_folder
-            )
-        elif self.organisations.exists():
-            header_text += self._get_organisations_in_readme()
-
-        header_text += '\r\n'
+        header_text += self._generate_contributors(country_data_folder)
         header_text += (
             '======================================================='
         )
@@ -295,8 +241,4 @@ class DownloadRequest(models.Model):
                 header_text += f'License :  -'
             header_text += '\r\n'
             header_text += '\r\n'
-
-        header_text += (
-            '======================================================='
-        )
         return header_text
