@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.general import Country
-from gwml2.models.well import Well, Organisation
+from gwml2.models.well import Well
 from gwml2.tasks.data_file_cache.base_cache import WellCacheZipFileBase
 
 COUNTRY_DATA_FOLDER = os.path.join(settings.GWML2_FOLDER, 'data')
@@ -46,25 +46,35 @@ class GenerateCountryCacheFile(WellCacheZipFileBase):
         wells = self.get_well_queryset()
         for well in wells:
             if well.is_ggmn():
-                ggmn_organisations.append(well.organisation.name)
+                ggmn_organisations.append(well.organisation.id)
             else:
-                organisations.append(well.organisation.name)
+                organisations.append(well.organisation.id)
+
+        cache_organisations = {}
 
         # Save the organisation data
-        self.generate_organisations_json_file(
+        cache_organisations[
+            WELL_AND_MONITORING_DATA] = self.generate_organisations_json_file(
             WELL_AND_MONITORING_DATA, list(set(organisations))
         )
-        self.generate_organisations_json_file(
+        cache_organisations[GGMN] = self.generate_organisations_json_file(
             GGMN, list(set(ggmn_organisations))
         )
+        _file = os.path.join(
+            self.data_folder,
+            f'{str(self.cache_name)} - organisations.json'
+        )
+        with open(_file, "w") as outfile:
+            outfile.write(json.dumps(cache_organisations, indent=4))
 
     def generate_organisations_json_file(self, data_type, organisations):
         _file = os.path.join(
             self.data_folder,
             f'{str(self.cache_name)} - {data_type}.json'
         )
-        with open(_file, "w") as outfile:
-            outfile.write(json.dumps(organisations, indent=4))
+        if os.path.exists(_file):
+            os.remove(_file)
+        return organisations
 
 
 @shared_task(bind=True, queue='update')

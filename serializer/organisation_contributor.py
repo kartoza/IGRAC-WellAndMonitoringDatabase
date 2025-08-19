@@ -18,7 +18,6 @@ class OrganisationContributorSerializer(serializers.ModelSerializer):
 
     def get_links(self, obj: Organisation):
         """ Links."""
-
         return [
             {"name": link.name, "url": link.url} for link in
             obj.links.all()
@@ -26,5 +25,4 @@ class OrganisationContributorSerializer(serializers.ModelSerializer):
 
     def get_data_types(self, obj: Organisation):
         """Get data types."""
-
         return ', '.join(obj.data_types)
