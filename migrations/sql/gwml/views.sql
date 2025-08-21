@@ -33,9 +33,13 @@ select w.id,
        w.last_time_measurement,
        w.is_groundwater_level,
        w.is_groundwater_quality,
+       control.groundwater_level_time_gap IS NOT NULL AS has_level_time_gap,
+       control.groundwater_level_value_gap IS NOT NULL AS has_level_value_gap,
+       control.groundwater_level_strange_value IS NOT NULL AS has_level_strange_value,
        concat('<a href="/groundwater/record/', w.id,
               '">Full Data Record</a>') as detail
 from well as w
+         LEFT JOIN well_quality_control control ON w.id = control.well_id
          LEFT JOIN organisation org on w.organisation_id = org.id
          LEFT JOIN country c on w.country_id = c.id
          LEFT JOIN term_feature_type type on w.feature_type_id = type.id
@@ -92,5 +96,8 @@ ON (id) id,
     ground_surface_elevation,
     ground_surface_elevation_unit,
     dem_elevation,
-    dem_elevation_unit
+    dem_elevation_unit,
+    has_level_time_gap,
+    has_level_value_gap,
+    has_level_strange_value
 from view_well;

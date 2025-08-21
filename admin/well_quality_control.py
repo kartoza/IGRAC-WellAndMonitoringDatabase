@@ -174,18 +174,21 @@ class WellQualityControlAdmin(admin.ModelAdmin):
             url
         )
 
+    @admin.display(description='Has good time gap quality?', boolean=True)
     def _groundwater_level_time_gap_quality(self, obj: WellQualityControl):
         """Return groundwater level time gap."""
         return obj.groundwater_level_time_gap is None
 
     _groundwater_level_time_gap_quality.boolean = True
 
+    @admin.display(description='Has good value gap quality?', boolean=True)
     def _groundwater_level_value_gap_quality(self, obj: WellQualityControl):
         """Return groundwater level time gap."""
         return obj.groundwater_level_value_gap is None
 
     _groundwater_level_value_gap_quality.boolean = True
 
+    @admin.display(description="Don't have strange value?", boolean=True)
     def _groundwater_level_strange_value_quality(
             self, obj: WellQualityControl
     ):

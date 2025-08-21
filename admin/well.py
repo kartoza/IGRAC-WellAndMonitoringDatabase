@@ -3,7 +3,6 @@ from django.contrib.admin import SimpleListFilter
 from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
-from django.db import connections
 from django.db.models import Q, Sum
 from django.urls import reverse
 from django.utils.html import format_html
@@ -199,8 +198,7 @@ admin.site.register(Well, WellAdmin)
 
 def refresh(modeladmin, request, queryset):
     """Refresh materialized view."""
-    with connections['gwml2'].cursor() as cursor:
-        cursor.execute('REFRESH MATERIALIZED VIEW mv_well;')
+    MaterializedViewWell.refresh()
 
 
 @admin.register(MaterializedViewWell)
@@ -210,10 +208,15 @@ class MaterializedViewWellAdmin(admin.ModelAdmin):
         'country', 'first_time_measurement', 'last_time_measurement',
         'number_of_measurements_level', 'number_of_measurements_quality',
         'is_groundwater_level', 'is_groundwater_quality',
+        'has_level_time_gap',
+        'has_level_value_gap',
+        'has_level_strange_value',
         'link',
     )
     list_filter = (
-        'first_time_measurement', 'last_time_measurement'
+        'first_time_measurement', 'last_time_measurement',
+        'has_level_time_gap', 'has_level_value_gap',
+        'has_level_strange_value'
     )
     search_fields = ('ggis_uid', 'name')
     actions = (refresh,)

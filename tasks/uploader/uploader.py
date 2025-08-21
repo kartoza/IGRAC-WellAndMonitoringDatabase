@@ -11,6 +11,7 @@ from gwml2.models.well import (
     WellQualityMeasurement,
     WellYieldMeasurement
 )
+from gwml2.models.well_materialized_view import MaterializedViewWell
 from gwml2.signals.well import post_save_measurement_for_cache
 from gwml2.tasks.data_file_cache import generate_data_well_cache
 from gwml2.tasks.data_file_cache.country_recache import (
@@ -95,6 +96,7 @@ class BatchUploader:
                         self.upload_session.update_step('Create report')
                         self.upload_session.create_report_excel()
                         self.upload_session.update_step('Cancelled')
+                        MaterializedViewWell.refresh()
                         return
                     except Exception as error:
                         self.upload_session.update_progress(
@@ -102,6 +104,7 @@ class BatchUploader:
                             progress=100,
                             status=str(error)
                         )
+                        MaterializedViewWell.refresh()
                         return
 
     def saving_data(self):
