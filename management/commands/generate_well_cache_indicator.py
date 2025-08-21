@@ -24,4 +24,3 @@ class Command(WellCommand):
             well = Well.objects.get(id=id)
             print(f'----- {idx}/{count} - {well.id} -----')
             well.cache.run(options.get('force', False))
-            print(well.cache)
