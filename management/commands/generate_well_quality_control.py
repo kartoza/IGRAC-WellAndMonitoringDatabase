@@ -1,5 +1,6 @@
 from gwml2.management.commands.base import WellCommand
 from gwml2.models.well import Well
+from gwml2.models.well_materialized_view import MaterializedViewWell
 
 
 class Command(WellCommand):
@@ -31,3 +32,5 @@ class Command(WellCommand):
                 quality_control.save()
             # If it is old,
             quality_control.run()
+
+        MaterializedViewWell.refresh()

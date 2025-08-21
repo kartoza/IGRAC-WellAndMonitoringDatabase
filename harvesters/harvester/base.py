@@ -7,7 +7,6 @@ import requests
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
-from django.core.management import call_command
 from django.db.models.signals import post_save
 from django.utils import timezone
 
@@ -23,6 +22,7 @@ from gwml2.models.well import (
     WellQualityMeasurement,
     WellYieldMeasurement
 )
+from gwml2.models.well_materialized_view import MaterializedViewWell
 from gwml2.signals.well import post_save_measurement_for_cache
 from gwml2.tasks.data_file_cache import generate_data_well_cache
 from gwml2.tasks.data_file_cache.organisation_cache import (
@@ -97,7 +97,7 @@ class BaseHarvester(ABC):
         # RUN MATERIALIZED VIEW
         running = Harvester.objects.filter(is_run=True).first()
         if not running:
-            call_command('refresh_materialized_views')
+            MaterializedViewWell.refresh()
 
         # Make the task id non
         harvester.task_id = None

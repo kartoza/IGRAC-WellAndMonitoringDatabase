@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from django.db import connections
 from django.utils.translation import gettext_lazy as _
 
 
@@ -83,6 +84,15 @@ class MaterializedViewWell(models.Model):
     is_groundwater_quality = models.CharField(
         null=True, blank=True, max_length=8
     )
+    has_level_time_gap = models.BooleanField(
+        null=True, blank=True
+    )
+    has_level_value_gap = models.BooleanField(
+        null=True, blank=True
+    )
+    has_level_strange_value = models.BooleanField(
+        null=True, blank=True
+    )
 
     def __str__(self):
         return self.ggis_uid
@@ -91,3 +101,9 @@ class MaterializedViewWell(models.Model):
         db_table = 'mv_well'
         managed = False
         ordering = ['original_id']
+
+    @staticmethod
+    def refresh():
+        """Refresh materialized view."""
+        with connections['gwml2'].cursor() as cursor:
+            cursor.execute('REFRESH MATERIALIZED VIEW mv_well;')
