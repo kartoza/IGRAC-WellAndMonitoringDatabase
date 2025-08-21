@@ -13,7 +13,6 @@ from gwml2.models.well import (
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
-from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
 
@@ -69,58 +68,6 @@ def delete_in_background(modeladmin, request, queryset):
     return delete_well_in_background(modeladmin, request, queryset)
 
 
-@admin.action(description='Generate data cache')
-def generate_data_wells_cache(modeladmin, request, queryset):
-    """Generate measurement cache."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'generate_data_wells_cache',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
-@admin.action(description='Generate measurement cache')
-def generate_measurement_cache(modeladmin, request, queryset):
-    """Generate measurement cache."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'generate_well_measurement_cache',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
-@admin.action(description='Generate measurement cache generated at field')
-def generate_measurement_cache_generated_at(modeladmin, request, queryset):
-    """Generate measurement cache at field."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'update_measurement_cache_generated_at',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
-@admin.action(description='Quality Control')
-def quality_control_time_gap(modeladmin, request, queryset):
-    """Run quality control for time gap."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'generate_well_quality_control',
-        args=[
-            "--ids", ', '.join(ids)
-        ]
-    )
-
-
 class WellAdmin(admin.ModelAdmin):
     """Well admin."""
     list_display = (
@@ -131,14 +78,11 @@ class WellAdmin(admin.ModelAdmin):
         'latitude', 'longitude',
         'id',
         'first_time_measurement', 'last_time_measurement',
-        'links', '_measurement_cache_generated',
-        '_data_cache_generated'
+        'links'
     )
     list_filter = (
         'organisation', 'country', 'feature_type',
         'first_time_measurement', 'last_time_measurement',
-        'measurement_cache_generated_at',
-        'data_cache_generated_at',
         InvalidCoordinatesFilter
     )
     readonly_fields = (
@@ -154,10 +98,7 @@ class WellAdmin(admin.ModelAdmin):
     search_fields = ('original_id', 'name')
     actions = [
         delete_in_background,
-        generate_data_wells_cache,
-        generate_measurement_cache,
-        assign_country,
-        quality_control_time_gap
+        assign_country
     ]
 
     def links(self, obj):
@@ -191,15 +132,6 @@ class WellAdmin(admin.ModelAdmin):
 
     def longitude(self, obj: Well):
         return obj.location.x
-
-    def _measurement_cache_generated(self, obj: Well):
-        return obj.measurement_cache_generated_at
-
-    def _data_cache_generated(self, obj: Well):
-        return obj.data_cache_generated_at
-
-    _measurement_cache_generated.admin_order_field = 'measurement_cache_generated_at'
-    _data_cache_generated.admin_order_field = 'data_cache_generated_at'
 
 
 admin.site.register(Well, WellAdmin)
@@ -295,6 +227,12 @@ class MeasurementAdmin(admin.ModelAdmin):
     raw_id_fields = ('value',)
     list_filter = (PageSizeFilter, 'time', 'parameter', 'default_unit')
     change_list_template = "admin/measurements_change_list.html"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related(
+            'well'
+        ).only('well__name')
 
     def get_changelist(self, request, **kwargs):
         return PageSizeChangeList

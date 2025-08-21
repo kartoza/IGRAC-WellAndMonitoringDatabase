@@ -34,7 +34,7 @@ class Command(WellCommand):
             well = Well.objects.get(id=id)
             print(f"{idx + 1}/{count} : Generating {well.id}")
 
-            well.generate_all_measurement_caches(
+            well.cache.generate_measurement_cache(
                 measurement_name=options.get('measurement_name', None),
                 force=options.get('force', False)
             )

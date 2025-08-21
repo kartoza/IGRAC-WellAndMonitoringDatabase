@@ -1,4 +1,6 @@
 from django.contrib.gis.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -139,3 +141,10 @@ class WellQualityControl(models.Model):
             self.groundwater_level_strange_value = None
         self.groundwater_level_strange_value_generated_time = timezone.now()
         self.save()
+
+
+@receiver(post_save, sender=Well)
+def update_well(sender, instance, created, **kwargs):
+    """Create quality control when a well is created."""
+    if created:
+        WellQualityControl.objects.get_or_create(well=instance)

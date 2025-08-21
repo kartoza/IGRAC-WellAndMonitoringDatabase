@@ -28,6 +28,12 @@ from gwml2.api.well_relation import (
 from gwml2.views.admin.delete_selected_confirmation_background import (
     DeleteWellPostView, DeleteWellProgressView
 )
+from gwml2.views.admin.well_cache import (
+    GenerateWellCacheMissingOneView
+)
+from gwml2.views.admin.well_quality_control import (
+    GenerateQualityControlMissingOneView
+)
 from gwml2.views.download_request import (
     DownloadRequestFormView,
     DownloadRequestDownloadView,
@@ -248,6 +254,16 @@ urlpatterns = [
         r'^delete/well/',
         view=DeleteWellPostView.as_view(),
         name='delete-well-confirmation-view'
+    ),
+    re_path(
+        r'^generate/quality-control',
+        view=GenerateQualityControlMissingOneView.as_view(),
+        name='generate-quality-control'
+    ),
+    re_path(
+        r'^generate/cache',
+        view=GenerateWellCacheMissingOneView.as_view(),
+        name='generate-well-cache'
     ),
     re_path(r'^api/', include(api_url)),
     re_path(r'^record/', include(well_url)),

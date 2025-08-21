@@ -4,6 +4,7 @@ from django.utils.html import format_html
 
 from gwml2.models.well_management.organisation import Organisation, Country
 from gwml2.models.well_quality_control import WellQualityControl
+from gwml2.utils.management_commands import run_command
 
 
 class OrganisationFilter(admin.SimpleListFilter):
@@ -110,6 +111,21 @@ class ValueStrangeQualityFilter(admin.SimpleListFilter):
         return queryset
 
 
+@admin.action(description='Force generate')
+def quality_control(modeladmin, request, queryset):
+    """Run quality control for time gap."""
+    ids = [f'{_id}' for _id in queryset.values_list('well_id', flat=True)]
+    return run_command(
+        request,
+        'generate_well_quality_control',
+        args=[
+            "--ids",
+            ', '.join(ids),
+            "--force"
+        ]
+    )
+
+
 @admin.register(WellQualityControl)
 class WellQualityControlAdmin(admin.ModelAdmin):
     list_display = (
@@ -124,6 +140,9 @@ class WellQualityControlAdmin(admin.ModelAdmin):
         'groundwater_level_strange_value_generated_time',
         'edit'
     )
+    change_list_template = "admin/well_quality_control_change_list.html"
+    actions = [quality_control]
+    readonly_fields = ('well',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

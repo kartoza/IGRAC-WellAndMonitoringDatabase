@@ -159,21 +159,21 @@ class GenerateWellCacheFile(object):
         if GENERATORS.GENERAL_INFORMATION in self.generators:
             print(f'Generate {GENERATORS.GENERAL_INFORMATION}')
             self.general_information(well)
-            generated =True
+            generated = True
         if GENERATORS.HYDROGEOLOGY in self.generators:
             print(f'Generate {GENERATORS.HYDROGEOLOGY}')
             self.hydrogeology(well)
-            generated =True
+            generated = True
         if GENERATORS.MANAGEMENT in self.generators:
             print(f'Generate {GENERATORS.MANAGEMENT}')
             self.management(well)
-            generated =True
+            generated = True
 
         # Drill
         if GENERATORS.DRILLING_AND_CONSTRUCTION in self.generators:
             print(f'Generate {GENERATORS.DRILLING_AND_CONSTRUCTION}')
             self.drilling_and_construction(well)
-            generated =True
+            generated = True
 
         # ----------------------------------------
         # Monitor data
@@ -193,12 +193,13 @@ class GenerateWellCacheFile(object):
 
             xlsx_to_ods(monitor_file)
             os.remove(monitor_file)
-            generated =True
+            generated = True
 
         # Update data cache generated at
         if generated:
-            well.data_cache_generated_at = timezone.now()
-            well.save()
+            cache = well.cache
+            cache.data_cache_generated_at = timezone.now()
+            cache.save()
 
     def write_json(self, sheetname, data):
         """Write JSON by sheetname."""
