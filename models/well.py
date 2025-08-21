@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 from datetime import datetime
-
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models import Q

@@ -4,10 +4,11 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from django.db import connections
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.urls import reverse
 from django.utils.html import format_html
 
+from gwml2.models import OrganisationGroup
 from gwml2.models.well import (
     Well, WellDocument, Measurement,
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
@@ -25,6 +26,29 @@ bbox = Polygon(
         (-180, -90)
     )
 )
+
+
+class OrganisationGroupFilter(admin.SimpleListFilter):
+    title = 'Organisation group'
+    parameter_name = 'organisation_group'
+
+    def lookups(self, request, model_admin):
+        """Return a list of tuples (value, label) for the filter dropdown."""
+        from gwml2.models.well_management.organisation import OrganisationGroup
+        return [
+            (a.id, a.name) for a in OrganisationGroup.objects.all()
+        ]
+
+    def queryset(self, request, queryset):
+        """Filter queryset based on the selected value."""
+        if self.value():
+            group = OrganisationGroup.objects.get(id=self.value())
+            return queryset.filter(
+                organisation_id__in=group.organisations.all().values_list(
+                    'id', flat=True
+                )
+            )
+        return queryset
 
 
 class InvalidCoordinatesFilter(admin.SimpleListFilter):
@@ -52,6 +76,24 @@ class InvalidCoordinatesFilter(admin.SimpleListFilter):
                 location__isnull=False,
                 location__within=bbox
             )
+        return queryset
+
+
+class ShowDetail(admin.SimpleListFilter):
+    """Show detail."""
+
+    title = 'Show detail'
+    parameter_name = 'show_detail'
+
+    def lookups(self, request, model_admin):
+        """Lookup function for entity filter."""
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
         return queryset
 
 
@@ -83,7 +125,8 @@ class WellAdmin(admin.ModelAdmin):
     list_filter = (
         'organisation', 'country', 'feature_type',
         'first_time_measurement', 'last_time_measurement',
-        InvalidCoordinatesFilter
+        InvalidCoordinatesFilter, OrganisationGroupFilter,
+        ShowDetail
     )
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
@@ -100,6 +143,23 @@ class WellAdmin(admin.ModelAdmin):
         delete_in_background,
         assign_country
     ]
+    change_list_template = "admin/well_change_list.html"
+
+    def changelist_view(self, request, extra_context=None):
+        """Get count context"""
+        response = super().changelist_view(request, extra_context)
+        if "show_detail" in request.GET:
+            try:
+                cl = response.context_data["cl"]
+                totals = cl.queryset.aggregate(
+                    total_level=Sum("number_of_measurements_level"),
+                    total_quality=Sum("number_of_measurements_quality"),
+                    total_yield=Sum("number_of_measurements_yield"),
+                )
+                response.context_data["totals"] = totals
+            except (AttributeError, KeyError):
+                pass
+        return response
 
     def links(self, obj):
         url = reverse('well_form', args=[obj.id])

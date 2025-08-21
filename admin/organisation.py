@@ -63,9 +63,9 @@ class OrganisationLinkInline(admin.TabularInline):
 class OrganisationAdmin(admin.ModelAdmin):
     """Admin for Organisation model."""
     list_display = (
-        'name', 'links', 'data_types', 'time_range',
+        'name', 'data_types', 'time_range',
         'license_name', 'active', 'country', '_groups', 'description',
-        'data_cache_generated_at'
+        'data_cache_generated_at', 'links'
     )
     list_editable = ('active',)
     list_filter = ('data_cache_generated_at', 'country')
