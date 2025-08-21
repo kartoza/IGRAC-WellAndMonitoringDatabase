@@ -6,7 +6,6 @@ from gwml2.tasks.data_file_cache.country_recache import (
 from gwml2.tasks.data_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
-from gwml2.tasks.data_file_cache.wells_cache import generate_data_well_cache
 
 
 class Command(WellCommand):
@@ -40,11 +39,8 @@ class Command(WellCommand):
         for idx, id in enumerate(ids):
             well = Well.objects.get(id=id)
             print(f'----- {idx}/{count} - {well.id} -----')
-            generate_data_well_cache(
-                well.id,
-                force_regenerate=options.get('force', False),
-                generate_country_cache=False,
-                generate_organisation_cache=False,
+            well.cache.generate_data_wells_cache(
+                force=options.get('force', False),
                 generators=generators.split(',') if generators else None
             )
 

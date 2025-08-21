@@ -13,6 +13,7 @@ from gwml2.admin.site_preference import *
 from gwml2.admin.term import *
 from gwml2.admin.upload_session import *
 from gwml2.admin.well import *
+from gwml2.admin.well_cache_indicator import *
 from gwml2.admin.well_deletion import *
 from gwml2.admin.well_quality_control import *
 # harvesters

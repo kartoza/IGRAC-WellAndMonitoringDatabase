@@ -3,7 +3,6 @@ import json
 import os
 import shutil
 from datetime import datetime
-
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models import Q
@@ -379,6 +378,9 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
 
         # Self assign measurement type
         self.assign_measurement_type()
+        cache = self.cache
+        cache.metadata_generated_at = make_aware(datetime.now())
+        cache.save()
         self.save()
 
     def is_ggmn(self):
@@ -396,6 +398,8 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         folder = self.return_measurement_cache_folder()
         if os.path.exists(folder):
             shutil.rmtree(folder)
+        if not os.path.exists(settings.MEASUREMENTS_FOLDER):
+            os.makedirs(settings.MEASUREMENTS_FOLDER)
 
         for MeasurementModel in MEASUREMENT_MODELS:
             measurement_name = MeasurementModel.__name__
@@ -417,7 +421,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                     file.write(json_bytes)
                     file.close()
                     print(f"Saving : {filename}")
-                    self.measurement_cache_generated_at_check(model)
+                    self.cache.measurement_cache_generated_at_check(model)
             except KeyError:
                 pass
 
@@ -438,24 +442,6 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
                 if os.path.exists(cache_file):
                     return
             self.generate_measurement_cache(model)
-
-    def measurement_cache_generated_at_check(self, model):
-        """Generate measurement cache at check."""
-        _time = None
-        cache_file = self.return_measurement_cache_path(model)
-        if os.path.exists(cache_file):
-            modified_timestamp = os.path.getmtime(cache_file)
-            modified_datetime = make_aware(
-                datetime.fromtimestamp(modified_timestamp)
-            )
-            if (
-                    not self.measurement_cache_generated_at or
-                    modified_datetime > self.measurement_cache_generated_at
-            ):
-                _time = modified_datetime
-        if _time:
-            self.measurement_cache_generated_at = _time
-            self.save()
 
     def assign_measurement_type(self):
         """Assign measurement type."""
@@ -485,6 +471,15 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
             well=self
         )
         return quality_control
+
+    @property
+    def cache(self):
+        """Return cache."""
+        from gwml2.models.well_cache_indicator import WellCacheIndicator
+        cache, _ = WellCacheIndicator.objects.get_or_create(
+            well=self
+        )
+        return cache
 
 
 # documents

@@ -4,16 +4,16 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from django.db import connections
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.urls import reverse
 from django.utils.html import format_html
 
+from gwml2.models import OrganisationGroup
 from gwml2.models.well import (
     Well, WellDocument, Measurement,
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
-from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
 
@@ -26,6 +26,29 @@ bbox = Polygon(
         (-180, -90)
     )
 )
+
+
+class OrganisationGroupFilter(admin.SimpleListFilter):
+    title = 'Organisation group'
+    parameter_name = 'organisation_group'
+
+    def lookups(self, request, model_admin):
+        """Return a list of tuples (value, label) for the filter dropdown."""
+        from gwml2.models.well_management.organisation import OrganisationGroup
+        return [
+            (a.id, a.name) for a in OrganisationGroup.objects.all()
+        ]
+
+    def queryset(self, request, queryset):
+        """Filter queryset based on the selected value."""
+        if self.value():
+            group = OrganisationGroup.objects.get(id=self.value())
+            return queryset.filter(
+                organisation_id__in=group.organisations.all().values_list(
+                    'id', flat=True
+                )
+            )
+        return queryset
 
 
 class InvalidCoordinatesFilter(admin.SimpleListFilter):
@@ -56,6 +79,24 @@ class InvalidCoordinatesFilter(admin.SimpleListFilter):
         return queryset
 
 
+class ShowDetail(admin.SimpleListFilter):
+    """Show detail."""
+
+    title = 'Show detail'
+    parameter_name = 'show_detail'
+
+    def lookups(self, request, model_admin):
+        """Lookup function for entity filter."""
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
+        return queryset
+
+
 def assign_country(modeladmin, request, queryset):
     for well in queryset:
         well.assign_country(force=True)
@@ -69,58 +110,6 @@ def delete_in_background(modeladmin, request, queryset):
     return delete_well_in_background(modeladmin, request, queryset)
 
 
-@admin.action(description='Generate data cache')
-def generate_data_wells_cache(modeladmin, request, queryset):
-    """Generate measurement cache."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'generate_data_wells_cache',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
-@admin.action(description='Generate measurement cache')
-def generate_measurement_cache(modeladmin, request, queryset):
-    """Generate measurement cache."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'generate_well_measurement_cache',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
-@admin.action(description='Generate measurement cache generated at field')
-def generate_measurement_cache_generated_at(modeladmin, request, queryset):
-    """Generate measurement cache at field."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'update_measurement_cache_generated_at',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
-@admin.action(description='Quality Control')
-def quality_control_time_gap(modeladmin, request, queryset):
-    """Run quality control for time gap."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'generate_well_quality_control',
-        args=[
-            "--ids", ', '.join(ids)
-        ]
-    )
-
-
 class WellAdmin(admin.ModelAdmin):
     """Well admin."""
     list_display = (
@@ -131,15 +120,13 @@ class WellAdmin(admin.ModelAdmin):
         'latitude', 'longitude',
         'id',
         'first_time_measurement', 'last_time_measurement',
-        'links', '_measurement_cache_generated',
-        '_data_cache_generated'
+        'links'
     )
     list_filter = (
         'organisation', 'country', 'feature_type',
         'first_time_measurement', 'last_time_measurement',
-        'measurement_cache_generated_at',
-        'data_cache_generated_at',
-        InvalidCoordinatesFilter
+        InvalidCoordinatesFilter, OrganisationGroupFilter,
+        ShowDetail
     )
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
@@ -154,11 +141,25 @@ class WellAdmin(admin.ModelAdmin):
     search_fields = ('original_id', 'name')
     actions = [
         delete_in_background,
-        generate_data_wells_cache,
-        generate_measurement_cache,
-        assign_country,
-        quality_control_time_gap
+        assign_country
     ]
+    change_list_template = "admin/well_change_list.html"
+
+    def changelist_view(self, request, extra_context=None):
+        """Get count context"""
+        response = super().changelist_view(request, extra_context)
+        if "show_detail" in request.GET:
+            try:
+                cl = response.context_data["cl"]
+                totals = cl.queryset.aggregate(
+                    total_level=Sum("number_of_measurements_level"),
+                    total_quality=Sum("number_of_measurements_quality"),
+                    total_yield=Sum("number_of_measurements_yield"),
+                )
+                response.context_data["totals"] = totals
+            except (AttributeError, KeyError):
+                pass
+        return response
 
     def links(self, obj):
         url = reverse('well_form', args=[obj.id])
@@ -191,15 +192,6 @@ class WellAdmin(admin.ModelAdmin):
 
     def longitude(self, obj: Well):
         return obj.location.x
-
-    def _measurement_cache_generated(self, obj: Well):
-        return obj.measurement_cache_generated_at
-
-    def _data_cache_generated(self, obj: Well):
-        return obj.data_cache_generated_at
-
-    _measurement_cache_generated.admin_order_field = 'measurement_cache_generated_at'
-    _data_cache_generated.admin_order_field = 'data_cache_generated_at'
 
 
 admin.site.register(Well, WellAdmin)
@@ -295,6 +287,12 @@ class MeasurementAdmin(admin.ModelAdmin):
     raw_id_fields = ('value',)
     list_filter = (PageSizeFilter, 'time', 'parameter', 'default_unit')
     change_list_template = "admin/measurements_change_list.html"
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related(
+            'well'
+        ).only('well__name')
 
     def get_changelist(self, request, **kwargs):
         return PageSizeChangeList
