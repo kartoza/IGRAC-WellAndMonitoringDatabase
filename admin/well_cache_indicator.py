@@ -96,6 +96,7 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
     ]
 
     list_filter = (
+        'well__feature_type',
         OrganisationFilter, CountryFilter
     )
     readonly_fields = ('well',)

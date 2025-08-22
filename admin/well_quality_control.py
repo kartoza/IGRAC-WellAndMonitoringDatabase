@@ -156,6 +156,7 @@ class WellQualityControlAdmin(admin.ModelAdmin):
         )
 
     list_filter = (
+        'well__feature_type',
         OrganisationFilter, CountryFilter,
         TimeGapQualityFilter, ValueGapQualityFilter, ValueStrangeQualityFilter
     )

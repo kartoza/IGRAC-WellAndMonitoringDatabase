@@ -13,6 +13,7 @@ from gwml2.models.well import (
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
+from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
 
@@ -109,6 +110,45 @@ def delete_in_background(modeladmin, request, queryset):
     return delete_well_in_background(modeladmin, request, queryset)
 
 
+@admin.action(description='Generate data cache')
+def generate_data_wells_cache(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_data_wells_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
+@admin.action(description='Generate measurement cache')
+def generate_measurement_cache(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_well_measurement_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
+@admin.action(description='Generate metadata')
+def generate_metadata(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_well_metadata',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 class WellAdmin(admin.ModelAdmin):
     """Well admin."""
     list_display = (
@@ -140,7 +180,10 @@ class WellAdmin(admin.ModelAdmin):
     search_fields = ('original_id', 'name')
     actions = [
         delete_in_background,
-        assign_country
+        assign_country,
+        generate_data_wells_cache,
+        generate_measurement_cache,
+        generate_metadata
     ]
     change_list_template = "admin/well_change_list.html"
 
@@ -244,8 +287,6 @@ admin.site.register(WellDocument, DocumentAdmin)
 # --------------------------------------------------------------------
 # MEASUREMENTS
 # --------------------------------------------------------------------
-
-
 class PageSizeFilter(SimpleListFilter):
     title = 'Page size'
     parameter_name = 'page_size'
