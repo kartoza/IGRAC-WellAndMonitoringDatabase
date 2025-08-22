@@ -313,12 +313,13 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
                     ]
                 },
                 marker: {
-                    radius: 2
+                    enabled: true,
+                    radius: 3
                 },
-                lineWidth: 2,
+                lineWidth: 1,
                 states: {
                     hover: {
-                        lineWidth: 2
+                        lineWidth: 1
                     }
                 },
                 threshold: null,
