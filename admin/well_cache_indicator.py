@@ -99,6 +99,7 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
         OrganisationFilter, CountryFilter
     )
     readonly_fields = ('well',)
+    search_fields = ('well__original_id',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

@@ -14,10 +14,12 @@
         ></i>
     </h4>
 
-    {% if read_only %}
-        {% include "groundwater_form/_many-to-many-agg-chart.html" %}
-    {% else %}
-        {% include "groundwater_form/_many-to-many-chart.html" %}
-    {% endif %}
+{#    {% if read_only %}#}
+{#        {% include "groundwater_form/_many-to-many-agg-chart.html" %}#}
+{#    {% else %}#}
+{#        {% include "groundwater_form/_many-to-many-chart.html" %}#}
+{#    {% endif %}#}
+    {# We always show the cache data #}
+    {% include "groundwater_form/_many-to-many-agg-chart.html" %}
     {% include "groundwater_form/_many-to-many-table.html" %}
 </div>

@@ -100,7 +100,7 @@ class GeneralInformationForm(WellBaseForm):
                     )
                 if flags:
                     self.fields['data_quality'].initial = 'Needs review'
-                    self.fields['data_quality'].help_text = '<br>'.join(flags)
+                    self.fields['data_quality'].help_text = ',  '.join(flags)
                 else:
                     self.fields['data_quality'].initial = 'No flags'
             except WellQualityControl.DoesNotExist:

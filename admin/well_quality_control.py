@@ -143,6 +143,7 @@ class WellQualityControlAdmin(admin.ModelAdmin):
     change_list_template = "admin/well_quality_control_change_list.html"
     actions = [quality_control]
     readonly_fields = ('well',)
+    search_fields = ('well__original_id',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
