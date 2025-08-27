@@ -22,6 +22,13 @@ GINGWINFO = (
     'Geological Survey Canada (Canada)'
 )
 
+# Canada
+ESTONIA = (
+    'gwml2.harvesters.harvester.keskkonnaportaal_estonia.harvester.KeskkonnaportaalEstoniaHarvester',
+    '(Estonia) Level and Quality Data',
+    'Estonia - Geological Survey of Estonia'
+)
+
 # Ireland
 EPAWEBAPP = (
     'gwml2.harvesters.harvester.epawebapp.Epawebapp',
@@ -105,6 +112,7 @@ HARVESTERS = (
     AZULBHD,
     EHYD,
     GINGWINFO,
+    ESTONIA,
     HUBEAU_WATER_LEVEL,
     HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
@@ -152,7 +160,7 @@ class HarvesterForm(forms.ModelForm):
 
 def harvest_data(modeladmin, request, queryset):
     for harvester in queryset:
-        run_harvester.delay(harvester.id)
+        run_harvester(harvester.id)
 
 
 harvest_data.short_description = 'Run'

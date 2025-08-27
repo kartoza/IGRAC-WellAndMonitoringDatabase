@@ -1,7 +1,9 @@
-from django.contrib import admin
 from adminsortable.admin import SortableAdmin
+from django.contrib import admin
+
 from gwml2.models.term import (
-    TermAquiferType, TermConfinement, TermDrillingMethod, TermWellPurpose, TermWellStatus,
+    TermAquiferType, TermConfinement, TermDrillingMethod, TermWellPurpose,
+    TermWellStatus,
     TermFeatureType, TermGroundwaterUse,
     TermReferenceElevationType, TermConstructionStructureType
 )
@@ -12,15 +14,19 @@ from gwml2.models.term_measurement_parameter import (
 
 
 class TermMeasurementParameterAdmin(SortableAdmin):
-    list_display = ('name', 'unit_list', 'default_unit')
+    list_display = ('name', 'unit_list', 'default_unit', 'groups')
     filter_horizontal = ('units',)
     list_editable = ('default_unit',)
 
-    def unit_list(self, obj):
-        """
-        :type obj: TermMeasurementParameter
-        """
+    def unit_list(self, obj: TermMeasurementParameter):
         return ', '.join(obj.units.values_list('name', flat=True))
+
+    def groups(self, obj: TermMeasurementParameter):
+        return ', '.join(
+            obj.termmeasurementparametergroup_set.values_list(
+                'name', flat=True
+            )
+        )
 
 
 class TermMeasurementParameterGroupAdmin(admin.ModelAdmin):
@@ -37,4 +43,7 @@ admin.site.register(TermMeasurementParameter, TermMeasurementParameterAdmin)
 admin.site.register(TermReferenceElevationType, SortableAdmin)
 admin.site.register(TermWellPurpose, SortableAdmin)
 admin.site.register(TermWellStatus, SortableAdmin)
-admin.site.register(TermMeasurementParameterGroup, TermMeasurementParameterGroupAdmin)
+admin.site.register(
+    TermMeasurementParameterGroup,
+    TermMeasurementParameterGroupAdmin
+)

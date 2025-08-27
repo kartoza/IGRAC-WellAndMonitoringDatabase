@@ -12,7 +12,8 @@ from django.utils import timezone
 
 from gwml2.harvesters.models.harvester import (
     HarvesterLog, RUNNING, ERROR,
-    DONE, HarvesterWellData, Harvester, HarvesterAttribute
+    DONE, HarvesterWellData, Harvester, HarvesterAttribute,
+    HarvesterParameterMap
 )
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term import TermFeatureType
@@ -43,15 +44,24 @@ class HarvestingError(Exception):
 class BaseHarvester(ABC):
     """ Abstract class for harvester """
     attributes = {}
+    current_original_id_key = 'current-original-id'
 
-    def __init__(self, harvester: Harvester, replace: bool = False,
-                 original_id: str = None):
+    # This is indicator if we process the station
+    is_processing_station = True
+
+    def __init__(
+            self, harvester: Harvester, replace: bool = False,
+            original_id: str = None
+    ):
+
+        # Other attributes
         self.unit_m = Unit.objects.get(name='m')
         self.replace = replace
         self.original_id = original_id
         self.harvester = harvester
         for attribute in harvester.harvesterattribute_set.all():
             self.attributes[attribute.name] = attribute.value
+        self.parameters = HarvesterParameterMap.get_json(harvester)
 
         # check if it is already run
         self.harvester.refresh_from_db()
@@ -61,6 +71,19 @@ class BaseHarvester(ABC):
                 status=RUNNING
         ).first():
             return
+
+        # Check last code
+        self.current_original_id = self.attributes.get(
+            self.current_original_id_key, None
+        )
+
+        # If it has current original id, we don't process station
+        # Until we found the correct one
+        # This is for resume process
+        if self.current_original_id:
+            self.is_processing_station = False
+        else:
+            self.is_processing_station = True
 
         self.harvester.is_run = True
         self.harvester.save()
@@ -102,6 +125,7 @@ class BaseHarvester(ABC):
         # Make the task id non
         harvester.task_id = None
         harvester.save()
+        self.delete_attribute(self.current_original_id_key)
 
     @staticmethod
     def additional_attributes() -> dict:
@@ -249,6 +273,18 @@ class BaseHarvester(ABC):
             if well.organisation != self.harvester.organisation:
                 well.organisation = self.harvester.organisation
                 well.save()
+
+        # If not process station but the original id is same with current one
+        # make process station true
+        if not self.is_processing_station and well.original_id == self.current_original_id:
+            self.is_processing_station = True
+
+        # Save current original id
+        if self.is_processing_station:
+            self.update_attribute(
+                self.current_original_id_key, well.original_id
+            )
+
         return well, harvester_well_data
 
     def _save_measurement(
