@@ -314,7 +314,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
                 },
                 marker: {
                     enabled: true,
-                    radius: 3
+                    radius: 1.5
                 },
                 lineWidth: 1,
                 states: {
