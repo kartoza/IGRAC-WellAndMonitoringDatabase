@@ -160,7 +160,7 @@ class HarvesterForm(forms.ModelForm):
 
 def harvest_data(modeladmin, request, queryset):
     for harvester in queryset:
-        run_harvester(harvester.id)
+        run_harvester.delay(harvester.id)
 
 
 harvest_data.short_description = 'Run'

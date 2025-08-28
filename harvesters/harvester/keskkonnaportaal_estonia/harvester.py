@@ -6,7 +6,6 @@ import requests
 from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.harvester.sgu.abstract import SkipProcessWell
 from gwml2.harvesters.models import Harvester, HarvesterParameterMap
 from gwml2.harvesters.models.harvester import (
     HarvesterAttribute,
@@ -32,8 +31,6 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
             self, harvester: Harvester, replace: bool = False,
             original_id: str = None
     ):
-        self.session = requests.Session()
-        self.session.get("https://kese.envir.ee/kese/")
         self.level_parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL
         )
@@ -110,10 +107,7 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
                 self._update(
                     f'Saving {well.original_id} : well({well_idx + 1}/{total})'
                 )
-                try:
-                    self.process_station(station, harvester_well_data)
-                except SkipProcessWell:
-                    pass
+                self.process_station(harvester_well_data)
             except (KeyError, TypeError, Well.DoesNotExist) as e:
                 continue
 
@@ -169,7 +163,9 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
                 )
             )
 
-        response = self.session.post(
+        session = requests.Session()
+        session.get("https://kese.envir.ee/kese/")
+        response = session.post(
             "https://kese.envir.ee/kese/fetchParameterValueNew.action",
             data=data
         )
@@ -243,13 +239,22 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
                     )
                 except (ValueError, KeyError, Unit.DoesNotExist):
                     pass
-        pass
 
     def process_station(
             self,
-            station,
             harvester_well_data: HarvesterWellData
     ):
         """Processing station."""
+        well = harvester_well_data.well
         self.process_level_measurement(harvester_well_data)
         self.process_quantity_measurement(harvester_well_data)
+
+        print(f'{well.original_id} : done')
+        # -----------------------
+        # Generate cache
+        if well:
+            self.post_processing_well(
+                well, generate_country_cache=False
+            )
+            if well.country:
+                self.countries.append(well.country.code)

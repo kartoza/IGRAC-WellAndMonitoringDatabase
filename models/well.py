@@ -358,7 +358,7 @@ class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
         last = query.order_by('time').last()
         if last and (
                 not self.last_time_measurement or
-                last.time >= self.first_time_measurement
+                last.time >= self.last_time_measurement
         ):
             self.last_time_measurement = last.time
 
