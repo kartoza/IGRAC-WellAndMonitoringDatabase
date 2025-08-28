@@ -22,6 +22,13 @@ GINGWINFO = (
     'Geological Survey Canada (Canada)'
 )
 
+# Canada
+ESTONIA = (
+    'gwml2.harvesters.harvester.keskkonnaportaal_estonia.harvester.KeskkonnaportaalEstoniaHarvester',
+    '(Estonia) Level and Quality Data',
+    'Estonia - Geological Survey of Estonia'
+)
+
 # Ireland
 EPAWEBAPP = (
     'gwml2.harvesters.harvester.epawebapp.Epawebapp',
@@ -105,6 +112,7 @@ HARVESTERS = (
     AZULBHD,
     EHYD,
     GINGWINFO,
+    ESTONIA,
     HUBEAU_WATER_LEVEL,
     HUBEAU_WATER_QUALITY,
     EPAWEBAPP,

@@ -136,6 +136,8 @@ class Hydapi(BaseHarvester):
             # Process station
             self._process_station(station)
 
+        self.delete_attribute(STATIONSID_KEY)
+
     def _process_station(self, station: dict):
         """
         Processing a station

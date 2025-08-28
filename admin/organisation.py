@@ -77,6 +77,53 @@ class OrganisationAdmin(admin.ModelAdmin):
     inlines = [OrganisationLinkInline]
     form = OrganisationFormAdmin
 
+    fieldsets = (
+        (
+            '',
+            {
+                'fields': (
+                    'name', 'description', 'country', 'active'
+                )
+            },
+        ),
+        (
+            'Licenses',
+            {
+                'fields': (
+                    'license', 'restriction_code_type', 'constraints_other'
+                )
+            },
+        ),
+        (
+            'User access',
+            {
+                'fields': (
+                    'admins', 'editors'
+                )
+            }
+        ),
+        (
+            'Metadata',
+            {
+                'fields': (
+                    'data_is_from_api', 'data_date_start',
+                    'data_date_end',
+                    'data_is_groundwater_level',
+                    'data_is_groundwater_quality'
+                )
+            }
+        ),
+        (
+            'Cache',
+            {
+                'fields': (
+                    'data_cache_generated_at',
+                )
+            }
+        )
+    )
+    readonly_fields = ('data_cache_generated_at',)
+
     def links(self, org: Organisation):
         return list(
             org.links.values_list('url', flat=True)
