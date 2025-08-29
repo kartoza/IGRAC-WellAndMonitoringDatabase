@@ -1,4 +1,3 @@
-from adminsortable.models import Sortable
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
@@ -41,8 +40,9 @@ class Unit(_Term):
     def __str__(self):
         return self.html if self.html else self.name
 
-    class Meta(Sortable.Meta):
+    class Meta:
         db_table = 'unit'
+        ordering = ('name',)
 
 
 class UnitConvertion(models.Model):
@@ -75,8 +75,9 @@ class UnitGroup(_Term):
         null=True, blank=True
     )
 
-    class Meta(Sortable.Meta):
+    class Meta:
         db_table = 'unit_group'
+        ordering = ('name',)
 
 
 class Quantity(models.Model):

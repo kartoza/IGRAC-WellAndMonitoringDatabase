@@ -20,9 +20,7 @@ from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.management import Management
 from gwml2.models.measurement import Measurement
 from gwml2.models.metadata.creation import CreationMetadata
-from gwml2.models.metadata.license_metadata import (
-    LicenseMetadata, LicenseMetadataObject
-)
+from gwml2.models.metadata.license_metadata import LicenseMetadataObject
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import temp_disconnect_signal, convert_value
@@ -42,7 +40,7 @@ class WellManager(models.Manager):
         )
 
 
-class Well(GeneralInformation, CreationMetadata, LicenseMetadata):
+class Well(GeneralInformation, CreationMetadata):
     """
     7.6.38 GW_Well
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after

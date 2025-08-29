@@ -1,4 +1,3 @@
-from adminsortable.models import Sortable
 from django.contrib.gis.db import models
 
 from gwml2.models.general import Unit
@@ -21,8 +20,9 @@ class TermMeasurementParameter(_Term):
             return '{} ({})'.format(self.name, self.description)
         return self.name
 
-    class Meta(Sortable.Meta):
+    class Meta:
         db_table = 'term_measurement_parameter'
+        ordering = ('name',)
 
 
 class TermMeasurementParameterGroup(_Term):
@@ -32,8 +32,9 @@ class TermMeasurementParameterGroup(_Term):
         null=True, blank=True
     )
 
-    class Meta(Sortable.Meta):
+    class Meta:
         db_table = 'term_measurement_parameter_group'
+        ordering = ('name',)
 
     @staticmethod
     def get_measurement_model(parameter: TermMeasurementParameter):

@@ -30,17 +30,6 @@ class WellUploadView(LoginRequiredMixin, FormView):
 
         return reverse('well_upload_history_view')
 
-    def get_form_kwargs(self):
-        """Get keyword arguments from form.
-
-        :returns keyword argument from the form
-        :rtype: dict
-        """
-
-        kwargs = super(WellUploadView, self).get_form_kwargs()
-        kwargs['organisation'] = get_organisations_as_editor(self.request.user)
-        return kwargs
-
     def post(self, request, *args, **kwargs):
         """Get form instance from upload.
 
