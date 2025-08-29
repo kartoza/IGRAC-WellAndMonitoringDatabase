@@ -47,6 +47,7 @@ class LicenseMetadataObject:
     ):
         """Init license metadata object."""
         from geonode.base.models import RestrictionCodeType, License
+
         self.constraints_other = obj.constraints_other
         self.restriction_code_type_id = obj.restriction_code_type
         self.license_id = obj.license

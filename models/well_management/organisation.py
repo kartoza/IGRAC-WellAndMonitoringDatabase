@@ -223,26 +223,11 @@ class Organisation(LicenseMetadata):
                 self.data_date_end = max(end_dates)
             self.save()
 
-    def assign_license(self):
-        """Assign license to this organisation based on current data."""
-        # Update license
-        if self.license is None:
-            well = self.well_set.filter(
-                license__isnull=False
-            ).first()
-
-            if well:
-                self.license = well.license
-                self.restriction_code_type = well.restriction_code_type
-                self.constraints_other = well.constraints_other
-                self.save()
-
     def assign_data(self):
         """Automatically assign data to this
         organization based on current data."""
         self.assign_data_types()
         self.assign_date_range()
-        self.assign_license()
 
 
 class OrganisationLink(models.Model):

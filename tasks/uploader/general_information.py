@@ -58,10 +58,7 @@ class GeneralInformationUploader(BaseUploader):
         return {
             'general_information': data,
             'well_metadata': {
-                'organisation': self.upload_session.organisation.id,
-                'license': self.upload_session.license,
-                'restriction_code_type': self.upload_session.restriction_code_type,
-                'constraints_other': self.upload_session.constraints_other
+                'organisation': self.upload_session.organisation.id
             },
         }
 

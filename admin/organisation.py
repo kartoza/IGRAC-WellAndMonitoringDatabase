@@ -95,14 +95,6 @@ class OrganisationAdmin(admin.ModelAdmin):
             },
         ),
         (
-            'User access',
-            {
-                'fields': (
-                    'admins', 'editors'
-                )
-            }
-        ),
-        (
             'Metadata',
             {
                 'fields': (

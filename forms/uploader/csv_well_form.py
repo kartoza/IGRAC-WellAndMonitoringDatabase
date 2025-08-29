@@ -1,13 +1,13 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-
+from gwml2.models.well_management.organisation import Organisation
 
 class CsvWellForm(forms.Form):
     """
     Form to upload CSV file.
     """
     organisation = forms.ModelChoiceField(
-        queryset=None,
+        queryset=Organisation.objects.filter(active=True).order_by('name'),
         label='Organisation',
         required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
@@ -52,9 +52,8 @@ class CsvWellForm(forms.Form):
         required=False,
     )
 
-    def __init__(self, organisation, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         forms.Form.__init__(self, *args, **kwargs)
-        self.fields['organisation'].queryset = organisation
         self.fields['organisation'].empty_label = None
         self.fields['organisation'].required = True
         self.fields['organisation'].widget.attrs['required'] = True
