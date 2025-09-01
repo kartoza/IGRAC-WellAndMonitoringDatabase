@@ -63,6 +63,14 @@ CIDA_USGS_WATER_QUALITY = (
     '(United States) National Ground-Water Monitoring Network - Water Quality ',
     None
 )
+# ------------------------------------------
+# NETHERLAND
+# ------------------------------------------
+NETHERLAND_WATER_LEVEL = (
+    'gwml2.harvesters.harvester.netherland.harvester.NetherlandHarvester',
+    '(Netherland) Level measurements in Netherland',
+    None
+)
 
 # ---------------------------------------------
 # AUSTRIA (EHYD)
@@ -116,6 +124,7 @@ HARVESTERS = (
     HUBEAU_WATER_LEVEL,
     HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
+    NETHERLAND_WATER_LEVEL,
     GNSCRI,
     HYDAPI,
     SGU_GROUNDWATER_API,
@@ -174,7 +183,8 @@ class HarvesterAdmin(admin.ModelAdmin):
         HarvesterLogInline
     ]
     list_display = (
-        'id', 'name', 'organisation', 'is_run', 'active', 'harvester_class',
+        'id', 'name', 'organisation', 'save_missing_well', 'is_run', 'active',
+        'harvester_class',
         'last_run', 'task_id', 'task_status', 'last_log'
     )
     list_editable = ('active',)

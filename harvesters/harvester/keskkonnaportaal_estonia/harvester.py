@@ -65,13 +65,6 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
             harvester, replace, original_id
         )
 
-    def well_updated(self, well: Well):
-        """When the well is updated."""
-        self.post_processing_well(
-            well, generate_country_cache=False
-        )
-        self.countries.append(well.country.code)
-
     def well_from_station(self, station: dict) -> HarvesterWellData:
         """Retrieves well data from station."""
         coordinates = station['geometry']['coordinates']
