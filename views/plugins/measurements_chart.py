@@ -1,12 +1,15 @@
+from django.db.models import Case, When, Value, IntegerField
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render, reverse
 from django.utils.decorators import method_decorator
-from django.views.generic import View
 from django.views.decorators.clickjacking import (
-    xframe_options_exempt, xframe_options_sameorigin,
-)
+    xframe_options_exempt, )
+from django.views.generic import View
+
 from gwml2.models.general import Unit
-from gwml2.models.term_measurement_parameter import TermMeasurementParameterGroup
+from gwml2.models.term_measurement_parameter import (
+    TermMeasurementParameterGroup
+)
 from gwml2.models.well import Well
 from gwml2.serializer.unit import UnitSerializer
 
@@ -24,10 +27,6 @@ class MeasurementChart(View):
         error = ''
         try:
             well = Well.objects.get(id=id)
-            if well.editor_permission(request.user) or well.view_permission(request.user):
-                pass
-            else:
-                error = "You don't have permission to access this well."
         except Well.DoesNotExist:
             error = "Well does not found"
 
@@ -56,13 +55,24 @@ class MeasurementChart(View):
             parameters[group_header] = {
                 measurement.id: {
                     'units': [
-                        unit.id for unit in measurement.units.all()],
+                        unit.id for unit in measurement.units.annotate(
+                            custom_order=Case(
+                                When(name='m', then=Value(1)),
+                                When(name='ft', then=Value(2)),
+                                When(name='cm', then=Value(3)),
+                                default=Value(99),
+                                output_field=IntegerField(),
+                            )
+                        ).order_by('custom_order')],
                     'name': measurement.name
                 } for measurement in TermMeasurementParameterGroup.objects.get(
                     name=group_name).parameters.all()
             }
 
-        units = {unit.id: UnitSerializer(unit).data for unit in Unit.objects.order_by('id')}
+        units = {
+            unit.id: UnitSerializer(unit).data for unit in
+            Unit.objects.order_by('id')
+        }
 
         # Return data url
         urls = [

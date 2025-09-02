@@ -343,6 +343,7 @@ class BaseHarvester(ABC):
             generate_country_cache=generate_country_cache,
             generate_organisation_cache=generate_organisation_cache
         )
+        well.quality_control.run()
 
     def update_attribute(self, key: str, value):
         """Update attribute."""
