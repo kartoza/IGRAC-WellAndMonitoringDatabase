@@ -2,7 +2,9 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 
-from gwml2.models.well_management.organisation import Organisation, Country
+from gwml2.models.well_management.organisation import (
+    Organisation, Country, OrganisationGroup
+)
 from gwml2.models.well_quality_control import WellQualityControl
 from gwml2.utils.management_commands import run_command
 
@@ -21,6 +23,29 @@ class OrganisationFilter(admin.SimpleListFilter):
         """Filter queryset based on the selected value."""
         if self.value():
             return queryset.filter(well__organisation_id=self.value())
+        return queryset
+
+
+class OrganisationGroupFilter(admin.SimpleListFilter):
+    title = 'Organisation group'
+    parameter_name = 'organisation_group'
+
+    def lookups(self, request, model_admin):
+        """Return a list of tuples (value, label) for the filter dropdown."""
+        from gwml2.models.well_management.organisation import OrganisationGroup
+        return [
+            (a.id, a.name) for a in OrganisationGroup.objects.all()
+        ]
+
+    def queryset(self, request, queryset):
+        """Filter queryset based on the selected value."""
+        if self.value():
+            group = OrganisationGroup.objects.get(id=self.value())
+            return queryset.filter(
+                well__organisation_id__in=group.organisations.all().values_list(
+                    'id', flat=True
+                )
+            )
         return queryset
 
 
@@ -144,6 +169,12 @@ class WellQualityControlAdmin(admin.ModelAdmin):
     actions = [quality_control]
     readonly_fields = ('well',)
     search_fields = ('well__original_id',)
+    list_filter = (
+        'well__feature_type',
+        OrganisationFilter, CountryFilter,
+        TimeGapQualityFilter, ValueGapQualityFilter, ValueStrangeQualityFilter,
+        OrganisationGroupFilter
+    )
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -154,12 +185,6 @@ class WellQualityControlAdmin(admin.ModelAdmin):
             'well__organisation__id', 'well__organisation__name',
             'well__country__id', 'well__country__name'
         )
-
-    list_filter = (
-        'well__feature_type',
-        OrganisationFilter, CountryFilter,
-        TimeGapQualityFilter, ValueGapQualityFilter, ValueStrangeQualityFilter
-    )
 
     @admin.display(ordering='well__organisation__name')
     def _organisation(self, obj: WellQualityControl):
