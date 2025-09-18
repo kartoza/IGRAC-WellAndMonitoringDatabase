@@ -46,7 +46,6 @@ class NetherlandHarvester(BaseHarvester):
 
         self.fetch_stations(
             'https://api.pdok.nl/bzk/bro-gminsamenhang-karakteristieken/ogc/v1/collections/gm_gld/items?f=json&limit=1000&crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84&bbox-crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84'
-            '&bro_id=GLD000000000151'
         )
 
         # Run country caches
