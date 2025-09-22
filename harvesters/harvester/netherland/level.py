@@ -40,7 +40,10 @@ class NetherlandLevelHarvester(NetherlandHarvester):
     @property
     def station_url(self):
         """Return station url."""
-        return 'https://api.pdok.nl/bzk/bro-gminsamenhang-karakteristieken/ogc/v1/collections/gm_gld/items?f=json&limit=1000&crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84&bbox-crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+        return (
+            'https://api.pdok.nl/bzk/bro-gminsamenhang-karakteristieken/ogc/v1/collections/gm_gld/items?'
+            'f=json&limit=1000&crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84&bbox-crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84'
+        )
 
     def process_measurement(
             self,

@@ -71,6 +71,11 @@ NETHERLAND_WATER_LEVEL = (
     '(Netherland) Level measurements in Netherland',
     None
 )
+NETHERLAND_QUALITY = (
+    'gwml2.harvesters.harvester.netherland.quality.NetherlandQualityHarvester',
+    '(Netherland) Quality measurements in Netherland',
+    None
+)
 
 # ---------------------------------------------
 # AUSTRIA (EHYD)
@@ -125,6 +130,7 @@ HARVESTERS = (
     HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
     NETHERLAND_WATER_LEVEL,
+    NETHERLAND_QUALITY,
     GNSCRI,
     HYDAPI,
     SGU_GROUNDWATER_API,
