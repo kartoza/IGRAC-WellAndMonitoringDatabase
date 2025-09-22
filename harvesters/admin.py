@@ -67,7 +67,7 @@ CIDA_USGS_WATER_QUALITY = (
 # NETHERLAND
 # ------------------------------------------
 NETHERLAND_WATER_LEVEL = (
-    'gwml2.harvesters.harvester.netherland.harvester.NetherlandHarvester',
+    'gwml2.harvesters.harvester.netherland.level.NetherlandLevelHarvester',
     '(Netherland) Level measurements in Netherland',
     None
 )
