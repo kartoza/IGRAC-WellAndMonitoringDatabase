@@ -70,11 +70,6 @@ class SguSpringAPI(SguAPI):
                 harvester_well_data = self.well_from_station(station)
                 well = harvester_well_data.well
 
-                # Description
-                description = station['properties']['vne_txt']
-                well.description = description
-                well.save()
-
                 # Aquifer name
                 aquifer_name = station['properties']['akvtyp_txt']
                 if aquifer_name:
