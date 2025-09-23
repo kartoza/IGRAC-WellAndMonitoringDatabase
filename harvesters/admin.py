@@ -67,8 +67,13 @@ CIDA_USGS_WATER_QUALITY = (
 # NETHERLAND
 # ------------------------------------------
 NETHERLAND_WATER_LEVEL = (
-    'gwml2.harvesters.harvester.netherland.harvester.NetherlandHarvester',
+    'gwml2.harvesters.harvester.netherland.level.NetherlandLevelHarvester',
     '(Netherland) Level measurements in Netherland',
+    None
+)
+NETHERLAND_QUALITY = (
+    'gwml2.harvesters.harvester.netherland.quality.NetherlandQualityHarvester',
+    '(Netherland) Quality measurements in Netherland',
     None
 )
 
@@ -125,6 +130,7 @@ HARVESTERS = (
     HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
     NETHERLAND_WATER_LEVEL,
+    NETHERLAND_QUALITY,
     GNSCRI,
     HYDAPI,
     SGU_GROUNDWATER_API,
