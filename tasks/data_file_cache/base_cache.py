@@ -206,13 +206,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
 
         # Append data from source
         for row in data:
-
-            # This is for shifting the name
-            if len(row) + 1 == target_column_number:
-                row.insert(1, well_name)
-            elif sheetname == SheetName.water_strike:
-                if len(row) + 2 == target_column_number:
-                    row.insert(1, well_name)
+            if len(row) != target_column_number:
+                continue
 
             if target_book:
                 target_sheet.append(row)

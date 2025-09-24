@@ -18,6 +18,7 @@ from gwml2.models.term import (
     TermAquiferType, TermConfinement, TermGroundwaterUse
 )
 from gwml2.models.well import Well
+from gwml2.models.well_quality_control import WellQualityControl
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.tasks.data_file_cache.base_cache import get_data
 from gwml2.tasks.data_file_cache.country_recache import (
@@ -50,8 +51,6 @@ class GENERATORS(object):
 
 class GenerateWellCacheFile(object):
     current_time = None
-    wells_filename = 'wells.xlsx'
-    drill_filename = 'drilling_and_construction.xlsx'
     monitor_filename = 'monitoring_data.xlsx'
 
     # cache
@@ -89,6 +88,16 @@ class GenerateWellCacheFile(object):
         """Return folder"""
         return os.path.join(self.folder, filename)
 
+    def clean(self):
+        """Remove old files"""
+        for _file in ['done', 'wells.xlsx', 'drilling_and_construction.xlsx']:
+            _folder = os.path.join(self.folder, _file)
+            if os.path.exists(_folder):
+                if os.path.isfile(_folder):
+                    os.remove(_folder)
+                elif os.path.isdir(_folder):
+                    shutil.rmtree(_folder)
+
     def copy_template(self, filename):
         """Copy template."""
         copyfile(os.path.join(TEMPLATE_FOLDER, filename), self._file(filename))
@@ -115,25 +124,8 @@ class GenerateWellCacheFile(object):
             if not os.path.exists(self.folder):
                 os.makedirs(self.folder)
 
-            # Delete wells_filename
-            _folder = os.path.join(self.folder, 'done')
-            if os.path.exists(_folder):
-                if os.path.isfile(_folder):
-                    os.remove(_folder)
-                elif os.path.isdir(_folder):
-                    shutil.rmtree(_folder)
-            _folder = os.path.join(self.folder, self.wells_filename)
-            if os.path.exists(_folder):
-                if os.path.isfile(_folder):
-                    os.remove(_folder)
-                elif os.path.isdir(_folder):
-                    shutil.rmtree(_folder)
-            _folder = os.path.join(self.folder, self.drill_filename)
-            if os.path.exists(_folder):
-                if os.path.isfile(_folder):
-                    os.remove(_folder)
-                elif os.path.isdir(_folder):
-                    shutil.rmtree(_folder)
+            # Clean files
+            self.clean()
 
             if not generators:
                 generators = [
@@ -223,9 +215,21 @@ class GenerateWellCacheFile(object):
         """General Information of well."""
         sheetname = 'General Information'
         license_obj = well.get_license(convert=True)
+
+        groundwater_level_time_gap = False
+        groundwater_level_value_gap = False
+        groundwater_level_strange_value = False
+        try:
+            quality = well.wellqualitycontrol
+            groundwater_level_time_gap = quality.groundwater_level_time_gap is not None
+            groundwater_level_value_gap = quality.groundwater_level_value_gap is not None
+            groundwater_level_strange_value = quality.groundwater_level_strange_value is not None
+        except WellQualityControl.DoesNotExist:
+            pass
         data = [
             well.original_id,
             well.name,
+            get_data(well.organisation_id, self.organisations, Organisation),
             get_data(
                 well.feature_type_id, self.feature_types, TermFeatureType
             ),
@@ -252,6 +256,11 @@ class GenerateWellCacheFile(object):
             get_data(well.top_borehole_elevation.unit_id, self.units, Unit)
             if well.top_borehole_elevation else '',
 
+            # Data quality flag
+            'yes' if groundwater_level_time_gap else 'No',
+            'yes' if groundwater_level_value_gap else 'No',
+            'yes' if groundwater_level_strange_value else 'No',
+
             # Country
             self.country.code if self.country else '',
 
@@ -260,7 +269,6 @@ class GenerateWellCacheFile(object):
 
             # License
             license_obj.license_name,
-            license_obj.restriction_code_type_name,
 
             # TODO:
             # Change this when measurement type has been added
@@ -353,27 +361,14 @@ class GenerateWellCacheFile(object):
     def management(self, well):
         """Management of well."""
         management = well.management
-        license = management.license if management else None
         data = [
             well.original_id,
             well.name,
-            get_data(well.organisation_id, self.organisations, Organisation),
-
-            # management
-            management.manager if management else '',
-            management.description if management else '',
             get_data(
                 management.groundwater_use_id, self.groundwater_uses,
                 TermGroundwaterUse
             ) if management else '',
-            management.number_of_users if management else '',
-
-            license.number if license else '',
-            license.valid_from.strftime('%Y-%m-%d')
-            if license and license.valid_from else '',
-            license.valid_until.strftime('%Y-%m-%d')
-            if management and license and license.valid_until else '',
-            license.description if license else '',
+            management.number_of_users if management else ''
         ]
 
         sheetname = 'Management'

@@ -57,12 +57,19 @@ class WellCacheIndicator(models.Model):
         from gwml2.tasks.data_file_cache.wells_cache import (
             generate_data_well_cache
         )
+
+        # Format generators
+        if isinstance(generators, str):
+            generators = generators.split(',')
+        elif generators is None:
+            generators = None
+
         generate_data_well_cache(
             self.well.id,
             force_regenerate=force,
             generate_country_cache=False,
             generate_organisation_cache=False,
-            generators=generators.split(',') if generators else None
+            generators=generators
         )
 
     def generate_measurement_cache(self, measurement_name=None, force=False):
