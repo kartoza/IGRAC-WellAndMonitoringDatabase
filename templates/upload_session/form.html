@@ -46,7 +46,7 @@
                     {% trans "This batch upload file contains three sheets: General Information, Hydrogeology and Management. Use a different row for each well (or other data point). Use the fields below to assign a license and additional restrictions. These will apply to all the wells contained in the upload file." %}
                     <br>
                     <br>
-                    <a href="{% static 'download_template/wells.ods' %}">
+                    <a href="{% static 'download_template/wells.ods' %}#{{ IGRAC_VERSION.name }}">
                         {% trans "Download the batch upload file template." %}
                     </a>
                 </div>
@@ -70,7 +70,7 @@
                     {% trans "This batch upload file contains three sheets: Groundwater Level, Groundwater Quality and Abstraction-Discharge. Use a different row for each measurement." %}
                     <br>
                     <br>
-                    <a href="{% static 'download_template/monitoring_data.ods' %}">
+                    <a href="{% static 'download_template/monitoring_data.ods' %}#{{ IGRAC_VERSION.name }}">
                         {% trans "Download the batch upload file template." %}
                     </a>
                 </div>
@@ -87,7 +87,7 @@
                     {% trans "This batch upload file contains four sheets: Drilling, Water Strike, Stratigraphic Log and Construction. In the first sheet Drilling, use a different row for each well (or other data point). The other sheets accept multiple rows per well: multiple water strikes, multiple stratigraphic layers, and multiple construction parts." %}
                     <br>
                     <br>
-                    <a href="{% static 'download_template/drilling_and_construction.ods' %}">
+                    <a href="{% static 'download_template/drilling_and_construction.ods' %}#{{ IGRAC_VERSION.name }}">
                         {% trans "Download the batch upload file template." %}
                     </a>
                 </div>

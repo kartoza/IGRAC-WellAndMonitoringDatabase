@@ -25,6 +25,7 @@ data = {
         {
             'original_id': "1",
             'name': "AA",
+            'data_provider': "",
             'feature_type': 'Water well',
             'purpose': "Production",
             'status': "Active",
@@ -37,16 +38,19 @@ data = {
             'glo_90m_elevation_unit': "m",
             'top_borehole_elevation_value': "3",
             'top_borehole_elevation_unit': "ft",
+            'data_quality_gap': "",
+            'data_quality_jump': "",
+            'data_quality_strange': "",
             'country': "Indonesia",
             'address': "Address of AA",
             'license_type': "License A",
-            'license_restriction': "Restriction A",
             'is_groundwater_level': "Yes",
             'is_groundwater_quality': "No"
         },
         {
             'original_id': "2",
             'name': "AB",
+            'data_provider': "",
             'feature_type': "Water well",
             'purpose': "Observation / monitoring",
             'status': "Dry",
@@ -59,10 +63,12 @@ data = {
             'glo_90m_elevation_unit': "m",
             'top_borehole_elevation_value': "4",
             'top_borehole_elevation_unit': "ft",
+            'data_quality_gap': "",
+            'data_quality_jump': "",
+            'data_quality_strange': "",
             'country': "Indonesia",
             'address': "Address of AB",
             'license_type': "License B",
-            'license_restriction': "Restriction B",
             'is_groundwater_level': "No",
             'is_groundwater_quality': "Yes"
         }
@@ -117,28 +123,14 @@ data = {
         {
             'original_id': "1",
             'well_name': "AA",
-            'name': "Organisation 1",
-            'manager': "Owner 1",
-            'description': "Description 1",
             'groundwater_use': "Domestic",
-            'number_of_users': "1",
-            'number': "A",
-            'valid_from': "2020-01-01",
-            'valid_until': "2020-12-31",
-            'license_description': "License 1"
+            'number_of_users': "1"
         },
         {
             'original_id': "2",
             'well_name': "AB",
-            'name': "Organisation 2",
-            'manager': "Owner 2",
-            'description': "Description 2",
             'groundwater_use': "Irrigation",
-            'number_of_users': "2",
-            'number': "B",
-            'valid_from': "2021-01-01",
-            'valid_until': "2021-12-31",
-            'license_description': "License 2"
+            'number_of_users': "2"
         }
     ],
     'Drilling': [

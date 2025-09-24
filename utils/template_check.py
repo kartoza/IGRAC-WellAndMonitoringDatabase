@@ -91,6 +91,8 @@ def compare_input_with_template(records: dict, sheet_name: str, uploader_name):
             )
 
     if template_headers != headers:
+        print(template_headers)
+        print(headers)
         raise ExcelOutOfDate(
             'The file is out of date, '
             'please download the latest template on the form'

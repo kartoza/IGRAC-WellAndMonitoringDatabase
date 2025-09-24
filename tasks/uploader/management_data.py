@@ -18,15 +18,8 @@ class ManagementUploader(BaseUploader):
     RECORD_FORMAT = {
         'original_id': None,
         'well_name': None,
-        'name': None,
-        'manager': None,
-        'description': None,
         'groundwater_use': TermGroundwaterUse,
         'number_of_users': None,
-        'number': None,
-        'valid_from': None,
-        'valid_until': None,
-        'license_description': None
     }
 
     def convert_record(self, sheet_name, data, raw_record: list):
@@ -34,14 +27,6 @@ class ManagementUploader(BaseUploader):
         """
         return {
             "management": {
-                "license": {
-                    "number": data['number'],
-                    "valid_from": data['valid_from'],
-                    "valid_until": data['valid_until'],
-                    "description": data['license_description']
-                },
-                "manager": data['manager'],
-                "description": data['description'],
                 "groundwater_use": data['groundwater_use'],
                 "number_of_users": data['number_of_users'],
             }
