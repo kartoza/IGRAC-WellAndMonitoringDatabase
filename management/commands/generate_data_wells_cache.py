@@ -30,7 +30,13 @@ class Command(WellCommand):
 
     def handle(self, *args, **options):
         wells = self.wells(**options)
+
         generators = options.get('generators', None)
+        if isinstance(generators, str):
+            generators = generators.split(',')
+        elif generators is None:
+            generators = None
+
         # Regenerate cache
         countries = []
         organisations = []
@@ -39,9 +45,10 @@ class Command(WellCommand):
         for idx, id in enumerate(ids):
             well = Well.objects.get(id=id)
             print(f'----- {idx}/{count} - {well.id} -----')
+            print(generators)
             well.cache.generate_data_wells_cache(
                 force=options.get('force', False),
-                generators=generators.split(',') if generators else None
+                generators=generators
             )
 
             # Save the country code

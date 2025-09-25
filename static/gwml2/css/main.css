@@ -469,7 +469,6 @@ input[type="file"] {
 }
 
 .many-to-many .chart {
-    display: none;
     padding: 20px;
 }
 

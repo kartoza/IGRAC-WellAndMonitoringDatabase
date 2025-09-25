@@ -25,6 +25,9 @@ from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import temp_disconnect_signal, convert_value
 
+GWML2_FOLDER = settings.GWML2_FOLDER
+WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
+
 MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
 MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
 MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
@@ -251,9 +254,6 @@ class Well(GeneralInformation, CreationMetadata):
     # ------------------------------------------------
     def remove_cache(self):
         """Remove cache."""
-        GWML2_FOLDER = settings.GWML2_FOLDER
-        WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
-
         # Remove measurement cache
         folder = self.return_measurement_cache_folder()
         if os.path.exists(folder):
@@ -268,7 +268,7 @@ class Well(GeneralInformation, CreationMetadata):
                 os.remove(filename)
 
         # Remove data cache
-        folder = os.path.join(WELL_FOLDER, f'{self.id}')
+        folder = self.data_cache_folder
         if os.path.exists(folder):
             shutil.rmtree(folder)
 
@@ -478,6 +478,11 @@ class Well(GeneralInformation, CreationMetadata):
             well=self
         )
         return cache
+
+    @property
+    def data_cache_folder(self) -> str:
+        """Return data cache folder.."""
+        return os.path.join(WELL_FOLDER, f'{self.id}')
 
 
 # documents

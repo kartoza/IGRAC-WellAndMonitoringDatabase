@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 
-from gwml2.models.well import Well
+from gwml2.models.well import Well, MEASUREMENT_MODELS
 
 
 class WellCacheIndicator(models.Model):
@@ -30,6 +30,13 @@ class WellCacheIndicator(models.Model):
     )
     metadata_generated_at = models.DateTimeField(
         _('Time when metadata generated'),
+        null=True, blank=True
+    )
+    data_cache_information = models.JSONField(
+        help_text=_(
+            'Information about the data cache, '
+            'like the time of file is being generated.'
+        ),
         null=True, blank=True
     )
 
@@ -57,12 +64,19 @@ class WellCacheIndicator(models.Model):
         from gwml2.tasks.data_file_cache.wells_cache import (
             generate_data_well_cache
         )
+
+        # Format generators
+        if isinstance(generators, str):
+            generators = generators.split(',')
+        elif generators is None:
+            generators = None
+
         generate_data_well_cache(
             self.well.id,
             force_regenerate=force,
             generate_country_cache=False,
             generate_organisation_cache=False,
-            generators=generators.split(',') if generators else None
+            generators=generators
         )
 
     def generate_measurement_cache(self, measurement_name=None, force=False):
@@ -83,6 +97,35 @@ class WellCacheIndicator(models.Model):
         self.generate_data_wells_cache(force=force)
         self.generate_measurement_cache(force=force)
         self.generate_metadata(force=force)
+
+    def assign_data_cache_information(self):
+        """Assign data cache information.
+        We not use this on generator, just on the django admin command.
+        """
+        well = self.well
+        self.data_cache_information = None
+        self.save()
+        self.data_cache_information = {}
+        if os.path.exists(well.data_cache_folder):
+            for root, dirs, files in os.walk(well.data_cache_folder):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    modified_time = os.path.getmtime(file_path)
+                    readable_time = datetime.fromtimestamp(modified_time)
+                    self.data_cache_information[file] = (
+                        readable_time.strftime('%Y-%m-%d %H:%M:%S')
+                    )
+        for MeasurementModel in MEASUREMENT_MODELS:
+            measurement_name = MeasurementModel.__name__
+            file_path = well.return_measurement_cache_path(measurement_name)
+            if os.path.exists(file_path):
+                file = os.path.basename(file_path).split('-')[1]
+                modified_time = os.path.getmtime(file_path)
+                readable_time = datetime.fromtimestamp(modified_time)
+                self.data_cache_information[file] = (
+                    readable_time.strftime('%Y-%m-%d %H:%M:%S')
+                )
+        self.save()
 
 
 @receiver(post_save, sender=Well)

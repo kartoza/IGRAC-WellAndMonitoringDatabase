@@ -5,7 +5,6 @@ import time
 import zipfile
 
 from celery.utils.log import get_task_logger
-from django.conf import settings
 from openpyxl import load_workbook
 
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
@@ -13,8 +12,6 @@ from gwml2.models.term import TermFeatureType
 from gwml2.terms import SheetName
 from gwml2.utilities import xlsx_to_ods
 
-GWML2_FOLDER = settings.GWML2_FOLDER
-WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
 DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 )
@@ -136,7 +133,7 @@ class WellCacheZipFileBase(WellCacheFileBase):
             self, well, filename, well_book, ggmn_book, sheets
     ):
         """Merge data per well.."""
-        well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
+        well_folder = well.data_cache_folder
 
         # Load data of well
         well_data = None
@@ -206,13 +203,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
 
         # Append data from source
         for row in data:
-
-            # This is for shifting the name
-            if len(row) + 1 == target_column_number:
-                row.insert(1, well_name)
-            elif sheetname == SheetName.water_strike:
-                if len(row) + 2 == target_column_number:
-                    row.insert(1, well_name)
+            if len(row) != target_column_number:
+                continue
 
             if target_book:
                 target_sheet.append(row)
@@ -350,7 +342,7 @@ class WellCacheZipFileBase(WellCacheFileBase):
                     if well.number_of_measurements == 0:
                         continue
 
-                    well_folder = os.path.join(WELL_FOLDER, f'{well.id}')
+                    well_folder = well.data_cache_folder
                     measurement_file = os.path.join(
                         well_folder, self.monitor_filename
                     )
