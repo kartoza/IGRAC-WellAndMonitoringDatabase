@@ -197,9 +197,13 @@ class GenerateWellCacheFile(object):
             os.remove(_file)
 
         _file = os.path.join(self.folder, 'data.json')
+        curr_data = {}
         if os.path.exists(_file):
             with open(_file, 'r') as f:
-                curr_data = json.load(f)
+                try:
+                    curr_data = json.load(f)
+                except json.decoder.JSONDecodeError:
+                    pass
         else:
             curr_data = {}
         curr_data[sheetname] = data
