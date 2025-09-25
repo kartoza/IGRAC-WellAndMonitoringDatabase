@@ -108,7 +108,7 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
     change_list_template = "admin/well_cache_change_list.html"
     actions = [
         generate_data_wells_cache, generate_measurement_cache,
-        generate_metadata
+        generate_metadata, generate_data_cache_information
     ]
 
     list_filter = (
