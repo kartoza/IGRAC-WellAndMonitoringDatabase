@@ -1,5 +1,8 @@
+import json
+
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.utils.html import format_html
 
 from gwml2.forms.organisation import OrganisationFormAdmin
 from gwml2.models.well_management.organisation import (
@@ -59,20 +62,33 @@ class OrganisationLinkInline(admin.TabularInline):
     model = OrganisationLink
 
 
+def generate_organisation_cache_information(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_organisation_cache_information',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 @admin.register(Organisation)
 class OrganisationAdmin(admin.ModelAdmin):
     """Admin for Organisation model."""
     list_display = (
         'name', 'data_types', 'time_range',
         'license_name', 'active', 'country', '_groups', 'description',
-        'data_cache_generated_at', 'links'
+        'data_cache_generated_at', 'links', 'data_cache_info'
     )
     list_editable = ('active',)
     list_filter = ('data_cache_generated_at', 'country')
     search_fields = ('name',)
     actions = (
         generate_data_wells_cache, reassign_wells_country, update_ggis_uid,
-        assign_data_types, assign_date_range, assign_license
+        assign_data_types, assign_date_range, assign_license,
+        generate_organisation_cache_information
     )
     inlines = [OrganisationLinkInline]
     form = OrganisationFormAdmin
@@ -137,6 +153,22 @@ class OrganisationAdmin(admin.ModelAdmin):
         if license:
             return license.name
         return '-'
+
+    def data_cache_info(self, obj):
+        if not obj.data_cache_information:
+            return "-"
+        try:
+            single_line = json.dumps(obj.data_cache_information)
+            return format_html(
+                f"<div style='white-space: nowrap'>"
+                f"{single_line.replace('{', '').replace('}', '')}"
+                f"</div>"
+            )
+        except Exception as e:
+            print(e)
+            return str(obj.data_cache_information)
+
+    data_cache_info.short_description = "Data cache information"
 
 
 @admin.register(OrganisationGroup)
