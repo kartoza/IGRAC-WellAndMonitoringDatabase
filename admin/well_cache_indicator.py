@@ -1,3 +1,5 @@
+import json
+
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
@@ -80,6 +82,19 @@ def generate_metadata(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Generate data cache information')
+def generate_data_cache_information(modeladmin, request, queryset):
+    """Generate measurement cache."""
+    ids = [f'{_id}' for _id in queryset.values_list('well_id', flat=True)]
+    return run_command(
+        request,
+        'generate_data_cache_information',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 @admin.register(WellCacheIndicator)
 class WellCacheIndicatorAdmin(admin.ModelAdmin):
     list_display = (
@@ -87,6 +102,7 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
         'measurement_cache_generated_at',
         'data_cache_generated_at',
         'metadata_generated_at',
+        'data_cache_info',
         'edit'
     )
     change_list_template = "admin/well_cache_change_list.html"
@@ -126,3 +142,19 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
             '<a href="{}" target="_blank">Edit well</a>',
             url
         )
+
+    def data_cache_info(self, obj):
+        if not obj.data_cache_information:
+            return "-"
+        try:
+            single_line = json.dumps(obj.data_cache_information)
+            return format_html(
+                f"<div style='white-space: nowrap'>"
+                f"{single_line.replace('{', '').replace('}', '')}"
+                f"</div>"
+            )
+        except Exception as e:
+            print(e)
+            return str(obj.data_cache_information)
+
+    data_cache_info.short_description = "Data cache information"

@@ -149,6 +149,19 @@ def generate_metadata(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Generate data cache information')
+def generate_data_cache_information(modeladmin, request, queryset):
+    """Generate data cache information for selected wells in background."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_data_cache_information',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 class WellAdmin(admin.ModelAdmin):
     """Well admin."""
     list_display = (
@@ -181,9 +194,10 @@ class WellAdmin(admin.ModelAdmin):
     actions = [
         delete_in_background,
         assign_country,
+        generate_metadata,
         generate_data_wells_cache,
         generate_measurement_cache,
-        generate_metadata
+        generate_data_cache_information
     ]
     change_list_template = "admin/well_change_list.html"
 
