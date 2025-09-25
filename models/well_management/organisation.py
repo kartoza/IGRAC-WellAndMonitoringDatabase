@@ -1,3 +1,6 @@
+import os
+from datetime import datetime
+
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import m2m_changed
@@ -68,6 +71,15 @@ class Organisation(LicenseMetadata):
     )
     data_is_groundwater_quality = models.BooleanField(
         default=False
+    )
+
+    # Data cache information
+    data_cache_information = models.JSONField(
+        help_text=_(
+            'Information about the data cache, '
+            'like the time of file is being generated.'
+        ),
+        null=True, blank=True
     )
 
     class Meta:
@@ -228,6 +240,30 @@ class Organisation(LicenseMetadata):
         organization based on current data."""
         self.assign_data_types()
         self.assign_date_range()
+
+    def assign_data_cache_information(self):
+        """Assign data cache information.
+        We not use this on generator, just on the django admin command.
+        """
+        from gwml2.tasks.data_file_cache.organisation_cache import (
+            ORGANISATION_DATA_FOLDER
+        )
+        from gwml2.models.download_request import (
+            WELL_AND_MONITORING_DATA, GGMN
+        )
+        self.data_cache_information = {}
+        cache_name = self.name
+        for data_type in [WELL_AND_MONITORING_DATA, GGMN]:
+            zip_filename = f'{cache_name} - {data_type}.zip'
+            file_path = os.path.join(ORGANISATION_DATA_FOLDER, zip_filename)
+            if os.path.exists(file_path):
+                file = os.path.basename(file_path).split('-')[1]
+                modified_time = os.path.getmtime(file_path)
+                readable_time = datetime.fromtimestamp(modified_time)
+                self.data_cache_information[file] = (
+                    readable_time.strftime('%Y-%m-%d %H:%M:%S')
+                )
+        self.save()
 
 
 class OrganisationLink(models.Model):

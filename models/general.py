@@ -1,3 +1,6 @@
+import os
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
@@ -20,6 +23,15 @@ class Country(models.Model):
         null=True, blank=True
     )
 
+    # Data cache information
+    data_cache_information = models.JSONField(
+        help_text=_(
+            'Information about the data cache, '
+            'like the time of file is being generated.'
+        ),
+        null=True, blank=True
+    )
+
     def __str__(self):
         return self.name
 
@@ -28,6 +40,30 @@ class Country(models.Model):
         verbose_name = 'Country'
         ordering = ('name',)
         db_table = 'country'
+
+    def assign_data_cache_information(self):
+        """Assign data cache information.
+        We not use this on generator, just on the django admin command.
+        """
+        from gwml2.tasks.data_file_cache.country_recache import (
+            COUNTRY_DATA_FOLDER
+        )
+        from gwml2.models.download_request import (
+            WELL_AND_MONITORING_DATA, GGMN
+        )
+        self.data_cache_information = {}
+        cache_name = self.code
+        for data_type in [WELL_AND_MONITORING_DATA, GGMN]:
+            zip_filename = f'{cache_name} - {data_type}.zip'
+            file_path = os.path.join(COUNTRY_DATA_FOLDER, zip_filename)
+            if os.path.exists(file_path):
+                file = os.path.basename(file_path).split('-')[1]
+                modified_time = os.path.getmtime(file_path)
+                readable_time = datetime.fromtimestamp(modified_time)
+                self.data_cache_information[file] = (
+                    readable_time.strftime('%Y-%m-%d %H:%M:%S')
+                )
+        self.save()
 
 
 class Unit(_Term):
