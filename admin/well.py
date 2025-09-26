@@ -342,6 +342,7 @@ class MeasurementAdmin(admin.ModelAdmin):
         'default_value'
     )
     search_fields = ('well__original_id',)
+    readonly_fields = ('well', 'parameter')
     raw_id_fields = ('value',)
     list_filter = (PageSizeFilter, 'time', 'parameter', 'default_unit')
     change_list_template = "admin/measurements_change_list.html"

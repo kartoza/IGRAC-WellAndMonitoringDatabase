@@ -111,23 +111,30 @@ def convert_value(quantity: Quantity, unit_to: Unit) -> typing.Optional[
     convert to unit_to
     """
     if quantity:
-        value = quantity.value
-        unit = quantity.unit
-        if quantity.unit and quantity.unit != unit_to:
-            try:
-                value = eval(
-                    UnitConvertion.objects.get(
-                        unit_from=quantity.unit,
-                        unit_to=unit_to
-                    ).formula.replace('x', '{}'.format(value))
-                )
-                unit = unit_to
-            except (UnitConvertion.DoesNotExist, KeyError) as e:
-                pass
-            except ValueError as e:
-                print(e)
-        return Quantity(
-            unit=unit, value=value)
+        try:
+            value = quantity.value
+            if isinstance(value, str):
+                value = float(value)
+            unit = quantity.unit
+            if quantity.unit and quantity.unit != unit_to:
+                try:
+                    value = eval(
+                        UnitConvertion.objects.get(
+                            unit_from=quantity.unit,
+                            unit_to=unit_to
+                        ).formula.replace('x', '{}'.format(value))
+                    )
+                    unit = unit_to
+                except (UnitConvertion.DoesNotExist, KeyError) as e:
+                    pass
+                except ValueError as e:
+                    print(e)
+            return Quantity(
+                unit=unit, value=value)
+        except Exception:
+            return Quantity(
+                unit=unit, value=value
+            )
     else:
         return None
 
