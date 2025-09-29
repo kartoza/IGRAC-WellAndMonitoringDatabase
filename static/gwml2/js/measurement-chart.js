@@ -125,8 +125,11 @@ function checkLevelParameter(
 
 function convertMeasurementData(
     input, unit_to, parameter_to,
-    top_borehole_elevation, ground_surface_elevation) {
+    top_borehole_elevation, ground_surface_elevation,
+    changeUnit
+) {
     let data = {};
+    let unitNotConverted = null;
     input.map(function (row) {
         let parameter = row.par;
         let unit = row.u;
@@ -153,8 +156,15 @@ function convertMeasurementData(
             data[parameter].unshift(
                 [row.dt * 1000, value]
             );
+        } else {
+            if (unit_to !== unit) {
+                unitNotConverted = unit;
+            }
         }
     })
+    if (unitNotConverted && !data[parameter_to]?.length) {
+        changeUnit(unitNotConverted)
+    }
     return data
 }
 
@@ -572,7 +582,12 @@ let MeasurementChartObj = function (
             ),
             unitConvert(
                 this.ground_surface.u, this.unitTo, this.ground_surface.v
-            )
+            ),
+            (unit) => {
+                that.$units.find('option').filter(function() {
+                    return $(this).text().trim() === unit;
+                }).prop('selected', true).trigger('change');
+            }
         );
         const chartData = cleanData[this.parameterTo];
         this.chart = null;

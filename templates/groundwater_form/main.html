@@ -213,11 +213,11 @@
     <script src="{% static "js/highcharts/9.1.2/stock/modules/exporting.js" %}"></script>
     <script src="{% static "js/highcharts/9.1.2/stock/indicators/indicators.js" %}"></script>
     <script src="{% static "js/highcharts/9.1.2/stock/indicators/trendline.js" %}"></script>
-    <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
+    <script src="{% static 'gwml2/js/unit-converter.js' %}?v={{ IGRAC_VERSION.name }}"></script>
     <script src="{% static 'gwml2/js/measurement-chart.js' %}?v={{ IGRAC_VERSION.name }}"></script>
-    <script src="{% static 'gwml2/js/utilities.js' %}"></script>
-    <script src="{% static 'gwml2/js/scripts.js' %}"></script>
-    <script src="{% static 'gwml2/js/many-to-many-script.js' %}"></script>
+    <script src="{% static 'gwml2/js/utilities.js' %}?v={{ IGRAC_VERSION.name }}"></script>
+    <script src="{% static 'gwml2/js/scripts.js' %}?v={{ IGRAC_VERSION.name }}"></script>
+    <script src="{% static 'gwml2/js/many-to-many-script.js' %}?v={{ IGRAC_VERSION.name }}"></script>
 
     <script>
       $(document).ready(function () {
