@@ -7,9 +7,7 @@ from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import (
     HarvesterWellData
 )
-from gwml2.models import (
-    Well, Unit
-)
+from gwml2.models import Well
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
 )
