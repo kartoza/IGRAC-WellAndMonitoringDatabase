@@ -50,6 +50,13 @@ HYDAPI = (
     'Norwegian Water Resources and Energy Directorate NVE (Norway)'
 )
 
+# RWANDA
+RWANDA = (
+    'gwml2.harvesters.harvester.rwanda.base.RwandaHarvester',
+    '(Rwanda) Rwanda Water Portal ',
+    'Rwanda - Rwanda Water Resources Board (RWB)'
+)
+
 # ------------------------------------------
 # USA (CIDA)
 # ------------------------------------------
@@ -129,6 +136,7 @@ HARVESTERS = (
     HUBEAU_WATER_LEVEL,
     HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
+    RWANDA,
     NETHERLAND_WATER_LEVEL,
     NETHERLAND_QUALITY,
     GNSCRI,
