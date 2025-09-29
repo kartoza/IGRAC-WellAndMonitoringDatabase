@@ -186,6 +186,11 @@ class DownloadRequest(models.Model):
         header_text += (
             '======================================================='
         )
+        # Replace the citation
+        now = datetime.now()
+        header_text = header_text.replace("YYYY", str(now.year))
+        header_text = header_text.replace("MM", f"{now.month:02d}")
+        header_text = header_text.replace("DD", f"{now.day:02d}")
         return header_text
 
     def file(self):
