@@ -29,7 +29,7 @@ def run_harvester(self, harvester_id: int):
         if self.request.id:
             harvester.task_id = self.request.id
             harvester.save(update_fields=["task_id"])
-        harvester.run()
+            harvester.run()
 
     except Harvester.DoesNotExist:
         logger.debug('Harvester {} does not exists'.format(harvester_id))
