@@ -51,7 +51,7 @@ class NetherlandHarvester(BaseHarvester):
             gm_gmw_monitoringtube_fk = station['properties'][
                 'gm_gmw_monitoringtube_fk']
             response = requests.get(
-                f'https://api.pdok.nl/bzk/bro-gminsamenhang-karakteristieken/ogc/v1/collections/gm_gmw_monitoringtube/items?f=json&limit=1&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FOGC%2F1.3%2FCRS84&bbox-crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FOGC%2F1.3%2FCRS84&gm_gmw_monitoringtube_pk={gm_gmw_monitoringtube_fk}'
+                f'https://api.pdok.nl/bzk/bro-gminsamenhang-karakteristieken/ogc/v1/collections/gm_gmw_monitoringtube/items?f=json&limit=1&crs=http%3A%2F%2Fwww.opengis.net%2Fdef%2Fcrs%2FOGC%2F1.3%2FCRS84&gm_gmw_monitoringtube_pk={gm_gmw_monitoringtube_fk}'
             )
             try:
                 feature = response.json()['features']

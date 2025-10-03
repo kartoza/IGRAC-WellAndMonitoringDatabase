@@ -2,6 +2,7 @@ import requests
 from dateutil import parser
 from django.contrib.gis.geos import Point
 
+from core.utils import deepl_translater
 from gwml2.harvesters.harvester.sgu.abstract import SguAPI, SkipProcessWell
 from gwml2.harvesters.models.harvester import (
     HarvesterWellData, Harvester, HarvesterParameterMap
@@ -72,8 +73,18 @@ class SguSpringAPI(SguAPI):
 
                 # Description
                 description = station['properties']['notering']
-                well.description = description
-                well.save()
+                if not well.description:
+                    well.description = description
+                    well.save()
+
+                if well.description == description:
+                    # We translate this to english
+                    try:
+                        well.description = deepl_translater(description)
+                        well.save()
+                    except Exception as e:
+                        print(f"Translation error: {e}")
+                        pass
 
                 # Aquifer name
                 aquifer_name = station['properties']['akvtyp_txt']

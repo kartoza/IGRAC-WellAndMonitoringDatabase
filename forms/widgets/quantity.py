@@ -1,6 +1,7 @@
 from django import forms
-from django.forms import ValidationError
 from django.db.utils import ProgrammingError
+from django.forms import ValidationError
+
 from gwml2.models.general import Quantity, Unit, UnitGroup
 
 
@@ -41,6 +42,21 @@ class QuantityInput(forms.widgets.Input):
                 'name': unit.name,
                 'html': unit.html if unit.html else unit.name,
             })
+        try:
+            if not self.unit_group or (
+                    self.unit_group and self.unit_group.name == 'length'
+            ):
+                unit_choices = sorted(
+                    unit_choices,
+                    key=lambda x: (
+                        0 if x['name'] == 'm' else
+                        2 if x['name'] == 'ft' else
+                        1,
+                        x['name']
+                    )
+                )
+        except Exception:
+            pass
         context['unit_choices'] = unit_choices
         context['unit_required'] = self.unit_required
         return context
@@ -62,7 +78,8 @@ class QuantityInput(forms.widgets.Input):
                 quantity.unit = None
                 if data['{}_unit'.format(name)]:
                     try:
-                        unit = Unit.objects.get(name=data['{}_unit'.format(name)])
+                        unit = Unit.objects.get(
+                            name=data['{}_unit'.format(name)])
                         if self.unit_group and unit not in self.unit_group.units.all():
                             raise ValidationError(
                                 '{} is not allowed for {}. '
@@ -74,7 +91,8 @@ class QuantityInput(forms.widgets.Input):
                     except Unit.DoesNotExist:
                         raise ValidationError(
                             'Unit {] does not exist. '
-                            'Please contact administrator to add the unit.'.format(data['{}_unit'.format(name)])
+                            'Please contact administrator to add the unit.'.format(
+                                data['{}_unit'.format(name)])
                         )
                 quantity.save()
                 return quantity.id

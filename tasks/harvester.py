@@ -30,6 +30,7 @@ def run_harvester(self, harvester_id: int):
             harvester.task_id = self.request.id
             harvester.save(update_fields=["task_id"])
             harvester.run()
+
     except Harvester.DoesNotExist:
         logger.debug('Harvester {} does not exists'.format(harvester_id))
 

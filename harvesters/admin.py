@@ -128,6 +128,15 @@ SGU_SPRINGS_API = (
     'Geological Survey of Sweden (Sweden)'
 )
 
+# ---------------------------------------------
+# LOWER SAXONY
+# ---------------------------------------------
+LOWER_SAXONY_LEVEL_MEASUREMENTS = (
+    'gwml2.harvesters.harvester.lower_saxony.LowerSaxonyHarvester',
+    '(Lower Saxony) Level measurements',
+    None
+)
+
 HARVESTERS = (
     AZULBHD,
     EHYD,
@@ -136,6 +145,7 @@ HARVESTERS = (
     HUBEAU_WATER_LEVEL,
     HUBEAU_WATER_QUALITY,
     EPAWEBAPP,
+    LOWER_SAXONY_LEVEL_MEASUREMENTS,
     RWANDA,
     NETHERLAND_WATER_LEVEL,
     NETHERLAND_QUALITY,

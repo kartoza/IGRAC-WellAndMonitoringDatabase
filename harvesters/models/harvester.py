@@ -144,7 +144,7 @@ class Harvester(models.Model):
         if not self.task_id:
             return False
 
-        if timezone.now() - self.last_run <= timedelta(hours=1):
+        if timezone.now() - self.last_run <= timedelta(hours=4):
             return True
 
         return self.is_running_on_celery
