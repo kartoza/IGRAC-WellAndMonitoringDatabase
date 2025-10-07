@@ -43,16 +43,21 @@ class NetherlandQualityHarvester(NetherlandHarvester):
         """Processing level measurement."""
         updated = False
         well = harvester_well_data.well
-        response = requests.get(
-            'https://publiek.broservices.nl/gm/gar/v1/objects/'
-            f'{well.original_id}'
-        )
+        try:
+            response = requests.get(
+                'https://publiek.broservices.nl/gm/gar/v1/objects/'
+                f'{well.original_id}'
+            )
 
-        ns = {
-            "garcommon": "http://www.broservices.nl/xsd/garcommon/1.0",
-            "brocom": "http://www.broservices.nl/xsd/brocommon/3.0"
-        }
-        xml = ET.fromstring(response.content)
+            ns = {
+                "garcommon": "http://www.broservices.nl/xsd/garcommon/1.0",
+                "brocom": "http://www.broservices.nl/xsd/brocommon/3.0"
+            }
+            xml = ET.fromstring(response.content)
+
+        except (ET.ParseError, requests.exceptions.RequestException):
+            return False
+
         processes = xml.findall(".//garcommon:analysisProcess", namespaces=ns)
         for process in processes:
             date = process.find(".//brocom:date", namespaces=ns)
@@ -96,7 +101,7 @@ class NetherlandQualityHarvester(NetherlandHarvester):
                                 float(value.text),
                                 unit
                             )
-                            self.updated = True
+                            updated = True
                     except KeyError:
                         pass
 
