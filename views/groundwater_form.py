@@ -72,6 +72,7 @@ class WellView(ViewWellFormMixin, View):
         context = {
             'read_only': self.read_only,
             'well': well,
+            'is_editing' : well.pk,
             'parameters': {
                 measurement.id: [unit.name for unit in measurement.units.all()]
                 for measurement in TermMeasurementParameter.objects.all()

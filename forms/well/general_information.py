@@ -56,13 +56,16 @@ class GeneralInformationForm(WellBaseForm):
         self.fields['original_id'].label = 'Original ID'
         self.fields['name'].required = True
         self.fields['feature_type'].required = True
+        self.fields['feature_type'].queryset = self.fields[
+            'feature_type'
+        ].queryset.order_by('-name')
 
         self.fields['photo'].widget.attrs[
             'accept'] = 'image/gif, image/png, image/jpeg, image/jpg'
         self.fields['description'].widget.attrs['maxlength'] = 1000
         self.fields['address'].widget.attrs['maxlength'] = 200
         self.fields['original_id'].widget.attrs['maxlength'] = 256
-        self.fields['name'].widget.attrs['maxlength'] = 64
+        self.fields['name'].widget.attrs['maxlength'] = 512
 
         instance = None
         if self.instance.id:

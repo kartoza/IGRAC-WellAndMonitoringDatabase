@@ -2,7 +2,7 @@
 {% load static %}
 {% load gwml2_forms %}
 {% load i18n %}
-<div id="{{ id }}_table" style="height: 100%; width: 100%; {% if hide %} display: none {% endif %}">
+<div id="{{ id }}_table" style="height: 100%; width: 100%; {% if is_chart_by_default %} display: none {% endif %}">
     <div class="table-wrapper" data-fetchurl="{% relation_list_url well theform %}">
         <table>
             <thead>
