@@ -370,6 +370,9 @@ class Well(GeneralInformation, CreationMetadata):
                 self.number_of_measurements_quality +
                 self.number_of_measurements_yield
         )
+        # Resetting first and last measurement time
+        self.first_time_measurement = None
+        self.last_time_measurement = None
         self.assign_first_last(self.welllevelmeasurement_set.all())
         self.assign_first_last(self.wellyieldmeasurement_set.all())
         self.assign_first_last(self.wellqualitymeasurement_set.all())

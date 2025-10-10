@@ -88,7 +88,7 @@ class WellCacheIndicator(models.Model):
 
     def generate_metadata(self, force=False):
         """Generate measurement cache."""
-        if force and self.metadata_generated_at:
+        if not force and self.metadata_generated_at:
             return
         self.well.update_metadata()
 
