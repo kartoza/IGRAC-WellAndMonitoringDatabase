@@ -3,6 +3,7 @@
 import requests
 from dateutil import parser
 from dateutil.utils import today
+from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import (
@@ -34,6 +35,50 @@ class RwandaHarvester(BaseHarvester):
             harvester, replace, original_id
         )
 
+    def _get_stations(self):
+        """Return stations."""
+        response = requests.post(
+            'https://www.waterapi.rwb.rw/getTimeSeriesDescriptionList',
+            json={
+                "apikey": self.api_key
+            }
+        )
+        location_identifiers = []
+        for description in response.json()['TimeSeriesDescriptions']:
+            identifier = description['Identifier'].split('@')[0]
+            try:
+                self.parameters[identifier]  # noqa
+                location_identifiers.append(description['LocationIdentifier'])
+            except Exception:
+                pass
+        return list(set(location_identifiers))
+
+    def _get_station(self, identifier):
+        """Return station."""
+        response = requests.post(
+            'https://www.waterapi.rwb.rw/getLocationData',
+            json={
+                "apikey": self.api_key,
+                "locationIdentifier": identifier
+            }
+        )
+        station = response.json()
+        for tag in station["Tags"]:
+            if tag["Key"] == "Groundwater":
+                point = Point(
+                    station["Longitude"], station["Latitude"], srid=4326
+                )
+
+                # check the station
+                well, harvester_well_data = self._save_well(
+                    original_id=identifier,
+                    name=station["LocationName"],
+                    latitude=point.y,
+                    longitude=point.x,
+                )
+                return well
+        return None
+
     def _process(self):
         """Process the harvester.
 
@@ -47,54 +92,67 @@ class RwandaHarvester(BaseHarvester):
         if not self.parameters.keys():
             raise Exception('No parameter found in parameter map.')
 
-        for well in Well.objects.filter(
-                organisation=self.harvester.organisation
-        ):
-            updated = False
-            well, harvester_well_data = self._save_well(
-                original_id=well.original_id,
-                name=well.name,
-                latitude=well.location.y,
-                longitude=well.location.x
-            )
-            if not self.is_processing_station:
-                continue
-
+        stations_identifiers = self._get_stations()
+        wells = Well.objects.filter(
+            organisation=self.harvester.organisation
+        )
+        for station_identifier in stations_identifiers:
             try:
-                response = requests.post(
-                    'https://www.waterapi.rwb.rw/getTimeSeriesDescriptionList',
-                    json={
-                        "apikey": self.api_key,
-                        "locationIdentifier": well.original_id,
-                    }
+                well = wells.filter(original_id=station_identifier).first()
+                if not well:
+                    well = self._get_station(station_identifier)
+                if not well:
+                    continue
+
+                updated = False
+                well, harvester_well_data = self._save_well(
+                    original_id=well.original_id,
+                    name=well.name,
+                    latitude=well.location.y,
+                    longitude=well.location.x
                 )
-                time_series = response.json()['TimeSeriesDescriptions']
-                self._update(f'Saving {well.original_id}')
-                for description in time_series:
-                    identifier = description['Identifier'].split('@')[0]
-                    try:
-                        parameter = self.parameters[identifier]
-                        updated = self.process_measurement(
-                            harvester_well_data,
-                            description['UniqueId'],
-                            parameter['parameter'],
-                            parameter['unit']
-                        )
-                    except Exception as e:
-                        pass
+                if not self.is_processing_station:
+                    continue
 
-            except Exception as e:
-                continue
-
-            if updated:
-                # -----------------------
-                # Generate cache
-                if well:
-                    self.post_processing_well(
-                        well, generate_country_cache=False
+                try:
+                    response = requests.post(
+                        'https://www.waterapi.rwb.rw/getTimeSeriesDescriptionList',
+                        json={
+                            "apikey": self.api_key,
+                            "locationIdentifier": well.original_id,
+                        }
                     )
-                    if well.country:
-                        self.countries.append(well.country.code)
+                    time_series = response.json()['TimeSeriesDescriptions']
+                    self._update(f'Saving {well.original_id}')
+                    for description in time_series:
+                        identifier = description[
+                            'Identifier'].split('@')[0]
+                        try:
+                            parameter = self.parameters[identifier]
+                            updated = self.process_measurement(
+                                harvester_well_data,
+                                description['UniqueId'],
+                                parameter['parameter'],
+                                parameter['unit']
+                            )
+                        except Exception:
+                            pass
+
+                except Exception:
+                    continue
+
+                if updated:
+                    # -----------------------
+                    # Generate cache
+                    if well:
+                        self.post_processing_well(
+                            well, generate_country_cache=False
+                        )
+                        if well.country:
+                            self.countries.append(well.country.code)
+
+            except Well.DoesNotExist:
+                pass
 
         # ------------------------------------
         # Run country caches
