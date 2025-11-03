@@ -6,9 +6,6 @@ from datetime import datetime, timezone
 import requests
 
 from gwml2.harvesters.models import Harvester
-from gwml2.harvesters.models.harvester import (
-    HarvesterWellData
-)
 from gwml2.models.term_measurement_parameter import (
     TermMeasurementParameterGroup
 )
@@ -36,17 +33,15 @@ class NetherlandQualityHarvester(NetherlandHarvester):
             'f=json&limit=1000&crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84'
         )
 
-    def process_measurement(
-            self,
-            harvester_well_data: HarvesterWellData
-    ):
+    def process_measurement(self, station):
         """Processing level measurement."""
         updated = False
-        well = harvester_well_data.well
+        well = None
+        original_id = self.get_original_id(station)
         try:
             response = requests.get(
                 'https://publiek.broservices.nl/gm/gar/v1/objects/'
-                f'{well.original_id}'
+                f'{original_id}'
             )
 
             ns = {
@@ -85,6 +80,12 @@ class NetherlandQualityHarvester(NetherlandHarvester):
                             parameter = self.parameters[
                                 parameter.text]['parameter']
 
+                            # Get well when there is data
+                            if not well:
+                                harvester_well_data = self.well_from_station(
+                                    station)
+                                well = harvester_well_data.well
+
                             defaults = {
                                 'parameter': parameter
                             }
@@ -105,4 +106,4 @@ class NetherlandQualityHarvester(NetherlandHarvester):
                     except KeyError:
                         pass
 
-        return updated
+        return updated, well

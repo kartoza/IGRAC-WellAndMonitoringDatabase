@@ -37,6 +37,10 @@ class SguSpringAPI(SguAPI):
         self.parameters = HarvesterParameterMap.get_json(harvester)
         super(SguSpringAPI, self).__init__(harvester, replace, original_id)
 
+    def get_original_id(self, station: dict) -> str:
+        """Retrieves original id from station."""
+        return station['properties']['id']
+
     def well_from_station(self, station: dict) -> HarvesterWellData:
         """Retrieves well data from station."""
         coordinates = station['geometry']['coordinates']
@@ -44,7 +48,7 @@ class SguSpringAPI(SguAPI):
         point = Point(coordinates[0], coordinates[1], srid=4326)
 
         # check the station
-        station_id = station['properties']['id']
+        station_id = self.get_original_id(station)
         name = station['properties']['namn']
         well, harvester_well_data = self._save_well(
             original_id=station_id,
@@ -68,47 +72,11 @@ class SguSpringAPI(SguAPI):
         for well_idx, station in enumerate(stations):
             # Resume previous one
             try:
-                harvester_well_data = self.well_from_station(station)
-                well = harvester_well_data.well
-
-                # Description
-                description = station['properties']['notering']
-                if not well.description:
-                    well.description = description
-                    well.save()
-
-                if well.description == description:
-                    # We translate this to english
-                    try:
-                        well.description = deepl_translater(description)
-                        well.save()
-                    except Exception as e:
-                        print(f"Translation error: {e}")
-                        pass
-
-                # Aquifer name
-                aquifer_name = station['properties']['akvtyp_txt']
-                if aquifer_name:
-                    hydrogeology_parameter = well.hydrogeology_parameter
-                    if not well.hydrogeology_parameter:
-                        hydrogeology_parameter = HydrogeologyParameter()
-                    hydrogeology_parameter.aquifer_name = aquifer_name
-                    hydrogeology_parameter.save()
-                    well.hydrogeology_parameter = hydrogeology_parameter
-                    well.save()
-
-                # Estimated flow
-                estimated_flow = station['properties']['fl_txt']
-                well.estimated_flow = estimated_flow
-                well.save()
-
                 try:
                     self.process_station(
-                        station, harvester_well_data,
-                        (
-                            f'Saving {well.original_id} :'
-                            f' well({well_idx + 1}/{total})'
-                        )
+                        station,
+                        well_idx=well_idx,
+                        total=total,
                     )
                 except SkipProcessWell:
                     pass
@@ -128,14 +96,18 @@ class SguSpringAPI(SguAPI):
     def process_station(
             self,
             station,
-            harvester_well_data: HarvesterWellData,
-            note
+            well_idx: int = None,
+            total: int = None,
     ):
         """Processing station."""
-        well = harvester_well_data.well
+        well = None
+        original_id = self.get_original_id(station)
         date_time = parser.parse(station['properties']['obsdat'])
         updated = False
-        self._update(note)
+        self._update(
+            f'Saving {original_id} :'
+            f' well({well_idx + 1}/{total})'
+        )
 
         for key, _parameter in self.parameters.items():
             try:
@@ -151,6 +123,10 @@ class SguSpringAPI(SguAPI):
                             parameter
                         )
                     )
+                    if not well:
+                        harvester_well_data = self.well_from_station(station)
+                        well = harvester_well_data.well
+
                     self._save_measurement(
                         model=MeasurementModel,
                         time=date_time,
@@ -164,6 +140,36 @@ class SguSpringAPI(SguAPI):
                     updated = True
             except KeyError:
                 pass
+
+        if well:
+            # Description
+            description = station['properties']['notering']
+            if not well.description:
+                well.description = description
+
+            if description:
+                if well.description == description:
+                    # We translate this to english
+                    try:
+                        well.description = deepl_translater(description)
+                    except Exception:
+                        well.description = description
+
+            # Aquifer name
+            aquifer_name = station['properties']['akvtyp_txt']
+            if aquifer_name:
+                hydrogeology_parameter = well.hydrogeology_parameter
+                if not well.hydrogeology_parameter:
+                    hydrogeology_parameter = HydrogeologyParameter()
+                hydrogeology_parameter.aquifer_name = aquifer_name
+                hydrogeology_parameter.save()
+                well.hydrogeology_parameter = hydrogeology_parameter
+                well.save()
+
+            # Estimated flow
+            estimated_flow = station['properties']['fl_txt']
+            well.estimated_flow = estimated_flow
+            well.save()
 
         if updated:
             self.well_updated(well=well)
