@@ -14,6 +14,7 @@ from gwml2.models.well import (
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
 from gwml2.utils.management_commands import run_command
+from core.utils import deepl_translater
 
 User = get_user_model()
 
@@ -101,6 +102,12 @@ def assign_country(modeladmin, request, queryset):
     for well in queryset:
         well.assign_country(force=True)
 
+
+@admin.action(description='Translate description')
+def translate_description(modeladmin, request, queryset):
+    for well in queryset:
+        well.description = deepl_translater(well.description)
+        well.save()
 
 @admin.action(description='Delete selected wells in background')
 def delete_in_background(modeladmin, request, queryset):
@@ -194,6 +201,7 @@ class WellAdmin(admin.ModelAdmin):
     actions = [
         delete_in_background,
         assign_country,
+        translate_description,
         generate_metadata,
         generate_data_wells_cache,
         generate_measurement_cache,
