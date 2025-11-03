@@ -33,6 +33,10 @@ class NetherlandHarvester(BaseHarvester):
         for country in countries:
             generate_data_country_cache(country)
 
+    def get_original_id(self, feature: dict) -> str:
+        """Return original id."""
+        return f"{feature['properties']['bro_id']}"
+
     def well_from_station(self, station: dict) -> HarvesterWellData:
         """Retrieves well data from station."""
         coordinates = station['geometry']['coordinates']
@@ -40,7 +44,7 @@ class NetherlandHarvester(BaseHarvester):
         point = Point(coordinates[0], coordinates[1], srid=4326)
 
         # check the station
-        station_id = f"{station['properties']['bro_id']}"
+        station_id = self.get_original_id(station)
         well, harvester_well_data = self._save_well(
             original_id=station_id,
             name=station_id,
@@ -69,17 +73,19 @@ class NetherlandHarvester(BaseHarvester):
         data = response.json()
 
         for feature in data['features']:
+            original_id = self.get_original_id(feature)
             try:
-                harvester_well_data = self.well_from_station(feature)
-                well = harvester_well_data.well
+                if not self.is_processing_station and original_id == self.current_original_id:
+                    self.is_processing_station = True
+
                 if not self.is_processing_station:
                     continue
 
-                self._update(f'Saving {well.original_id}')
-                updated = self.process_measurement(harvester_well_data)
+                self._update(f'Saving {original_id}')
+                updated, well = self.process_measurement(feature)
 
-                print(f'{well.original_id} : done')
-                if updated:
+                if well and updated:
+                    print(f'{original_id} : done')
                     # -----------------------
                     # Generate cache
                     if well:
@@ -104,6 +110,6 @@ class NetherlandHarvester(BaseHarvester):
         if next_url:
             self.fetch_stations(next_url)
 
-    def process_measurement(self, harvester_well_data: HarvesterWellData):
+    def process_measurement(self, station: dict):
         """Process measurement."""
         raise NotImplementedError
