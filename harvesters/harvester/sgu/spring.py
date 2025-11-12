@@ -108,6 +108,8 @@ class SguSpringAPI(SguAPI):
             f'Saving {original_id} :'
             f' well({well_idx + 1}/{total})'
         )
+        harvester_well_data = self.well_from_station(station)
+        well = harvester_well_data.well
 
         for key, _parameter in self.parameters.items():
             try:
@@ -123,10 +125,6 @@ class SguSpringAPI(SguAPI):
                             parameter
                         )
                     )
-                    if not well:
-                        harvester_well_data = self.well_from_station(station)
-                        well = harvester_well_data.well
-
                     self._save_measurement(
                         model=MeasurementModel,
                         time=date_time,
