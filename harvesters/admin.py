@@ -137,6 +137,15 @@ LOWER_SAXONY_LEVEL_MEASUREMENTS = (
     None
 )
 
+# ---------------------------------------------
+# NORWAY QUALITY (MILJODIREKTORATET)
+# ---------------------------------------------
+NORWAY_QUALITY = (
+    'gwml2.harvesters.harvester.miljodirektoratet.MiljodirektoratetHarvester',
+    '(Norway Quality) Quality measurements',
+    None
+)
+
 HARVESTERS = (
     AZULBHD,
     EHYD,
@@ -150,6 +159,7 @@ HARVESTERS = (
     NETHERLAND_WATER_LEVEL,
     NETHERLAND_QUALITY,
     GNSCRI,
+    NORWAY_QUALITY,
     HYDAPI,
     SGU_GROUNDWATER_API,
     SGU_QUALITY_API,
