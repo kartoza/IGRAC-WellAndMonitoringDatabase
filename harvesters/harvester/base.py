@@ -196,6 +196,19 @@ class BaseHarvester(ABC):
 
         return wells.first()
 
+    def check_current_well(self, original_id):
+        """Check current well."""
+        # If not process station but the original id is same with current one
+        # make process station true
+        if not self.is_processing_station and original_id == self.current_original_id:
+            self.is_processing_station = True
+
+        # Save current original id
+        if self.is_processing_station:
+            self.update_attribute(
+                self.current_original_id_key, original_id
+            )
+
     def _save_well(
             self,
             original_id: str,
