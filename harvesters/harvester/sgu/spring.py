@@ -70,7 +70,10 @@ class SguSpringAPI(SguAPI):
         total = len(stations)
 
         for well_idx, station in enumerate(stations):
-            # Resume previous one
+            self._update(
+                f'Processing : {well_idx + 1}/{total}'
+            )
+
             try:
                 try:
                     self.process_station(
@@ -81,6 +84,7 @@ class SguSpringAPI(SguAPI):
                 except SkipProcessWell:
                     pass
             except (KeyError, TypeError, Well.DoesNotExist) as e:
+                print(f"{e}")
                 continue
 
         # Run country caches
@@ -100,10 +104,12 @@ class SguSpringAPI(SguAPI):
             total: int = None,
     ):
         """Processing station."""
-        well = None
         original_id = self.get_original_id(station)
-        date_time = parser.parse(station['properties']['obsdat'])
-        updated = False
+
+        self.check_current_well(original_id)
+        if not self.is_processing_station:
+            raise SkipProcessWell()
+
         self._update(
             f'Saving {original_id} :'
             f' well({well_idx + 1}/{total})'
@@ -111,6 +117,39 @@ class SguSpringAPI(SguAPI):
         harvester_well_data = self.well_from_station(station)
         well = harvester_well_data.well
 
+        if well:
+            # Description
+            description = station['properties']['notering']
+            if not well.description:
+                well.description = description
+
+            if description:
+                if well.description == description:
+                    # We translate this to english
+                    try:
+                        well.description = deepl_translater(description)
+                    except Exception as e:
+                        well.description = description
+
+            # Aquifer name
+            aquifer_name = station['properties']['akvtyp_txt']
+            if aquifer_name:
+                hydrogeology_parameter = well.hydrogeology_parameter
+                if not well.hydrogeology_parameter:
+                    hydrogeology_parameter = HydrogeologyParameter()
+                hydrogeology_parameter.aquifer_name = aquifer_name
+                hydrogeology_parameter.save()
+                well.hydrogeology_parameter = hydrogeology_parameter
+                well.save()
+
+            # Estimated flow
+            estimated_flow = station['properties']['fl_txt']
+            well.estimated_flow = estimated_flow
+            well.save()
+
+        # Measurements
+        updated = False
+        date_time = parser.parse(station['properties']['obsdat'])
         for key, _parameter in self.parameters.items():
             try:
                 value = station['properties'][key]
@@ -138,36 +177,6 @@ class SguSpringAPI(SguAPI):
                     updated = True
             except KeyError:
                 pass
-
-        if well:
-            # Description
-            description = station['properties']['notering']
-            if not well.description:
-                well.description = description
-
-            if description:
-                if well.description == description:
-                    # We translate this to english
-                    try:
-                        well.description = deepl_translater(description)
-                    except Exception:
-                        well.description = description
-
-            # Aquifer name
-            aquifer_name = station['properties']['akvtyp_txt']
-            if aquifer_name:
-                hydrogeology_parameter = well.hydrogeology_parameter
-                if not well.hydrogeology_parameter:
-                    hydrogeology_parameter = HydrogeologyParameter()
-                hydrogeology_parameter.aquifer_name = aquifer_name
-                hydrogeology_parameter.save()
-                well.hydrogeology_parameter = hydrogeology_parameter
-                well.save()
-
-            # Estimated flow
-            estimated_flow = station['properties']['fl_txt']
-            well.estimated_flow = estimated_flow
-            well.save()
 
         if updated:
             self.well_updated(well=well)
