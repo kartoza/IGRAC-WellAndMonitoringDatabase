@@ -179,7 +179,9 @@ class WellAdmin(admin.ModelAdmin):
         'latitude', 'longitude',
         'id',
         'first_time_measurement', 'last_time_measurement',
-        'links'
+        'links',
+        'name',
+        '_description'
     )
     list_filter = (
         'organisation', 'country', 'feature_type',
@@ -233,6 +235,13 @@ class WellAdmin(admin.ModelAdmin):
             f'<a href="/admin/gwml2/wellqualitymeasurement/?well_id__exact={obj.id}" target="_blank">Quality Measurements</a><br/>'
             f'<a href="/admin/gwml2/wellyieldmeasurement/?well_id__exact={obj.id}" target="_blank">Yield Measurements</a>'
         )
+
+    def _description(self, obj):
+        if obj.description:
+            if len(obj.description) > 10:
+                return obj.description[:10] + '...'
+            return obj.description
+        return ''
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
