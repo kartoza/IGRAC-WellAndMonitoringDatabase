@@ -13,6 +13,7 @@ from gwml2.harvesters.models.harvester import (
 from gwml2.models import (
     Well, TermMeasurementParameterGroup
 )
+from gwml2.models.general import Unit
 
 
 class MiljodirektoratetHarvester(BaseHarvester):
@@ -83,7 +84,6 @@ class MiljodirektoratetHarvester(BaseHarvester):
                 # process the station
                 for key, value in self.parameters.items():
                     parameter = value['parameter']
-                    unit = value['unit']
                     defaults = {
                         'parameter': parameter
                     }
@@ -100,9 +100,21 @@ class MiljodirektoratetHarvester(BaseHarvester):
                     )
                     measurements = response.json()["Result"]
                     for measurement in measurements:
+                        unit = value['unit']
                         if not harvester_well_data:
                             harvester_well_data = self.get_station(identifier)
 
+                        value_operator = measurement["ValueOperator"]
+                        if value_operator != "=":
+                            names = [
+                                value_operator + unit.name,
+                                value_operator + " " + unit.name
+                            ]
+                            unit = Unit.objects.filter(name__in=names).first()
+                            if not unit:
+                                continue
+                        # Add the unit to the parameter
+                        parameter.units.add(unit)
                         MeasurementModel = (
                             TermMeasurementParameterGroup.get_measurement_model(
                                 parameter
@@ -110,7 +122,7 @@ class MiljodirektoratetHarvester(BaseHarvester):
                         )
                         self._save_measurement(
                             MeasurementModel,
-                            parser.isoparse(measurement["RegDate"]),
+                            parser.isoparse(measurement["SamplingTime"]),
                             defaults,
                             harvester_well_data,
                             measurement["RegValue"],
