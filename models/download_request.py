@@ -67,10 +67,12 @@ class DownloadRequest(models.Model):
     )
     organization = models.CharField(
         _('Organization'),
+        null=True, blank=True,
         max_length=512,
     )
     organization_types = models.CharField(
         _('Type of organization'),
+        null=True, blank=True,
         max_length=512,
     )
     country = models.ForeignKey(
