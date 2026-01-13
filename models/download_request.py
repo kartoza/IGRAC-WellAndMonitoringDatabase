@@ -60,17 +60,19 @@ class DownloadRequest(models.Model):
         related_name='download_organisation_data_request'
     )
     first_name = models.CharField(
-        _('First Name'), max_length=512
+        _('First Name'), null=True, blank=True, max_length=512
     )
     last_name = models.CharField(
         _('Last Name'), null=True, blank=True, max_length=512
     )
     organization = models.CharField(
         _('Organization'),
+        null=True, blank=True,
         max_length=512,
     )
     organization_types = models.CharField(
         _('Type of organization'),
+        null=True, blank=True,
         max_length=512,
     )
     country = models.ForeignKey(

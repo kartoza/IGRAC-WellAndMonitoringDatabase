@@ -24,7 +24,7 @@ class DownloadRequestForm(forms.ModelForm):
         widget=forms.RadioSelect,
         initial='data_providers'
     )
-    organization_types = forms.MultipleChoiceField()
+    organization_types = forms.MultipleChoiceField(required=False)
 
     class Meta:
         model = DownloadRequest
