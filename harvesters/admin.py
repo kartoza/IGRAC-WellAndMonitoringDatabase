@@ -146,10 +146,23 @@ NORWAY_QUALITY = (
     None
 )
 
+# ---------------------------------------------
+# EL SAVADOR
+# ---------------------------------------------
+EL_SAVADOR = (
+    'gwml2.harvesters.harvester.el_savador.base.ElSavadorHarvester',
+    (
+        '(El Savador) General Directorate of '
+        'the Observatory of Threats and Natural Resources'
+    ),
+    None
+)
+
 HARVESTERS = (
     AZULBHD,
     EHYD,
     GINGWINFO,
+    EL_SAVADOR,
     ESTONIA,
     HUBEAU_WATER_LEVEL,
     HUBEAU_WATER_QUALITY,
