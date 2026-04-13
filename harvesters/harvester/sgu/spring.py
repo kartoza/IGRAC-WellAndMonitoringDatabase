@@ -97,6 +97,45 @@ class SguSpringAPI(SguAPI):
         """Processing well."""
         pass
 
+    def get_estimated_flow(self, station: dict) -> str | None:
+        """Fetch estimated flow text from SGU WMS GetFeatureInfo.
+
+        Uses the station's projected coordinates (n/e in EPSG:3006) to build
+        a 21×21 pixel bounding box centred on the point, then extracts the
+        'Flöde' property.
+        """
+        props = station['properties']
+        n = props.get('n')
+        e = props.get('e')
+        if not n or not e:
+            return None
+
+        bbox = f"{e - 10},{n - 10},{e + 10},{n + 10}"
+        url = (
+            "https://maps3.sgu.se/geoserver/wms"
+            "?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetFeatureInfo"
+            "&LAYERS=grundvatten:SE.GOV.SGU.KALLOR.1M"
+            "&QUERY_LAYERS=grundvatten:SE.GOV.SGU.KALLOR.1M"
+            "&INFO_FORMAT=application/json&FEATURE_COUNT=5"
+            f"&SRS=EPSG:3006&WIDTH=21&HEIGHT=21&X=10&Y=10&BBOX={bbox}"
+        )
+        station_id = props.get('id')
+        try:
+            response = requests.get(url, timeout=10)
+            features = response.json().get('features', [])
+            if not features:
+                return None
+            feature = next(
+                (f for f in features
+                 if f['properties'].get('Id') == station_id),
+                None
+            )
+            if not feature:
+                return None
+            return feature['properties'].get('Flöde')
+        except Exception:
+            return None
+
     def process_station(
             self,
             station,
@@ -142,9 +181,18 @@ class SguSpringAPI(SguAPI):
                 well.hydrogeology_parameter = hydrogeology_parameter
                 well.save()
 
-            # Estimated flow
-            estimated_flow = station['properties']['fl_txt']
-            well.estimated_flow = estimated_flow
+            # Estimated flow — prefer WMS detail over the OGC summary field
+            estimated_flow = (
+                self.get_estimated_flow(station)
+                or station['properties'].get('fl_txt')
+            )
+            if not well.estimated_flow:
+                well.estimated_flow = estimated_flow
+            if estimated_flow and well.estimated_flow == estimated_flow:
+                try:
+                    well.estimated_flow = deepl_translater(estimated_flow)
+                except Exception:
+                    well.estimated_flow = estimated_flow
             well.save()
 
         # Measurements
