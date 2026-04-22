@@ -300,7 +300,7 @@ class BaseUploader(WellEditing):
                     not self.IS_OPTIONAL
             ):
                 raise KeyError(
-                    f'Sheet {sheet_name} in excel is not found. '
+                    f'Sheet {sheet_name} in excel is not found or empty. '
                     f'This sheet is used by {self.UPLOADER_NAME}. '
                     f'Please check if you use the correct uploader/tab. '
                 )

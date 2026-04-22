@@ -167,7 +167,7 @@ class GeneralInformationForm(WellBaseForm):
             feature_type = TermFeatureType.objects.get(id=data['feature_type'])
             if feature_type.name.lower() != 'spring':
                 data['estimated_flow'] = None
-        except TermFeatureType.DoesNotExist:
+        except (ValueError, TermFeatureType.DoesNotExist):
             pass
 
         return GeneralInformationForm(data, form_files, instance=instance)
