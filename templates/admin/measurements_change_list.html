@@ -35,7 +35,7 @@
     </script>
     <ul class="grp-object-tools">
         <li>
-            <a id="total-count-bar" style="cursor:default;">loading…</a>
+            <a id="total-count-bar" style="cursor:pointer;" onclick="fetchMeasurementCount()">Show total</a>
         </li>
         <style>
           #total-count-bar {
@@ -67,18 +67,20 @@
         {% endblock %}
     </ul>
     <script>
-      (function () {
-        var countUrl = window.location.pathname + 'count/?' + window.location.search.replace(/^\?/, '');
-        fetch(countUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-          .then(function (r) {
-            return r.json();
-          })
+      function fetchMeasurementCount() {
+        const el = document.getElementById('total-count-bar');
+        el.style.cursor = 'default';
+        el.onclick = null;
+        el.textContent = 'loading…';
+        const countUrl = window.location.pathname + 'count/?' + window.location.search.replace(/^\?/, '');
+        fetch(countUrl, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+          .then(function (r) { return r.json(); })
           .then(function (data) {
-            document.getElementById('total-count-bar').textContent = data.count.toLocaleString() + " total";
+            el.textContent = data.count.toLocaleString() + ' total';
           })
           .catch(function () {
-            document.getElementById('total-count-bar').style.display = 'none';
+            el.textContent = 'error';
           });
-      })();
+      }
     </script>
 {% endblock %}

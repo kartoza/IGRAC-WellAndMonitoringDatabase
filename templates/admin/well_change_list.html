@@ -5,29 +5,30 @@
 {% block object-tools %}
     <ul class="grp-object-tools">
         <li>
-            <a id="total-count-bar" style="cursor:default;">loading…</a>
+            <a id="total-count-bar" style="cursor:pointer;" onclick="fetchWellCount()">Show total</a>
         </li>
         <style>
           #total-count-bar, .count {
-            cursor: default !important;
             opacity: 1 !important;
-            background: #59afcc !important;;
-            border: 1px solid #59afcc !important;;
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
           }
-
           #total-count-bar:hover, .count:hover {
-            background: #59afcc !important;;
-            border: 1px solid #59afcc !important;;
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
           }
         </style>
-        <li id="total-level-bar" style="display:none">
-            <a class="count grp-state-focus" id="total-level-text"></a>
+        <li>
+            <a class="count grp-state-focus" id="total-level-text"
+               style="cursor:pointer;" onclick="fetchWellTotals()">Show level</a>
         </li>
-        <li id="total-quality-bar" style="display:none">
-            <a class="count grp-state-focus" id="total-quality-text"></a>
+        <li>
+            <a class="count grp-state-focus" id="total-quality-text"
+               style="cursor:pointer;" onclick="fetchWellTotals()">Show quality</a>
         </li>
-        <li id="total-yield-bar" style="display:none">
-            <a class="count grp-state-focus" id="total-yield-text"></a>
+        <li>
+            <a class="count grp-state-focus" id="total-yield-text"
+               style="cursor:pointer;" onclick="fetchWellTotals()">Show yield</a>
         </li>
         {% block object-tools-items %}
             {% if has_add_permission %}
@@ -41,31 +42,37 @@
         {% endblock %}
     </ul>
     <script>
-      (function () {
+      function fetchWellCount() {
+        const el = document.getElementById('total-count-bar');
+        el.style.cursor = 'default';
+        el.onclick = null;
+        el.textContent = 'loading…';
         const qs = window.location.search.replace(/^\?/, '');
-        const base = window.location.pathname;
-        const headers = {'X-Requested-With': 'XMLHttpRequest'};
+        fetch(window.location.pathname + 'count/?' + qs, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+          .then(function (r) { return r.json(); })
+          .then(function (data) { el.textContent = data.count.toLocaleString() + ' total'; })
+          .catch(function () { el.textContent = 'error'; });
+      }
 
-        fetch(base + 'count/?' + qs, {headers: headers})
+      function fetchWellTotals() {
+        const ids = ['total-level-text', 'total-quality-text', 'total-yield-text'];
+        ids.forEach(function (id) {
+          const el = document.getElementById(id);
+          el.style.cursor = 'default';
+          el.onclick = null;
+          el.textContent = 'loading…';
+        });
+        const qs = window.location.search.replace(/^\?/, '');
+        fetch(window.location.pathname + 'totals/?' + qs, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            document.getElementById('total-count-bar').textContent = data.count.toLocaleString() + ' total wells (unfiltered)';
+            document.getElementById('total-level-text').textContent = (data.total_level || 0).toLocaleString() + ' level';
+            document.getElementById('total-quality-text').textContent = (data.total_quality || 0).toLocaleString() + ' quality';
+            document.getElementById('total-yield-text').textContent = (data.total_yield || 0).toLocaleString() + ' yield';
           })
           .catch(function () {
-            document.getElementById('total-count-bar').style.display = 'none';
+            ids.forEach(function (id) { document.getElementById(id).textContent = 'error'; });
           });
-
-        fetch(base + 'totals/?' + qs, {headers: headers})
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            function show(barId, textId, value, label) {
-              document.getElementById(textId).textContent = value.toLocaleString() + ' ' + label;
-              document.getElementById(barId).style.display = '';
-            }
-            show('total-level-bar', 'total-level-text', data.total_level || 0, 'level');
-            show('total-quality-bar', 'total-quality-text', data.total_quality || 0, 'quality');
-            show('total-yield-bar', 'total-yield-text', data.total_yield || 0, 'yield');
-          });
-      })();
+      }
     </script>
 {% endblock %}

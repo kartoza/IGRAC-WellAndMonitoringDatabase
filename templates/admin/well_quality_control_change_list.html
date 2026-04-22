@@ -4,20 +4,23 @@
 {% block object-tools %}
     <ul class="grp-object-tools">
         <li>
-            <a id="total-count-bar" style="cursor:default;">loading…</a>
+            <a id="total-count-bar" style="cursor:pointer;" onclick="fetchQCCount()">Show total</a>
         </li>
-        <li id="time-gap-bar" style="display:none">
-            <a class="count grp-state-focus" id="time-gap-text"></a>
+        <li>
+            <a class="count grp-state-focus" id="time-gap-text"
+               style="cursor:pointer;" onclick="fetchQCTotals()">Show time gap</a>
         </li>
-        <li id="value-gap-bar" style="display:none">
-            <a class="count grp-state-focus" id="value-gap-text"></a>
+        <li>
+            <a class="count grp-state-focus" id="value-gap-text"
+               style="cursor:pointer;" onclick="fetchQCTotals()">Show value gap</a>
         </li>
-        <li id="strange-value-bar" style="display:none">
-            <a class="count grp-state-focus" id="strange-value-text"></a>
+        <li>
+            <a class="count grp-state-focus" id="strange-value-text"
+               style="cursor:pointer;" onclick="fetchQCTotals()">Show strange value</a>
         </li>
         <style>
           #total-count-bar, .count {
-            cursor: default !important;
+            opacity: 1 !important;
             opacity: 1 !important;
             background: #59afcc !important;
             border: 1px solid #59afcc !important;
@@ -53,31 +56,37 @@
         {% endblock %}
     </ul>
     <script>
-      (function () {
+      function fetchQCCount() {
+        const el = document.getElementById('total-count-bar');
+        el.style.cursor = 'default';
+        el.onclick = null;
+        el.textContent = 'loading…';
         const qs = window.location.search.replace(/^\?/, '');
-        const base = window.location.pathname;
-        const headers = {'X-Requested-With': 'XMLHttpRequest'};
+        fetch(window.location.pathname + 'count/?' + qs, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+          .then(function (r) { return r.json(); })
+          .then(function (data) { el.textContent = data.count.toLocaleString() + ' total'; })
+          .catch(function () { el.textContent = 'error'; });
+      }
 
-        fetch(base + 'count/?' + qs, {headers: headers})
+      function fetchQCTotals() {
+        const ids = ['time-gap-text', 'value-gap-text', 'strange-value-text'];
+        ids.forEach(function (id) {
+          const el = document.getElementById(id);
+          el.style.cursor = 'default';
+          el.onclick = null;
+          el.textContent = 'loading…';
+        });
+        const qs = window.location.search.replace(/^\?/, '');
+        fetch(window.location.pathname + 'totals/?' + qs, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
           .then(function (r) { return r.json(); })
           .then(function (data) {
-            document.getElementById('total-count-bar').textContent = data.count.toLocaleString() + ' total';
+            document.getElementById('time-gap-text').textContent = (data.time_gap || 0).toLocaleString() + ' time gap';
+            document.getElementById('value-gap-text').textContent = (data.value_gap || 0).toLocaleString() + ' value gap';
+            document.getElementById('strange-value-text').textContent = (data.strange_value || 0).toLocaleString() + ' strange value';
           })
           .catch(function () {
-            document.getElementById('total-count-bar').style.display = 'none';
+            ids.forEach(function (id) { document.getElementById(id).textContent = 'error'; });
           });
-
-        fetch(base + 'totals/?' + qs, {headers: headers})
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            function show(barId, textId, value, label) {
-              document.getElementById(textId).textContent = value.toLocaleString() + ' ' + label;
-              document.getElementById(barId).style.display = '';
-            }
-            show('time-gap-bar', 'time-gap-text', data.time_gap, 'time gap');
-            show('value-gap-bar', 'value-gap-text', data.value_gap, 'value gap');
-            show('strange-value-bar', 'strange-value-text', data.strange_value, 'strange value');
-          });
-      })();
+      }
     </script>
 {% endblock %}
