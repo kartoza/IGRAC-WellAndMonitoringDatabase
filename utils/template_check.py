@@ -39,7 +39,7 @@ def get_records(
         return output, total_records
     except KeyError as e:
         raise KeyError(
-            f'Sheet {e} in excel is not found. '
+            f'Sheet {e} in excel is not found or empty. '
             f'This sheet is used by {uploader_name}. '
             f'Please check if you use the correct uploader/tab. '
         )

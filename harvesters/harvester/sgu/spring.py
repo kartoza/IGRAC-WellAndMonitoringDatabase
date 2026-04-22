@@ -1,3 +1,5 @@
+import re
+
 import requests
 from dateutil import parser
 from django.contrib.gis.geos import Point
@@ -132,7 +134,10 @@ class SguSpringAPI(SguAPI):
             )
             if not feature:
                 return None
-            return feature['properties'].get('Flöde')
+            estimated_flow = feature['properties'].get('Flöde')
+            if estimated_flow and not re.search(r'\d', estimated_flow):
+                return None
+            return estimated_flow
         except Exception:
             return None
 
@@ -153,6 +158,12 @@ class SguSpringAPI(SguAPI):
             f'Saving {original_id} :'
             f' well({well_idx + 1}/{total})'
         )
+        # Estimated flow — prefer WMS detail over the OGC summary field
+        estimated_flow = (
+                self.get_estimated_flow(station)
+                or station['properties'].get('fl_txt')
+        )
+
         harvester_well_data = self.well_from_station(station)
         well = harvester_well_data.well
 
@@ -160,6 +171,17 @@ class SguSpringAPI(SguAPI):
             # Description
             description = station['properties']['notering']
             if not well.description:
+                well.description = description
+
+            # Remove link
+            if description and re.search(
+                r'<a\b[^>]*>.*?</a>', description,
+                flags=re.IGNORECASE | re.DOTALL
+            ):
+                description = re.sub(
+                    r'<a\b[^>]*>.*?</a>', '', description,
+                    flags=re.IGNORECASE | re.DOTALL
+                ).strip()
                 well.description = description
 
             if description:
@@ -181,13 +203,16 @@ class SguSpringAPI(SguAPI):
                 well.hydrogeology_parameter = hydrogeology_parameter
                 well.save()
 
-            # Estimated flow — prefer WMS detail over the OGC summary field
-            estimated_flow = (
-                self.get_estimated_flow(station)
-                or station['properties'].get('fl_txt')
-            )
+            # If empty, add estimated flow
             if not well.estimated_flow:
                 well.estimated_flow = estimated_flow
+
+            # If estimated flow is empty, update it
+            if not estimated_flow:
+                well.estimated_flow = estimated_flow
+
+            # If estimated flow is not empty, and the well and input same
+            # do translation
             if estimated_flow and well.estimated_flow == estimated_flow:
                 try:
                     well.estimated_flow = deepl_translater(estimated_flow)

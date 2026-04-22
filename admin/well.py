@@ -4,9 +4,11 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from django.db.models import Q, Sum
-from django.urls import reverse
+from django.http import JsonResponse
+from django.urls import path, reverse
 from django.utils.html import format_html
 
+from core.utils import deepl_translater
 from gwml2.models import OrganisationGroup
 from gwml2.models.well import (
     Well, WellDocument, Measurement,
@@ -14,7 +16,6 @@ from gwml2.models.well import (
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
 from gwml2.utils.management_commands import run_command
-from core.utils import deepl_translater
 
 User = get_user_model()
 
@@ -79,23 +80,6 @@ class InvalidCoordinatesFilter(admin.SimpleListFilter):
             )
         return queryset
 
-
-class ShowDetail(admin.SimpleListFilter):
-    """Show detail."""
-
-    title = 'Show detail'
-    parameter_name = 'show_detail'
-
-    def lookups(self, request, model_admin):
-        """Lookup function for entity filter."""
-        return [
-            ("yes", "Yes"),
-            ("no", "No"),
-        ]
-
-    def queryset(self, request, queryset):
-        """Return filtered queryset."""
-        return queryset
 
 
 def assign_country(modeladmin, request, queryset):
@@ -187,7 +171,6 @@ class WellAdmin(admin.ModelAdmin):
         'organisation', 'country', 'feature_type',
         'first_time_measurement', 'last_time_measurement',
         InvalidCoordinatesFilter, OrganisationGroupFilter,
-        ShowDetail
     )
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
@@ -210,22 +193,42 @@ class WellAdmin(admin.ModelAdmin):
         generate_data_cache_information
     ]
     change_list_template = "admin/well_change_list.html"
+    show_full_result_count = False
+
+    def get_urls(self):
+        opts = self.model._meta
+        custom = [
+            path(
+                'count/',
+                self.admin_site.admin_view(self.count_view),
+                name=f'{opts.app_label}_{opts.model_name}_count',
+            ),
+            path(
+                'totals/',
+                self.admin_site.admin_view(self.totals_view),
+                name=f'{opts.app_label}_{opts.model_name}_totals',
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def count_view(self, request):
+        return JsonResponse({'count': self.get_queryset(request).count()})
+
+    def totals_view(self, request):
+        cl = self.get_changelist_instance(request)
+        totals = cl.queryset.only(
+            'number_of_measurements_level',
+            'number_of_measurements_quality',
+            'number_of_measurements_yield',
+        ).aggregate(
+            total_level=Sum('number_of_measurements_level'),
+            total_quality=Sum('number_of_measurements_quality'),
+            total_yield=Sum('number_of_measurements_yield'),
+        )
+        return JsonResponse(totals)
 
     def changelist_view(self, request, extra_context=None):
-        """Get count context"""
-        response = super().changelist_view(request, extra_context)
-        if "show_detail" in request.GET:
-            try:
-                cl = response.context_data["cl"]
-                totals = cl.queryset.aggregate(
-                    total_level=Sum("number_of_measurements_level"),
-                    total_quality=Sum("number_of_measurements_quality"),
-                    total_yield=Sum("number_of_measurements_yield"),
-                )
-                response.context_data["totals"] = totals
-            except (AttributeError, KeyError):
-                pass
-        return response
+        return super().changelist_view(request, extra_context)
 
     def links(self, obj):
         url = reverse('well_form', args=[obj.id])
@@ -248,10 +251,13 @@ class WellAdmin(admin.ModelAdmin):
         return qs.select_related('organisation', 'country').only(
             'id',
             'original_id',
+            'name',
+            'description',
+            'location',
             'organisation__id', 'organisation__name',
             'country__id', 'country__name',
             'number_of_measurements',
-            'first_time_measurement', 'last_time_measurement'
+            'first_time_measurement', 'last_time_measurement',
         )
 
     def created_by_user(self, obj):
@@ -339,6 +345,71 @@ class PageSizeFilter(SimpleListFilter):
         return queryset
 
 
+class InputFilter(admin.SimpleListFilter):
+    """Single-input filter rendered as a text/date/number field."""
+    template = 'admin/input_filter.html'
+    input_type = 'text'
+    lookup = None
+
+    def has_output(self):
+        return True
+
+    def lookups(self, request, model_admin):
+        return ()
+
+    def queryset(self, request, queryset):
+        val = self.value()
+        if val:
+            try:
+                return queryset.filter(**{self.lookup: val})
+            except (ValueError, TypeError):
+                pass
+        return queryset
+
+    def choices(self, changelist):
+        other_params = [
+            (k, v) for k, v in changelist.get_filters_params().items()
+            if k != self.parameter_name
+        ]
+        yield {
+            'parameter_name': self.parameter_name,
+            'input_type': self.input_type,
+            'value': self.value() or '',
+            'form_params': other_params,
+            'clear_url': changelist.get_query_string(
+                remove=[self.parameter_name]
+            ),
+        }
+
+
+class TimeFromFilter(InputFilter):
+    title = 'Time from'
+    parameter_name = 'time_from'
+    input_type = 'date'
+    lookup = 'time__date__gte'
+
+
+class TimeToFilter(InputFilter):
+    title = 'Time to'
+    parameter_name = 'time_to'
+    input_type = 'date'
+    lookup = 'time__date__lte'
+
+
+class ValueMinFilter(InputFilter):
+    title = 'Value min'
+    parameter_name = 'value_min'
+    input_type = 'number'
+    lookup = 'default_value__gte'
+
+
+class ValueMaxFilter(InputFilter):
+    title = 'Value max'
+    parameter_name = 'value_max'
+    input_type = 'number'
+    lookup = 'default_value__lte'
+
+
 class PageSizeChangeList(ChangeList):
     """Page size change list."""
 
@@ -361,14 +432,35 @@ class MeasurementAdmin(admin.ModelAdmin):
     search_fields = ('well__original_id',)
     readonly_fields = ('well', 'parameter')
     raw_id_fields = ('value',)
-    list_filter = (PageSizeFilter, 'time', 'parameter', 'default_unit')
+    list_filter = (
+        PageSizeFilter,
+        TimeFromFilter, TimeToFilter,
+        ValueMinFilter, ValueMaxFilter,
+        'parameter', 'default_unit',
+    )
     change_list_template = "admin/measurements_change_list.html"
+    show_full_result_count = False
+
+    def get_urls(self):
+        opts = self.model._meta
+        custom = [
+            path(
+                'count/',
+                self.admin_site.admin_view(self.count_view),
+                name=f'{opts.app_label}_{opts.model_name}_count',
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def count_view(self, request):
+        return JsonResponse({'count': self.get_queryset(request).count()})
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        return qs.select_related(
-            'well'
-        ).only('well__name')
+        return qs.only(
+            'well_id', 'time', 'parameter_id', 'default_unit_id',
+            'default_value'
+        )
 
     def get_changelist(self, request, **kwargs):
         return PageSizeChangeList

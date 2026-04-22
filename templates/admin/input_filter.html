@@ -1,0 +1,38 @@
+{% load i18n %}
+{% with choice=choices.0 %}
+<style>
+  .input-filter-input {
+    margin: 0;
+    padding: 2px 5px;
+    width: 100% !important;
+    height: 25px;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    line-height: 14px;
+    font-weight: bold;
+    color: #555;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    background: #fdfdfd;
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px 0 #eee inset;
+    overflow: hidden;
+    vertical-align: middle;
+  }
+</style>
+<div class="grp-module">
+  <div class="grp-row">
+    <label>{{ title }}</label>
+    <form method="get">
+      {% for k, v in choice.form_params %}
+        <input type="hidden" name="{{ k }}" value="{{ v }}">
+      {% endfor %}
+      <input type="{{ choice.input_type }}"
+             name="{{ choice.parameter_name }}"
+             value="{{ choice.value }}"
+             class="input-filter-input"
+             onchange="this.form.submit()">
+    </form>
+  </div>
+</div>
+{% endwith %}

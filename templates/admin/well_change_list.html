@@ -4,23 +4,31 @@
 
 {% block object-tools %}
     <ul class="grp-object-tools">
-        {% if totals %}
-            <li>
-                <a class="grp-state-focus">
-                    {{ totals.total_level|intcomma }} level
-                </a>
-            </li>
-            <li>
-                <a class="grp-state-focus">
-                    {{ totals.total_quality|intcomma }} quality
-                </a>
-            </li>
-            <li>
-                <a class="grp-state-focus">
-                    {{ totals.total_yield|intcomma }} yield
-                </a>
-            </li>
-        {% endif %}
+        <li>
+            <a id="total-count-bar" style="cursor:default;">loading…</a>
+        </li>
+        <style>
+          #total-count-bar, .count {
+            cursor: default !important;
+            opacity: 1 !important;
+            background: #59afcc !important;;
+            border: 1px solid #59afcc !important;;
+          }
+
+          #total-count-bar:hover, .count:hover {
+            background: #59afcc !important;;
+            border: 1px solid #59afcc !important;;
+          }
+        </style>
+        <li id="total-level-bar" style="display:none">
+            <a class="count grp-state-focus" id="total-level-text"></a>
+        </li>
+        <li id="total-quality-bar" style="display:none">
+            <a class="count grp-state-focus" id="total-quality-text"></a>
+        </li>
+        <li id="total-yield-bar" style="display:none">
+            <a class="count grp-state-focus" id="total-yield-text"></a>
+        </li>
         {% block object-tools-items %}
             {% if has_add_permission %}
                 {% url cl.opts|admin_urlname:'add' as add_url %}
@@ -32,4 +40,32 @@
             {% endif %}
         {% endblock %}
     </ul>
+    <script>
+      (function () {
+        const qs = window.location.search.replace(/^\?/, '');
+        const base = window.location.pathname;
+        const headers = {'X-Requested-With': 'XMLHttpRequest'};
+
+        fetch(base + 'count/?' + qs, {headers: headers})
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            document.getElementById('total-count-bar').textContent = data.count.toLocaleString() + ' total wells (unfiltered)';
+          })
+          .catch(function () {
+            document.getElementById('total-count-bar').style.display = 'none';
+          });
+
+        fetch(base + 'totals/?' + qs, {headers: headers})
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            function show(barId, textId, value, label) {
+              document.getElementById(textId).textContent = value.toLocaleString() + ' ' + label;
+              document.getElementById(barId).style.display = '';
+            }
+            show('total-level-bar', 'total-level-text', data.total_level || 0, 'level');
+            show('total-quality-bar', 'total-quality-text', data.total_quality || 0, 'quality');
+            show('total-yield-bar', 'total-yield-text', data.total_yield || 0, 'yield');
+          });
+      })();
+    </script>
 {% endblock %}
