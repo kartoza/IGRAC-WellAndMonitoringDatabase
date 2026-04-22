@@ -4,6 +4,30 @@
 {% block object-tools %}
     <ul class="grp-object-tools">
         <li>
+            <a id="total-count-bar" style="cursor:default;">loading…</a>
+        </li>
+        <li id="time-gap-bar" style="display:none">
+            <a class="count grp-state-focus" id="time-gap-text"></a>
+        </li>
+        <li id="value-gap-bar" style="display:none">
+            <a class="count grp-state-focus" id="value-gap-text"></a>
+        </li>
+        <li id="strange-value-bar" style="display:none">
+            <a class="count grp-state-focus" id="strange-value-text"></a>
+        </li>
+        <style>
+          #total-count-bar, .count {
+            cursor: default !important;
+            opacity: 1 !important;
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
+          }
+          #total-count-bar:hover, .count:hover {
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
+          }
+        </style>
+        <li>
             <form action="{% url 'generate-quality-control' %}"
                   method="post" novalidate>
                 {% csrf_token %}
@@ -28,4 +52,32 @@
             {% endif %}
         {% endblock %}
     </ul>
+    <script>
+      (function () {
+        const qs = window.location.search.replace(/^\?/, '');
+        const base = window.location.pathname;
+        const headers = {'X-Requested-With': 'XMLHttpRequest'};
+
+        fetch(base + 'count/?' + qs, {headers: headers})
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            document.getElementById('total-count-bar').textContent = data.count.toLocaleString() + ' total';
+          })
+          .catch(function () {
+            document.getElementById('total-count-bar').style.display = 'none';
+          });
+
+        fetch(base + 'totals/?' + qs, {headers: headers})
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            function show(barId, textId, value, label) {
+              document.getElementById(textId).textContent = value.toLocaleString() + ' ' + label;
+              document.getElementById(barId).style.display = '';
+            }
+            show('time-gap-bar', 'time-gap-text', data.time_gap, 'time gap');
+            show('value-gap-bar', 'value-gap-text', data.value_gap, 'value gap');
+            show('strange-value-bar', 'strange-value-text', data.strange_value, 'strange value');
+          });
+      })();
+    </script>
 {% endblock %}

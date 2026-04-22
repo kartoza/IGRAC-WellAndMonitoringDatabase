@@ -35,6 +35,21 @@
     </script>
     <ul class="grp-object-tools">
         <li>
+            <a id="total-count-bar" style="cursor:default;">loading…</a>
+        </li>
+        <style>
+          #total-count-bar {
+            opacity: 1;
+            background: #59afcc;
+            border: 1px solid #59afcc;
+          }
+
+          #total-count-bar:hover {
+            background: #59afcc;
+            border: 1px solid #59afcc;
+          }
+        </style>
+        <li>
             <a class="grp-add-link grp-state-focus select-duplicates"
                onclick="selectDuplicates()">
                 Select duplicates
@@ -51,4 +66,19 @@
             {% endif %}
         {% endblock %}
     </ul>
+    <script>
+      (function () {
+        var countUrl = window.location.pathname + 'count/?' + window.location.search.replace(/^\?/, '');
+        fetch(countUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            document.getElementById('total-count-bar').textContent = data.count.toLocaleString() + " total";
+          })
+          .catch(function () {
+            document.getElementById('total-count-bar').style.display = 'none';
+          });
+      })();
+    </script>
 {% endblock %}

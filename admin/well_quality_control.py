@@ -1,5 +1,7 @@
 from django.contrib import admin
-from django.urls import reverse
+from django.db.models import Count, Q
+from django.http import JsonResponse
+from django.urls import path, reverse
 from django.utils.html import format_html
 
 from gwml2.models.well_management.organisation import (
@@ -158,12 +160,12 @@ class WellQualityControlAdmin(admin.ModelAdmin):
         '_organisation',
         '_country',
         '_groundwater_level_time_gap_quality',
-        'groundwater_level_time_gap_generated_time',
         '_groundwater_level_value_gap_quality',
-        'groundwater_level_value_gap_generated_time',
         '_groundwater_level_strange_value_quality',
+        'groundwater_level_time_gap_generated_time',
+        'groundwater_level_value_gap_generated_time',
         'groundwater_level_strange_value_generated_time',
-        'edit'
+        'links'
     )
     change_list_template = "admin/well_quality_control_change_list.html"
     actions = [quality_control]
@@ -175,15 +177,55 @@ class WellQualityControlAdmin(admin.ModelAdmin):
         TimeGapQualityFilter, ValueGapQualityFilter, ValueStrangeQualityFilter,
         OrganisationGroupFilter
     )
+    show_full_result_count = False
+
+    def get_urls(self):
+        opts = self.model._meta
+        custom = [
+            path(
+                'count/',
+                self.admin_site.admin_view(self.count_view),
+                name=f'{opts.app_label}_{opts.model_name}_count',
+            ),
+            path(
+                'totals/',
+                self.admin_site.admin_view(self.totals_view),
+                name=f'{opts.app_label}_{opts.model_name}_totals',
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def count_view(self, request):
+        return JsonResponse({'count': self.get_queryset(request).count()})
+
+    def totals_view(self, request):
+        cl = self.get_changelist_instance(request)
+        totals = cl.queryset.only(
+            'groundwater_level_time_gap',
+            'groundwater_level_value_gap',
+            'groundwater_level_strange_value',
+        ).aggregate(
+            time_gap=Count('id', filter=Q(groundwater_level_time_gap__isnull=False)),
+            value_gap=Count('id', filter=Q(groundwater_level_value_gap__isnull=False)),
+            strange_value=Count('id', filter=Q(groundwater_level_strange_value__isnull=False)),
+        )
+        return JsonResponse(totals)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related(
             'well', 'well__organisation', 'well__country'
         ).only(
+            'well__id',
             'well__original_id',
             'well__organisation__id', 'well__organisation__name',
-            'well__country__id', 'well__country__name'
+            'well__country__id', 'well__country__name',
+            'groundwater_level_time_gap',
+            'groundwater_level_value_gap',
+            'groundwater_level_strange_value',
+            'groundwater_level_time_gap_generated_time',
+            'groundwater_level_value_gap_generated_time',
+            'groundwater_level_strange_value_generated_time',
         )
 
     @admin.display(ordering='well__organisation__name')
@@ -194,11 +236,15 @@ class WellQualityControlAdmin(admin.ModelAdmin):
     def _country(self, obj: WellQualityControl):
         return obj.well.country
 
-    def edit(self, obj: WellQualityControl):
-        url = reverse('well_form', args=[obj.well.id])
+    def links(self, obj: WellQualityControl):
+        well_id = obj.well.id
+        url = reverse('well_form', args=[well_id])
         return format_html(
-            '<a href="{}" target="_blank">Edit well</a>',
-            url
+            '<a href="{}" target="_blank">Edit well</a><br/>'
+            '<a href="/admin/gwml2/welllevelmeasurement/?well_id__exact={}" target="_blank">Level Measurements</a><br/>'
+            '<a href="/admin/gwml2/wellqualitymeasurement/?well_id__exact={}" target="_blank">Quality Measurements</a><br/>'
+            '<a href="/admin/gwml2/wellyieldmeasurement/?well_id__exact={}" target="_blank">Yield Measurements</a>',
+            url, well_id, well_id, well_id
         )
 
     @admin.display(description='Has good time gap quality?', boolean=True)
