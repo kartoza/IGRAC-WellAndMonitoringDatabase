@@ -206,7 +206,6 @@ class WellEditing(object):
 
         if generate_cache:
             generate_data_well_cache.delay(well_id=well.id)
-            cache_istsos.delay()
         return well
 
 
@@ -218,7 +217,7 @@ class WellFormView(WellEditing, EditWellFormMixin, WellView):
         well = get_object_or_404(Well, id=id)
 
         self.edit_well(well, data, self.request.FILES, request.user)
-
+        cache_istsos.delay()
         return HttpResponse(reverse('well_view', kwargs={'id': well.id}))
 
 
@@ -239,6 +238,7 @@ class WellFormCreateView(WellFormView):
 
         try:
             well = self.edit_well(None, data, self.request.FILES, request.user)
+            cache_istsos.delay()
         except KeyError as e:
             return HttpResponseBadRequest('{} is needed'.format(e))
         except (ValueError, FormNotValid, Exception) as e:

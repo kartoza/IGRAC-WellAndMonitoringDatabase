@@ -1,12 +1,42 @@
 import json
 
 from django.contrib import admin
-from django.urls import reverse
+from django.http import JsonResponse
+from django.urls import path, reverse
 from django.utils.html import format_html
 
+from gwml2.admin.well import InputFilter
 from gwml2.models.well_cache_indicator import WellCacheIndicator
 from gwml2.models.well_management.organisation import Organisation, Country
 from gwml2.utils.management_commands import run_command
+
+
+class MeasurementCacheFromFilter(InputFilter):
+    title = 'Measurement cache from'
+    parameter_name = 'measurement_cache_from'
+    input_type = 'date'
+    lookup = 'measurement_cache_generated_at__date__gte'
+
+
+class MeasurementCacheToFilter(InputFilter):
+    title = 'Measurement cache to'
+    parameter_name = 'measurement_cache_to'
+    input_type = 'date'
+    lookup = 'measurement_cache_generated_at__date__lte'
+
+
+class DataCacheFromFilter(InputFilter):
+    title = 'Data cache from'
+    parameter_name = 'data_cache_from'
+    input_type = 'date'
+    lookup = 'data_cache_generated_at__date__gte'
+
+
+class DataCacheToFilter(InputFilter):
+    title = 'Data cache to'
+    parameter_name = 'data_cache_to'
+    input_type = 'date'
+    lookup = 'data_cache_generated_at__date__lte'
 
 
 class OrganisationFilter(admin.SimpleListFilter):
@@ -103,29 +133,50 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
         'data_cache_generated_at',
         'metadata_generated_at',
         'data_cache_info',
-        'edit'
+        'links'
     )
     change_list_template = "admin/well_cache_change_list.html"
     actions = [
         generate_data_wells_cache, generate_measurement_cache,
         generate_metadata, generate_data_cache_information
     ]
-
     list_filter = (
         'well__feature_type',
-        OrganisationFilter, CountryFilter
+        OrganisationFilter, CountryFilter,
+        MeasurementCacheFromFilter, MeasurementCacheToFilter,
+        DataCacheFromFilter, DataCacheToFilter,
     )
     readonly_fields = ('well',)
     search_fields = ('well__original_id',)
+    show_full_result_count = False
+
+    def get_urls(self):
+        opts = self.model._meta
+        custom = [
+            path(
+                'count/',
+                self.admin_site.admin_view(self.count_view),
+                name=f'{opts.app_label}_{opts.model_name}_count',
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def count_view(self, request):
+        return JsonResponse({'count': self.get_queryset(request).count()})
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return qs.select_related(
             'well', 'well__organisation', 'well__country'
         ).only(
+            'well__id',
             'well__original_id',
             'well__organisation__id', 'well__organisation__name',
-            'well__country__id', 'well__country__name'
+            'well__country__id', 'well__country__name',
+            'measurement_cache_generated_at',
+            'data_cache_generated_at',
+            'metadata_generated_at',
+            'data_cache_information',
         )
 
     @admin.display(ordering='well__organisation__name')
@@ -136,11 +187,15 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
     def _country(self, obj: WellCacheIndicator):
         return obj.well.country
 
-    def edit(self, obj: WellCacheIndicator):
-        url = reverse('well_form', args=[obj.well.id])
+    def links(self, obj: WellCacheIndicator):
+        well_id = obj.well.id
+        url = reverse('well_form', args=[well_id])
         return format_html(
-            '<a href="{}" target="_blank">Edit well</a>',
-            url
+            '<a href="{}" target="_blank">Edit well</a><br/>'
+            '<a href="/admin/gwml2/welllevelmeasurement/?well_id__exact={}" target="_blank">Level Measurements</a><br/>'
+            '<a href="/admin/gwml2/wellqualitymeasurement/?well_id__exact={}" target="_blank">Quality Measurements</a><br/>'
+            '<a href="/admin/gwml2/wellyieldmeasurement/?well_id__exact={}" target="_blank">Yield Measurements</a>',
+            url, well_id, well_id, well_id
         )
 
     def data_cache_info(self, obj):
