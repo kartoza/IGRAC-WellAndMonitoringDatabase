@@ -4,6 +4,20 @@
 {% block object-tools %}
     <ul class="grp-object-tools">
         <li>
+            <a id="total-count-bar" style="cursor:pointer;" onclick="fetchCacheCount()">Show total</a>
+        </li>
+        <style>
+          #total-count-bar {
+            opacity: 1 !important;
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
+          }
+          #total-count-bar:hover {
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
+          }
+        </style>
+        <li>
             <form action="{% url 'generate-well-cache' %}"
                   method="post" novalidate>
                 {% csrf_token %}
@@ -28,4 +42,17 @@
             {% endif %}
         {% endblock %}
     </ul>
+    <script>
+      function fetchCacheCount() {
+        const el = document.getElementById('total-count-bar');
+        el.style.cursor = 'default';
+        el.onclick = null;
+        el.textContent = 'loading…';
+        const qs = window.location.search.replace(/^\?/, '');
+        fetch(window.location.pathname + 'count/?' + qs, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+          .then(function (r) { return r.json(); })
+          .then(function (data) { el.textContent = data.count.toLocaleString() + ' total'; })
+          .catch(function () { el.textContent = 'error'; });
+      }
+    </script>
 {% endblock %}
