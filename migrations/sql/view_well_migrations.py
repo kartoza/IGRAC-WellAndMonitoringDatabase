@@ -44,6 +44,6 @@ class IstSOSMigration(ABC, migrations.Migration):
     operations = istsos_operations_defaults + istsos_operations_creations
 
 
-class FullViewMigration(ABC, ViewWellMigration, IstSOSMigration):
+class FullViewMigration(ViewWellMigration, IstSOSMigration):
     """Full view migrations."""
     operations = ViewWellMigration.operations + IstSOSMigration.istsos_operations_defaults + IstSOSMigration.istsos_operations_creations
