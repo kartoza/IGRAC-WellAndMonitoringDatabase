@@ -396,6 +396,37 @@ class TimeToFilter(InputFilter):
     lookup = 'time__date__lte'
 
 
+class MeasurementOrganisationFilter(admin.SimpleListFilter):
+    title = 'Organisation'
+    parameter_name = 'organisation'
+
+    def lookups(self, request, model_admin):
+        from gwml2.models.well_management.organisation import Organisation
+        return Organisation.objects.values_list('id', 'name').order_by('name')
+
+    def queryset(self, request, queryset):
+        if self.value():
+            well_ids = Well.objects.filter(
+                organisation_id=self.value()
+            ).values_list('id', flat=True)
+            return queryset.filter(well_id__in=well_ids)
+        return queryset
+
+
+class TimeOfDayFromFilter(InputFilter):
+    title = 'Time of day from'
+    parameter_name = 'time_of_day_from'
+    input_type = 'time'
+    lookup = 'time__time__gte'
+
+
+class TimeOfDayToFilter(InputFilter):
+    title = 'Time of day to'
+    parameter_name = 'time_of_day_to'
+    input_type = 'time'
+    lookup = 'time__time__lte'
+
+
 class ValueMinFilter(InputFilter):
     title = 'Value min'
     parameter_name = 'value_min'
@@ -434,7 +465,9 @@ class MeasurementAdmin(admin.ModelAdmin):
     raw_id_fields = ('value',)
     list_filter = (
         PageSizeFilter,
+        MeasurementOrganisationFilter,
         TimeFromFilter, TimeToFilter,
+        TimeOfDayFromFilter, TimeOfDayToFilter,
         ValueMinFilter, ValueMaxFilter,
         'parameter', 'default_unit',
     )
