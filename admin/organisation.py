@@ -1,7 +1,10 @@
+import datetime
 import json
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.urls import path
 from django.utils.html import format_html
 
 from gwml2.forms.organisation import OrganisationFormAdmin
@@ -79,12 +82,15 @@ class OrganisationAdmin(admin.ModelAdmin):
     """Admin for Organisation model."""
     list_display = (
         'name', 'data_types', 'time_range',
-        'license_name', 'active', 'country', '_groups', 'description',
-        'data_cache_generated_at', 'links', 'data_cache_info'
+        'license_name', 'active', 'country', '_groups',
+        'links', 'measurement_links', 'midnight_measurements',
+        'data_cache_generated_at', 'data_cache_info', 'description'
     )
+    change_list_template = 'admin/organisation_change_list.html'
     list_editable = ('active',)
     list_filter = ('data_cache_generated_at', 'country')
     search_fields = ('name',)
+    show_full_result_count = False
     actions = (
         generate_data_wells_cache, reassign_wells_country, update_ggis_uid,
         assign_data_types, assign_date_range, assign_license,
@@ -132,27 +138,92 @@ class OrganisationAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('data_cache_generated_at',)
 
-    def links(self, org: Organisation):
-        return list(
-            org.links.values_list('url', flat=True)
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related(
+            'country'
+        ).prefetch_related(
+            'links',
+            'groups',
         )
+
+    def changelist_view(self, request, extra_context=None):
+        # Cache all License names in one query instead of one per row
+        try:
+            from geonode.base.models import License
+            self._license_cache = {
+                lic.id: lic.name for lic in License.objects.all()
+            }
+        except Exception:
+            self._license_cache = {}
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def links(self, org: Organisation):
+        return [link.url for link in org.links.all()]
+
+    def measurement_links(self, org: Organisation):
+        base = f'organisation={org.id}'
+        return format_html(
+            '<a href="/admin/gwml2/welllevelmeasurement/?{q}" target="_blank">Level</a> | '
+            '<a href="/admin/gwml2/wellqualitymeasurement/?{q}" target="_blank">Quality</a> | '
+            '<a href="/admin/gwml2/wellyieldmeasurement/?{q}" target="_blank">Yield</a>',
+            q=base,
+        )
+
+    measurement_links.short_description = 'Measurements'
 
     def _groups(self, org: Organisation):
-        groups = list(
-            OrganisationGroup.objects.filter(
-                organisations__in=[org]
-            ).values_list('name', flat=True)
-        )
-        if not len(groups):
-            return '-'
-        return groups
+        groups = [g.name for g in org.groups.all()]
+        return groups if groups else '-'
 
     def license_name(self, org: Organisation):
-        """Return license name."""
-        license = org.license_data
-        if license:
-            return license.name
-        return '-'
+        if not org.license:
+            return '-'
+        cache = getattr(self, '_license_cache', None)
+        if cache is not None:
+            return cache.get(org.license, '-')
+        return org.license_data.name if org.license_data else '-'
+
+    def get_urls(self):
+        custom = [
+            path(
+                '<int:org_id>/midnight-count/<str:mtype>/',
+                self.admin_site.admin_view(self.midnight_count_view),
+                name='gwml2_organisation_midnight_count',
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def midnight_count_view(self, request, org_id, mtype):
+        from gwml2.models.well import (
+            Well, WellLevelMeasurement,
+            WellQualityMeasurement, WellYieldMeasurement,
+        )
+        model_map = {
+            'level': WellLevelMeasurement,
+            'quality': WellQualityMeasurement,
+            'yield': WellYieldMeasurement,
+        }
+        Model = model_map.get(mtype)
+        if not Model:
+            return JsonResponse({'error': 'invalid type'}, status=400)
+        well_ids = Well.objects.filter(
+            organisation_id=org_id
+        ).values_list('id', flat=True)
+        count = Model.objects.filter(
+            well_id__in=well_ids,
+            time__time=datetime.time(0, 0, 0),
+        ).count()
+        return JsonResponse({'count': count})
+
+    def midnight_measurements(self, org: Organisation):
+        return format_html(
+            '<button class="midnight-fetch-btn" data-org-id="{}" type="button">'
+            'Fetch</button>'
+            '<span class="midnight-result" style="margin-left:6px;white-space:nowrap"></span>',
+            org.id,
+        )
+
+    midnight_measurements.short_description = 'Midnight Measurements'
 
     def data_cache_info(self, obj):
         if not obj.data_cache_information:
