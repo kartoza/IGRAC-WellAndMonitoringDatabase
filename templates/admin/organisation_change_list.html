@@ -1,85 +1,88 @@
 {% extends "admin/change_list.html" %}
+{% load i18n admin_urls static admin_list %}
 
-{% block extrahead %}
-{{ block.super }}
-    <style>
-    .midnight-fetch-btn {
-      margin: 0;
-      width: fit-content;
-      height: fit-content;
-      padding: 2px 5px;
-      background-color: #309bbf;
-      display: block;
-    }
-    .midnight-result {
-      display: block;
-      margin-left: 0 !important;
-      margin-top: 5px;
-    }
-    </style>
-<script>
-(function () {
-  async function fetchWithRetry(url, retries) {
-    for (var i = 0; i < retries; i++) {
-      try {
-        var r = await fetch(url, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return await r.json();
-      } catch (e) {
-        if (i === retries - 1) throw e;
-        await new Promise(function(res) { setTimeout(res, 1000 * (i + 1)); });
+{% block object-tools %}
+    <ul class="grp-object-tools">
+        <li>
+            <a class="count grp-state-focus" id="org-total-text"
+               style="cursor:pointer;" onclick="fetchOrgTotals()">Show totals</a>
+        </li>
+        <li>
+            <a class="count grp-state-focus" id="org-level-text"
+               style="cursor:pointer;" onclick="fetchOrgTotals()">Show level</a>
+        </li>
+        <li>
+            <a class="count grp-state-focus" id="org-quality-text"
+               style="cursor:pointer;" onclick="fetchOrgTotals()">Show quality</a>
+        </li>
+        <li>
+            <a class="count grp-state-focus" id="org-yield-text"
+               style="cursor:pointer;" onclick="fetchOrgTotals()">Show yield</a>
+        </li>
+        <li>
+            <a class="count grp-state-focus" id="org-midnight-level-text"
+               style="cursor:pointer;" onclick="fetchOrgTotals()">Show midnight level</a>
+        </li>
+        <li>
+            <a class="count grp-state-focus" id="org-midnight-quality-text"
+               style="cursor:pointer;" onclick="fetchOrgTotals()">Show midnight quality</a>
+        </li>
+        <li>
+            <a class="count grp-state-focus" id="org-midnight-yield-text"
+               style="cursor:pointer;" onclick="fetchOrgTotals()">Show midnight yield</a>
+        </li>
+        <style>
+          .count {
+            opacity: 1 !important;
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
+          }
+          .count:hover {
+            background: #59afcc !important;
+            border: 1px solid #59afcc !important;
+          }
+        </style>
+        {% block object-tools-items %}
+            {% if has_add_permission %}
+                {% url cl.opts|admin_urlname:'add' as add_url %}
+                <li>
+                    <a href="{% add_preserved_filters add_url is_popup to_field %}"
+                       class="grp-add-link grp-state-focus">
+                        {% blocktrans with cl.opts.verbose_name as name %}Add
+                            {{ name }}{% endblocktrans %}</a>
+                </li>
+            {% endif %}
+        {% endblock %}
+    </ul>
+    <script>
+      var _orgTotalsFetched = false;
+      function fetchOrgTotals() {
+        if (_orgTotalsFetched) return;
+        _orgTotalsFetched = true;
+        var ids = [
+          'org-total-text', 'org-level-text', 'org-quality-text', 'org-yield-text',
+          'org-midnight-level-text', 'org-midnight-quality-text', 'org-midnight-yield-text'
+        ];
+        ids.forEach(function (id) {
+          var el = document.getElementById(id);
+          el.style.cursor = 'default';
+          el.onclick = null;
+          el.textContent = 'loading…';
+        });
+        fetch(window.location.pathname + 'totals/', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            document.getElementById('org-total-text').textContent          = (d.total || 0).toLocaleString() + ' total';
+            document.getElementById('org-level-text').textContent          = (d.total_level || 0).toLocaleString() + ' level';
+            document.getElementById('org-quality-text').textContent        = (d.total_quality || 0).toLocaleString() + ' quality';
+            document.getElementById('org-yield-text').textContent          = (d.total_yield || 0).toLocaleString() + ' yield';
+            document.getElementById('org-midnight-level-text').textContent   = (d.midnight_level || 0).toLocaleString() + ' midnight level';
+            document.getElementById('org-midnight-quality-text').textContent = (d.midnight_quality || 0).toLocaleString() + ' midnight quality';
+            document.getElementById('org-midnight-yield-text').textContent   = (d.midnight_yield || 0).toLocaleString() + ' midnight yield';
+          })
+          .catch(function () {
+            ids.forEach(function (id) { document.getElementById(id).textContent = 'error'; });
+          });
       }
-    }
-  }
-
-  async function fetchMidnight(btn) {
-    var orgId = btn.dataset.orgId;
-    var result = btn.nextElementSibling;
-    btn.disabled = true;
-    btn.textContent = '…';
-
-    var counts = {level: '…', quality: '…', yield: '…'};
-    var adminBase = '/admin/gwml2/';
-    var midnight = 'organisation=' + orgId + '&time_of_day_from=00%3A00&time_of_day_to=00%3A00';
-    var urls = {
-      level:   adminBase + 'welllevelmeasurement/?' + midnight,
-      quality: adminBase + 'wellqualitymeasurement/?' + midnight,
-      'yield': adminBase + 'wellyieldmeasurement/?' + midnight,
-    };
-    function link(type, label) {
-      if (counts[type] === '…' || counts[type] === 'err') {
-        return label + ': <b>' + counts[type] + '</b>';
-      }
-      return label + ': <a href="' + urls[type] + '" target="_blank"><b>' + counts[type] + '</b></a>';
-    }
-    function update() {
-      result.innerHTML =
-        link('level',   'Level')   + '<br>' +
-        link('quality', 'Quality') + '<br>' +
-        link('yield',   'Yield');
-    }
-    update();
-
-    var base = '/admin/gwml2/organisation/' + orgId + '/midnight-count/';
-    await Promise.all(['level', 'quality', 'yield'].map(async function(type) {
-      try {
-        var data = await fetchWithRetry(base + type + '/', 3);
-        counts[type] = data.count.toLocaleString();
-      } catch (e) {
-        counts[type] = 'err';
-      }
-      update();
-    }));
-
-    btn.textContent = 'Refresh';
-    btn.disabled = false;
-  }
-
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.midnight-fetch-btn').forEach(function(btn) {
-      btn.addEventListener('click', function() { fetchMidnight(btn); });
-    });
-  });
-}());
-</script>
+    </script>
 {% endblock %}
