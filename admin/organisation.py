@@ -1,4 +1,3 @@
-import datetime
 import json
 
 from django.contrib import admin
@@ -60,6 +59,22 @@ def assign_license(modeladmin, request, queryset):
         org.assign_license()
 
 
+@admin.action(description='Generate measurement stats')
+def generate_measurement_stats(modeladmin, request, queryset):
+    """Generate missing stats keys only; skip keys that already have a value."""
+    from gwml2.tasks.organisation import generate_measurement_stats as task
+    for org in queryset:
+        task.delay(org.id, force=False)
+
+
+@admin.action(description='Force generate measurement stats')
+def force_generate_measurement_stats(modeladmin, request, queryset):
+    """Recompute all stats keys regardless of existing values."""
+    from gwml2.tasks.organisation import generate_measurement_stats as task
+    for org in queryset:
+        task.delay(org.id, force=True)
+
+
 class OrganisationLinkInline(admin.TabularInline):
     """OrganisationLinkInline."""
     model = OrganisationLink
@@ -83,8 +98,10 @@ class OrganisationAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'data_types', 'time_range',
         'license_name', 'active', 'country', '_groups',
-        'links', 'measurement_links', 'midnight_measurements',
-        'data_cache_generated_at', 'data_cache_info', 'description'
+        'measurement_stats_generated_at',
+        'data_cache_generated_at', 'data_cache_info',
+        'measurement_links', 'measurement_stats_display',
+        'description', 'links'
     )
     change_list_template = 'admin/organisation_change_list.html'
     list_editable = ('active',)
@@ -94,7 +111,8 @@ class OrganisationAdmin(admin.ModelAdmin):
     actions = (
         generate_data_wells_cache, reassign_wells_country, update_ggis_uid,
         assign_data_types, assign_date_range, assign_license,
-        generate_organisation_cache_information
+        generate_organisation_cache_information,
+        generate_measurement_stats, force_generate_measurement_stats,
     )
     inlines = [OrganisationLinkInline]
     form = OrganisationFormAdmin
@@ -136,7 +154,8 @@ class OrganisationAdmin(admin.ModelAdmin):
             }
         )
     )
-    readonly_fields = ('data_cache_generated_at',)
+    readonly_fields = ('data_cache_generated_at',
+                       'measurement_stats_generated_at')
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related(
@@ -186,44 +205,53 @@ class OrganisationAdmin(admin.ModelAdmin):
     def get_urls(self):
         custom = [
             path(
-                '<int:org_id>/midnight-count/<str:mtype>/',
-                self.admin_site.admin_view(self.midnight_count_view),
-                name='gwml2_organisation_midnight_count',
+                'totals/',
+                self.admin_site.admin_view(self.totals_view),
+                name='gwml2_organisation_totals',
             ),
         ]
         return custom + super().get_urls()
 
-    def midnight_count_view(self, request, org_id, mtype):
-        from gwml2.models.well import (
-            Well, WellLevelMeasurement,
-            WellQualityMeasurement, WellYieldMeasurement,
+    def totals_view(self, request):
+        from django.db.models.expressions import RawSQL
+        from django.db.models import Sum
+        qs = self.get_queryset(request).filter(
+            measurement_stats__isnull=False
         )
-        model_map = {
-            'level': WellLevelMeasurement,
-            'quality': WellQualityMeasurement,
-            'yield': WellYieldMeasurement,
-        }
-        Model = model_map.get(mtype)
-        if not Model:
-            return JsonResponse({'error': 'invalid type'}, status=400)
-        well_ids = Well.objects.filter(
-            organisation_id=org_id
-        ).values_list('id', flat=True)
-        count = Model.objects.filter(
-            well_id__in=well_ids,
-            time__time=datetime.time(0, 0, 0),
-        ).count()
-        return JsonResponse({'count': count})
+        keys = [
+            'total', 'total_level', 'total_quality', 'total_yield',
+            'midnight_level', 'midnight_quality', 'midnight_yield',
+        ]
+        agg = qs.aggregate(**{
+            k: Sum(RawSQL(f"(measurement_stats->>'{k}')::int", []))
+            for k in keys
+        })
+        return JsonResponse({k: v or 0 for k, v in agg.items()})
 
-    def midnight_measurements(self, org: Organisation):
+    def measurement_stats_display(self, org: Organisation):
+        stats = org.measurement_stats
+        if not stats:
+            return '-'
+
+        def fmt(key):
+            v = stats.get(key)
+            return f'{v:,}' if isinstance(v, int) else '-'
+
+        lines = [
+            f"Total: {fmt('total')}",
+            f"Level: {fmt('total_level')}",
+            f"Quality: {fmt('total_quality')}",
+            f"Yield: {fmt('total_yield')}",
+            f"Midnight L: {fmt('midnight_level')}",
+            f"Midnight Q: {fmt('midnight_quality')}",
+            f"Midnight Y: {fmt('midnight_yield')}",
+        ]
         return format_html(
-            '<button class="midnight-fetch-btn" data-org-id="{}" type="button">'
-            'Fetch</button>'
-            '<span class="midnight-result" style="margin-left:6px;white-space:nowrap"></span>',
-            org.id,
+            '<div style="white-space:nowrap">{}</div>',
+            format_html('<br>'.join(lines))
         )
 
-    midnight_measurements.short_description = 'Midnight Measurements'
+    measurement_stats_display.short_description = 'Measurement Stats'
 
     def data_cache_info(self, obj):
         if not obj.data_cache_information:

@@ -50,6 +50,9 @@ def generate_data_organisation_cache(self, organisation_id: int):
         organisation.data_cache_generated_at = timezone.now()
         organisation.save()
         organisation.assign_data()
+
+        from gwml2.tasks.organisation import generate_measurement_stats
+        generate_measurement_stats.delay(organisation.id, force=True)
     except Organisation.DoesNotExist:
         print('Country not found')
 

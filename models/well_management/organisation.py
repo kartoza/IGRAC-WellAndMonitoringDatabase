@@ -82,6 +82,18 @@ class Organisation(LicenseMetadata):
         null=True, blank=True
     )
 
+    # Measurement statistics
+    measurement_stats = models.JSONField(
+        help_text=_(
+            'Counts of total/midnight measurements per type.'
+        ),
+        null=True, blank=True
+    )
+    measurement_stats_generated_at = models.DateTimeField(
+        _('Time when measurement stats were generated'),
+        null=True, blank=True
+    )
+
     class Meta:
         db_table = 'organisation'
         ordering = ['name']
@@ -264,6 +276,50 @@ class Organisation(LicenseMetadata):
                     readable_time.strftime('%Y-%m-%d %H:%M:%S')
                 )
         self.save()
+
+    def generate_measurement_stats(self, force=False):
+        """Count total and midnight measurements per type, saving after each step.
+
+        If force is False, each key is skipped when it already has a value.
+        """
+        import datetime
+        from django.utils import timezone
+        from gwml2.models.well import (
+            WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
+        )
+        well_ids = self.well_set.values_list('id', flat=True)
+        midnight = datetime.time(0, 0, 0)
+        stats = self.measurement_stats or {}
+
+        steps = [
+            ('total_level',      WellLevelMeasurement,   {}),
+            ('total_quality',    WellQualityMeasurement, {}),
+            ('total_yield',      WellYieldMeasurement,   {}),
+            ('midnight_level',   WellLevelMeasurement,   {'time__time': midnight}),
+            ('midnight_quality', WellQualityMeasurement, {'time__time': midnight}),
+            ('midnight_yield',   WellYieldMeasurement,   {'time__time': midnight}),
+        ]
+        for key, Model, extra in steps:
+            if not force and stats.get(key) is not None:
+                continue
+            stats[key] = Model.objects.filter(
+                well_id__in=well_ids, **extra
+            ).count()
+            Organisation.objects.filter(pk=self.pk).update(
+                measurement_stats=stats
+            )
+
+        stats['total'] = (
+            stats.get('total_level', 0)
+            + stats.get('total_quality', 0)
+            + stats.get('total_yield', 0)
+        )
+        self.measurement_stats = stats
+        self.measurement_stats_generated_at = timezone.now()
+        Organisation.objects.filter(pk=self.pk).update(
+            measurement_stats=stats,
+            measurement_stats_generated_at=self.measurement_stats_generated_at,
+        )
 
 
 class OrganisationLink(models.Model):
