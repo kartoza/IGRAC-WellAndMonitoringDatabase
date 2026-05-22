@@ -514,7 +514,7 @@ class GenerateWellCacheFile(object):
     def measurement_data(self, sheets, measurements, original_id, well_name):
         """ Measurements of well """
         measurements = measurements.select_related(
-            'parameter', 'value', 'value__unit'
+            'parameter', 'value', 'value__unit', 'depth_unit'
         ).annotate(
             original_id=Value(original_id, output_field=CharField()),
             name=Value(well_name, output_field=CharField()),
@@ -528,6 +528,7 @@ class GenerateWellCacheFile(object):
             'original_id', 'name',
             'time_str', 'parameter__name',
             'value__value', 'value__unit__name',
+            'depth_value', 'depth_unit__name',
             'methodology'
         )
         for measurement in measurements:

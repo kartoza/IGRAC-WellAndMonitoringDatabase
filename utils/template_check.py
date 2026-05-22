@@ -58,6 +58,10 @@ def compare_input_with_template(records: dict, sheet_name: str, uploader_name):
     if uploader_name.lower() == 'General Information'.lower():
         uploader_name = 'wells'
 
+    print(os.path.join(
+            TEMPLATE_FOLDER,
+            f'{uploader_name.replace(" ", "_").lower()}.ods'
+        ))
     template_records = get_data(
         os.path.join(
             TEMPLATE_FOLDER,
@@ -117,6 +121,8 @@ def compare_ods_xlsx_template(xlsx_filename, uploader_name):
         'download_template',
         xlsx_filename
     )
+    print("-----------------")
+    print(xlsx_filename)
     ods_records = get_data(xlsx_filename)
     for key, rows in ods_records.items():
         for idx, row in enumerate(rows[:START_ROW]):
