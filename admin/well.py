@@ -458,7 +458,7 @@ class PageSizeChangeList(ChangeList):
 class MeasurementAdmin(admin.ModelAdmin):
     list_display = (
         '_well_id', 'time', '_parameter_id', '_default_unit_id',
-        'default_value'
+        'default_value', 'depth_value', 'depth_unit'
     )
     search_fields = ('well__original_id',)
     readonly_fields = ('well', 'parameter')

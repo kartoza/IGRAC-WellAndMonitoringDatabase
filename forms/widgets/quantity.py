@@ -10,8 +10,12 @@ class QuantityInput(forms.widgets.Input):
     input_type = 'number'
     unit_group = None
     unit_required = True
+    quantity_saved = True
 
-    def __init__(self, unit_group=None, unit_required=True, attrs=None):
+    def __init__(
+            self, unit_group=None, unit_required=True, attrs=None,
+            quantity_saved=True
+    ):
         super().__init__(attrs)
         try:
             if unit_group:
@@ -19,19 +23,25 @@ class QuantityInput(forms.widgets.Input):
         except (ProgrammingError, UnitGroup.DoesNotExist):
             pass
         self.unit_required = unit_required
+        self.quantity_saved = quantity_saved
 
-    def get_context(self, name, value, attrs):
+    def get_context(self, name: str, value: int | Quantity, attrs):
         context = super(QuantityInput, self).get_context(name, value, attrs)
         context['widget']['attrs']['maxlength'] = 50
         context['widget']['attrs']['placeholder'] = name.title()
-        context['id'] = value
-        if value:
-            quantity = Quantity.objects.get(id=value)
+        if isinstance(value, Quantity):
+            quantity = value
             context['value'] = '%s' % quantity.value
             context['unit'] = quantity.unit.id if quantity.unit else ''
         else:
-            context['value'] = ''
-            context['unit'] = ''
+            context['id'] = value
+            if value:
+                quantity = Quantity.objects.get(id=value)
+                context['value'] = '%s' % quantity.value
+                context['unit'] = quantity.unit.id if quantity.unit else ''
+            else:
+                context['value'] = ''
+                context['unit'] = ''
 
         # create choices
         unit_choices = []
@@ -94,6 +104,9 @@ class QuantityInput(forms.widgets.Input):
                             'Please contact administrator to add the unit.'.format(
                                 data['{}_unit'.format(name)])
                         )
+
+                if not self.quantity_saved:
+                    return quantity
                 quantity.save()
                 return quantity.id
             else:

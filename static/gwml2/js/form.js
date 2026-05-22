@@ -94,6 +94,9 @@ $.validator.addMethod(
 $.validator.addMethod(
     "checkWithTotalDepth",
     function (value, element) {
+        const id = $(element).attr('id');
+        if (id === 'measurement_depth_value') return true;
+
         // we keep into groundwater
         let total_depth = getQuantityInputValue($('#id_total_depth'), 'm')
         let total_depth_elevation = referenceElevations[$('#geology #id_reference_elevation').val()]

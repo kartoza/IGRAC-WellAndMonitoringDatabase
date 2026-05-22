@@ -29,6 +29,8 @@ class MonitoringDataUploader(BaseUploader):
         'parameter': TermMeasurementParameter,
         'value_value': None,
         'value_unit': Unit,
+        'depth_value': None,
+        'depth_unit': Unit,
         'methodology': None
     }
 

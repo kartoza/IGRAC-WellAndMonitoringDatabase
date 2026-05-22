@@ -1,11 +1,14 @@
 from datetime import datetime
+
 from django import forms
 from django.forms.models import model_to_dict
 from django.utils.translation import gettext_lazy as _
-from gwml2.forms.widgets.quantity import QuantityInput
+
 from gwml2.forms.well.base import WellBaseForm
+from gwml2.forms.widgets.quantity import QuantityInput
 from gwml2.models.term_measurement_parameter import (
-    TermMeasurementParameterGroup, TermMeasurementParameter)
+    TermMeasurementParameterGroup, TermMeasurementParameter
+)
 from gwml2.models.well import WellLevelMeasurement
 
 
@@ -16,21 +19,38 @@ class BaseMeasurementForm(WellBaseForm):
     id = forms.CharField(required=False)
     info = forms.CharField(required=False, disabled=True, label='Info')
 
+    depth = forms.Field(
+        required=False,
+        widget=QuantityInput(
+            unit_group='length',
+            unit_required=True,
+            attrs={'id': 'measurement_depth'},
+            quantity_saved=False
+        ),
+    )
+
     class Meta:
         model = WellLevelMeasurement
-        fields = ('id', 'time', 'parameter', 'methodology', 'value')
+        fields = (
+            'id', 'time', 'parameter', 'methodology', 'value'
+        )
         widgets = {
-            'value': QuantityInput(unit_required=False)
+            'value': QuantityInput(unit_required=False),
         }
 
-    field_order = ('id', 'time', 'parameter', 'methodology', 'value', 'info')
+    field_order = (
+        'id', 'time', 'parameter', 'methodology', 'value', 'depth', 'info'
+    )
     parameter_group = None
 
     def __init__(self, *args, **kwargs):
         super(BaseMeasurementForm, self).__init__(*args, **kwargs)
         try:
-            self.fields['parameter'].queryset = TermMeasurementParameterGroup.objects.get(
-                name=self.parameter_group).parameters.all()
+            self.fields['parameter'].queryset = (
+                TermMeasurementParameterGroup.objects.get(
+                    name=self.parameter_group
+                ).parameters.all()
+            )
         except TermMeasurementParameterGroup.DoesNotExist:
             pass
         self.fields['time'].required = True
@@ -39,6 +59,16 @@ class BaseMeasurementForm(WellBaseForm):
         self.fields['parameter'].required = True
         self.fields['parameter'].widget.attrs['required'] = True
         self.fields['time'].label = _('Date and Time')
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.cleaned_data['depth']:
+            depth = self.cleaned_data['depth']
+            instance.depth_value = depth.value
+            instance.depth_unit = depth.unit
+        if commit:
+            instance.save()
+        return instance
 
     @staticmethod
     def make_from_data(instance, data, files):
@@ -63,7 +93,9 @@ class BaseMeasurementForm(WellBaseForm):
             int(data['parameter'])
         except ValueError:
             try:
-                data['parameter'] = TermMeasurementParameter.objects.get(name=data['parameter']).id
+                data['parameter'] = TermMeasurementParameter.objects.get(
+                    name=data['parameter']
+                ).id
             except TermMeasurementParameter.DoesNotExist:
                 pass
 
@@ -79,9 +111,14 @@ class BaseMeasurementForm(WellBaseForm):
         data['id'] = instance.id
         data['info'] = '&#013;'.join([
             'Created by : {}'.format(instance.created_by_username()),
-            'Created at : {}'.format(instance.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')),
+            'Created at : {}'.format(
+                instance.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')
+            ),
             'Last Edited by : {}'.format(instance.last_edited_by_username()),
-            'Last edited at : {}'.format(instance.last_edited_at.strftime('%Y-%m-%d %H:%M:%S %Z')),
+            'Last edited at : {}'.format(
+                instance.last_edited_at.strftime('%Y-%m-%d %H:%M:%S %Z')
+            ),
         ])
         data['time'] = instance.time.strftime('%Y-%m-%d %H:%M:%S')
+        data['depth'] = instance.depth
         return data
