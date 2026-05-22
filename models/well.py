@@ -339,7 +339,9 @@ class Well(GeneralInformation, CreationMetadata):
                         'dt': measurement.time.timestamp(),
                         'par': parameter,
                         'u': unit,
-                        'v': value
+                        'v': value,
+                        'du': measurement.depth_unit.name if measurement.depth_unit else '',
+                        'dv': measurement.depth_value if measurement.depth_value else '',
                     })
                 return output
         return None
