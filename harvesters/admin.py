@@ -22,7 +22,7 @@ GINGWINFO = (
     'Geological Survey Canada (Canada)'
 )
 
-# Canada
+# Estonia
 ESTONIA = (
     'gwml2.harvesters.harvester.keskkonnaportaal_estonia.harvester.KeskkonnaportaalEstoniaHarvester',
     '(Estonia) Level and Quality Data',

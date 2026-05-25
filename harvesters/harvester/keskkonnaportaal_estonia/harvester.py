@@ -1,6 +1,6 @@
 """Harvester of using hubeau."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 import requests
 from django.contrib.gis.geos import Point
@@ -92,6 +92,13 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
         for well_idx, station in enumerate(stations):
             # Resume previous one
             try:
+                station_id = (
+                    f"{self.prefix_name}{station['properties']['kr_kood']}"
+                )
+                self._update(
+                    f'Checking {station_id} : well({well_idx + 1}/{total})'
+                )
+
                 harvester_well_data = self.well_from_station(station)
                 well = harvester_well_data.well
                 if not self.is_processing_station:
@@ -119,80 +126,49 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
         # ----------------------------------------------
         # Level measurement
         # ----------------------------------------------
-        monitoring = harvester_well_data.well.name.replace(
+        original_id = well.original_id.replace(
             self.prefix_name, ''
         )
-        data = [
-            ("filter.stations", monitoring),
-            ("filter.parameters", "n100002706"),
-            ("filter.programFilter.names", "Põhjavee seire"),
-            ("filter.programFilter.names", "Põhjaveekogumite seire"),
-            (
-                "filter.programFilter.names",
-                "Nitraaditundliku ala põhjavee seire"
-            ),
-            (
-                "filter.programFilter.names",
-                "Kirde-Eesti tööstuspiirkonna põhjav. org. ühendid"
-            ),
-            (
-                "filter.programFilter.names",
-                "Kirde-Eesti tööstuspiirkonna põhjavee seire"
-            ),
-            ("filter.programFilter.names", "Põhjaveekogumite keemiline seire"),
-            (
-                "filter.programFilter.names",
-                "Põhjaveekogumite koguseline seire"
-            ),
+        url = 'https://keskkonnaandmed.envir.ee/f_keskkonnaseire'
+        parameters = [
+            f"puurauk_kood=eq.{original_id}",
+            "seiretoo_seotud_programmi_kood_iv=eq.PR0128",
+            "order=seireaeg_algus.asc"
         ]
         last_measurement = well.welllevelmeasurement_set.order_by(
-            '-time').first()
+            '-time'
+        ).first()
         if last_measurement:
-            next_day = last_measurement.time + timedelta(days=1)
-            data.append(
-                (
-                    "filter.monitoringDateStart",
-                    next_day.strftime("%d.%m.%Y")
-                )
+            parameters.append(
+                f"seireaeg_algus="
+                f"gte.{last_measurement.time.strftime('%Y-%m-%dT%H:%M:%S')}"
             )
 
-        session = requests.Session()
-        session.get("https://kese.envir.ee/kese/")
-        response = session.post(
-            "https://kese.envir.ee/kese/fetchParameterValueNew.action",
-            data=data
-        )
+        response = requests.get(url + '?' + '&'.join(parameters))
 
         response_json = response.json()
-        if len(response_json['data']):
-            for measurement in response_json['data']:
-                value_with_unit = measurement['convertedValueWithUnit']
-                if value_with_unit:
-                    value_str, unit = value_with_unit.replace(",", ".").split()
-                    try:
-                        value = float(value_str)
-                    except ValueError:
-                        continue
-                    time = datetime.strptime(
-                        measurement["formattedMonitoringTime"],
-                        "%d.%m.%Y %H:%M"
-                    ).replace(tzinfo=timezone.utc)
-                    try:
-                        unit = Unit.objects.get(name=unit)
-                        defaults = {
-                            'parameter': self.level_parameter,
-                        }
-                        self._save_measurement(
-                            WellLevelMeasurement,
-                            time,
-                            defaults,
-                            harvester_well_data,
-                            value,
-                            unit
-                        )
-                    except Unit.DoesNotExist:
-                        pass
-            self.process_level_measurement(harvester_well_data)
+        for measurement in response_json:
+            unit = measurement['naitaja_abr_unit']
+            value = measurement['vaartus_arv_moodetud']
+            if unit is not None and value is not None:
+                time = datetime.fromisoformat(
+                    measurement["seireaeg_algus"]
+                ).replace(tzinfo=timezone.utc)
+                try:
+                    unit = Unit.objects.get(name=unit)
+                    defaults = {
+                        'parameter': self.level_parameter,
+                    }
+                    self._save_measurement(
+                        WellLevelMeasurement,
+                        time,
+                        defaults,
+                        harvester_well_data,
+                        value,
+                        unit
+                    )
+                except Unit.DoesNotExist:
+                    pass
 
     def process_quantity_measurement(
             self,
