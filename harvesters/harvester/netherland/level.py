@@ -55,7 +55,12 @@ class NetherlandLevelHarvester(NetherlandHarvester):
         reader = csv.DictReader(csv_data)
         rows = list(reader)
 
-        for row in rows:
+        total = len(rows)
+        self._update(f'{original_id} : processing {total} rows')
+        last_measurement = None
+        saved = 0
+        for idx, row in enumerate(rows, 1):
+            self._update(f'{original_id} : processing {idx}/{total}')
             if (
                     not row['Tijdstip'] or
                     (not row['Beoordeelde Waarde [m]'] and
@@ -76,13 +81,13 @@ class NetherlandLevelHarvester(NetherlandHarvester):
             if not well:
                 harvester_well_data = self.well_from_station(station)
                 well = harvester_well_data.well
+                last_measurement = well.welllevelmeasurement_set.order_by(
+                    '-time').values_list('time', flat=True).first()
 
-            last_measurement = well.welllevelmeasurement_set.order_by(
-                '-time').first()
-
-            if last_measurement and date_time <= last_measurement.time:
+            if last_measurement and date_time <= last_measurement:
                 continue
 
+            saved += 1
             updated = True
 
             self._save_measurement(
