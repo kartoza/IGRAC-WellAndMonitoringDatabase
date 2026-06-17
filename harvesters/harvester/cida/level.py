@@ -1,7 +1,8 @@
 """Harvester of using Cida."""
 
+from datetime import datetime, timezone
+
 import requests
-from bs4 import BeautifulSoup
 from dateutil.parser import parse
 
 from gwml2.harvesters.models.harvester import Harvester
@@ -22,7 +23,9 @@ class CidaUsgsWaterLevel(CidaUsgsApi):
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_GROUND
         )
-        super(CidaUsgsWaterLevel, self).__init__(harvester, replace, original_id)
+        super(CidaUsgsWaterLevel, self).__init__(
+            harvester, replace, original_id
+        )
 
     @staticmethod
     def cql_filter_method():
@@ -36,51 +39,67 @@ class CidaUsgsWaterLevel(CidaUsgsApi):
 
     def get_measurements(self, well_data, harvester_well_data):
         """Get and save measurements."""
-        url = (
-            f'https://cida.usgs.gov/ngwmn_cache/direct/flatXML/waterlevel/'
-            f'{well_data["agency_code"]}/{well_data["site_no"]}'
+        site_id = well_data['site_id']
+        agency_code = well_data['agency_code']
+
+        last_time = harvester_well_data.well.welllevelmeasurement_set.order_by(
+            '-time').values_list('time', flat=True).first()
+
+        now = datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        start = (
+            last_time.strftime('%Y-%m-%dT%H:%M:%SZ')
+            if last_time else '1900-01-01T00:00:00Z'
         )
-        response = requests.get(url)
-        if response.status_code != 200:
-            print('Measurements not found')
-        else:
-            xml = BeautifulSoup(response.content, "lxml")
-            samples = xml.findAll('sample')
-            count = len(samples)
-            print(f'Measurements found : {count}')
-            last_time = None
-            last_data = harvester_well_data.well.welllevelmeasurement_set.all().first()
-            if last_data:
-                last_time = last_data.time
 
-            for idx, measurement in enumerate(samples):
+        url = (
+            'https://api.waterdata.usgs.gov/ngwmn/ogcapi/collections'
+            f'/waterLevelObs/items?f=json&lang=en-US&limit=100'
+            f'&datetime={start}/{now}'
+            f'&monitoring_location_id={site_id}'
+            f'&data_provided_by={agency_code}'
+        )
+
+        saved = 0
+        while url:
+            response = requests.get(url)
+            if response.status_code != 200:
+                self._update(f'{site_id} : Measurements not found')
+                break
+
+            data = response.json()
+            features = data.get('features', [])
+            if not features:
+                break
+
+            self._update(
+                f'{site_id} : Processing {len(features)} measurements'
+            )
+
+            for feature in features:
                 try:
-                    time = self.value_by_tag(measurement, 'time')
-                    time = parse(time)
-                    if last_time and time <= last_time:
-                        continue
-
-                    print(f'{idx}/{count} - {time}')
-                    unit = self.units[
-                        self.value_by_tag(measurement, 'unit').lower()
-                    ]
-                    value = float(
-                        self.value_by_tag(
-                            measurement, 'from-landsurface-value'
-                        )
-                    )
+                    props = feature['properties']
+                    time = parse(props['sample_time'])
+                    value = float(props['orig_value'])
+                    unit = self.units[props['orig_unit'].lower()]
                     value, unit = self.change_value_to_meter(value, unit)
-                    defaults = {
-                        'parameter': self.parameter
-                    }
+                    saved += 1
+                    self._update(f'{site_id} : saving {saved} - {time}')
                     self._save_measurement(
                         WellLevelMeasurement,
                         time,
-                        defaults,
+                        {'parameter': self.parameter},
                         harvester_well_data,
                         value,
                         unit
                     )
                     self.updated = True
-                except (ValueError, KeyError, TypeError) as e:
+                except (ValueError, KeyError, TypeError):
                     pass
+
+            url = next(
+                (
+                    link['href'] for link in data.get('links', [])
+                    if link.get('rel') == 'next'
+                ),
+                None
+            )
