@@ -146,7 +146,7 @@ class CidaUsgsApi(BaseHarvester):
         for idx, member in enumerate(members):
             self.updated = False
             site_no = self.value_by_tag(member, 'ngwmn:site_no')
-            site_id = self.value_by_tag(member, 'ngwmn:my_siteid')
+            site_id = self.value_by_tag(member, 'ngwmn:site_id')
             message = f'{idx + 1}/{count} - {site_id}'
             self._update(message)
 

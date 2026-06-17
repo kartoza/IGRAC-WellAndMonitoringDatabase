@@ -36,31 +36,30 @@ class CidaUsgsWaterLevel(CidaUsgsApi):
 
     def get_measurements(self, well_data, harvester_well_data):
         """Get and save measurements."""
+        site_id = well_data['site_id']
         url = (
             f'https://cida.usgs.gov/ngwmn_cache/direct/flatXML/waterlevel/'
             f'{well_data["agency_code"]}/{well_data["site_no"]}'
         )
         response = requests.get(url)
         if response.status_code != 200:
-            print('Measurements not found')
+            self._update(f'{site_id} : Measurements not found')
         else:
             xml = BeautifulSoup(response.content, "lxml")
             samples = xml.findAll('sample')
             count = len(samples)
-            print(f'Measurements found : {count}')
-            last_time = None
-            last_data = harvester_well_data.well.welllevelmeasurement_set.all().first()
-            if last_data:
-                last_time = last_data.time
+            self._update(f'{site_id} : Measurements found : {count}')
+            last_time = harvester_well_data.well.welllevelmeasurement_set.order_by(
+                '-time').values_list('time', flat=True).first()
 
-            for idx, measurement in enumerate(samples):
+            for idx, measurement in enumerate(samples, 1):
                 try:
                     time = self.value_by_tag(measurement, 'time')
                     time = parse(time)
                     if last_time and time <= last_time:
                         continue
 
-                    print(f'{idx}/{count} - {time}')
+                    self._update(f'{site_id} : {idx}/{count} - {time}')
                     unit = self.units[
                         self.value_by_tag(measurement, 'unit').lower()
                     ]
