@@ -24,7 +24,10 @@ from gwml2.models.well import (
     WellYieldMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
-from gwml2.signals.well import post_save_measurement_for_cache
+from gwml2.signals.well import (
+    post_save_measurement,
+    post_save_measurement_for_cache
+)
 from gwml2.tasks.data_file_cache import generate_data_well_cache
 from gwml2.tasks.data_file_cache.organisation_cache import (
     generate_data_organisation_cache
@@ -93,25 +96,40 @@ class BaseHarvester(ABC):
         try:
             with temp_disconnect_signal(
                     signal=post_save,
-                    receiver=post_save_measurement_for_cache,
+                    receiver=post_save_measurement,
                     sender=WellLevelMeasurement
             ):
                 with temp_disconnect_signal(
                         signal=post_save,
-                        receiver=post_save_measurement_for_cache,
+                        receiver=post_save_measurement,
                         sender=WellYieldMeasurement
                 ):
                     with temp_disconnect_signal(
                             signal=post_save,
-                            receiver=post_save_measurement_for_cache,
+                            receiver=post_save_measurement,
                             sender=WellQualityMeasurement
                     ):
-                        self._process()
-                        self._update('Run organisation caches')
-                        generate_data_organisation_cache(
-                            self.harvester.organisation.id
-                        )
-                        self._done('Done')
+                        with temp_disconnect_signal(
+                                signal=post_save,
+                                receiver=post_save_measurement_for_cache,
+                                sender=WellLevelMeasurement
+                        ):
+                            with temp_disconnect_signal(
+                                    signal=post_save,
+                                    receiver=post_save_measurement_for_cache,
+                                    sender=WellYieldMeasurement
+                            ):
+                                with temp_disconnect_signal(
+                                        signal=post_save,
+                                        receiver=post_save_measurement_for_cache,
+                                        sender=WellQualityMeasurement
+                                ):
+                                    self._process()
+                                    self._update('Run organisation caches')
+                                    generate_data_organisation_cache(
+                                        self.harvester.organisation.id
+                                    )
+                                    self._done('Done')
         except HarvestingError as e:
             self._error(f'{e}')
         except Exception:
