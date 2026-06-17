@@ -11,7 +11,11 @@ from gwml2.models import (
     TermMeasurementParameter, MEASUREMENT_PARAMETER_AMSL, Unit,
     WellLevelMeasurement
 )
+from gwml2.models.general import Quantity
+from gwml2.utilities import make_aware_local
 from .base import NetherlandHarvester
+
+CHUNK_SIZE = 1000
 
 
 class NetherlandLevelHarvester(NetherlandHarvester):
@@ -42,60 +46,85 @@ class NetherlandLevelHarvester(NetherlandHarvester):
             'f=json&limit=1000&crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84'
         )
 
+    def _bulk_save(self, original_id, well, harvester_well_data, rows_to_save):
+        """Bulk insert measurements in chunks."""
+        total = len(rows_to_save)
+        saved = 0
+        for start in range(0, total, CHUNK_SIZE):
+            chunk = rows_to_save[start:start + CHUNK_SIZE]
+            self._update(
+                f'{original_id} : saving {start + 1}-'
+                f'{min(start + CHUNK_SIZE, total)}/{total}'
+            )
+            quantities = Quantity.objects.bulk_create([
+                Quantity(value=float(val), unit=self.unit)
+                for _, val in chunk
+            ])
+            measurements = []
+            for (dt, val), qty in zip(chunk, quantities):
+                m = WellLevelMeasurement(
+                    well=well,
+                    time=make_aware_local(dt),
+                    parameter=self.level_parameter,
+                    value=qty,
+                    value_in_m=float(val),
+                )
+                m.set_default_value()
+                measurements.append(m)
+            WellLevelMeasurement.objects.bulk_create(measurements)
+            saved += len(chunk)
+        return saved
+
     def process_measurement(self, station):
         """Processing level measurement."""
-        updated = False
-        well = None
         original_id = self.get_original_id(station)
         response = requests.get(
             'https://publiek.broservices.nl/gm/gld/v1/seriesAsCsv/'
             f'{original_id}'
         )
         csv_data = StringIO(response.text)
-        reader = csv.DictReader(csv_data)
-        rows = list(reader)
+        rows = list(csv.DictReader(csv_data))
 
         total = len(rows)
         self._update(f'{original_id} : processing {total} rows')
-        last_measurement = None
-        saved = 0
-        for idx, row in enumerate(rows, 1):
-            self._update(f'{original_id} : processing {idx}/{total}')
+
+        # Parse valid rows
+        valid_rows = []
+        for row in rows:
             if (
                     not row['Tijdstip'] or
                     (not row['Beoordeelde Waarde [m]'] and
                      not row['Voorlopige Waarde [m]'])
             ):
                 continue
-
-            defaults = {
-                'parameter': self.level_parameter,
-            }
-            value = row['Beoordeelde Waarde [m]'] or row[
-                'Voorlopige Waarde [m]']
             date_time = datetime.fromtimestamp(
                 float(row['Tijdstip']) / 1000, tz=timezone.utc
             )
+            value = row['Beoordeelde Waarde [m]'] or row[
+                'Voorlopige Waarde [m]']
+            valid_rows.append((date_time, value))
 
-            # Save the data
-            if not well:
-                harvester_well_data = self.well_from_station(station)
-                well = harvester_well_data.well
-                last_measurement = well.welllevelmeasurement_set.order_by(
-                    '-time').values_list('time', flat=True).first()
+        if not valid_rows:
+            return False, None
 
-            if last_measurement and date_time <= last_measurement:
+        harvester_well_data = self.well_from_station(station)
+        well = harvester_well_data.well
+        last_measurement = well.welllevelmeasurement_set.order_by(
+            '-time').values_list('time', flat=True).first()
+        self._update(f'{original_id} : last measurement {last_measurement}')
+
+        seen = set()
+        rows_to_save = []
+        for dt, val in valid_rows:
+            if last_measurement and dt <= last_measurement:
                 continue
+            if dt not in seen:
+                seen.add(dt)
+                rows_to_save.append((dt, val))
+        self._update(f'{original_id} : {len(rows_to_save)} new rows to save')
 
-            saved += 1
-            updated = True
+        if not rows_to_save:
+            return False, well
 
-            self._save_measurement(
-                WellLevelMeasurement,
-                date_time,
-                defaults,
-                harvester_well_data,
-                value,
-                self.unit
-            )
-        return updated, well
+        self._bulk_save(original_id, well, harvester_well_data, rows_to_save)
+        return True, well

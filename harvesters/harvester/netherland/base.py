@@ -86,6 +86,7 @@ class NetherlandHarvester(BaseHarvester):
 
                 if well and updated:
                     print(f'{original_id} : done')
+                    self._update(f'Generate cache for {well.original_id}')
                     # -----------------------
                     # Generate cache
                     if well:

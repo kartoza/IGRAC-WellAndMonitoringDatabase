@@ -165,7 +165,7 @@ class WellAdmin(admin.ModelAdmin):
         'first_time_measurement', 'last_time_measurement',
         'links',
         'name',
-        '_description'
+        '_description', 'created_at'
     )
     list_filter = (
         'organisation', 'country', 'feature_type',

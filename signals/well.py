@@ -104,30 +104,7 @@ def pre_save_measurement(sender, instance, **kwargs):
     :type instance: WellLevelMeasurement
     """
     try:
-        if not instance.id:
-            instance.well.number_of_measurements += 1
-            if sender == WellLevelMeasurement:
-                instance.well.number_of_measurements_level += 1
-            elif sender == WellQualityMeasurement:
-                instance.well.number_of_measurements_quality += 1
-            elif sender == WellYieldMeasurement:
-                instance.well.number_of_measurements_yield += 1
-
         instance.set_default_value()
-
-        # Check instance of time
-        instance_time = make_aware_local(instance.time)
-        first_time = make_aware_local(
-            instance.well.first_time_measurement
-        )
-        if not first_time or instance_time < first_time:
-            instance.well.first_time_measurement = instance_time
-
-        last_time = make_aware_local(
-            instance.well.last_time_measurement
-        )
-        if not last_time or instance_time > last_time:
-            instance.well.last_time_measurement = instance_time
     except Well.DoesNotExist:
         pass
 
