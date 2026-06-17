@@ -23,8 +23,9 @@ class CidaUsgsWaterLevel(CidaUsgsApi):
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_GROUND
         )
-        super(CidaUsgsWaterLevel, self).__init__(harvester, replace,
-                                                 original_id)
+        super(CidaUsgsWaterLevel, self).__init__(
+            harvester, replace, original_id
+        )
 
     @staticmethod
     def cql_filter_method():
