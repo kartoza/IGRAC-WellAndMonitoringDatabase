@@ -11,6 +11,6 @@ def update_ggis_uid(self, id):
 
 
 @shared_task(bind=True, queue='update')
-def generate_measurement_stats(self, id, force=False):
+def generate_data_stats(self, id, force=False):
     from gwml2.models import Organisation
-    Organisation.objects.get(pk=id).generate_measurement_stats(force=force)
+    Organisation.objects.get(pk=id).generate_data_stats(force=force)

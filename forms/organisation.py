@@ -37,7 +37,6 @@ class OrganisationFormAdmin(forms.ModelForm):
         fields = (
             'name', 'country', 'description',
             'data_is_from_api', 'data_date_start', 'data_date_end',
-            'data_is_groundwater_level', 'data_is_groundwater_quality',
             'admin_users', 'editor_users',
             'license', 'restriction_code_type', 'constraints_other'
         )

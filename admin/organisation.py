@@ -41,12 +41,6 @@ def update_ggis_uid(modeladmin, request, queryset):
         update_ggis_uid.delay(org.id)
 
 
-def assign_data_types(modeladmin, request, queryset):
-    """Assign data to the organisation."""
-    for org in queryset:
-        org.assign_data_types()
-
-
 def assign_date_range(modeladmin, request, queryset):
     """Assign data to the organisation."""
     for org in queryset:
@@ -60,17 +54,17 @@ def assign_license(modeladmin, request, queryset):
 
 
 @admin.action(description='Generate measurement stats')
-def generate_measurement_stats(modeladmin, request, queryset):
+def generate_data_stats(modeladmin, request, queryset):
     """Generate missing stats keys only; skip keys that already have a value."""
-    from gwml2.tasks.organisation import generate_measurement_stats as task
+    from gwml2.tasks.organisation import generate_data_stats as task
     for org in queryset:
         task.delay(org.id, force=False)
 
 
 @admin.action(description='Force generate measurement stats')
-def force_generate_measurement_stats(modeladmin, request, queryset):
+def force_generate_data_stats(modeladmin, request, queryset):
     """Recompute all stats keys regardless of existing values."""
-    from gwml2.tasks.organisation import generate_measurement_stats as task
+    from gwml2.tasks.organisation import generate_data_stats as task
     for org in queryset:
         task.delay(org.id, force=True)
 
@@ -98,9 +92,9 @@ class OrganisationAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'data_types', 'time_range',
         'license_name', 'active', 'country', '_groups',
-        'measurement_stats_generated_at',
+        'data_stats_generated_at',
         'data_cache_generated_at', 'data_cache_info',
-        'measurement_links', 'measurement_stats_display',
+        'measurement_links', 'measurement_stats_display', 'well_stats_display',
         'description', 'links'
     )
     change_list_template = 'admin/organisation_change_list.html'
@@ -110,9 +104,9 @@ class OrganisationAdmin(admin.ModelAdmin):
     show_full_result_count = False
     actions = (
         generate_data_wells_cache, reassign_wells_country, update_ggis_uid,
-        assign_data_types, assign_date_range, assign_license,
+        assign_date_range, assign_license,
         generate_organisation_cache_information,
-        generate_measurement_stats, force_generate_measurement_stats,
+        generate_data_stats, force_generate_data_stats,
     )
     inlines = [OrganisationLinkInline]
     form = OrganisationFormAdmin
@@ -139,9 +133,7 @@ class OrganisationAdmin(admin.ModelAdmin):
             {
                 'fields': (
                     'data_is_from_api', 'data_date_start',
-                    'data_date_end',
-                    'data_is_groundwater_level',
-                    'data_is_groundwater_quality'
+                    'data_date_end'
                 )
             }
         ),
@@ -154,8 +146,10 @@ class OrganisationAdmin(admin.ModelAdmin):
             }
         )
     )
-    readonly_fields = ('data_cache_generated_at',
-                       'measurement_stats_generated_at')
+    readonly_fields = (
+        'data_cache_generated_at',
+        'data_stats_generated_at'
+    )
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related(
@@ -216,42 +210,63 @@ class OrganisationAdmin(admin.ModelAdmin):
         from django.db.models.expressions import RawSQL
         from django.db.models import Sum
         qs = self.get_queryset(request).filter(
-            measurement_stats__isnull=False
+            data_stats__isnull=False
         )
         keys = [
-            'total', 'total_level', 'total_quality', 'total_yield',
-            'midnight_level', 'midnight_quality', 'midnight_yield',
+            'count_measurement', 'count_measurement_level',
+            'count_measurement_quality', 'count_measurement_yield',
+            'count_measurement_level_midnight',
+            'count_measurement_quality_midnight',
+            'count_measurement_yield_midnight',
+            'count_well', 'count_well_with_level',
+            'count_well_with_quality', 'count_spring',
         ]
         agg = qs.aggregate(**{
-            k: Sum(RawSQL(f"(measurement_stats->>'{k}')::int", []))
+            k: Sum(RawSQL(f"(data_stats->>'{k}')::int", []))
             for k in keys
         })
         return JsonResponse({k: v or 0 for k, v in agg.items()})
 
-    def measurement_stats_display(self, org: Organisation):
-        stats = org.measurement_stats
+    @staticmethod
+    def _format_stats_section(stats, rows):
         if not stats:
             return '-'
 
-        def fmt(key):
-            v = stats.get(key)
-            return f'{v:,}' if isinstance(v, int) else '-'
+        def format_value(key):
+            val = stats.get(key)
+            return f'{val:,}' if isinstance(val, int) else '-'
 
-        lines = [
-            f"Total: {fmt('total')}",
-            f"Level: {fmt('total_level')}",
-            f"Quality: {fmt('total_quality')}",
-            f"Yield: {fmt('total_yield')}",
-            f"Midnight L: {fmt('midnight_level')}",
-            f"Midnight Q: {fmt('midnight_quality')}",
-            f"Midnight Y: {fmt('midnight_yield')}",
-        ]
+        items = ''.join(
+            f'<div>{label}: <b>{format_value(key)}</b></div>'
+            for label, key in rows
+        )
         return format_html(
             '<div style="white-space:nowrap">{}</div>',
-            format_html('<br>'.join(lines))
+            format_html(items)
         )
 
+    def measurement_stats_display(self, org: Organisation):
+        return self._format_stats_section(org.data_stats, [
+            ('Total', 'count_measurement'),
+            ('Level', 'count_measurement_level'),
+            ('Quality', 'count_measurement_quality'),
+            ('Yield', 'count_measurement_yield'),
+            ('Midnight Level', 'count_measurement_level_midnight'),
+            ('Midnight Quality', 'count_measurement_quality_midnight'),
+            ('Midnight Yield', 'count_measurement_yield_midnight'),
+        ])
+
     measurement_stats_display.short_description = 'Measurement Stats'
+
+    def well_stats_display(self, org: Organisation):
+        return self._format_stats_section(org.data_stats, [
+            ('Total', 'count_well'),
+            ('With level data', 'count_well_with_level'),
+            ('With quality data', 'count_well_with_quality'),
+            ('Springs', 'count_spring'),
+        ])
+
+    well_stats_display.short_description = 'Well Stats'
 
     def data_cache_info(self, obj):
         if not obj.data_cache_information:
