@@ -65,14 +65,6 @@ class Organisation(LicenseMetadata):
         null=True, blank=True
     )
 
-    # Data type
-    data_is_groundwater_level = models.BooleanField(
-        default=False
-    )
-    data_is_groundwater_quality = models.BooleanField(
-        default=False
-    )
-
     # Data cache information
     data_cache_information = models.JSONField(
         help_text=_(
@@ -82,15 +74,17 @@ class Organisation(LicenseMetadata):
         null=True, blank=True
     )
 
-    # Measurement statistics
-    measurement_stats = models.JSONField(
+    # Data statistics
+    data_stats = models.JSONField(
         help_text=_(
-            'Counts of total/midnight measurements per type.'
+            'Cached statistics for this organisation: '
+            'measurement counts (total, per type, midnight) '
+            'and well counts (total, with level/quality data, springs).'
         ),
         null=True, blank=True
     )
-    measurement_stats_generated_at = models.DateTimeField(
-        _('Time when measurement stats were generated'),
+    data_stats_generated_at = models.DateTimeField(
+        _('Time when data stats were generated'),
         null=True, blank=True
     )
 
@@ -110,11 +104,12 @@ class Organisation(LicenseMetadata):
 
     @property
     def data_types(self):
-        """Return list of data types"""
+        """Return list of data types derived from data_stats."""
+        stats = self.data_stats or {}
         data_types = []
-        if self.data_is_groundwater_level:
+        if stats.get('count_measurement_level', 0):
             data_types.append('Groundwater levels')
-        if self.data_is_groundwater_quality:
+        if stats.get('count_measurement_quality', 0):
             data_types.append('Groundwater quality')
         return data_types
 
@@ -175,19 +170,6 @@ class Organisation(LicenseMetadata):
     # -------------------------------------
     # Assign data
     # -------------------------------------
-
-    def assign_data_types(self):
-        """Assign data types to this organisation based on current data."""
-        from gwml2.models import (
-            WellLevelMeasurement, WellQualityMeasurement
-        )
-        self.data_is_groundwater_level = WellLevelMeasurement.objects.filter(
-            well__organisation=self
-        ).exists()
-        self.data_is_groundwater_quality = WellQualityMeasurement.objects.filter(
-            well__organisation=self
-        ).exists()
-        self.save()
 
     def assign_date_range(self):
         """Assign date range to this organisation based on current data."""
@@ -250,7 +232,6 @@ class Organisation(LicenseMetadata):
     def assign_data(self):
         """Automatically assign data to this
         organization based on current data."""
-        self.assign_data_types()
         self.assign_date_range()
 
     def assign_data_cache_information(self):
@@ -277,48 +258,90 @@ class Organisation(LicenseMetadata):
                 )
         self.save()
 
-    def generate_measurement_stats(self, force=False):
-        """Count total and midnight measurements per type, saving after each step.
+    def generate_data_stats(self, force=False):
+        """Count measurements and wells, saving incrementally per batch.
 
-        If force is False, each key is skipped when it already has a value.
+        If force is False, a batch is skipped when all its keys already exist.
         """
         import datetime
+        from django.db.models import Count, Q
         from django.utils import timezone
         from gwml2.models.well import (
             WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
         )
         well_ids = self.well_set.values_list('id', flat=True)
         midnight = datetime.time(0, 0, 0)
-        stats = self.measurement_stats or {}
+        stats = self.data_stats or {}
 
-        steps = [
-            ('total_level',      WellLevelMeasurement,   {}),
-            ('total_quality',    WellQualityMeasurement, {}),
-            ('total_yield',      WellYieldMeasurement,   {}),
-            ('midnight_level',   WellLevelMeasurement,   {'time__time': midnight}),
-            ('midnight_quality', WellQualityMeasurement, {'time__time': midnight}),
-            ('midnight_yield',   WellYieldMeasurement,   {'time__time': midnight}),
+        # 3 queries: one per model, each returns total + midnight in one aggregate
+        measurement_steps = [
+            (
+                WellLevelMeasurement,
+                'count_measurement_level',
+                'count_measurement_level_midnight'
+            ),
+            (
+                WellQualityMeasurement,
+                'count_measurement_quality',
+                'count_measurement_quality_midnight'
+            ),
+            (
+                WellYieldMeasurement,
+                'count_measurement_yield',
+                'count_measurement_yield_midnight'
+            ),
         ]
-        for key, Model, extra in steps:
-            if not force and stats.get(key) is not None:
+        for Model, total_key, midnight_key in measurement_steps:
+            if not force and (
+                    stats.get(total_key) is not None
+                    and stats.get(midnight_key) is not None
+            ):
                 continue
-            stats[key] = Model.objects.filter(
-                well_id__in=well_ids, **extra
-            ).count()
-            Organisation.objects.filter(pk=self.pk).update(
-                measurement_stats=stats
+            result = Model.objects.filter(
+                well_id__in=well_ids
+            ).aggregate(
+                total=Count('id'),
+                midnight=Count('id', filter=Q(time__time=midnight))
             )
+            stats[total_key] = result['total']
+            stats[midnight_key] = result['midnight']
+            Organisation.objects.filter(pk=self.pk).update(data_stats=stats)
 
-        stats['total'] = (
-            stats.get('total_level', 0)
-            + stats.get('total_quality', 0)
-            + stats.get('total_yield', 0)
+        stats['count_measurement'] = (
+                stats.get('count_measurement_level', 0)
+                + stats.get('count_measurement_quality', 0)
+                + stats.get('count_measurement_yield', 0)
         )
-        self.measurement_stats = stats
-        self.measurement_stats_generated_at = timezone.now()
+
+        # 1 query: all well counts in one aggregate
+        well_keys = [
+            'count_well', 'count_well_with_level',
+            'count_well_with_quality', 'count_spring',
+        ]
+        if force or any(stats.get(k) is None for k in well_keys):
+            well_stats = self.well_set.aggregate(
+                count_well=Count('id'),
+                count_well_with_level=Count(
+                    'id',
+                    filter=Q(number_of_measurements_level__gt=0)
+                ),
+                count_well_with_quality=Count(
+                    'id',
+                    filter=Q(number_of_measurements_quality__gt=0)
+                ),
+                count_spring=Count(
+                    'id',
+                    filter=Q(feature_type__name__iexact='Spring')
+                ),
+            )
+            stats.update(well_stats)
+            Organisation.objects.filter(pk=self.pk).update(data_stats=stats)
+
+        self.data_stats = stats
+        self.data_stats_generated_at = timezone.now()
         Organisation.objects.filter(pk=self.pk).update(
-            measurement_stats=stats,
-            measurement_stats_generated_at=self.measurement_stats_generated_at,
+            data_stats=stats,
+            data_stats_generated_at=self.data_stats_generated_at,
         )
 
 
