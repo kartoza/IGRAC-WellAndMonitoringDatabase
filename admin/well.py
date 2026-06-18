@@ -82,6 +82,7 @@ class InvalidCoordinatesFilter(admin.SimpleListFilter):
 
 
 
+@admin.action(description='Assign country')
 def assign_country(modeladmin, request, queryset):
     for well in queryset:
         well.assign_country(force=True)
