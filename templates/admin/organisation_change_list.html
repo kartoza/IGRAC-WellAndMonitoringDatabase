@@ -3,85 +3,144 @@
 
 {% block object-tools %}
     <ul class="grp-object-tools">
-        <li>
-            <a class="count grp-state-focus" id="org-total-text"
-               style="cursor:pointer;" onclick="fetchOrgTotals()">Show totals</a>
+
+        {# Measurements section #}
+        <li class="stat-section stat-measurements" style="display:none"><a class="count stat grp-state-focus" id="org-count-measurement" onclick="fetchOrgTotals()">Total</a></li>
+        <li class="stat-section stat-measurements" style="display:none"><a class="count stat grp-state-focus" id="org-count-measurement-level" onclick="fetchOrgTotals()">Level</a></li>
+        <li class="stat-section stat-measurements" style="display:none"><a class="count stat grp-state-focus" id="org-count-measurement-quality" onclick="fetchOrgTotals()">Quality</a></li>
+        <li class="stat-section stat-measurements" style="display:none"><a class="count stat grp-state-focus" id="org-count-measurement-yield" onclick="fetchOrgTotals()">Yield</a></li>
+
+        {# Midnight section #}
+        <li class="stat-section stat-midnight" style="display:none"><a class="count stat grp-state-focus" id="org-count-measurement-level-midnight" onclick="fetchOrgTotals()">Level</a></li>
+        <li class="stat-section stat-midnight" style="display:none"><a class="count stat grp-state-focus" id="org-count-measurement-quality-midnight" onclick="fetchOrgTotals()">Quality</a></li>
+        <li class="stat-section stat-midnight" style="display:none"><a class="count stat grp-state-focus" id="org-count-measurement-yield-midnight" onclick="fetchOrgTotals()">Yield</a></li>
+
+        {# Wells section #}
+        <li class="stat-section stat-wells" style="display:none"><a class="count stat grp-state-focus" id="org-count-well" onclick="fetchOrgTotals()">Total</a></li>
+        <li class="stat-section stat-wells" style="display:none"><a class="count stat grp-state-focus" id="org-count-well-with-level" onclick="fetchOrgTotals()">W/ level</a></li>
+        <li class="stat-section stat-wells" style="display:none"><a class="count stat grp-state-focus" id="org-count-well-with-quality" onclick="fetchOrgTotals()">W/ quality</a></li>
+        <li class="stat-section stat-wells" style="display:none"><a class="count stat grp-state-focus" id="org-count-spring" onclick="fetchOrgTotals()">Springs</a></li>
+
+        {# Section toggle buttons #}
+        <li class="toggler">
+            <a class="count toggle-btn grp-state-focus" onclick="toggleSection('measurements')">Measurements</a>
+            <a class="count toggle-btn grp-state-focus" onclick="toggleSection('midnight')">Midnight</a>
+            <a class="count toggle-btn grp-state-focus" onclick="toggleSection('wells')">Wells</a>
         </li>
-        <li>
-            <a class="count grp-state-focus" id="org-level-text"
-               style="cursor:pointer;" onclick="fetchOrgTotals()">Show level</a>
-        </li>
-        <li>
-            <a class="count grp-state-focus" id="org-quality-text"
-               style="cursor:pointer;" onclick="fetchOrgTotals()">Show quality</a>
-        </li>
-        <li>
-            <a class="count grp-state-focus" id="org-yield-text"
-               style="cursor:pointer;" onclick="fetchOrgTotals()">Show yield</a>
-        </li>
-        <li>
-            <a class="count grp-state-focus" id="org-midnight-level-text"
-               style="cursor:pointer;" onclick="fetchOrgTotals()">Show midnight level</a>
-        </li>
-        <li>
-            <a class="count grp-state-focus" id="org-midnight-quality-text"
-               style="cursor:pointer;" onclick="fetchOrgTotals()">Show midnight quality</a>
-        </li>
-        <li>
-            <a class="count grp-state-focus" id="org-midnight-yield-text"
-               style="cursor:pointer;" onclick="fetchOrgTotals()">Show midnight yield</a>
-        </li>
+
         <style>
           .count {
             opacity: 1 !important;
             background: #59afcc !important;
             border: 1px solid #59afcc !important;
+            cursor: pointer;
           }
           .count:hover {
-            background: #59afcc !important;
-            border: 1px solid #59afcc !important;
+            background: #3d8fa8 !important;
+            border: 1px solid #3d8fa8 !important;
+          }
+          .toggle-btn.active {
+            background: #2a6f85 !important;
+            border: 1px solid #2a6f85 !important;
+          }
+          .stat { cursor: default !important; }
+          .toggler {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+          }
+          .toggler a:nth-child(1) {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+            border-right: 1px solid #ccc !important;
+            padding-right: 0.5rem !important;
+          }
+          .toggler a:nth-child(2) {
+            border-radius: 0;
+            padding-right: 0.5rem !important;
+            padding-left: 0.5rem !important;
+          }
+          .toggler a:nth-child(3) {
+            border-top-left-radius: 0;
+            border-bottom-left-radius: 0;
+            border-left: 1px solid #ccc !important;
+            padding-left: 0.5rem !important;
           }
         </style>
+
         {% block object-tools-items %}
             {% if has_add_permission %}
                 {% url cl.opts|admin_urlname:'add' as add_url %}
                 <li>
                     <a href="{% add_preserved_filters add_url is_popup to_field %}"
                        class="grp-add-link grp-state-focus">
-                        {% blocktrans with cl.opts.verbose_name as name %}Add
-                            {{ name }}{% endblocktrans %}</a>
+                        {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}</a>
                 </li>
             {% endif %}
         {% endblock %}
     </ul>
+
     <script>
-      var _orgTotalsFetched = false;
-      function fetchOrgTotals() {
-        if (_orgTotalsFetched) return;
-        _orgTotalsFetched = true;
-        var ids = [
-          'org-total-text', 'org-level-text', 'org-quality-text', 'org-yield-text',
-          'org-midnight-level-text', 'org-midnight-quality-text', 'org-midnight-yield-text'
-        ];
-        ids.forEach(function (id) {
-          var el = document.getElementById(id);
-          el.style.cursor = 'default';
-          el.onclick = null;
-          el.textContent = 'loading…';
+      var _activeSection = null;
+      var _fetched = false;
+
+      var _items = [
+        { id: 'org-count-measurement',                  key: 'count_measurement',                  label: 'total' },
+        { id: 'org-count-measurement-level',            key: 'count_measurement_level',            label: 'level' },
+        { id: 'org-count-measurement-quality',          key: 'count_measurement_quality',          label: 'quality' },
+        { id: 'org-count-measurement-yield',            key: 'count_measurement_yield',            label: 'yield' },
+        { id: 'org-count-measurement-level-midnight',   key: 'count_measurement_level_midnight',   label: 'level' },
+        { id: 'org-count-measurement-quality-midnight', key: 'count_measurement_quality_midnight', label: 'quality' },
+        { id: 'org-count-measurement-yield-midnight',   key: 'count_measurement_yield_midnight',   label: 'yield' },
+        { id: 'org-count-well',                         key: 'count_well',                         label: 'total' },
+        { id: 'org-count-well-with-level',              key: 'count_well_with_level',              label: 'w/ level' },
+        { id: 'org-count-well-with-quality',            key: 'count_well_with_quality',            label: 'w/ quality' },
+        { id: 'org-count-spring',                       key: 'count_spring',                       label: 'springs' },
+      ];
+
+      function toggleSection(section) {
+        var els = document.querySelectorAll('.stat-section');
+        var btns = document.querySelectorAll('.toggle-btn');
+
+        if (_activeSection === section) {
+          // collapse
+          els.forEach(function (el) { el.style.display = 'none'; });
+          btns.forEach(function (btn) { btn.classList.remove('active'); });
+          _activeSection = null;
+          return;
+        }
+
+        _activeSection = section;
+        els.forEach(function (el) {
+          el.style.display = el.classList.contains('stat-' + section) ? '' : 'none';
         });
+        btns.forEach(function (btn) {
+          btn.classList.toggle('active', btn.textContent.toLowerCase() === section);
+        });
+
+        fetchOrgTotals();
+      }
+
+      function fetchOrgTotals() {
+        if (_fetched) return;
+        _fetched = true;
+
+        _items.forEach(function (item) {
+          document.getElementById(item.id).textContent = 'loading…';
+        });
+
         fetch(window.location.pathname + 'totals/', {headers: {'X-Requested-With': 'XMLHttpRequest'}})
           .then(function (r) { return r.json(); })
           .then(function (d) {
-            document.getElementById('org-total-text').textContent          = (d.total || 0).toLocaleString() + ' total';
-            document.getElementById('org-level-text').textContent          = (d.total_level || 0).toLocaleString() + ' level';
-            document.getElementById('org-quality-text').textContent        = (d.total_quality || 0).toLocaleString() + ' quality';
-            document.getElementById('org-yield-text').textContent          = (d.total_yield || 0).toLocaleString() + ' yield';
-            document.getElementById('org-midnight-level-text').textContent   = (d.midnight_level || 0).toLocaleString() + ' midnight level';
-            document.getElementById('org-midnight-quality-text').textContent = (d.midnight_quality || 0).toLocaleString() + ' midnight quality';
-            document.getElementById('org-midnight-yield-text').textContent   = (d.midnight_yield || 0).toLocaleString() + ' midnight yield';
+            _items.forEach(function (item) {
+              var val = (d[item.key] || 0).toLocaleString();
+              document.getElementById(item.id).textContent = val + ' ' + item.label;
+            });
           })
           .catch(function () {
-            ids.forEach(function (id) { document.getElementById(id).textContent = 'error'; });
+            _items.forEach(function (item) {
+              document.getElementById(item.id).textContent = 'error';
+            });
           });
       }
     </script>
