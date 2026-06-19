@@ -232,8 +232,7 @@ class WellAdmin(admin.ModelAdmin):
         'first_time_measurement', 'last_time_measurement',
         'links',
         'name',
-        '_description',
-        'glo_90m_elevation'
+        '_description'
     )
     list_filter = (
         'organisation', 'country', 'feature_type',
