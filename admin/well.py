@@ -81,6 +81,58 @@ class InvalidCoordinatesFilter(admin.SimpleListFilter):
         return queryset
 
 
+class HasDEMFilter(admin.SimpleListFilter):
+    """Has DEM filter."""
+
+    title = 'Has DEM?'
+    parameter_name = 'is_has_dem'
+
+    def lookups(self, request, model_admin):
+        """Lookup function for entity filter."""
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
+        if self.value() == "yes":
+            return queryset.filter(
+                glo_90m_elevation__isnull=False
+            )
+        if self.value() == "no":
+            return queryset.filter(
+                glo_90m_elevation__isnull=True
+            )
+        return queryset
+
+
+class HasReturnedDEMEmptyValueFilter(admin.SimpleListFilter):
+    """Has returned DEM empty value before DEM filter."""
+
+    title = 'Has returned DEM empty result?'
+    parameter_name = 'is_has_returned_dem_empty_result'
+
+    def lookups(self, request, model_admin):
+        """Lookup function for entity filter."""
+        return [
+            ("yes", "Yes"),
+            ("no", "No"),
+        ]
+
+    def queryset(self, request, queryset):
+        """Return filtered queryset."""
+        if self.value() == "yes":
+            return queryset.filter(
+                glo_90m_elevation_empty_result=True
+            )
+        if self.value() == "no":
+            return queryset.filter(
+                Q(glo_90m_elevation_empty_result=False) |
+                Q(glo_90m_elevation_empty_result__isnull=True)
+            )
+        return queryset
+
 
 @admin.action(description='Assign country')
 def assign_country(modeladmin, request, queryset):
@@ -93,6 +145,7 @@ def translate_description(modeladmin, request, queryset):
     for well in queryset:
         well.description = deepl_translater(well.description)
         well.save()
+
 
 @admin.action(description='Delete selected wells in background')
 def delete_in_background(modeladmin, request, queryset):
@@ -154,6 +207,19 @@ def generate_data_cache_information(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Generate DEM value')
+def generate_dem_values(modeladmin, request, queryset):
+    """Generate dem values."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_dem_well_value',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 class WellAdmin(admin.ModelAdmin):
     """Well admin."""
     list_display = (
@@ -172,6 +238,7 @@ class WellAdmin(admin.ModelAdmin):
         'organisation', 'country', 'feature_type',
         'first_time_measurement', 'last_time_measurement',
         InvalidCoordinatesFilter, OrganisationGroupFilter,
+        HasDEMFilter, HasReturnedDEMEmptyValueFilter
     )
     readonly_fields = (
         'created_at', 'created_by_user', 'last_edited_at',
@@ -188,10 +255,11 @@ class WellAdmin(admin.ModelAdmin):
         delete_in_background,
         assign_country,
         translate_description,
+        generate_dem_values,
         generate_metadata,
         generate_data_wells_cache,
         generate_measurement_cache,
-        generate_data_cache_information
+        generate_data_cache_information,
     ]
     change_list_template = "admin/well_change_list.html"
     show_full_result_count = False

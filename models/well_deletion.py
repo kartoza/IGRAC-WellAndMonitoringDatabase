@@ -54,19 +54,13 @@ class WellDeletion(models.Model):
 
     def delete_measurement(self, query, title):
         """Delete measurement."""
-        ids = query.values_list('id', flat=True)
-        self.update_note(
-            f'Deleting : {title} : {len(ids)}'
+        from gwml2.models.general import Quantity
+        quantity_ids = list(
+            query.values_list('value_id', flat=True).exclude(value_id=None)
         )
-        for id in ids:
-            try:
-                query.get(id=id).delete()
-            except WellLevelMeasurement.DoesNotExist:
-                pass
-            except WellYieldMeasurement.DoesNotExist:
-                pass
-            except WellQualityMeasurement.DoesNotExist:
-                pass
+        self.update_note(f'Deleting : {title} : {query.count()}')
+        query.all().delete()
+        Quantity.objects.filter(id__in=quantity_ids).delete()
 
     def run(self):
         """Run the process."""
@@ -112,6 +106,9 @@ class WellDeletion(models.Model):
                                 self.delete_measurement(
                                     well.wellqualitymeasurement_set,
                                     title=title
+                                )
+                                self.update_note(
+                                    'Deleting : measurements done'
                                 )
                                 well.delete()
                             except Well.DoesNotExist:

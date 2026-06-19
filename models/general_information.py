@@ -23,6 +23,8 @@ class GeneralInformation(models.Model):
         related_name='ground_surface_elevation',
         verbose_name=_('Ground surface elevation')
     )
+
+    # GLO 90m elevation
     glo_90m_elevation = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,
@@ -34,6 +36,14 @@ class GeneralInformation(models.Model):
             'DEM elevation based on the GLO_90m dataset'
         )
     )
+    glo_90m_elevation_empty_result = models.BooleanField(
+        null=True, blank=True,
+        help_text=_(
+            'If it is empty from the GLO_90m dataset.'
+            'Skip this check if it is true for next check.'
+        )
+    )
+
     top_borehole_elevation = models.OneToOneField(
         Quantity, on_delete=models.SET_NULL,
         null=True, blank=True,

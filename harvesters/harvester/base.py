@@ -366,8 +366,15 @@ class BaseHarvester(ABC):
             generate_organisation_cache: bool = False
     ):
         """Specifically for processing cache after procesing well."""
-        print(f'Generate cache for {well.original_id}')
+        from gwml2.utils.generate_dem_well_value import (
+            assign_glo_90m_elevation_for_well
+        )
         well.update_metadata()
+
+        self._update(f'Generate DEM for {well.original_id}')
+        assign_glo_90m_elevation_for_well(well)
+
+        self._update(f'Generate cache for {well.original_id}')
         generate_measurement_cache(well.id)
         generate_data_well_cache(
             well.id,
