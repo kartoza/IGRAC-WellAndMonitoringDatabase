@@ -18,9 +18,8 @@ def assign_glo_90m_elevation(wells):
     ).exclude(glo_90m_elevation_empty_result=True)
 
     if not wells.count():
-        print(f"assign_glo_90m_elevation - No eligible wells")
+        print(f"assign_glo_90m_elevation - Not eligible wells")
         return Well.objects.none()
-    print(f"assign_glo_90m_elevation - run for {len(wells)} wells")
 
     # Group wells by their 1°x1° tile (floor of lon/lat)
     tiles = defaultdict(list)
@@ -64,10 +63,6 @@ def assign_glo_90m_elevation(wells):
         for well, val in zip(tile_wells, sampled):
             elev = round(float(val[0]), 2)
             if elev == profile.get('nodata', -9999) or math.isnan(elev):
-                print(
-                    'assign_glo_90m_elevation - '
-                    f'Well {well.pk}: no DEM value, skipping'
-                )
                 well.glo_90m_elevation_empty_result = True
                 well.save(update_fields=['glo_90m_elevation_empty_result'])
                 continue
@@ -86,3 +81,4 @@ def assign_glo_90m_elevation_for_well(well: Well):
         print(f"assign_glo_90m_elevation - Well already has glo_90m_elevation")
         return
     assign_glo_90m_elevation(Well.objects.filter(id=well.id))
+    well.refresh_from_db()

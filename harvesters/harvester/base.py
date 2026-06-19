@@ -369,11 +369,12 @@ class BaseHarvester(ABC):
         from gwml2.utils.generate_dem_well_value import (
             assign_glo_90m_elevation_for_well
         )
+        well.update_metadata()
+
         self._update(f'Generate DEM for {well.original_id}')
         assign_glo_90m_elevation_for_well(well)
 
         self._update(f'Generate cache for {well.original_id}')
-        well.update_metadata()
         generate_measurement_cache(well.id)
         generate_data_well_cache(
             well.id,
