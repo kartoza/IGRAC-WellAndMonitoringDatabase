@@ -22,6 +22,9 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 )
 from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal
+from gwml2.utils.generate_dem_well_value import (
+    assign_glo_90m_elevation
+)
 from igrac_api.tasks.cache_istsos import cache_istsos
 
 logger = get_task_logger(__name__)
@@ -170,6 +173,10 @@ class BatchUploader:
         # 2. Cache wells data
         # ------------------------------------
         """
+        # Check glo data
+        self.upload_session.update_step('Check well DEM data', 70)
+        assign_glo_90m_elevation(Well.objects.filter(id__in=wells_id))
+
         self.upload_session.update_step('Running wells cache', 70)
         checkpoint_ids = self.upload_session.checkpoint_ids
         if not checkpoint_ids:

@@ -2,6 +2,7 @@ from celery import shared_task
 from celery.utils.log import get_task_logger
 
 from gwml2.models import Well, WellDeletion
+from gwml2.utils.generate_dem_well_value import assign_glo_90m_elevation
 
 logger = get_task_logger(__name__)
 
@@ -25,3 +26,10 @@ def run_well_deletion(self, id):
         obj.run()
     except WellDeletion.DoesNotExist:
         logger.debug(f'Well deletion {id} does not exists')
+
+
+@shared_task(bind=True, queue='update')
+def generate_dem_well_value(self, ids: list[int]):
+    assign_glo_90m_elevation(
+        Well.objects.filter(id__in=ids)
+    )
