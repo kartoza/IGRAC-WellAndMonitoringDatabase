@@ -105,38 +105,59 @@ class temp_disconnect_signals(object):
             )
 
 
+def convert_value_by_id(
+        value: float,
+        unit_from_id: typing.Optional[int],
+        unit_to_id: typing.Optional[int]
+) -> typing.Tuple[typing.Optional[float], typing.Optional[int]]:
+    """Convert a raw value between units identified by their IDs.
+
+    Returns (result_value, result_unit_id).
+    result_unit_id equals unit_to_id if conversion succeeded,
+    otherwise unit_from_id (unchanged).
+    """
+    if value is None:
+        return None, unit_from_id
+    if isinstance(value, str):
+        try:
+            value = float(value)
+        except ValueError:
+            return None, unit_from_id
+    unit_id = unit_from_id
+    try:
+        if unit_from_id and unit_from_id != unit_to_id:
+            try:
+                value = eval(
+                    UnitConvertion.objects.get(
+                        unit_from_id=unit_from_id,
+                        unit_to_id=unit_to_id
+                    ).formula.replace('x', '{}'.format(value))
+                )
+                unit_id = unit_to_id
+            except (UnitConvertion.DoesNotExist, KeyError):
+                pass
+            except ValueError as e:
+                print(e)
+        return value, unit_id
+    except Exception:
+        return value, unit_id
+
+
 def convert_value(quantity: Quantity, unit_to: Unit) -> typing.Optional[
     Quantity]:
-    """ Get value of quantity
-    convert to unit_to
-    """
-    if quantity:
-        try:
-            value = quantity.value
-            if isinstance(value, str):
-                value = float(value)
-            unit = quantity.unit
-            if quantity.unit and quantity.unit != unit_to:
-                try:
-                    value = eval(
-                        UnitConvertion.objects.get(
-                            unit_from=quantity.unit,
-                            unit_to=unit_to
-                        ).formula.replace('x', '{}'.format(value))
-                    )
-                    unit = unit_to
-                except (UnitConvertion.DoesNotExist, KeyError) as e:
-                    pass
-                except ValueError as e:
-                    print(e)
-            return Quantity(
-                unit=unit, value=value)
-        except Exception:
-            return Quantity(
-                unit=unit, value=value
-            )
-    else:
+    """ Get value of quantity, convert to unit_to. """
+    if not quantity:
         return None
+    unit = quantity.unit
+    try:
+        converted, result_unit_id = convert_value_by_id(
+            quantity.value,
+            unit.id if unit else None,
+            unit_to.id if unit_to else None
+        )
+    except Exception:
+        return Quantity(unit=unit, value=quantity.value)
+    return Quantity(unit_id=result_unit_id, value=converted)
 
 
 def make_aware_local(time):

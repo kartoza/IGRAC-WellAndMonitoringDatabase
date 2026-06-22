@@ -135,13 +135,6 @@ class MiljodirektoratetHarvester(BaseHarvester):
                     # -----------------------
                     # Generate cache
                     if harvester_well_data:
-                        self.post_processing_well(
-                            harvester_well_data.well,
-                            generate_country_cache=False
-                        )
-                        if harvester_well_data.well.country:
-                            self.countries.append(
-                                harvester_well_data.well.country.code
-                            )
+                        self.post_processing_well(harvester_well_data.well)
             except Well.DoesNotExist:
                 pass

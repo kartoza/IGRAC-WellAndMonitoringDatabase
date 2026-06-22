@@ -14,9 +14,6 @@ from gwml2.models.term import (
 from gwml2.models.well import (
     Well, HydrogeologyParameter
 )
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class CidaUsgsApi(BaseHarvester):
@@ -269,9 +266,7 @@ class CidaUsgsApi(BaseHarvester):
 
                 # Generate cache
                 if self.updated:
-                    self.post_processing_well(
-                        well, generate_country_cache=False
-                    )
+                    self.post_processing_well(well)
 
                 self.update_attribute(
                     self.last_code_key, site_no
@@ -285,10 +280,6 @@ class CidaUsgsApi(BaseHarvester):
                 raise Exception(f'{site_id} : {e}')
 
         self.delete_attribute(self.last_code_key)
-
-        # Run country caches
-        self._update('Run country caches')
-        generate_data_country_cache(self.harvester.organisation.country.code)
 
     def get_measurements(self, well_data, harvester_well_data):
         """Get and save measurements."""

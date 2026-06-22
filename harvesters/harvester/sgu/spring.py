@@ -13,9 +13,6 @@ from gwml2.models.term_measurement_parameter import (
     TermMeasurementParameterGroup
 )
 from gwml2.models.well import Well, HydrogeologyParameter
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 LANSKOD_KEY = 'lanskod'
 STATIONSID_KEY = 'stationsid'
@@ -88,12 +85,6 @@ class SguSpringAPI(SguAPI):
             except (KeyError, TypeError, Well.DoesNotExist) as e:
                 print(f"{e}")
                 continue
-
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
 
     def process_well(self, harvester_well_data: HarvesterWellData, note: str):
         """Processing well."""

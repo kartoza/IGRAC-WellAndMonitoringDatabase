@@ -24,15 +24,14 @@ from gwml2.models.well import (
     WellYieldMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
-from gwml2.signals.well import (
-    post_save_measurement,
-    post_save_measurement_for_cache
-)
+from gwml2.signals.well import post_save_measurement
 from gwml2.tasks.data_file_cache import generate_data_well_cache
+from gwml2.tasks.data_file_cache.country_recache import (
+    generate_data_country_cache
+)
 from gwml2.tasks.data_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
-from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import temp_disconnect_signal, make_aware_local
 
 User = get_user_model()
@@ -47,6 +46,7 @@ class HarvestingError(Exception):
 class BaseHarvester(ABC):
     """ Abstract class for harvester """
     attributes = {}
+    countries = []
     current_original_id_key = 'current-original-id'
 
     # This is indicator if we process the station
@@ -109,27 +109,21 @@ class BaseHarvester(ABC):
                             receiver=post_save_measurement,
                             sender=WellQualityMeasurement
                     ):
-                        with temp_disconnect_signal(
-                                signal=post_save,
-                                receiver=post_save_measurement_for_cache,
-                                sender=WellLevelMeasurement
-                        ):
-                            with temp_disconnect_signal(
-                                    signal=post_save,
-                                    receiver=post_save_measurement_for_cache,
-                                    sender=WellYieldMeasurement
-                            ):
-                                with temp_disconnect_signal(
-                                        signal=post_save,
-                                        receiver=post_save_measurement_for_cache,
-                                        sender=WellQualityMeasurement
-                                ):
-                                    self._process()
-                                    self._update('Run organisation caches')
-                                    generate_data_organisation_cache(
-                                        self.harvester.organisation.id
-                                    )
-                                    self._done('Done')
+                        self._process()
+
+                        # Run organisation caches
+                        self._update('Run organisation caches')
+                        generate_data_organisation_cache(
+                            self.harvester.organisation.id
+                        )
+
+                        # Run country caches
+                        self._update('Run country caches')
+                        countries = list(set(self.countries))
+                        for country in countries:
+                            generate_data_country_cache(country)
+
+                        self._done('Done')
         except HarvestingError as e:
             self._error(f'{e}')
         except Exception:
@@ -360,28 +354,36 @@ class BaseHarvester(ABC):
                 obj.save()
         return obj
 
-    def post_processing_well(
-            self, well: Well,
-            generate_country_cache: bool = True,
-            generate_organisation_cache: bool = False
-    ):
+    def post_processing_well(self, well: Well):
         """Specifically for processing cache after procesing well."""
+        import time
         from gwml2.utils.generate_dem_well_value import (
             assign_glo_90m_elevation_for_well
         )
+        original_id = well.original_id
+        t_start = time.time()
         well.update_metadata()
 
-        self._update(f'Generate DEM for {well.original_id}')
+        self._update(f'Generate DEM for {original_id}')
         assign_glo_90m_elevation_for_well(well)
 
-        self._update(f'Generate cache for {well.original_id}')
-        generate_measurement_cache(well.id)
+        self._update(f'Generate data well cache for {original_id}')
         generate_data_well_cache(
             well.id,
-            generate_country_cache=generate_country_cache,
-            generate_organisation_cache=generate_organisation_cache
+            generate_country_cache=False,
+            generate_organisation_cache=False
         )
+
+        self._update(f'Run quality control for {original_id}')
         well.quality_control.run()
+
+        if well.country:
+            self.countries.append(well.country.code)
+
+        self._update(
+            f'post_processing_well done in {time.time() - t_start:.2f}s'
+            f' for {well.original_id}'
+        )
 
     def update_attribute(self, key: str, value):
         """Update attribute."""

@@ -6,7 +6,6 @@ from shutil import copyfile
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from django.db.models import Value, CharField, Func
 from django.utils import timezone
 from openpyxl import load_workbook
 
@@ -16,7 +15,9 @@ from gwml2.models.term import (
     TermReferenceElevationType, TermConstructionStructureType,
     TermAquiferType, TermConfinement, TermGroundwaterUse
 )
-from gwml2.models.well import Well
+from gwml2.models.well import (
+    Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
+)
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.models.well_quality_control import WellQualityControl
 from gwml2.tasks.data_file_cache.base_cache import get_data
@@ -29,6 +30,7 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 from gwml2.tasks.file_lock import file_lock
 from gwml2.terms import SheetName
 from gwml2.utilities import xlsx_to_ods
+from gwml2.utils.wells_cache import generate_measurement_data_cache
 
 DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -511,48 +513,16 @@ class GenerateWellCacheFile(object):
                 sheet_data.append(data)
             self.write_json(sheetname, sheet_data)
 
-    def measurement_data(self, sheets, measurements, original_id, well_name):
-        """ Measurements of well """
-        measurements = measurements.select_related(
-            'parameter', 'value', 'value__unit', 'depth_unit'
-        ).annotate(
-            original_id=Value(original_id, output_field=CharField()),
-            name=Value(well_name, output_field=CharField()),
-            time_str=Func(
-                'time',
-                Value('YYYY-MM-DD HH24:MI:SS'),
-                function='to_char',
-                output_field=CharField()
-            )
-        ).values_list(
-            'original_id', 'name',
-            'time_str', 'parameter__name',
-            'value__value', 'value__unit__name',
-            'depth_value', 'depth_unit__name',
-            'methodology'
-        )
-        for measurement in measurements:
-            sheets.append(measurement)
-
     def measurements(self, book, well):
         """ Measurements of well """
-        self.measurement_data(
-            book['Groundwater Level'],
-            well.welllevelmeasurement_set.all(),
-            well.original_id,
-            well.name
+        generate_measurement_data_cache(
+            well, book['Groundwater Level'], WellLevelMeasurement
         )
-        self.measurement_data(
-            book['Groundwater Quality'],
-            well.wellqualitymeasurement_set.all(),
-            well.original_id,
-            well.name
+        generate_measurement_data_cache(
+            well, book['Groundwater Quality'], WellQualityMeasurement
         )
-        self.measurement_data(
-            book['Abstraction-Discharge'],
-            well.wellyieldmeasurement_set.all(),
-            well.original_id,
-            well.name
+        generate_measurement_data_cache(
+            well, book['Abstraction-Discharge'], WellYieldMeasurement
         )
 
 

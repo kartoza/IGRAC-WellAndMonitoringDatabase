@@ -11,20 +11,6 @@ from gwml2.models.well_management.organisation import Organisation, Country
 from gwml2.utils.management_commands import run_command
 
 
-class MeasurementCacheFromFilter(InputFilter):
-    title = 'Measurement cache from'
-    parameter_name = 'measurement_cache_from'
-    input_type = 'date'
-    lookup = 'measurement_cache_generated_at__date__gte'
-
-
-class MeasurementCacheToFilter(InputFilter):
-    title = 'Measurement cache to'
-    parameter_name = 'measurement_cache_to'
-    input_type = 'date'
-    lookup = 'measurement_cache_generated_at__date__lte'
-
-
 class DataCacheFromFilter(InputFilter):
     title = 'Data cache from'
     parameter_name = 'data_cache_from'
@@ -86,19 +72,6 @@ def generate_data_wells_cache(modeladmin, request, queryset):
     )
 
 
-@admin.action(description='Generate measurement cache')
-def generate_measurement_cache(modeladmin, request, queryset):
-    """Generate measurement cache."""
-    ids = [f'{_id}' for _id in queryset.values_list('well_id', flat=True)]
-    return run_command(
-        request,
-        'generate_well_measurement_cache',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
 @admin.action(description='Generate metadata')
 def generate_metadata(modeladmin, request, queryset):
     """Generate measurement cache."""
@@ -129,7 +102,6 @@ def generate_data_cache_information(modeladmin, request, queryset):
 class WellCacheIndicatorAdmin(admin.ModelAdmin):
     list_display = (
         'well', '_organisation', '_country',
-        'measurement_cache_generated_at',
         'data_cache_generated_at',
         'metadata_generated_at',
         'data_cache_info',
@@ -137,13 +109,12 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
     )
     change_list_template = "admin/well_cache_change_list.html"
     actions = [
-        generate_data_wells_cache, generate_measurement_cache,
+        generate_data_wells_cache,
         generate_metadata, generate_data_cache_information
     ]
     list_filter = (
         'well__feature_type',
         OrganisationFilter, CountryFilter,
-        MeasurementCacheFromFilter, MeasurementCacheToFilter,
         DataCacheFromFilter, DataCacheToFilter,
     )
     readonly_fields = ('well',)
@@ -173,7 +144,6 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
             'well__original_id',
             'well__organisation__id', 'well__organisation__name',
             'well__country__id', 'well__country__name',
-            'measurement_cache_generated_at',
             'data_cache_generated_at',
             'metadata_generated_at',
             'data_cache_information',

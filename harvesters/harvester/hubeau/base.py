@@ -16,9 +16,6 @@ from gwml2.models.term_measurement_parameter import (
 from gwml2.models.well import (
     Well
 )
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class HubeauHarvester(BaseHarvester):
@@ -66,12 +63,6 @@ class HubeauHarvester(BaseHarvester):
         # Process the stations
         self._process_stations(self.station_url)
         self.delete_attribute(self.last_code_key)
-
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
 
     def _measurement_params_update(
             self, params_dict: dict, parameter_key: str
@@ -233,11 +224,7 @@ class HubeauHarvester(BaseHarvester):
             # -----------------------
             # Generate cache
             if well and self.updated:
-                self.post_processing_well(
-                    well, generate_country_cache=False
-                )
-                if well.country:
-                    self.countries.append(well.country.code)
+                self.post_processing_well(well)
         except (
                 Well.DoesNotExist, requests.exceptions.ConnectionError
         ):

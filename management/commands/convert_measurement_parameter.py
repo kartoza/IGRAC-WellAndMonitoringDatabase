@@ -54,7 +54,3 @@ class Command(WellCommand):
                 measurements.update(
                     parameter_id=to_measurement_id
                 )
-                well.generate_all_measurement_caches(
-                    measurement_name=None,
-                    force=True
-                )

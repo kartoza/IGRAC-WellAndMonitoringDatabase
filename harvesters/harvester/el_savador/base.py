@@ -16,9 +16,6 @@ from gwml2.models import (
 from gwml2.models.well import (
     WellLevelMeasurement, WellQualityMeasurement
 )
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class ElSavadorHarvester(BaseHarvester):
@@ -182,14 +179,5 @@ class ElSavadorHarvester(BaseHarvester):
                 # -----------------------
                 # Generate cache
                 if well and updated:
-                    self.post_processing_well(
-                        well, generate_country_cache=False
-                    )
-                    if well.country:
-                        self.countries.append(well.country.code)
+                    self.post_processing_well(well)
 
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)

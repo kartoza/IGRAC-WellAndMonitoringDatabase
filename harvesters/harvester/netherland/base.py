@@ -8,9 +8,6 @@ from gwml2.harvesters.models.harvester import (
     HarvesterWellData
 )
 from gwml2.models import Well
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class NetherlandHarvester(BaseHarvester):
@@ -26,12 +23,6 @@ class NetherlandHarvester(BaseHarvester):
     def _process(self):
         """ Run the harvester """
         self.fetch_stations(self.station_url)
-
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
 
     def get_original_id(self, feature: dict) -> str:
         """Return original id."""
@@ -90,11 +81,7 @@ class NetherlandHarvester(BaseHarvester):
                     # -----------------------
                     # Generate cache
                     if well:
-                        self.post_processing_well(
-                            well, generate_country_cache=False
-                        )
-                        if well.country:
-                            self.countries.append(well.country.code)
+                        self.post_processing_well(well)
             except (KeyError, TypeError, Well.DoesNotExist) as e:
                 continue
 
