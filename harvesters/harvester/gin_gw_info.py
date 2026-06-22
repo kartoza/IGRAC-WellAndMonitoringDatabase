@@ -11,7 +11,6 @@ from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_AMSL, Well, WellLevelMeasurement
 )
-from gwml2.tasks.well import generate_measurement_cache
 
 
 class GinGWInfo(BaseHarvester):
@@ -75,8 +74,7 @@ class GinGWInfo(BaseHarvester):
                         updated = self._measurements(well, harvester_well_data)
                         if updated:
                             print(f'{well.original_id} is updated: Generate cache')
-                            generate_measurement_cache(
-                                well.id, WellLevelMeasurement.__name__)
+                            self.post_processing_well(well)
                     except Well.DoesNotExist:
                         continue
                 except AttributeError:

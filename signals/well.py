@@ -6,7 +6,6 @@ from django.dispatch import receiver
 from gwml2.models.well import (
     Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
-from gwml2.tasks.well import generate_measurement_cache
 from gwml2.utilities import make_aware_local
 
 
@@ -145,13 +144,3 @@ def post_save_measurement(sender, instance, **kwargs):
         pass
 
 
-@receiver(post_save, sender=WellLevelMeasurement)
-@receiver(post_save, sender=WellQualityMeasurement)
-@receiver(post_save, sender=WellYieldMeasurement)
-def post_save_measurement_for_cache(sender, instance, **kwargs):
-    """ when changed
-    :type instance: WellLevelMeasurement
-    """
-    generate_measurement_cache.delay(
-        instance.well.id, sender.__name__
-    )

@@ -11,9 +11,6 @@ from gwml2.harvesters.models.harvester import (
 from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import WellQualityMeasurement, Well
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 LANSKOD_KEY = 'lanskod'
 STATIONSID_KEY = 'stationsid'
@@ -173,12 +170,6 @@ class SguQualityAPI(SguAPI):
         ).filter(
             name__in=[LANSKOD_KEY, STATIONSID_KEY]
         ).delete()
-
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
 
     def process_well(
             self, harvester_well_data: HarvesterWellData, note: str

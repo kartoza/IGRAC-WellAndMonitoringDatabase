@@ -1,5 +1,3 @@
-import gzip
-import json
 import os
 import shutil
 from datetime import datetime
@@ -139,15 +137,6 @@ class Well(GeneralInformation, CreationMetadata):
         max_length=8
     )
 
-    # Cache indicators
-    measurement_cache_generated_at = models.DateTimeField(
-        _('Time when measurement cache generated'),
-        null=True, blank=True
-    )
-    data_cache_generated_at = models.DateTimeField(
-        _('Time when data cache generated'),
-        null=True, blank=True
-    )
     objects = WellManager()
 
     def __str__(self):
@@ -284,68 +273,6 @@ class Well(GeneralInformation, CreationMetadata):
             settings.MEASUREMENTS_FOLDER, f'{self.id}-{measurement_name}.gz'
         )
 
-    def measurement_data(self, measurement_name: str):
-        """ Return measurement data """
-        ground_surface_elevation = self.ground_surface_elevation
-        unit_to = None
-        if ground_surface_elevation:
-            unit_to = ground_surface_elevation.unit
-        top_borehole_elevation = self.top_borehole_elevation
-        if top_borehole_elevation:
-            if not unit_to:
-                unit_to = top_borehole_elevation.unit
-            top_borehole_elevation = convert_value(
-                top_borehole_elevation, unit_to)
-
-        for MeasurementModel in MEASUREMENT_MODELS:
-            if MeasurementModel.__name__ == measurement_name:
-                output = {"data": [], "page": 1, "end": True}
-                for measurement in MeasurementModel.objects.filter(well=self):
-                    quantity = convert_value(measurement.value, unit_to)
-                    if not quantity:
-                        continue
-
-                    value = quantity.value
-                    unit = ''
-                    if quantity.unit:
-                        unit = quantity.unit.name
-
-                    parameter = measurement.parameter.name
-
-                    if MeasurementModel == WellLevelMeasurement:
-                        if parameter in [
-                            MEASUREMENT_PARAMETER_AMSL,
-                            MEASUREMENT_PARAMETER_TOP,
-                            MEASUREMENT_PARAMETER_GROUND
-                        ]:
-                            parameter = MEASUREMENT_PARAMETER_AMSL
-                            if measurement.parameter.name == MEASUREMENT_PARAMETER_TOP:
-                                if top_borehole_elevation and value > 0:
-                                    value = top_borehole_elevation.value - value
-                                else:
-                                    parameter = measurement.parameter.name
-                            elif measurement.parameter.name == MEASUREMENT_PARAMETER_GROUND:
-                                if ground_surface_elevation and value > 0:
-                                    value = ground_surface_elevation.value - value
-                                else:
-                                    parameter = measurement.parameter.name
-
-                    try:
-                        if round(value, 3) != 0:
-                            value = round(value, 3)
-                    except ValueError:
-                        pass
-
-                    output['data'].append({
-                        'dt': measurement.time.timestamp(),
-                        'par': parameter,
-                        'u': unit,
-                        'v': value,
-                        'du': measurement.depth_unit.name if measurement.depth_unit else '',
-                        'dv': measurement.depth_value if measurement.depth_value else '',
-                    })
-                return output
-        return None
 
     def assign_first_last(self, query):
         """Assign first and last measurements."""
@@ -396,56 +323,6 @@ class Well(GeneralInformation, CreationMetadata):
             )
         )
         return self.organisation and self.organisation.id in organisations
-
-    def generate_measurement_cache(self, model=None):
-        """ Generate measurement cache """
-        folder = self.return_measurement_cache_folder()
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
-        if not os.path.exists(settings.MEASUREMENTS_FOLDER):
-            os.makedirs(settings.MEASUREMENTS_FOLDER)
-
-        for MeasurementModel in MEASUREMENT_MODELS:
-            measurement_name = MeasurementModel.__name__
-            if model and measurement_name != model:
-                continue
-            output = self.measurement_data(measurement_name)
-            filename = self.return_measurement_cache_path(measurement_name)
-
-            # Remove the file
-            if os.path.exists(filename):
-                os.remove(filename)
-
-            # If it has output data, write to file
-            try:
-                if output['data']:
-                    json_str = json.dumps(output) + "\n"
-                    json_bytes = json_str.encode('utf-8')
-                    file = gzip.open(filename, 'wb')
-                    file.write(json_bytes)
-                    file.close()
-                    print(f"Saving : {filename}")
-                    self.cache.measurement_cache_generated_at_check(model)
-            except KeyError:
-                pass
-
-    def generate_all_measurement_caches(
-            self, measurement_name: str, force: bool = False
-    ):
-        """Generate all measurement caches."""
-        for MeasurementModel in MEASUREMENT_MODELS:
-            # skip if measurement filtered
-            if (
-                    measurement_name and
-                    MeasurementModel.__name__ != measurement_name
-            ):
-                return
-            model = MeasurementModel.__name__
-            if not force:
-                cache_file = self.return_measurement_cache_path(model)
-                if os.path.exists(cache_file):
-                    return
-            self.generate_measurement_cache(model)
 
     def assign_measurement_type(self):
         """Assign measurement type."""

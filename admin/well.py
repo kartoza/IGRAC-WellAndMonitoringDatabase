@@ -168,19 +168,6 @@ def generate_data_wells_cache(modeladmin, request, queryset):
     )
 
 
-@admin.action(description='Generate measurement cache')
-def generate_measurement_cache(modeladmin, request, queryset):
-    """Generate measurement cache."""
-    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    return run_command(
-        request,
-        'generate_well_measurement_cache',
-        args=[
-            "--ids", ', '.join(ids), "--force"
-        ]
-    )
-
-
 @admin.action(description='Generate metadata')
 def generate_metadata(modeladmin, request, queryset):
     """Generate measurement cache."""
@@ -258,7 +245,6 @@ class WellAdmin(admin.ModelAdmin):
         generate_dem_values,
         generate_metadata,
         generate_data_wells_cache,
-        generate_measurement_cache,
         generate_data_cache_information,
     ]
     change_list_template = "admin/well_change_list.html"

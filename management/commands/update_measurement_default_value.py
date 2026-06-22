@@ -2,10 +2,11 @@ from django.core.management.base import BaseCommand
 from django.db.models.signals import post_save, pre_save
 
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.models.well import WellYieldMeasurement, WellQualityMeasurement, \
+from gwml2.models.well import (
+    WellYieldMeasurement, WellQualityMeasurement,
     WellLevelMeasurement, Well
+)
 from gwml2.signals.well import (
-    post_save_measurement_for_cache,
     pre_save_measurement, post_save_measurement
 )
 from gwml2.utilities import Signal, temp_disconnect_signals
@@ -104,13 +105,7 @@ class Command(BaseCommand):
                         Signal(post_save, post_save_measurement,
                                WellYieldMeasurement),
                         Signal(post_save, post_save_measurement,
-                               WellQualityMeasurement),
-                        Signal(post_save, post_save_measurement_for_cache,
-                               WellLevelMeasurement),
-                        Signal(post_save, post_save_measurement_for_cache,
-                               WellYieldMeasurement),
-                        Signal(post_save, post_save_measurement_for_cache,
-                               WellQualityMeasurement),
+                               WellQualityMeasurement)
                     ]
             ):
                 update_measurement_default_db(
@@ -122,7 +117,7 @@ class Command(BaseCommand):
                 update_measurement_default_db(
                     well.id, well.wellqualitymeasurement_set.all(), init
                 )
-                
+
                 assign_first_last(well.welllevelmeasurement_set.all(), well)
                 assign_first_last(well.wellyieldmeasurement_set.all(), well)
                 assign_first_last(well.wellqualitymeasurement_set.all(), well)

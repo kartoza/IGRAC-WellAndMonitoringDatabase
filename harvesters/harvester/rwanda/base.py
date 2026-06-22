@@ -12,9 +12,6 @@ from gwml2.harvesters.models.harvester import (
 from gwml2.models import (
     Well, TermMeasurementParameter, Unit, TermMeasurementParameterGroup
 )
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class RwandaHarvester(BaseHarvester):
@@ -145,22 +142,10 @@ class RwandaHarvester(BaseHarvester):
                     # -----------------------
                     # Generate cache
                     if well:
-                        self.post_processing_well(
-                            well, generate_country_cache=False
-                        )
-                        if well.country:
-                            self.countries.append(well.country.code)
+                        self.post_processing_well(well)
 
             except Well.DoesNotExist:
                 pass
-
-        # ------------------------------------
-        # Run country caches
-        # ------------------------------------
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
 
     def process_measurement(
             self, harvester_well_data: HarvesterWellData, unique_id,

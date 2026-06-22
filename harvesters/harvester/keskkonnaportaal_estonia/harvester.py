@@ -17,9 +17,6 @@ from gwml2.models import (
 from gwml2.models.well import (
     Well, WellLevelMeasurement, WellQualityMeasurement
 )
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
@@ -110,12 +107,6 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
                 self.process_station(harvester_well_data)
             except (KeyError, TypeError, Well.DoesNotExist) as e:
                 continue
-
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
 
     def process_level_measurement(
             self,
@@ -222,8 +213,4 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
         # -----------------------
         # Generate cache
         if well:
-            self.post_processing_well(
-                well, generate_country_cache=False
-            )
-            if well.country:
-                self.countries.append(well.country.code)
+            self.post_processing_well(well)

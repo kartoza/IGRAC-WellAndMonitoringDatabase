@@ -19,9 +19,6 @@ from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_AMSL, WellLevelMeasurement
 )
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 last_file_key = 'last-file'
 check_old_data_done_key = 'check-old-data'
@@ -148,13 +145,7 @@ class FileBase(BaseHarvester):
         # Process cache
         for well in self.wells:
             self._update(f'Processing cache {well.original_id}')
-            self.post_processing_well(well, generate_country_cache=False)
-
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)
+            self.post_processing_well(well)
 
     def process_measurement(self, data):
         """Process measurement."""
@@ -198,7 +189,6 @@ class FileBase(BaseHarvester):
             updated = True
         if updated:
             self.wells.append(well)
-            self.countries.append(well.country.code)
 
     def process_measurements(self, path):
         """Process measurements."""

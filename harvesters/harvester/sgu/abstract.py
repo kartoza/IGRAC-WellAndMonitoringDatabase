@@ -7,9 +7,6 @@ from gwml2.harvesters.models.harvester import (
     HarvesterWellData, Harvester
 )
 from gwml2.models.well import Well
-from gwml2.tasks.data_file_cache.country_recache import (
-    generate_data_country_cache
-)
 
 
 class SkipProcessWell(Exception):
@@ -76,10 +73,7 @@ class SguAPI(BaseHarvester):
 
     def well_updated(self, well: Well):
         """When the well is updated."""
-        self.post_processing_well(
-            well, generate_country_cache=False
-        )
-        self.countries.append(well.country.code)
+        self.post_processing_well(well)
 
     def process_well(
             self, harvester_well_data: HarvesterWellData, note: str
@@ -111,8 +105,3 @@ class SguAPI(BaseHarvester):
             except SkipProcessWell:
                 pass
 
-        # Run country caches
-        self._update('Run country caches')
-        countries = list(set(self.countries))
-        for country in countries:
-            generate_data_country_cache(country)

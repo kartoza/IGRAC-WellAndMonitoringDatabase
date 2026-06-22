@@ -4,7 +4,6 @@ from datetime import datetime
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.well import Well, MEASUREMENT_MODELS
@@ -20,10 +19,6 @@ class WellCacheIndicator(models.Model):
     # ----------------------------------------
     # Well cache indicator
     # ----------------------------------------
-    measurement_cache_generated_at = models.DateTimeField(
-        _('Time when measurement cache generated'),
-        null=True, blank=True
-    )
     data_cache_generated_at = models.DateTimeField(
         _('Time when data cache generated'),
         null=True, blank=True
@@ -39,25 +34,6 @@ class WellCacheIndicator(models.Model):
         ),
         null=True, blank=True
     )
-
-    def measurement_cache_generated_at_check(self, model):
-        """Generate measurement cache at check."""
-        _time = None
-        well = self.well
-        cache_file = well.return_measurement_cache_path(model)
-        if os.path.exists(cache_file):
-            modified_timestamp = os.path.getmtime(cache_file)
-            modified_datetime = make_aware(
-                datetime.fromtimestamp(modified_timestamp)
-            )
-            if (
-                    not self.measurement_cache_generated_at or
-                    modified_datetime > self.measurement_cache_generated_at
-            ):
-                _time = modified_datetime
-        if _time:
-            self.measurement_cache_generated_at = _time
-            self.save()
 
     def generate_data_wells_cache(self, force=False, generators=None):
         """Generate data wells cache."""
@@ -79,13 +55,6 @@ class WellCacheIndicator(models.Model):
             generators=generators
         )
 
-    def generate_measurement_cache(self, measurement_name=None, force=False):
-        """Generate measurement cache."""
-        self.well.generate_all_measurement_caches(
-            measurement_name=measurement_name,
-            force=force
-        )
-
     def generate_metadata(self, force=False):
         """Generate measurement cache."""
         if not force and self.metadata_generated_at:
@@ -95,7 +64,6 @@ class WellCacheIndicator(models.Model):
     def run(self, force=False):
         """Force run cache."""
         self.generate_data_wells_cache(force=force)
-        self.generate_measurement_cache(force=force)
         self.generate_metadata(force=force)
 
     def assign_data_cache_information(self):

@@ -1,5 +1,4 @@
 from celery.utils.log import get_task_logger
-from django.db.models.signals import post_save
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled, UploadSessionCheckpoint,
@@ -12,7 +11,6 @@ from gwml2.models.well import (
     WellYieldMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
-from gwml2.signals.well import post_save_measurement_for_cache
 from gwml2.tasks.data_file_cache import generate_data_well_cache
 from gwml2.tasks.data_file_cache.country_recache import (
     generate_data_country_cache
@@ -20,8 +18,6 @@ from gwml2.tasks.data_file_cache.country_recache import (
 from gwml2.tasks.data_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
-from gwml2.tasks.well import generate_measurement_cache
-from gwml2.utilities import temp_disconnect_signal
 from gwml2.utils.generate_dem_well_value import (
     assign_glo_90m_elevation
 )
@@ -78,37 +74,22 @@ class BatchUploader:
         self.restart = restart
 
         # Disconnect
-        with temp_disconnect_signal(
-                signal=post_save,
-                receiver=post_save_measurement_for_cache,
-                sender=WellLevelMeasurement
-        ):
-            with temp_disconnect_signal(
-                    signal=post_save,
-                    receiver=post_save_measurement_for_cache,
-                    sender=WellYieldMeasurement
-            ):
-                with temp_disconnect_signal(
-                        signal=post_save,
-                        receiver=post_save_measurement_for_cache,
-                        sender=WellQualityMeasurement
-                ):
-                    try:
-                        self.process()
-                    except UploadSessionCancelled:
-                        self.upload_session.update_step('Create report')
-                        self.upload_session.create_report_excel()
-                        self.upload_session.update_step('Cancelled')
-                        MaterializedViewWell.refresh()
-                        return
-                    except Exception as error:
-                        self.upload_session.update_progress(
-                            finished=True,
-                            progress=100,
-                            status=str(error)
-                        )
-                        MaterializedViewWell.refresh()
-                        return
+        try:
+            self.process()
+        except UploadSessionCancelled:
+            self.upload_session.update_step('Create report')
+            self.upload_session.create_report_excel()
+            self.upload_session.update_step('Cancelled')
+            MaterializedViewWell.refresh()
+            return
+        except Exception as error:
+            self.upload_session.update_progress(
+                finished=True,
+                progress=100,
+                status=str(error)
+            )
+            MaterializedViewWell.refresh()
+            return
 
     def saving_data(self):
         """Saving data.
@@ -144,21 +125,6 @@ class BatchUploader:
         """Cache well data."""
         # This is specifically for cache well data
         well = Well.objects.get(id=well_id)
-        if (
-                self.upload_session.category ==
-                UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
-        ):
-            generate_measurement_cache(
-                well_id=well_id, model=WellLevelMeasurement.__name__
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellYieldMeasurement.__name__
-            )
-            generate_measurement_cache(
-                well_id=well_id, model=WellQualityMeasurement.__name__
-            )
-            well.quality_control.run()
-
         generate_data_well_cache(
             well_id=well_id, generate_country_cache=False,
             generate_organisation_cache=False
