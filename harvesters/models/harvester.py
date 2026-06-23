@@ -258,39 +258,3 @@ class HarvesterLog(models.Model):
     class Meta:
         db_table = 'harvester_log'
         ordering = ('-start_time',)
-
-
-# TODO:
-#  Clean this, as we can remove this needs
-class HarvesterWellData(models.Model):
-    """
-    Well of data that is harvested
-    This indicate the times of measurements that already harvested
-    This time used for the next harvesting
-    """
-    harvester = models.ForeignKey(
-        Harvester, on_delete=models.CASCADE
-    )
-    well = models.ForeignKey(
-        Well,
-        on_delete=models.CASCADE
-    )
-    measurements_found = models.IntegerField(
-        default=0,
-        help_text=_(
-            "Number of measurements found.")
-    )
-    from_time_data = models.DateTimeField(
-        null=True, blank=True,
-        help_text=_(
-            "The time of oldest measurement that are harvested.")
-    )
-    to_time_data = models.DateTimeField(
-        null=True, blank=True,
-        help_text=_(
-            "The time of newest measurement that are harvested.")
-    )
-
-    class Meta:
-        db_table = 'harvester_well_data'
-        verbose_name_plural = 'Harvester well data'

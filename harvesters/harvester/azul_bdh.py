@@ -116,7 +116,7 @@ class AzulBdh(BaseHarvester):
                     details['owner'] = value
         try:
             # Save well
-            well, harvester_well_data = self._save_well(
+            well = self._save_well(
                 original_id=details['name'],
                 name=details['name'],
                 latitude=details['latitude'],
@@ -150,11 +150,11 @@ class AzulBdh(BaseHarvester):
                 f'xgap_param_idpoint={properties["id"]}&'
                 f'retorno={properties["pagina"]}'
             )
-            self.measurements(harvester_well_data, measurements_url)
+            self.measurements(well, measurements_url)
         except Well.DoesNotExist:
             pass
 
-    def measurements(self, harvester_well_data, url: str):
+    def measurements(self, well, url: str):
         """ Return measurement of station."""
         response = self.request.get(url)
         self._update('Saving measurements {}'.format(url))
@@ -176,7 +176,7 @@ class AzulBdh(BaseHarvester):
                         WellLevelMeasurement,
                         date_time,
                         defaults,
-                        harvester_well_data,
+                        well,
                         value,
                         self.unit_m
                     )

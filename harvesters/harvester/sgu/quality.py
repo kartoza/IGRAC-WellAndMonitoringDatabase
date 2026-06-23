@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 
 from gwml2.harvesters.harvester.sgu.abstract import SguAPI, SkipProcessWell
 from gwml2.harvesters.models.harvester import (
-    HarvesterWellData, Harvester, HarvesterAttribute
+    Harvester, HarvesterAttribute
 )
 from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
@@ -40,7 +40,7 @@ class SguQualityAPI(SguAPI):
         self.lanskod_max = int(attr.value)
         super(SguQualityAPI, self).__init__(harvester, replace, original_id)
 
-    def well_from_station(self, station: dict) -> HarvesterWellData:
+    def well_from_station(self, station: dict) -> Well:
         """Retrieves well data from station."""
         to_coord = SpatialReference(4326)
         from_coord = SpatialReference(self.crs)
@@ -53,13 +53,13 @@ class SguQualityAPI(SguAPI):
         # check the station
         station_id = station['properties']['stationsid']
         name = station['properties']['stationsnamn']
-        well, harvester_well_data = self._save_well(
+        well = self._save_well(
             original_id=station_id,
             name=name,
             latitude=point.y,
             longitude=point.x,
         )
-        return harvester_well_data
+        return well
 
     def get_stations(self, lanskod: int) -> list[dict]:
         """Retrieves station data from Harvester.
@@ -120,8 +120,7 @@ class SguQualityAPI(SguAPI):
                     if previous_station and stationsid != previous_station:
                         continue
                     try:
-                        harvester_well_data = self.well_from_station(station)
-                        well = harvester_well_data.well
+                        well = self.well_from_station(station)
                     except (KeyError, TypeError, Well.DoesNotExist):
                         continue
 
@@ -137,7 +136,7 @@ class SguQualityAPI(SguAPI):
 
                     try:
                         self.process_well(
-                            harvester_well_data,
+                            well,
                             f'Saving lanskod {lanskod} - {well.original_id} :'
                             f' well({well_idx + 1}/{total})'
                         )
@@ -171,12 +170,9 @@ class SguQualityAPI(SguAPI):
             name__in=[LANSKOD_KEY, STATIONSID_KEY]
         ).delete()
 
-    def process_well(
-            self, harvester_well_data: HarvesterWellData, note: str
-    ):
+    def process_well(self, well: Well, note: str):
         """Processing well.
         """
-        well = harvester_well_data.well
         response = self._request_api(
             f'https://resource.sgu.se/oppnadata/grundvatten/api/'
             f'miljoovervakning/station/{well.original_id}?format=json'
@@ -228,7 +224,7 @@ class SguQualityAPI(SguAPI):
                         defaults={
                             'parameter': parameter
                         },
-                        harvester_well_data=harvester_well_data,
+                        well=well,
                         value=value,
                         unit=unit
                     )

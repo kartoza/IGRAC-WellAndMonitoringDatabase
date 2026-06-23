@@ -7,7 +7,7 @@ from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import (
-    Harvester, HarvesterParameterMap, HarvesterWellData
+    Harvester, HarvesterParameterMap
 )
 from gwml2.models import (
     Well, TermMeasurementParameter, Unit, TermMeasurementParameterGroup
@@ -67,7 +67,7 @@ class RwandaHarvester(BaseHarvester):
                 )
 
                 # check the station
-                well, harvester_well_data = self._save_well(
+                well = self._save_well(
                     original_id=identifier,
                     name=station["LocationName"],
                     latitude=point.y,
@@ -102,7 +102,7 @@ class RwandaHarvester(BaseHarvester):
                     continue
 
                 updated = False
-                well, harvester_well_data = self._save_well(
+                well = self._save_well(
                     original_id=well.original_id,
                     name=well.name,
                     latitude=well.location.y,
@@ -127,7 +127,7 @@ class RwandaHarvester(BaseHarvester):
                         try:
                             parameter = self.parameters[identifier]
                             updated = self.process_measurement(
-                                harvester_well_data,
+                                well,
                                 description['UniqueId'],
                                 parameter['parameter'],
                                 parameter['unit']
@@ -148,7 +148,7 @@ class RwandaHarvester(BaseHarvester):
                 pass
 
     def process_measurement(
-            self, harvester_well_data: HarvesterWellData, unique_id,
+            self, well: Well, unique_id,
             parameter: TermMeasurementParameter,
             unit: Unit
     ):
@@ -157,7 +157,7 @@ class RwandaHarvester(BaseHarvester):
             "apikey": self.api_key,
             "timeSeriesUniqueId": unique_id
         }
-        first = harvester_well_data.well.wellqualitymeasurement_set.filter(
+        first = well.wellqualitymeasurement_set.filter(
             parameter=parameter).first()
         if first:
             data['startTime'] = first.time.isoformat()
@@ -180,7 +180,7 @@ class RwandaHarvester(BaseHarvester):
                 MeasurementModel,
                 parser.isoparse(point["Timestamp"]),
                 defaults,
-                harvester_well_data,
+                well,
                 point["NumericValue1"],
                 unit
             )

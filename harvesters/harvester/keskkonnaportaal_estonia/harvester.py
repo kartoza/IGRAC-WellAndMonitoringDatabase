@@ -7,10 +7,7 @@ from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models import Harvester, HarvesterParameterMap
-from gwml2.harvesters.models.harvester import (
-    HarvesterAttribute,
-    HarvesterWellData
-)
+from gwml2.harvesters.models.harvester import HarvesterAttribute
 from gwml2.models import (
     Unit, TermMeasurementParameter, MEASUREMENT_PARAMETER_AMSL
 )
@@ -62,7 +59,7 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
             harvester, replace, original_id
         )
 
-    def well_from_station(self, station: dict) -> HarvesterWellData:
+    def well_from_station(self, station: dict) -> Well:
         """Retrieves well data from station."""
         coordinates = station['geometry']['coordinates']
 
@@ -71,13 +68,12 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
         # check the station
         station_id = f"{self.prefix_name}{station['properties']['kr_kood']}"
         name = station_id
-        well, harvester_well_data = self._save_well(
+        return self._save_well(
             original_id=station_id,
             name=name,
             latitude=point.y,
             longitude=point.x,
         )
-        return harvester_well_data
 
     def _process(self):
         """ Run the harvester """
@@ -96,24 +92,19 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
                     f'Checking {station_id} : well({well_idx + 1}/{total})'
                 )
 
-                harvester_well_data = self.well_from_station(station)
-                well = harvester_well_data.well
+                well = self.well_from_station(station)
                 if not self.is_processing_station:
                     continue
 
                 self._update(
                     f'Saving {well.original_id} : well({well_idx + 1}/{total})'
                 )
-                self.process_station(harvester_well_data)
+                self.process_station(well)
             except (KeyError, TypeError, Well.DoesNotExist) as e:
                 continue
 
-    def process_level_measurement(
-            self,
-            harvester_well_data: HarvesterWellData
-    ):
+    def process_level_measurement(self, well: Well):
         """Processing level measurement."""
-        well = harvester_well_data.well
         # ----------------------------------------------
         # Level measurement
         # ----------------------------------------------
@@ -154,22 +145,19 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
                         WellLevelMeasurement,
                         time,
                         defaults,
-                        harvester_well_data,
+                        well,
                         value,
                         unit
                     )
                 except Unit.DoesNotExist:
                     pass
 
-    def process_quantity_measurement(
-            self,
-            harvester_well_data: HarvesterWellData
-    ):
+    def process_quantity_measurement(self, well: Well):
         """Processing quantity measurement."""
         # ----------------------------------------------
         # Quality measurement and detail
         # ----------------------------------------------
-        kood = harvester_well_data.well.original_id.replace(
+        kood = well.original_id.replace(
             self.prefix_name, ''
         )
         response = requests.post(
@@ -193,21 +181,17 @@ class KeskkonnaportaalEstoniaHarvester(BaseHarvester):
                         WellQualityMeasurement,
                         time,
                         defaults,
-                        harvester_well_data,
+                        well,
                         value,
                         unit
                     )
                 except (ValueError, KeyError, Unit.DoesNotExist):
                     pass
 
-    def process_station(
-            self,
-            harvester_well_data: HarvesterWellData
-    ):
+    def process_station(self, well: Well):
         """Processing station."""
-        well = harvester_well_data.well
-        self.process_level_measurement(harvester_well_data)
-        self.process_quantity_measurement(harvester_well_data)
+        self.process_level_measurement(well)
+        self.process_quantity_measurement(well)
 
         print(f'{well.original_id} : done')
         # -----------------------

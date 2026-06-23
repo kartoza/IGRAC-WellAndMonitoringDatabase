@@ -16,6 +16,6 @@ class CidaUsgsWaterQuality(CidaUsgsApi):
         """Return station url."""
         return CidaUsgsWaterQuality.cql_filter_method()
 
-    def get_measurements(self, well_data, harvester_well_data):
+    def get_measurements(self, well_data, well):
         """Get and save measurements."""
         pass

@@ -7,7 +7,7 @@ from dateutil.parser import parse
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import (
-    Harvester, HarvesterParameterMap, HarvesterWellData
+    Harvester, HarvesterParameterMap
 )
 from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import (
@@ -154,7 +154,7 @@ class HubeauHarvester(BaseHarvester):
             # Save well
             try:
                 altitude = float(station['altitude_station'])
-                well, harvester_well_data = self._save_well(
+                well = self._save_well(
                     original_id=original_id,
                     name=site_name,
                     latitude=latitude,
@@ -163,7 +163,7 @@ class HubeauHarvester(BaseHarvester):
                     reassign_organisation=True
                 )
             except KeyError:
-                well, harvester_well_data = self._save_well(
+                well = self._save_well(
                     original_id=original_id,
                     name=site_name,
                     latitude=latitude,
@@ -202,7 +202,7 @@ class HubeauHarvester(BaseHarvester):
                     params[self.measurement_date_debut_key] = last_date
                 self._process_measurements(
                     self._measurement_url(params, parameter_key),
-                    harvester_well_data,
+                    well,
                     MeasurementModel, parameter,
                     unit
                 )
@@ -216,7 +216,7 @@ class HubeauHarvester(BaseHarvester):
                     }
                     self._process_measurements(
                         self._measurement_url(params, parameter_key),
-                        harvester_well_data,
+                        well,
                         MeasurementModel, parameter,
                         unit
                     )
@@ -264,7 +264,7 @@ class HubeauHarvester(BaseHarvester):
         raise NotImplementedError
 
     def _process_measurements(
-            self, url: str, harvester_well_data: HarvesterWellData,
+            self, url: str, well: Well,
             MeasurementModel, parameter: TermMeasurementParameter,
             unit: Unit = None
     ):
@@ -278,7 +278,7 @@ class HubeauHarvester(BaseHarvester):
             measurements = data['data']
             self._update(
                 f'[{self.current_idx}/{self.count}] '
-                f'{harvester_well_data.well.original_id} - {parameter.name} - '
+                f'{well.original_id} - {parameter.name} - '
                 f'{len(measurements)} - '
                 f'{url}'
             )
@@ -293,14 +293,14 @@ class HubeauHarvester(BaseHarvester):
                         MeasurementModel,
                         time,
                         defaults,
-                        harvester_well_data,
+                        well,
                         measurement[self.measurement_value_key],
                         unit
                     )
                     self.updated = True
                 if data['next']:
                     self._process_measurements(
-                        data['next'], harvester_well_data, MeasurementModel,
+                        data['next'], well, MeasurementModel,
                         parameter, unit
                     )
         else:

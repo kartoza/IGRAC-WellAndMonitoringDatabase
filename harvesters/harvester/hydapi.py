@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models.harvester import (
-    HarvesterParameterMap, HarvesterWellData, Harvester, HarvesterAttribute
+    HarvesterParameterMap, Harvester, HarvesterAttribute
 )
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term import TermWellStatus
@@ -16,7 +16,8 @@ from gwml2.models.term_measurement_parameter import (
 )
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_GROUND,
-    Well, WellLevelMeasurement
+    Well,
+    WellLevelMeasurement
 )
 
 STATIONSID_KEY = 'stationsid'
@@ -139,12 +140,7 @@ class Hydapi(BaseHarvester):
         self.delete_attribute(STATIONSID_KEY)
 
     def _process_station(self, station: dict):
-        """
-        Processing a station
-        Save it to well
-        Save it as HarvesterWellData
-        Fetch measurement
-        """
+        """Processing a station: save well and fetch measurements."""
         # check available parameters
         # check start date
         self.updated = False
@@ -167,7 +163,7 @@ class Hydapi(BaseHarvester):
         if self.original_id and station['stationId'] != self.original_id:
             return
         try:
-            well, harvester_well_data = self._save_well(
+            well = self._save_well(
                 station['stationId'],
                 station['stationName'],
                 station['latitude'],
@@ -204,7 +200,7 @@ class Hydapi(BaseHarvester):
 
             # check latest date
             latest_measurement = model.objects.filter(
-                well=harvester_well_data.well,
+                well=well,
                 parameter=parameter
             ).order_by('-time').first()
 
@@ -231,7 +227,7 @@ class Hydapi(BaseHarvester):
                     from_time_data = date_from
 
                 self._fetch_measurements(
-                    station, harvester_well_data,
+                    station, well,
                     from_time_data, series, resolution_time['resTime'],
 
                     # Parameter data
@@ -247,7 +243,7 @@ class Hydapi(BaseHarvester):
     def _fetch_measurements(
             self,
             station: dict,
-            harvester_well_data: HarvesterWellData,
+            well: Well,
             from_date,
             series: dict,
             resolution_time: int,
@@ -314,7 +310,7 @@ class Hydapi(BaseHarvester):
                                     model,
                                     parser.parse(measurement['time']),
                                     defaults,
-                                    harvester_well_data
+                                    well
                                 )
                                 if not obj.value:
                                     obj.value = Quantity.objects.create(
@@ -332,7 +328,7 @@ class Hydapi(BaseHarvester):
             if not is_last:
                 time.sleep(1)
                 self._fetch_measurements(
-                    station, harvester_well_data, to_date, series,
+                    station, well, to_date, series,
                     resolution_time,
 
                     # Parameter data

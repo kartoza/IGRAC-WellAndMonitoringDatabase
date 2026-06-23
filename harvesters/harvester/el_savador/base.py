@@ -7,9 +7,7 @@ from dateutil.parser import parse
 from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.models.harvester import (
-    HarvesterWellData, Harvester
-)
+from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models import (
     Unit, TermMeasurementParameter, MEASUREMENT_PARAMETER_AMSL
 )
@@ -88,18 +86,9 @@ class ElSavadorHarvester(BaseHarvester):
                 longitude=row['loc']['coordinates'][0]
             )
             if well and well.last_time_measurement:
-                try:
-                    # If it has HarvesterWellData
-                    # Use last_time_measurement
-                    # As we need temperature data
-                    HarvesterWellData.objects.get(
-                        harvester=self.harvester, well=well
-                    )
-                    first_time = well.last_time_measurement.strftime(
-                        "%Y-%m-%dT%H:%M:%S"
-                    )
-                except HarvesterWellData.DoesNotExist:
-                    pass
+                first_time = well.last_time_measurement.strftime(
+                    "%Y-%m-%dT%H:%M:%S"
+                )
             if not self.harvester.save_missing_well and not well:
                 print(
                     f"Station {identifier} ({original_id}) "
@@ -136,7 +125,7 @@ class ElSavadorHarvester(BaseHarvester):
 
             updated = False
             print(f"Found {len(measurements)} measurements for {identifier}")
-            well, harvester_well_data = self._get_station(row)
+            well = self._get_station(row)
             for measurement in measurements:
                 time = parse(measurement['fecha'])
                 # ---------------------------------------
@@ -151,7 +140,7 @@ class ElSavadorHarvester(BaseHarvester):
                         WellLevelMeasurement,
                         time,
                         defaults,
-                        harvester_well_data,
+                        well,
                         level,
                         self.level_unit
                     )
@@ -169,7 +158,7 @@ class ElSavadorHarvester(BaseHarvester):
                         WellQualityMeasurement,
                         time,
                         defaults,
-                        harvester_well_data,
+                        well,
                         temperature,
                         self.temperature_unit
                     )

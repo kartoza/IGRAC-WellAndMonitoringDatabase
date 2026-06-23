@@ -187,7 +187,7 @@ class CidaUsgsApi(BaseHarvester):
                     'unit': self.unit_m
                 }
                 # Save well
-                well, harvester_well_data = self._save_well(
+                well = self._save_well(
                     original_id=site_no,
                     name=site_name,
                     latitude=latitude,
@@ -262,7 +262,7 @@ class CidaUsgsApi(BaseHarvester):
                 well.save()
 
                 # Save measurements
-                self.get_measurements(well_data, harvester_well_data)
+                self.get_measurements(well_data, well)
 
                 # Generate cache
                 if self.updated:
@@ -281,6 +281,6 @@ class CidaUsgsApi(BaseHarvester):
 
         self.delete_attribute(self.last_code_key)
 
-    def get_measurements(self, well_data, harvester_well_data):
+    def get_measurements(self, well_data, well):
         """Get and save measurements."""
         raise NotImplementedError()

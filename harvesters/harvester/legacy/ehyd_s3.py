@@ -117,7 +117,7 @@ class EHYDS3(BaseHarvester):
                     row['date of construction']
                 )
                 self._update(f'Checking well {row["ID"]}')
-                well, harvester_well_data = self._save_well(
+                well = self._save_well(
                     row['ID'],
                     row['name'],
                     longitude=point.coords[0],
@@ -130,7 +130,7 @@ class EHYDS3(BaseHarvester):
                     well=well,
                 ).order_by('-time').first()
                 self.wells_by_original_id[row['ID']] = {
-                    'harvester_well_data': harvester_well_data,
+                    'well': well,
                     'last_measurement': last_measurement
                 }
                 if well.drilling:
@@ -166,9 +166,8 @@ class EHYDS3(BaseHarvester):
         except KeyError:
             print('Not found')
             return
-        harvester_well_data = well_metadata['harvester_well_data']
+        well = well_metadata['well']
         last_measurement = well_metadata['last_measurement']
-        well = harvester_well_data.well
 
         for measurement in data['measurements']:
             # Save measurements
@@ -183,7 +182,7 @@ class EHYDS3(BaseHarvester):
                 WellLevelMeasurement,
                 measurement['time'],
                 defaults,
-                harvester_well_data
+                well
             )
             if not obj.value:
                 obj.value = Quantity.objects.create(
