@@ -81,7 +81,7 @@ class Epawebapp(BaseHarvester):
                 except (ValueError, KeyError):
                     pass
 
-    def fetch_measurement(self, harvester_well_data, station, station_data):
+    def fetch_measurement(self, well, station, station_data):
         """Fetch measurements."""
         # Measurements
         url_measurements = self.url + station_data[
@@ -107,9 +107,9 @@ class Epawebapp(BaseHarvester):
                         if not last_date_time or (
                                 date_time - last_date_time
                         ).seconds / 3600 >= 6:
-                            if not harvester_well_data:
+                            if not well:
                                 # Save well
-                                well, harvester_well_data = self._save_well(
+                                well = self._save_well(
                                     original_id=station['metadata_station_no'],
                                     name=station[
                                         'metadata_station_name'],
@@ -133,7 +133,7 @@ class Epawebapp(BaseHarvester):
                                     )
                                 well.management = management
                                 well.save()
-                                last_data = harvester_well_data.well.welllevelmeasurement_set.first()
+                                last_data = well.welllevelmeasurement_set.first()
                                 if last_data:
                                     last_date_time = last_data.time
 
@@ -147,7 +147,7 @@ class Epawebapp(BaseHarvester):
                                 WellLevelMeasurement,
                                 date_time,
                                 defaults,
-                                harvester_well_data,
+                                well,
                                 float(row[1]),
                                 self.unit_m
                             )

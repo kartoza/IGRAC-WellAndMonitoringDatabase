@@ -5,7 +5,7 @@ from dateutil import parser
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.models.harvester import Harvester, HarvesterWellData
+from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
@@ -64,14 +64,14 @@ class GinGWInfo(BaseHarvester):
                     coordinates = [float(coordinate) for coordinate in coordinates]
                     # create well
                     try:
-                        well, harvester_well_data = self._save_well(
+                        well = self._save_well(
                             id,
                             id,
                             coordinates[0],
                             coordinates[1],
                             description=description
                         )
-                        updated = self._measurements(well, harvester_well_data)
+                        updated = self._measurements(well)
                         if updated:
                             print(f'{well.original_id} is updated: Generate cache')
                             self.post_processing_well(well)
@@ -80,10 +80,7 @@ class GinGWInfo(BaseHarvester):
                 except AttributeError:
                     pass
 
-    def _measurements(
-            self,
-            well: Well,
-            harvester_well_data: HarvesterWellData):
+    def _measurements(self, well: Well):
         """ fetch and save measurement of specific well """
         url = f'https://gin.gw-info.net/GinService/sos/gw?' \
             f'REQUEST=GetObservation&VERSION=2.0.0&SERVICE=SOS' \
@@ -105,7 +102,7 @@ class GinGWInfo(BaseHarvester):
             )
             # check latest date
             latest_measurement = WellLevelMeasurement.objects.filter(
-                well=harvester_well_data.well,
+                well=well,
             ).order_by('-time').first()
 
             last_time = None
@@ -137,7 +134,7 @@ class GinGWInfo(BaseHarvester):
                         WellLevelMeasurement,
                         time,
                         defaults,
-                        harvester_well_data
+                        well
                     )
                     if not obj.value:
                         obj.value = Quantity.objects.create(

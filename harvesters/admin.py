@@ -2,8 +2,7 @@ from django import forms
 from django.contrib import admin
 
 from gwml2.harvesters.models.harvester import (
-    Harvester, HarvesterAttribute, HarvesterParameterMap,
-    HarvesterLog, HarvesterWellData
+    Harvester, HarvesterAttribute, HarvesterParameterMap, HarvesterLog
 )
 from gwml2.models.site_preference import SitePreference
 from gwml2.tasks.harvester import run_harvester
@@ -222,6 +221,7 @@ def harvest_data(modeladmin, request, queryset):
 harvest_data.short_description = 'Run'
 
 
+@admin.register(Harvester)
 class HarvesterAdmin(admin.ModelAdmin):
     """Admin for Harvester model."""
     form = HarvesterForm
@@ -257,16 +257,3 @@ class HarvesterAdmin(admin.ModelAdmin):
         if not log:
             return '-'
         return f'{log.status} : {log.note}'
-
-
-class HarvesterWellDataAdmin(admin.ModelAdmin):
-    list_display = (
-        'harvester', 'well', 'measurements_found', 'from_time_data',
-        'to_time_data')
-    readonly_fields = (
-        'well', 'measurements_found', 'from_time_data', 'to_time_data')
-    list_filter = ('harvester',)
-
-
-admin.site.register(Harvester, HarvesterAdmin)
-admin.site.register(HarvesterWellData, HarvesterWellDataAdmin)

@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from gwml2.harvesters.models.harvester import (
     HarvesterLog, RUNNING, ERROR,
-    DONE, HarvesterWellData, Harvester, HarvesterAttribute,
+    DONE, Harvester, HarvesterAttribute,
     HarvesterParameterMap
 )
 from gwml2.models.general import Quantity, Unit
@@ -124,20 +124,22 @@ class BaseHarvester(ABC):
                             generate_data_country_cache(country)
 
                         self._done('Done')
+
+                        # RUN MATERIALIZED VIEW
+                        running = Harvester.objects.filter(is_run=True).first()
+                        if not running:
+                            MaterializedViewWell.refresh()
+
+                        # Delete current original id attribute
+                        self.delete_attribute(self.current_original_id_key)
         except HarvestingError as e:
             self._error(f'{e}')
         except Exception:
             self._error(traceback.format_exc())
 
-        # RUN MATERIALIZED VIEW
-        running = Harvester.objects.filter(is_run=True).first()
-        if not running:
-            MaterializedViewWell.refresh()
-
         # Make the task id non
         harvester.task_id = None
         harvester.save()
-        self.delete_attribute(self.current_original_id_key)
 
     @staticmethod
     def additional_attributes() -> dict:
@@ -232,7 +234,7 @@ class BaseHarvester(ABC):
             top_of_well_elevation_masl: typing.Optional[float] = None,
             description: typing.Optional[str] = None,
             reassign_organisation=False
-    ):
+    ) -> Well:
         """ Save well """
         well = self.get_well(
             original_id, latitude=latitude, longitude=longitude
@@ -289,11 +291,6 @@ class BaseHarvester(ABC):
                 )
             well.save()
 
-        # create harvester well
-        harvester_well_data, created = HarvesterWellData.objects.get_or_create(
-            harvester=self.harvester,
-            well=well
-        )
         if reassign_organisation:
             if well.organisation != self.harvester.organisation:
                 well.organisation = self.harvester.organisation
@@ -310,36 +307,35 @@ class BaseHarvester(ABC):
                 self.current_original_id_key, well.original_id
             )
 
-        return well, harvester_well_data
+        return well
 
     def _save_measurement(
             self,
             model: typing.Union[
-                WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement],
+                WellLevelMeasurement, WellQualityMeasurement,
+                WellYieldMeasurement
+            ],
             time: datetime,
             defaults: dict,
-            harvester_well_data: HarvesterWellData,
+            well: Well,
             value: float = None,
             unit: Unit = None
     ):
         """ Save measurement """
         try:
             obj, created = model.objects.get_or_create(
-                well=harvester_well_data.well,
+                well=well,
                 parameter=defaults.get('parameter', None),
                 time=make_aware_local(time),
                 defaults=defaults
             )
-            if created:
-                harvester_well_data.measurements_found += 1
-                harvester_well_data.save()
         except (
                 WellLevelMeasurement.MultipleObjectsReturned,
                 WellQualityMeasurement.MultipleObjectsReturned,
                 WellYieldMeasurement.MultipleObjectsReturned,
         ):
             obj = model.objects.filter(
-                well=harvester_well_data.well,
+                well=well,
                 time=time,
                 parameter=defaults.get('parameter', None)
             ).last()

@@ -37,12 +37,12 @@ class CidaUsgsWaterLevel(CidaUsgsApi):
         """Return station url."""
         return CidaUsgsWaterLevel.cql_filter_method()
 
-    def get_measurements(self, well_data, harvester_well_data):
+    def get_measurements(self, well_data, well):
         """Get and save measurements."""
         site_id = well_data['site_id']
         agency_code = well_data['agency_code']
 
-        last_time = harvester_well_data.well.welllevelmeasurement_set.order_by(
+        last_time = well.welllevelmeasurement_set.order_by(
             '-time').values_list('time', flat=True).first()
 
         now = datetime.now(tz=timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -88,7 +88,7 @@ class CidaUsgsWaterLevel(CidaUsgsApi):
                         WellLevelMeasurement,
                         time,
                         {'parameter': self.parameter},
-                        harvester_well_data,
+                        well,
                         value,
                         unit
                     )

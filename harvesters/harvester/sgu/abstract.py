@@ -3,9 +3,7 @@ from django.contrib.gis.gdal import SpatialReference, CoordTransform
 from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.models.harvester import (
-    HarvesterWellData, Harvester
-)
+from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.well import Well
 
 
@@ -50,7 +48,7 @@ class SguAPI(BaseHarvester):
         self.crs = data['crs']['properties']['name']
         return data['features']
 
-    def well_from_station(self, station: dict) -> HarvesterWellData:
+    def well_from_station(self, station: dict) -> Well:
         """Retrieves well data from station."""
         to_coord = SpatialReference(4326)
         from_coord = SpatialReference(self.crs)
@@ -63,21 +61,19 @@ class SguAPI(BaseHarvester):
         # check the station
         station_id = station['properties']['OMR_STN']
         name = station['properties']['STN_NAMN']
-        well, harvester_well_data = self._save_well(
+        well = self._save_well(
             original_id=station_id,
             name=name,
             latitude=point.y,
             longitude=point.x,
         )
-        return harvester_well_data
+        return well
 
     def well_updated(self, well: Well):
         """When the well is updated."""
         self.post_processing_well(well)
 
-    def process_well(
-            self, harvester_well_data: HarvesterWellData, note: str
-    ):
+    def process_well(self, well: Well, note: str):
         """Processing well."""
         raise NotImplementedError()
 
@@ -92,14 +88,13 @@ class SguAPI(BaseHarvester):
         # ------------------------------------------
         for well_idx, station in enumerate(stations):
             try:
-                harvester_well_data = self.well_from_station(station)
-                well = harvester_well_data.well
+                well = self.well_from_station(station)
             except (KeyError, TypeError, Well.DoesNotExist):
                 continue
 
             try:
                 self.process_well(
-                    harvester_well_data,
+                    well,
                     f'Saving {well.original_id} : well({well_idx + 1}/{total})'
                 )
             except SkipProcessWell:

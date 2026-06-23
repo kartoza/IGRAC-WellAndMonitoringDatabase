@@ -7,9 +7,7 @@ from dateutil import parser
 from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester, HarvestingError
-from gwml2.harvesters.models.harvester import (
-    HarvesterParameterMap, HarvesterWellData
-)
+from gwml2.harvesters.models.harvester import HarvesterParameterMap
 from gwml2.models import (
     Well, TermMeasurementParameterGroup
 )
@@ -26,7 +24,7 @@ class MiljodirektoratetHarvester(BaseHarvester):
     updated = False
     countries = []
 
-    def get_station(self, identifier) -> HarvesterWellData:
+    def get_station(self, identifier) -> Well:
         """Return station."""
         response = requests.post(
             'https://vannmiljoapi.miljodirektoratet.no/api/'
@@ -44,13 +42,12 @@ class MiljodirektoratetHarvester(BaseHarvester):
         )
 
         # check the station
-        well, harvester_well_data = self._save_well(
+        return self._save_well(
             original_id=identifier,
             name=station["Name"],
             latitude=point.y,
             longitude=point.x,
         )
-        return harvester_well_data
 
     def _process(self):
         """Process the harvester.
@@ -78,7 +75,7 @@ class MiljodirektoratetHarvester(BaseHarvester):
             if not self.is_processing_station:
                 continue
             try:
-                harvester_well_data = None
+                well = None
 
                 updated = False
                 # process the station
@@ -101,8 +98,8 @@ class MiljodirektoratetHarvester(BaseHarvester):
                     measurements = response.json()["Result"]
                     for measurement in measurements:
                         unit = value['unit']
-                        if not harvester_well_data:
-                            harvester_well_data = self.get_station(identifier)
+                        if not well:
+                            well = self.get_station(identifier)
 
                         value_operator = measurement["ValueOperator"]
                         if value_operator != "=":
@@ -124,7 +121,7 @@ class MiljodirektoratetHarvester(BaseHarvester):
                             MeasurementModel,
                             parser.isoparse(measurement["SamplingTime"]),
                             defaults,
-                            harvester_well_data,
+                            well,
                             measurement["RegValue"],
                             unit
                         )
@@ -134,7 +131,7 @@ class MiljodirektoratetHarvester(BaseHarvester):
                 if updated:
                     # -----------------------
                     # Generate cache
-                    if harvester_well_data:
-                        self.post_processing_well(harvester_well_data.well)
+                    if well:
+                        self.post_processing_well(well)
             except Well.DoesNotExist:
                 pass

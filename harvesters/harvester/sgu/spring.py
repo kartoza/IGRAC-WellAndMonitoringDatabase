@@ -7,7 +7,7 @@ from django.contrib.gis.geos import Point
 from core.utils import deepl_translater
 from gwml2.harvesters.harvester.sgu.abstract import SguAPI, SkipProcessWell
 from gwml2.harvesters.models.harvester import (
-    HarvesterWellData, Harvester, HarvesterParameterMap
+    Harvester, HarvesterParameterMap
 )
 from gwml2.models.term_measurement_parameter import (
     TermMeasurementParameterGroup
@@ -40,7 +40,7 @@ class SguSpringAPI(SguAPI):
         """Retrieves original id from station."""
         return station['properties']['id']
 
-    def well_from_station(self, station: dict) -> HarvesterWellData:
+    def well_from_station(self, station: dict) -> Well:
         """Retrieves well data from station."""
         coordinates = station['geometry']['coordinates']
 
@@ -49,7 +49,7 @@ class SguSpringAPI(SguAPI):
         # check the station
         station_id = self.get_original_id(station)
         name = station['properties']['namn']
-        well, harvester_well_data = self._save_well(
+        well = self._save_well(
             original_id=station_id,
             name=name,
             latitude=point.y,
@@ -58,7 +58,7 @@ class SguSpringAPI(SguAPI):
         if well.feature_type != self.harvester.feature_type:
             well.feature_type = self.harvester.feature_type
             well.save()
-        return harvester_well_data
+        return well
 
     def _process(self):
         """ Run the harvester """
@@ -86,7 +86,7 @@ class SguSpringAPI(SguAPI):
                 print(f"{e}")
                 continue
 
-    def process_well(self, harvester_well_data: HarvesterWellData, note: str):
+    def process_well(self, well: Well, note: str):
         """Processing well."""
         pass
 
@@ -155,8 +155,7 @@ class SguSpringAPI(SguAPI):
                 or station['properties'].get('fl_txt')
         )
 
-        harvester_well_data = self.well_from_station(station)
-        well = harvester_well_data.well
+        well = self.well_from_station(station)
 
         if well:
             # Description
@@ -234,7 +233,7 @@ class SguSpringAPI(SguAPI):
                         defaults={
                             'parameter': parameter
                         },
-                        harvester_well_data=harvester_well_data,
+                        well=well,
                         value=value,
                         unit=unit
                     )

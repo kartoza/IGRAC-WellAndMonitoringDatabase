@@ -46,7 +46,7 @@ class NetherlandLevelHarvester(NetherlandHarvester):
             'f=json&limit=1000&crs=http://www.opengis.net/def/crs/OGC/1.3/CRS84'
         )
 
-    def _bulk_save(self, original_id, well, harvester_well_data, rows_to_save):
+    def _bulk_save(self, original_id, well, rows_to_save):
         """Bulk insert measurements in chunks."""
         total = len(rows_to_save)
         saved = 0
@@ -107,8 +107,7 @@ class NetherlandLevelHarvester(NetherlandHarvester):
         if not valid_rows:
             return False, None
 
-        harvester_well_data = self.well_from_station(station)
-        well = harvester_well_data.well
+        well = self.well_from_station(station)
         last_measurement = well.welllevelmeasurement_set.order_by(
             '-time').values_list('time', flat=True).first()
         self._update(f'{original_id} : last measurement {last_measurement}')
@@ -126,5 +125,5 @@ class NetherlandLevelHarvester(NetherlandHarvester):
         if not rows_to_save:
             return False, well
 
-        self._bulk_save(original_id, well, harvester_well_data, rows_to_save)
+        self._bulk_save(original_id, well, rows_to_save)
         return True, well

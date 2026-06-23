@@ -4,9 +4,6 @@ import requests
 from django.contrib.gis.geos import Point
 
 from gwml2.harvesters.harvester.base import BaseHarvester
-from gwml2.harvesters.models.harvester import (
-    HarvesterWellData
-)
 from gwml2.models import Well
 
 
@@ -28,7 +25,7 @@ class NetherlandHarvester(BaseHarvester):
         """Return original id."""
         return f"{feature['properties']['bro_id']}"
 
-    def well_from_station(self, station: dict) -> HarvesterWellData:
+    def well_from_station(self, station: dict) -> Well:
         """Retrieves well data from station."""
         coordinates = station['geometry']['coordinates']
 
@@ -36,7 +33,7 @@ class NetherlandHarvester(BaseHarvester):
 
         # check the station
         station_id = self.get_original_id(station)
-        well, harvester_well_data = self._save_well(
+        well = self._save_well(
             original_id=station_id,
             name=station_id,
             latitude=point.y,
@@ -55,7 +52,7 @@ class NetherlandHarvester(BaseHarvester):
                 well.save()
             except (KeyError, IndexError):
                 pass
-        return harvester_well_data
+        return well
 
     def fetch_stations(self, url):
         """Fetch stations."""

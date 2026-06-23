@@ -125,7 +125,7 @@ class GnsCri(BaseHarvester):
             f'FEATURE={original_id}'
         )
         response = requests.get(csv_url)
-        harvester_well_data = None
+        well = None
         if response.status_code == 200:
             # Parse the measurements
             buff = io.StringIO(response.text)
@@ -133,11 +133,11 @@ class GnsCri(BaseHarvester):
             for row in data:
                 try:
                     # Just save well if there are measurements
-                    if not harvester_well_data:
+                    if not well:
                         # -----------------------------------
                         # Save the well
                         try:
-                            well, harvester_well_data = self._save_well(
+                            well = self._save_well(
                                 original_id,
                                 name,
                                 latitude=latitude,
@@ -181,7 +181,7 @@ class GnsCri(BaseHarvester):
                         param['model'],
                         date_time,
                         defaults,
-                        harvester_well_data,
+                        well,
                         value,
                         unit
                     )
@@ -189,5 +189,5 @@ class GnsCri(BaseHarvester):
                 except (KeyError, TypeError, ValueError, Unit.DoesNotExist):
                     pass
 
-        if harvester_well_data and self.updated:
-            self.post_processing_well(harvester_well_data.well)
+        if well and self.updated:
+            self.post_processing_well(well)

@@ -2,13 +2,12 @@ from dateutil import parser
 from django.utils.timezone import make_aware
 
 from gwml2.harvesters.harvester.sgu.abstract import SguAPI, SkipProcessWell
-from gwml2.harvesters.models.harvester import (
-    HarvesterWellData, Harvester
-)
+from gwml2.harvesters.models.harvester import Harvester
 from gwml2.models.general import Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_AMSL,
+    Well,
     WellLevelMeasurement
 )
 
@@ -27,12 +26,9 @@ class SguWaterLevelAPI(SguAPI):
             name=MEASUREMENT_PARAMETER_AMSL)
         super(SguWaterLevelAPI, self).__init__(harvester, replace, original_id)
 
-    def process_well(
-            self, harvester_well_data: HarvesterWellData, note: str
-    ):
+    def process_well(self, well: Well, note: str):
         """Processing well.
         """
-        well = harvester_well_data.well
         response = self._request_api(
             f'https://resource.sgu.se/oppnadata/grundvatten/api/'
             f'grundvattennivaer/nivaer/station/{well.original_id}?format=json'
@@ -78,7 +74,7 @@ class SguWaterLevelAPI(SguAPI):
                         model=WellLevelMeasurement,
                         time=date_time,
                         defaults=defaults,
-                        harvester_well_data=harvester_well_data,
+                        well=well,
                         value=measurement['grundvattenniva_m_o.h.'],
                         unit=self.unit_m
                     )

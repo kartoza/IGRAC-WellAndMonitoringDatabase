@@ -82,9 +82,7 @@ class NetherlandQualityHarvester(NetherlandHarvester):
 
                             # Get well when there is data
                             if not well:
-                                harvester_well_data = self.well_from_station(
-                                    station)
-                                well = harvester_well_data.well
+                                well = self.well_from_station(station)
 
                             defaults = {
                                 'parameter': parameter
@@ -98,7 +96,7 @@ class NetherlandQualityHarvester(NetherlandHarvester):
                                 MeasurementModel,
                                 time,
                                 defaults,
-                                harvester_well_data,
+                                well,
                                 float(value.text),
                                 unit
                             )
