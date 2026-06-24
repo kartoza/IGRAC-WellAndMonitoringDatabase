@@ -127,6 +127,22 @@ class DownloadRequestForm(DownloadRequestBaseForm):
         return cleaned_data
 
 
+def validate_wells_id(wells_id: list) -> list[int]:
+    """Parse and validate a list of well IDs. Returns a clean list of ints.
+
+    Raises ValueError with a human-readable message on failure.
+    """
+    try:
+        ids = [int(i) for i in wells_id if i]
+    except (ValueError, TypeError):
+        raise ValueError('wells_id must be a list of integers.')
+    if len(ids) < 1:
+        raise ValueError('At least 1 well must be selected.')
+    if len(ids) > 100000:
+        raise ValueError('Cannot request more than 100,000 wells at once.')
+    return ids
+
+
 class DownloadRequestByIdsForm(DownloadRequestBaseForm):
     """Download request form for downloading data by ids."""
 
@@ -144,15 +160,7 @@ class DownloadRequestByIdsForm(DownloadRequestBaseForm):
         self.default_init()
 
     def clean_wells_id(self):
-        raw = self.data.getlist('wells_id')
         try:
-            ids = [int(i) for i in raw if i]
-        except (ValueError, TypeError):
-            raise forms.ValidationError('wells_id must be a list of integers.')
-        if len(ids) < 1:
-            raise forms.ValidationError('At least 1 well must be selected.')
-        if len(ids) > 100000:
-            raise forms.ValidationError(
-                'Cannot request more than 100,000 wells at once.'
-            )
-        return ids
+            return validate_wells_id(self.data.getlist('wells_id'))
+        except ValueError as e:
+            raise forms.ValidationError(str(e))

@@ -4,10 +4,12 @@ from django.http import HttpResponse
 from django.shortcuts import (
     render, redirect, reverse, get_object_or_404
 )
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.list import View
 
 from gwml2.forms.download_request import (
-    DownloadRequestForm, DownloadRequestByIdsForm
+    DownloadRequestForm, DownloadRequestByIdsForm, validate_wells_id
 )
 from gwml2.models.download_request import (
     DownloadRequest, GGMN
@@ -113,16 +115,16 @@ class DownloadRequestFormView(View):
         return render(request, self.template_name, {"form": form})
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class DownloadRequestByIdsInitiateView(View):
     """Accept wells_id + data_type from frontend, store in session, redirect to form."""
 
     def post(self, request, *args, **kwargs):
-        wells_id = request.POST.getlist('wells_id')
         data_type = request.POST.get('data_type', GGMN)
         try:
-            wells_id = [int(i) for i in wells_id if i]
-        except (ValueError, TypeError):
-            return HttpResponse('Invalid wells_id', status=400)
+            wells_id = validate_wells_id(request.POST.getlist('wells_id'))
+        except ValueError as e:
+            return HttpResponse(str(e), status=400)
         request.session['download_by_ids'] = {
             'wells_id': wells_id,
             'data_type': data_type,

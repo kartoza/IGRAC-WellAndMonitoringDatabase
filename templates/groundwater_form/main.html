@@ -84,9 +84,7 @@
                             </a>
                             <script>
                                 function initiateDownload() {
-                                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
                                     const formData = new FormData();
-                                    formData.append('csrfmiddlewaretoken', csrfToken);
                                     formData.append('wells_id', '{{ well.id }}');
                                     formData.append('data_type', 'Well and Monitoring Data');
                                     fetch('{% url "well_download_request_by_ids_initiate" %}', {
@@ -95,6 +93,8 @@
                                     }).then(response => {
                                         if (response.ok) {
                                             window.location.href = response.url;
+                                        } else {
+                                            response.text().then(msg => alert('Download failed: ' + msg));
                                         }
                                     });
                                 }
