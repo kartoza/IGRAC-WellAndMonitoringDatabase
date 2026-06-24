@@ -65,6 +65,12 @@
                         {% if not read_only %}
                             <button id="form-submit" class="pull-right"
                                     type="submit">{% trans "Submit" %}</button>
+                            {% if well.id %}
+                                <a id="download-data" class="pull-right"
+                                   href="{% url 'well_view' well.id %}">
+                                    {% trans "Cancel" %}
+                                </a>
+                            {% endif %}
                         {% else %}
                             {% if user.is_staff %}
                                 <a id="form-submit" class="pull-right"
@@ -72,9 +78,27 @@
                                     {% trans "Go to form" %}
                                 </a>
                             {% endif %}
-{#                            <a id="download-data" class="pull-right">#}
-{#                                {% trans "Download data" %}#}
-{#                            </a>#}
+                            <a id="download-data" class="pull-right"
+                               onclick="initiateDownload()">
+                                {% trans "Download data" %}
+                            </a>
+                            <script>
+                                function initiateDownload() {
+                                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                                    const formData = new FormData();
+                                    formData.append('csrfmiddlewaretoken', csrfToken);
+                                    formData.append('wells_id', '{{ well.id }}');
+                                    formData.append('data_type', 'Well and Monitoring Data');
+                                    fetch('{% url "well_download_request_by_ids_initiate" %}', {
+                                        method: 'POST',
+                                        body: formData,
+                                    }).then(response => {
+                                        if (response.ok) {
+                                            window.location.href = response.url;
+                                        }
+                                    });
+                                }
+                            </script>
                         {% endif %}
                     </div>
                     {% csrf_token %}
