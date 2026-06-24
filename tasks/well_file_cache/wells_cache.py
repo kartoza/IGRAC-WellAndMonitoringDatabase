@@ -20,7 +20,7 @@ from gwml2.models.well import (
 )
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.models.well_quality_control import WellQualityControl
-from gwml2.tasks.well_file_cache.base_cache import get_data
+from gwml2.tasks.well_file_cache.utilities import get_data
 from gwml2.tasks.well_file_cache.country_recache import (
     generate_data_country_cache
 )

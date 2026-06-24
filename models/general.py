@@ -23,15 +23,6 @@ class Country(models.Model):
         null=True, blank=True
     )
 
-    # Data cache information
-    data_cache_information = models.JSONField(
-        help_text=_(
-            'Information about the data cache, '
-            'like the time of file is being generated.'
-        ),
-        null=True, blank=True
-    )
-
     def __str__(self):
         return self.name
 
@@ -41,28 +32,18 @@ class Country(models.Model):
         ordering = ('name',)
         db_table = 'country'
 
-    def assign_data_cache_information(self):
-        """Assign data cache information.
-        We not use this on generator, just on the django admin command.
-        """
+    def assign_data(self):
+        """Assign data cache generated at based on zip file modification time."""
         from gwml2.tasks.well_file_cache.country_recache import (
             COUNTRY_DATA_FOLDER
         )
-        from gwml2.models.download_request import (
-            WELL_AND_MONITORING_DATA, GGMN
-        )
-        self.data_cache_information = {}
-        cache_name = self.code
-        for data_type in [WELL_AND_MONITORING_DATA, GGMN]:
-            zip_filename = f'{cache_name} - {data_type}.zip'
-            file_path = os.path.join(COUNTRY_DATA_FOLDER, zip_filename)
-            if os.path.exists(file_path):
-                file = os.path.basename(file_path).split('-')[1]
-                modified_time = os.path.getmtime(file_path)
-                readable_time = datetime.fromtimestamp(modified_time)
-                self.data_cache_information[file] = (
-                    readable_time.strftime('%Y-%m-%d %H:%M:%S')
-                )
+        zip_file = os.path.join(COUNTRY_DATA_FOLDER, f'{self.code}.zip')
+        if os.path.exists(zip_file):
+            self.data_cache_generated_at = datetime.fromtimestamp(
+                os.path.getmtime(zip_file)
+            )
+        else:
+            self.data_cache_generated_at = None
         self.save()
 
 

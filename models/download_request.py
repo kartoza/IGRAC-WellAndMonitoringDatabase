@@ -20,6 +20,7 @@ from igrac.models import SitePreference
 
 WELL_AND_MONITORING_DATA = 'Well and Monitoring Data'
 GGMN = 'GGMN'
+
 DEFAULT_README_HEADER_TEXT = (
     "=======================================================\r\n"
     "IGRAC Groundwater Monitoring Data - README\r\n"
@@ -132,14 +133,14 @@ class DownloadRequest(models.Model):
 
     def _write_countries_to_zip_file(self, data_folder, zip_file):
         for country in self.countries.all():
-            data_file_name = f'{country.code} - {self.data_type}.zip'
+            data_file_name = f'{country.code}.zip'
             self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file
             )
 
     def _write_organisations_to_zip_file(self, data_folder, zip_file):
         for organisation in self.organisations.all():
-            data_file_name = f'{str(organisation.name)} - {self.data_type}.zip'
+            data_file_name = f'{str(organisation.name)}.zip'
             added = self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file
             )
@@ -161,19 +162,15 @@ class DownloadRequest(models.Model):
             self, country: Country, country_data_folder
     ):
         """Return organisations of countries."""
-        # This is new approach
-        _organisation_file_name = (
-            f'{country.code} - organisations.json'
-        )
         _file_path = os.path.join(
             country_data_folder,
-            _organisation_file_name
+            f'{country.code} - metadata.json'
         )
         if os.path.exists(_file_path):
             with open(_file_path, "r") as _file:
                 try:
                     data = json.loads(_file.read())
-                    organisations = data[self.data_type]
+                    organisations = data['organisations']
                     return Organisation.objects.filter(id__in=organisations)
                 except KeyError:
                     pass
