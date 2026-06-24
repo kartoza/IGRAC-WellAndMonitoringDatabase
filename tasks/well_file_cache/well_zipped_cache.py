@@ -7,7 +7,6 @@ import zipfile
 from celery.utils.log import get_task_logger
 from openpyxl import load_workbook
 
-from gwml2.models.download_request import WELL_AND_MONITORING_DATA
 from gwml2.terms import SheetName
 from gwml2.utilities import xlsx_to_ods
 
@@ -151,7 +150,7 @@ class WellZippedCache(object):
             compress_type=zipfile.ZIP_DEFLATED
         )
 
-    def run(self):
+    def run(self, post_function=None):
         self.current_time = time.time()
         self.log(
             f'----- Begin cache {self.cache_name} -------'
@@ -251,6 +250,8 @@ class WellZippedCache(object):
                         _filename,
                         compress_type=zipfile.ZIP_DEFLATED
                     )
+            if post_function:
+                post_function(zip_file)
         except Exception as e:
             raise e
         finally:
@@ -262,3 +263,16 @@ class WellZippedCache(object):
 
         # clear temp directory
         self.clean()
+
+
+class WellZippedCacheByIds(WellZippedCache):
+    """Cache wells by ids."""
+
+    data_folder = None
+    cache_name = None
+    well_queryset = None
+
+    def __init__(self, data_folder, cache_name, well_queryset):
+        self.data_folder = data_folder
+        self.cache_name = cache_name
+        self.well_queryset = well_queryset
