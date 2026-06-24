@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -48,18 +49,25 @@ class DownloadRequest(models.Model):
         ),
         max_length=512
     )
+
+    # This is for the case where the user is not logged in.
     user_id = models.IntegerField(null=True, blank=True)
-    email = models.EmailField(_('email address'), blank=True)
+
+    # This is for the data
     countries = models.ManyToManyField(
-        Country,
-        null=True, blank=True,
+        Country, blank=True,
         related_name='download_country_data_request'
     )
     organisations = models.ManyToManyField(
-        Organisation,
-        null=True, blank=True,
+        Organisation, blank=True,
         related_name='download_organisation_data_request'
     )
+    wells_id = ArrayField(
+        models.IntegerField(), default=list, null=True, blank=True
+    )
+
+    # This is for form for user information
+    email = models.EmailField(_('email address'), blank=True)
     first_name = models.CharField(
         _('First Name'), null=True, blank=True, max_length=512
     )
@@ -81,42 +89,60 @@ class DownloadRequest(models.Model):
         null=True, blank=True,
         on_delete=models.SET_NULL
     )
+
     is_ready = models.BooleanField(default=False)
+    is_error = models.BooleanField(default=False)
+    note = models.TextField(
+        null=True, blank=True
+    )
 
     output_folder = os.path.join(settings.MEDIA_ROOT, 'request')
 
-    organisations_found = []
+    def update_note(self, note: str):
+        """Update progress note."""
+        self.note = note
+        self.save(update_fields=['note'])
 
-    def generate_file(self):
+    def run(self):
         """Generate file to be downloaded."""
-        self.organisations_found = []
         from gwml2.tasks.well_file_cache.country_recache import (
             COUNTRY_DATA_FOLDER
         )
         from gwml2.tasks.well_file_cache.organisation_cache import (
             ORGANISATION_DATA_FOLDER
         )
-        if not os.path.exists(self.output_folder):
-            os.makedirs(self.output_folder)
+        try:
+            self.update_note('Preparing output folder...')
+            if not os.path.exists(self.output_folder):
+                os.makedirs(self.output_folder)
 
-        request_file = os.path.join(
-            self.output_folder, '{}.zip'.format(str(self.uuid))
-        )
-
-        zip_file = zipfile.ZipFile(request_file, 'w')
-        if self.countries.exists():
-            self._write_countries_to_zip_file(COUNTRY_DATA_FOLDER, zip_file)
-        elif self.organisations.exists():
-            self._write_organisations_to_zip_file(
-                ORGANISATION_DATA_FOLDER, zip_file
+            request_file = os.path.join(
+                self.output_folder, '{}.zip'.format(str(self.uuid))
             )
-        zip_file.writestr(
-            'Readme.txt', self._generate_readme_file(COUNTRY_DATA_FOLDER)
-        )
-        zip_file.close()
 
-        # Make this downloader done
-        self.is_ready = True
+            zip_file = zipfile.ZipFile(request_file, 'w')
+            if self.countries.exists():
+                self.update_note('Writing country data...')
+                self._write_countries_to_zip_file(
+                    COUNTRY_DATA_FOLDER, zip_file
+                )
+            elif self.organisations.exists():
+                self.update_note('Writing organisation data...')
+                self._write_organisations_to_zip_file(
+                    ORGANISATION_DATA_FOLDER, zip_file
+                )
+            self.update_note('Generating readme...')
+            zip_file.writestr(
+                'Readme.txt', self._generate_readme_file(COUNTRY_DATA_FOLDER)
+            )
+            zip_file.close()
+
+            self.is_ready = True
+            self.is_error = False
+            self.update_note('Done.')
+        except Exception as e:
+            self.is_error = True
+            self.update_note(str(e))
         self.save()
 
     def _add_content_to_zip_file(
@@ -133,6 +159,7 @@ class DownloadRequest(models.Model):
 
     def _write_countries_to_zip_file(self, data_folder, zip_file):
         for country in self.countries.all():
+            self.update_note(f'Writing {country.name}...')
             data_file_name = f'{country.code}.zip'
             self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file
@@ -140,12 +167,11 @@ class DownloadRequest(models.Model):
 
     def _write_organisations_to_zip_file(self, data_folder, zip_file):
         for organisation in self.organisations.all():
+            self.update_note(f'Writing {organisation.name}...')
             data_file_name = f'{str(organisation.name)}.zip'
-            added = self._add_content_to_zip_file(
+            self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file
             )
-            if added:
-                self.organisations_found.append(organisation.name)
 
     def _get_readme_text(self):
         pref = SitePreference.objects.first()

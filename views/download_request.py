@@ -87,6 +87,8 @@ class DownloadRequestDownloadView(View):
             request, self.template_name, {
                 'uuid': uuid,
                 'is_ready': download_request.is_ready,
+                'is_error': download_request.is_error,
+                'note': download_request.note,
                 'has_file': file is not None
             }
         )
@@ -97,6 +99,10 @@ class DownloadRequestDownloadStatus(View):
     def get(self, request, uuid, *args, **kwargs):
         download_request = get_object_or_404(DownloadRequest, uuid=uuid)
         return HttpResponse(
-            json.dumps({'result': download_request.is_ready}),
+            json.dumps({
+                'is_ready': download_request.is_ready,
+                'is_error': download_request.is_error,
+                'note': download_request.note,
+            }),
             content_type="application/json"
         )
