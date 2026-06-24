@@ -89,10 +89,10 @@ class DownloadRequest(models.Model):
     def generate_file(self):
         """Generate file to be downloaded."""
         self.organisations_found = []
-        from gwml2.tasks.data_file_cache.country_recache import (
+        from gwml2.tasks.well_file_cache.country_recache import (
             COUNTRY_DATA_FOLDER
         )
-        from gwml2.tasks.data_file_cache.organisation_cache import (
+        from gwml2.tasks.well_file_cache.organisation_cache import (
             ORGANISATION_DATA_FOLDER
         )
         if not os.path.exists(self.output_folder):

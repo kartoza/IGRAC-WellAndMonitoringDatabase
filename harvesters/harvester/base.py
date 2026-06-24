@@ -25,11 +25,11 @@ from gwml2.models.well import (
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
 from gwml2.signals.well import post_save_measurement
-from gwml2.tasks.data_file_cache import generate_data_well_cache
-from gwml2.tasks.data_file_cache.country_recache import (
+from gwml2.tasks.well_file_cache import generate_data_well_cache
+from gwml2.tasks.well_file_cache.country_recache import (
     generate_data_country_cache
 )
-from gwml2.tasks.data_file_cache.organisation_cache import (
+from gwml2.tasks.well_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
 from gwml2.utilities import temp_disconnect_signal, make_aware_local

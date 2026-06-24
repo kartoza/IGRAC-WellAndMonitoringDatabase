@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from gwml2.models.site_preference import SitePreference
-from gwml2.tasks.data_file_cache.clean_cache import (
+from gwml2.tasks.well_file_cache.clean_cache import (
     clean_dangling_measurement_cache,
     clean_dangling_well_data_cache
 )

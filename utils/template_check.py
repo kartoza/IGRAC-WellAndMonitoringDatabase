@@ -47,7 +47,7 @@ def get_records(
 
 def compare_input_with_template(records: dict, sheet_name: str, uploader_name):
     """Compare input with the template."""
-    from gwml2.tasks.data_file_cache.wells_cache import TEMPLATE_FOLDER
+    from gwml2.tasks.well_file_cache.wells_cache import TEMPLATE_FOLDER
     try:
         headers = records[sheet_name][:1]
     except KeyError:

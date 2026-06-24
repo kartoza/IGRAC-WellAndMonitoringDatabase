@@ -45,7 +45,7 @@ class Country(models.Model):
         """Assign data cache information.
         We not use this on generator, just on the django admin command.
         """
-        from gwml2.tasks.data_file_cache.country_recache import (
+        from gwml2.tasks.well_file_cache.country_recache import (
             COUNTRY_DATA_FOLDER
         )
         from gwml2.models.download_request import (

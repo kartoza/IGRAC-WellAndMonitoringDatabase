@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
-from gwml2.tasks.data_file_cache.base_cache import WellCacheZipFileBase
+from gwml2.tasks.well_file_cache.base_cache import WellCacheZipFileBase
 
 ORGANISATION_DATA_FOLDER = os.path.join(
     settings.GWML2_FOLDER, 'organisation-data'

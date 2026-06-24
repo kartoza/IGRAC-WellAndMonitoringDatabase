@@ -1,6 +1,6 @@
 from gwml2.models.general import Unit, Country
 from gwml2.models.well import Well
-from gwml2.tasks.data_file_cache.base_cache import get_data
+from gwml2.tasks.well_file_cache.base_cache import get_data
 
 
 class WellData:

@@ -238,7 +238,7 @@ class Organisation(LicenseMetadata):
         """Assign data cache information.
         We not use this on generator, just on the django admin command.
         """
-        from gwml2.tasks.data_file_cache.organisation_cache import (
+        from gwml2.tasks.well_file_cache.organisation_cache import (
             ORGANISATION_DATA_FOLDER
         )
         from gwml2.models.download_request import (
@@ -414,10 +414,10 @@ def groundwater_layer_saved(
         sender, instance: OrganisationGroup, using, **kwargs
 ):
     from igrac.models.groundwater_layer import GroundwaterLayer
-    from gwml2.tasks.data_file_cache.country_recache import (
+    from gwml2.tasks.well_file_cache.country_recache import (
         generate_data_all_country_cache
     )
-    from gwml2.tasks.data_file_cache.organisation_cache import (
+    from gwml2.tasks.well_file_cache.organisation_cache import (
         generate_data_all_organisation_cache
     )
     try:

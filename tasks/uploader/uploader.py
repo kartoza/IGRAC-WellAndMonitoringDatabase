@@ -11,11 +11,11 @@ from gwml2.models.well import (
     WellYieldMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
-from gwml2.tasks.data_file_cache import generate_data_well_cache
-from gwml2.tasks.data_file_cache.country_recache import (
+from gwml2.tasks.well_file_cache import generate_data_well_cache
+from gwml2.tasks.well_file_cache.country_recache import (
     generate_data_country_cache
 )
-from gwml2.tasks.data_file_cache.organisation_cache import (
+from gwml2.tasks.well_file_cache.organisation_cache import (
     generate_data_organisation_cache
 )
 from gwml2.utils.generate_dem_well_value import (
