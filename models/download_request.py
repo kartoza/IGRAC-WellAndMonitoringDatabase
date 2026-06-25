@@ -117,6 +117,12 @@ class DownloadRequest(models.Model):
         )
         try:
             self.update_note('Preparing output folder...')
+            _stat = os.statvfs(os.path.dirname(self.output_folder))
+            free_bytes = _stat.f_frsize * _stat.f_bavail
+            if free_bytes < 5 * 1024 ** 3:
+                raise Exception(
+                    'Not enough disk space to generate the file.'
+                )
             if not os.path.exists(self.output_folder):
                 os.makedirs(self.output_folder)
 
