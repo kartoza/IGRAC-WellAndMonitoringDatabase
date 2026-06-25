@@ -45,7 +45,6 @@ class Command(WellCommand):
         for idx, id in enumerate(ids):
             well = Well.objects.get(id=id)
             print(f'----- {idx}/{count} - {well.id} -----')
-            print(generators)
             well.cache.generate_data_wells_cache(
                 force=options.get('force', False),
                 generators=generators
