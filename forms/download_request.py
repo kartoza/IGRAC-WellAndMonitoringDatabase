@@ -138,8 +138,8 @@ def validate_wells_id(wells_id: list) -> list[int]:
         raise ValueError('wells_id must be a list of integers.')
     if len(ids) < 1:
         raise ValueError('At least 1 well must be selected.')
-    if len(ids) > 100000:
-        raise ValueError('Cannot request more than 100,000 wells at once.')
+    if len(ids) > 10000:
+        raise ValueError('Cannot request more than 10,000 wells at once.')
     return ids
 
 
