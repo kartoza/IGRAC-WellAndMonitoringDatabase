@@ -7,12 +7,11 @@ from django.db.models import Value, CharField, Func
 from gwml2.models import (
     Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
-from gwml2.models.general import UnitConvertion
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_AMSL, MEASUREMENT_PARAMETER_TOP,
     MEASUREMENT_PARAMETER_GROUND
 )
-from gwml2.utilities import convert_value, convert_value_by_id
+from gwml2.utilities import convert_value_by_id
 
 MEASUREMENT_MODELS = [
     WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
@@ -28,33 +27,21 @@ MeasurementModel = (
 def generate_measurement_data_cache(
         well: Well,
         sheets,
-        Model: MeasurementModel
+        Model: MeasurementModel,
+        unit_conversion_map: dict,
+        ground_surface_elevation,
+        top_borehole_elevation,
+        unit_to_id,
+        unit_to_name,
 ):
     """Measurements cache of well.
 
      It generate for excel for data download and json for API."""
-    print('generate_measurement_data_cache')
     # ----------------- measurements api ------------------
     json_filename = well.return_measurement_cache_path(Model.__name__)
 
-    ground_surface_elevation = well.ground_surface_elevation
-    unit_to = None
-    if ground_surface_elevation:
-        unit_to = ground_surface_elevation.unit
-    top_borehole_elevation = well.top_borehole_elevation
-    if top_borehole_elevation:
-        if not unit_to:
-            unit_to = top_borehole_elevation.unit
-        top_borehole_elevation = convert_value(
-            top_borehole_elevation, unit_to
-        )
-    unit_to_id = unit_to.id if unit_to else None
-    unit_to_name = unit_to.name if unit_to else None
-
     original_id = well.original_id
-    measurements = Model.objects.filter(well=well).select_related(
-        'parameter', 'value', 'value__unit', 'depth_unit'
-    ).annotate(
+    measurements = list(Model.objects.filter(well=well).annotate(
         original_id=Value(original_id, output_field=CharField()),
         name=Value(well.name, output_field=CharField()),
         time_str=Func(
@@ -69,14 +56,7 @@ def generate_measurement_data_cache(
         'value__value', 'value__unit_id', 'value__unit__name',
         'depth_value', 'depth_unit__name',
         'methodology', 'time'
-    )
-    unit_conversion_map = {
-        f"{r[0]},{r[1]}": r[2]
-        for r in
-        UnitConvertion.objects.values_list(
-            'unit_from_id', 'unit_to_id', 'formula'
-        )
-    }
+    ))
 
     # Write the file
     output = {"data": [], "page": 1, "end": True}
@@ -151,7 +131,7 @@ def generate_measurement_data_cache(
             os.makedirs(os.path.dirname(json_filename), exist_ok=True)
             json_str = json.dumps(output) + "\n"
             json_bytes = json_str.encode('utf-8')
-            file = gzip.open(json_filename, 'wb')
+            file = gzip.open(json_filename, 'wb', compresslevel=1)
             file.write(json_bytes)
             file.close()
     except KeyError:

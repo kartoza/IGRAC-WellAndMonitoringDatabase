@@ -157,21 +157,17 @@ class GenerateWellCacheFile(object):
 
         # General information
         if GENERATORS.GENERAL_INFORMATION in self.generators:
-            print(f'Generate {GENERATORS.GENERAL_INFORMATION}')
             self.general_information(well)
             generated = True
         if GENERATORS.HYDROGEOLOGY in self.generators:
-            print(f'Generate {GENERATORS.HYDROGEOLOGY}')
             self.hydrogeology(well)
             generated = True
         if GENERATORS.MANAGEMENT in self.generators:
-            print(f'Generate {GENERATORS.MANAGEMENT}')
             self.management(well)
             generated = True
 
         # Drill
         if GENERATORS.DRILLING_AND_CONSTRUCTION in self.generators:
-            print(f'Generate {GENERATORS.DRILLING_AND_CONSTRUCTION}')
             self.drilling_and_construction(well)
             generated = True
 
@@ -180,7 +176,6 @@ class GenerateWellCacheFile(object):
         # It is using ods file
         # ----------------------------------------
         if GENERATORS.MONITOR in self.generators:
-            print(f'Generate {GENERATORS.MONITOR}')
             self.copy_template(self.monitor_filename)
             monitor_file = self._file(self.monitor_filename)
 
@@ -503,14 +498,40 @@ class GenerateWellCacheFile(object):
 
     def measurements(self, doc, well):
         """ Measurements of well """
+        from gwml2.models.general import UnitConvertion
+        from gwml2.utilities import convert_value
+
+        ground_surface_elevation = well.ground_surface_elevation
+        unit_to = ground_surface_elevation.unit if ground_surface_elevation else None
+        top_borehole_elevation = well.top_borehole_elevation
+        if top_borehole_elevation:
+            if not unit_to:
+                unit_to = top_borehole_elevation.unit
+            top_borehole_elevation = convert_value(top_borehole_elevation, unit_to)
+        unit_to_id = unit_to.id if unit_to else None
+        unit_to_name = unit_to.name if unit_to else None
+
+        unit_conversion_map = {
+            f"{r[0]},{r[1]}": r[2]
+            for r in UnitConvertion.objects.values_list(
+                'unit_from_id', 'unit_to_id', 'formula'
+            )
+        }
+
         generate_measurement_data_cache(
-            well, doc['Groundwater Level'], WellLevelMeasurement
+            well, doc['Groundwater Level'], WellLevelMeasurement,
+            unit_conversion_map, ground_surface_elevation,
+            top_borehole_elevation, unit_to_id, unit_to_name
         )
         generate_measurement_data_cache(
-            well, doc['Groundwater Quality'], WellQualityMeasurement
+            well, doc['Groundwater Quality'], WellQualityMeasurement,
+            unit_conversion_map, ground_surface_elevation,
+            top_borehole_elevation, unit_to_id, unit_to_name
         )
         generate_measurement_data_cache(
-            well, doc['Abstraction-Discharge'], WellYieldMeasurement
+            well, doc['Abstraction-Discharge'], WellYieldMeasurement,
+            unit_conversion_map, ground_surface_elevation,
+            top_borehole_elevation, unit_to_id, unit_to_name
         )
 
 

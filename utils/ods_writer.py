@@ -1,6 +1,7 @@
 import os
 import zipfile
 from decimal import Decimal
+from xml.sax.saxutils import escape as xml_escape
 
 from lxml import etree
 
@@ -20,29 +21,34 @@ DATA_CELL_STYLE = 'ce3'
 DATA_ROW_STYLE = 'ro4'
 
 
-def _build_cell(value):
-    cell = etree.Element(TAG_CELL)
-    cell.set(ATTR_STYLE_NAME, DATA_CELL_STYLE)
-    if value is None or value == '':
-        return cell
-    if isinstance(value, (int, float, Decimal)):
-        cell.set(ATTR_VALUE_TYPE, 'float')
-        cell.set(ATTR_VALUE, str(value))
-        p = etree.SubElement(cell, TAG_P)
-        p.text = str(value)
-    else:
-        cell.set(ATTR_VALUE_TYPE, 'string')
-        p = etree.SubElement(cell, TAG_P)
-        p.text = str(value)
-    return cell
+_ROW_OPEN = b'<table:table-row table:style-name="ro4">'
+_ROW_CLOSE = b'</table:table-row>'
+_CELL_EMPTY = b'<table:table-cell table:style-name="ce3"/>'
+_CELL_FLOAT_A = b'<table:table-cell table:style-name="ce3" office:value-type="float" office:value="'
+_CELL_FLOAT_B = b'"><text:p>'
+_CELL_FLOAT_C = b'</text:p></table:table-cell>'
+_CELL_STR_A = b'<table:table-cell table:style-name="ce3" office:value-type="string"><text:p>'
+_CELL_STR_B = b'</text:p></table:table-cell>'
 
 
-def _build_row(row_data):
-    row_el = etree.Element(TAG_ROW)
-    row_el.set(ATTR_STYLE_NAME, DATA_ROW_STYLE)
-    for value in row_data:
-        row_el.append(_build_cell(value))
-    return row_el
+def _build_raw_rows_bytes(buffer):
+    """Build buffered rows as raw UTF-8 bytes for direct injection into XML."""
+    parts = []
+    extend = parts.extend
+    append = parts.append
+    for row_data in buffer:
+        append(_ROW_OPEN)
+        for value in row_data:
+            if value is None or value == '':
+                append(_CELL_EMPTY)
+            elif isinstance(value, (int, float, Decimal)):
+                v = str(value).encode()
+                extend((_CELL_FLOAT_A, v, _CELL_FLOAT_B, v, _CELL_FLOAT_C))
+            else:
+                v = xml_escape(str(value)).encode('utf-8')
+                extend((_CELL_STR_A, v, _CELL_STR_B))
+        append(_ROW_CLOSE)
+    return b''.join(parts)
 
 
 class OdsSheetWrapper:
@@ -73,6 +79,7 @@ class OdsDoc:
 
     def save(self, path=None):
         target = path or self._path
+
         with zipfile.ZipFile(self._path) as z:
             content_xml = z.read('content.xml')
             all_files = {
@@ -80,33 +87,38 @@ class OdsDoc:
                 for info in z.infolist()
             }
 
+        # Parse the small template and place a unique marker comment after
+        # each sheet's anchor row — avoids parsing the large data XML later.
         root = etree.fromstring(content_xml)
         tables = {
             t.get(ATTR_TABLE_NAME): t
             for t in root.findall('.//{%s}table' % NS_TABLE)
         }
-
+        insertions = {}
         for sheet_name, wrapper in self._sheets.items():
             if not wrapper._buffer:
                 continue
             table = tables.get(sheet_name)
             if table is None:
                 continue
-
-            # Find the 2nd header row to insert after
             rows = table.findall('{%s}table-row' % NS_TABLE)
             anchor = rows[1] if len(rows) > 1 else rows[0]
+            marker = f'IGRAC_INSERT_{id(wrapper)}'
+            anchor.addnext(etree.Comment(marker))
+            insertions[marker.encode()] = wrapper._buffer
 
-            # addnext in O(1) per row — keeps a running tail pointer
-            prev = anchor
-            for row_data in wrapper._buffer:
-                new_row = _build_row(row_data)
-                prev.addnext(new_row)
-                prev = new_row
-
-        new_content = etree.tostring(
+        # Serialize the template (still small — only header rows + markers).
+        template_bytes = etree.tostring(
             root, xml_declaration=True, encoding='UTF-8', standalone=True
         )
+
+        # Replace each marker with raw row bytes — no XML parsing needed.
+        new_content = template_bytes
+        for marker_bytes, buffer in insertions.items():
+            rows_bytes = _build_raw_rows_bytes(buffer)
+            new_content = new_content.replace(
+                b'<!--' + marker_bytes + b'-->', rows_bytes
+            )
 
         tmp_path = target + '.tmp'
         with zipfile.ZipFile(tmp_path, 'w', zipfile.ZIP_DEFLATED) as dst:
@@ -117,7 +129,7 @@ class OdsDoc:
                         compress_type=zipfile.ZIP_STORED
                     )
                 elif filename == 'content.xml':
-                    dst.writestr(info, new_content)
+                    dst.writestr(info, new_content, compresslevel=1)
                 else:
                     dst.writestr(info, data)
         os.replace(tmp_path, target)
