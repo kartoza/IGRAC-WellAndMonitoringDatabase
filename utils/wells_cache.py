@@ -1,13 +1,13 @@
 import gzip
 import json
 import os
-import shutil
 
 from django.db.models import Value, CharField, Func
 
 from gwml2.models import (
     Well, WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
 )
+from gwml2.models.general import UnitConvertion
 from gwml2.models.well import (
     MEASUREMENT_PARAMETER_AMSL, MEASUREMENT_PARAMETER_TOP,
     MEASUREMENT_PARAMETER_GROUND
@@ -70,6 +70,13 @@ def generate_measurement_data_cache(
         'depth_value', 'depth_unit__name',
         'methodology', 'time'
     )
+    unit_conversion_map = {
+        f"{r[0]},{r[1]}": r[2]
+        for r in
+        UnitConvertion.objects.values_list(
+            'unit_from_id', 'unit_to_id', 'formula'
+        )
+    }
 
     # Write the file
     output = {"data": [], "page": 1, "end": True}
@@ -88,7 +95,8 @@ def generate_measurement_data_cache(
         # value__unit__name(6), depth_value(7), depth_unit__name(8),
         # methodology(9), time(10)
         value, result_unit_id = convert_value_by_id(
-            measurement[4], measurement[5], unit_to_id
+            measurement[4], measurement[5], unit_to_id,
+            formula=unit_conversion_map.get(f'{measurement[5]},{unit_to_id}')
         )
         if value is None:
             continue
