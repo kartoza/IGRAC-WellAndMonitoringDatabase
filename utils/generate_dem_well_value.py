@@ -17,9 +17,12 @@ def assign_glo_90m_elevation(wells):
         glo_90m_elevation__isnull=True, location__isnull=False
     ).exclude(glo_90m_elevation_empty_result=True)
 
+
     if not wells.count():
         print(f"assign_glo_90m_elevation - Not eligible wells")
         return Well.objects.none()
+
+    well_ids = list(wells.values_list('id', flat=True))
 
     # Group wells by their 1°x1° tile (floor of lon/lat)
     tiles = defaultdict(list)
@@ -61,16 +64,22 @@ def assign_glo_90m_elevation(wells):
                 sampled = list(datasets.sample(coords))
 
         for well, val in zip(tile_wells, sampled):
-            elev = round(float(val[0]), 2)
-            if elev == profile.get('nodata', -9999) or math.isnan(elev):
+            elevation = round(float(val[0]), 2)
+            if elevation == profile.get(
+                    'nodata', -9999
+            ) or math.isnan(elevation):
+                print(f"assign_glo_90m_elevation - Empty result for {well.id}")
                 well.glo_90m_elevation_empty_result = True
                 well.save(update_fields=['glo_90m_elevation_empty_result'])
                 continue
-            quantity = Quantity.objects.create(value=elev, unit=unit_m)
+            print(
+                f"assign_glo_90m_elevation - Result for {well.id}: {elevation}"
+            )
+            quantity = Quantity.objects.create(value=elevation, unit=unit_m)
             well.glo_90m_elevation = quantity
             well.save(update_fields=['glo_90m_elevation'])
 
-    return wells
+    return well_ids
 
 
 def assign_glo_90m_elevation_for_well(well: Well):
