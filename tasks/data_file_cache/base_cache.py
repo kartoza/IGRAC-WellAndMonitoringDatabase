@@ -5,12 +5,11 @@ import time
 import zipfile
 
 from celery.utils.log import get_task_logger
-from openpyxl import load_workbook
 
 from gwml2.models.download_request import WELL_AND_MONITORING_DATA, GGMN
 from gwml2.models.term import TermFeatureType
 from gwml2.terms import SheetName
-from gwml2.utilities import xlsx_to_ods
+from gwml2.utils.ods_writer import OdsDoc
 
 DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -48,8 +47,8 @@ def get_data(id, cache, Term):
 
 class WellCacheFileBase(object):
     current_time = None
-    wells_filename = 'wells.xlsx'
-    drill_filename = 'drilling_and_construction.xlsx'
+    wells_filename = 'wells.ods'
+    drill_filename = 'drilling_and_construction.ods'
     monitor_filename = 'monitoring_data.ods'
 
     # cache
@@ -144,6 +143,7 @@ class WellCacheZipFileBase(WellCacheFileBase):
                     well_data = json.load(f)
             except (json.JSONDecodeError, OSError):
                 pass
+
         for sheetname in sheets:
             self.merge_data_between_sheets(
                 well_data,
@@ -151,10 +151,6 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 well_book, ggmn_book, sheetname,
                 well.name
             )
-        if ggmn_book:
-            ggmn_book.active = 0
-        if well_book:
-            well_book.active = 0
 
     def merge_data_between_sheets(
             self, well_data,
@@ -218,17 +214,10 @@ class WellCacheZipFileBase(WellCacheFileBase):
             except FileNotFoundError:
                 pass
 
-    def zip_excel_to_ods(self, zip_file, filename, data_type):
-        """Zip excel to ods."""
-        well_file = self.file_by_type(
-            filename, data_type
-        )
-        xlsx_to_ods(well_file)
-        zip_file.write(
-            well_file.replace('.xlsx', '.ods'),
-            filename.replace('.xlsx', '.ods'),
-            compress_type=zipfile.ZIP_DEFLATED
-        )
+    def zip_ods(self, zip_file, filename, data_type):
+        """Add ods file directly to zip."""
+        ods_file = self.file_by_type(filename, data_type)
+        zip_file.write(ods_file, filename, compress_type=zipfile.ZIP_STORED)
 
     def run(self):
         self.current_time = time.time()
@@ -248,28 +237,23 @@ class WellCacheZipFileBase(WellCacheFileBase):
         if not os.path.exists(ggmn_folder):
             os.makedirs(ggmn_folder)
 
-        # copy files
+        # copy ods templates
         self.copy_template(self.wells_filename)
         self.copy_template(self.drill_filename)
 
-        # Get data
-        # Well files
-        well_file = self.file_by_type(
-            self.wells_filename, WELL_AND_MONITORING_DATA
-        )
-        well_book = load_workbook(well_file)
-        drilling_file = self.file_by_type(
-            self.drill_filename, WELL_AND_MONITORING_DATA
-        )
-        drilling_book = load_workbook(drilling_file)
+        # Open ods docs
+        well_file = self.file_by_type(self.wells_filename, WELL_AND_MONITORING_DATA)
+        well_book = OdsDoc(well_file)
+        drilling_file = self.file_by_type(self.drill_filename, WELL_AND_MONITORING_DATA)
+        drilling_book = OdsDoc(drilling_file)
 
-        # GGMN Files
+        # GGMN docs
         well_ggmn_file = self.file_by_type(self.wells_filename, GGMN)
-        well_ggmn_book = load_workbook(well_ggmn_file)
+        well_ggmn_book = OdsDoc(well_ggmn_file)
         drilling_ggmn_file = self.file_by_type(self.drill_filename, GGMN)
-        drilling_ggmn_book = load_workbook(drilling_ggmn_file)
+        drilling_ggmn_book = OdsDoc(drilling_ggmn_file)
 
-        # Save the data
+        # Merge data from each well's data.json into ods docs
         wells = self.get_well_queryset()
         for well in wells:
             is_ggmn = well.organisation and well.is_ggmn()
@@ -296,22 +280,24 @@ class WellCacheZipFileBase(WellCacheFileBase):
                 ]
             )
 
-        # Save book
-        well_book.save(well_file)
+        # Save ods files
+        well_book.save()
         well_book.close()
-        well_ggmn_book.save(well_ggmn_file)
+        well_ggmn_book.save()
         well_ggmn_book.close()
-        drilling_book.save(drilling_file)
+        drilling_book.save()
         drilling_book.close()
-        drilling_ggmn_book.save(drilling_ggmn_file)
+        drilling_ggmn_book.save()
         drilling_ggmn_book.close()
-        # -------------------------------------------------------------------------
-        # zipping files
-        # -------------------------------------------------------------------------
+
         self.log(
             f'----- Finish constructing {self.cache_type}: {self.cache_name} '
             '------'
         )
+
+        # -------------------------------------------------------------------------
+        # zipping files
+        # -------------------------------------------------------------------------
         for data_type in [WELL_AND_MONITORING_DATA, GGMN]:
             # Get the file path
             zip_filepath = self.zip_file_path(data_type)
@@ -331,13 +317,8 @@ class WellCacheZipFileBase(WellCacheFileBase):
 
                     if not zip_file:
                         zip_file = zipfile.ZipFile(zip_filepath, 'w')
-
-                        self.zip_excel_to_ods(
-                            zip_file, self.wells_filename, data_type
-                        )
-                        self.zip_excel_to_ods(
-                            zip_file, self.drill_filename, data_type
-                        )
+                        self.zip_ods(zip_file, self.wells_filename, data_type)
+                        self.zip_ods(zip_file, self.drill_filename, data_type)
 
                     if well.number_of_measurements == 0:
                         continue
@@ -360,13 +341,14 @@ class WellCacheZipFileBase(WellCacheFileBase):
                         zip_file.write(
                             measurement_file,
                             _filename,
-                            compress_type=zipfile.ZIP_DEFLATED
+                            compress_type=zipfile.ZIP_STORED
                         )
             except Exception as e:
                 raise e
             finally:
                 if zip_file:
                     zip_file.close()
+
         self.log(
             f'----- Finish zipping {self.cache_type}: {self.cache_name} '
             '-------'

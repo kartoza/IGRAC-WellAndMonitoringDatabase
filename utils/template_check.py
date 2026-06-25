@@ -3,7 +3,6 @@
 import copy
 import os
 
-from django.conf import settings
 from pyexcel_ods3 import get_data
 
 START_ROW = 2
@@ -108,29 +107,3 @@ def remove_last_empty_element(row):
             stop = True
         if not stop and not item:
             del row[_len - 1 - i]
-
-
-def compare_ods_xlsx_template(xlsx_filename, uploader_name):
-    """Compare ods and xlsx template."""
-    xlsx_filename = os.path.join(
-        settings.STATIC_ROOT,
-        'download_template',
-        xlsx_filename
-    )
-    ods_records = get_data(xlsx_filename)
-    for key, rows in ods_records.items():
-        for idx, row in enumerate(rows[:START_ROW]):
-            prev = ''
-            for idx_cell, cell in enumerate(row):
-                if prev and cell == prev:
-                    ods_records[key][idx][idx_cell] = ''
-                prev = cell
-
-            remove_last_empty_element(row)
-    try:
-        get_records(
-            ods_records.keys(), ods_records, uploader_name
-        )
-        return True
-    except ValueError:
-        return False
