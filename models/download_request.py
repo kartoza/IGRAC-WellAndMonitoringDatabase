@@ -125,7 +125,7 @@ class DownloadRequest(models.Model):
         if os.path.exists(data_file):
             zip_file.write(
                 data_file, data_file_name,
-                compress_type=zipfile.ZIP_DEFLATED
+                compress_type=zipfile.ZIP_STORED
             )
             return True
         return False
