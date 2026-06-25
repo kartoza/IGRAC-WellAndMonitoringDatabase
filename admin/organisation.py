@@ -1,17 +1,14 @@
-import json
-
 from django.contrib import admin
 from django.contrib.auth import get_user_model
-from django.core.management import call_command
 from django.http import JsonResponse
 from django.urls import path
 from django.utils.html import format_html
 
 from gwml2.forms.organisation import OrganisationFormAdmin
-from gwml2.utils.management_commands import run_command
 from gwml2.models.well_management.organisation import (
     Organisation, OrganisationType, OrganisationLink, OrganisationGroup
 )
+from gwml2.utils.management_commands import run_command
 
 User = get_user_model()
 
@@ -24,15 +21,14 @@ def reassign_wells_country(modeladmin, request, queryset):
 
 def generate_data_wells_cache(modeladmin, request, queryset):
     """Generate measurement cache."""
-    import time
     ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
-    start = time.time()
-    call_command(
+    return run_command(
+        request,
         'generate_data_organisations_cache',
-        "--ids", ', '.join(ids),
-        "--force"
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
     )
-    print(f'generate_data_wells_cache: {time.time() - start:.3f}s')
 
 
 @admin.action(description='Update ggis uid of wells')
