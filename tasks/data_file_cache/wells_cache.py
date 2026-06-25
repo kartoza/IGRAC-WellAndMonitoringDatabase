@@ -7,8 +7,6 @@ from shutil import copyfile
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.utils import timezone
-from openpyxl import load_workbook
-
 from gwml2.models.general import Country, Unit
 from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus, TermDrillingMethod,
@@ -29,7 +27,7 @@ from gwml2.tasks.data_file_cache.organisation_cache import (
 )
 from gwml2.tasks.file_lock import file_lock
 from gwml2.terms import SheetName
-from gwml2.utilities import xlsx_to_ods
+from gwml2.utils.ods_writer import OdsDoc
 from gwml2.utils.wells_cache import generate_measurement_data_cache
 
 DJANGO_ROOT = os.path.dirname(
@@ -50,7 +48,7 @@ class GENERATORS(object):
 
 class GenerateWellCacheFile(object):
     current_time = None
-    monitor_filename = 'monitoring_data.xlsx'
+    monitor_filename = 'monitoring_data.ods'
 
     # cache
     feature_types = {}
@@ -175,15 +173,10 @@ class GenerateWellCacheFile(object):
             self.copy_template(self.monitor_filename)
             monitor_file = self._file(self.monitor_filename)
 
-            # Load workbook for monitoring data
-            monitor_book = load_workbook(monitor_file)
-            self.measurements(monitor_book, well)
-            monitor_book.active = 0
-            monitor_book.save(monitor_file)
-            monitor_book.close()
-
-            xlsx_to_ods(monitor_file)
-            os.remove(monitor_file)
+            monitor_doc = OdsDoc(monitor_file)
+            self.measurements(monitor_doc, well)
+            monitor_doc.save(monitor_file)
+            monitor_doc.close()
             generated = True
 
         # Update data cache generated at
@@ -513,16 +506,16 @@ class GenerateWellCacheFile(object):
                 sheet_data.append(data)
             self.write_json(sheetname, sheet_data)
 
-    def measurements(self, book, well):
+    def measurements(self, doc, well):
         """ Measurements of well """
         generate_measurement_data_cache(
-            well, book['Groundwater Level'], WellLevelMeasurement
+            well, doc['Groundwater Level'], WellLevelMeasurement
         )
         generate_measurement_data_cache(
-            well, book['Groundwater Quality'], WellQualityMeasurement
+            well, doc['Groundwater Quality'], WellQualityMeasurement
         )
         generate_measurement_data_cache(
-            well, book['Abstraction-Discharge'], WellYieldMeasurement
+            well, doc['Abstraction-Discharge'], WellYieldMeasurement
         )
 
 
