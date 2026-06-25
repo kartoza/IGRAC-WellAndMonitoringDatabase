@@ -20,10 +20,11 @@ class Command(WellCommand):
 
     def handle(self, *args, **options):
         wells = self.wells(**options)
-        wells = assign_glo_90m_elevation(wells)
+        well_ids = assign_glo_90m_elevation(wells)
         args = []
         kwargs = {
-            "ids": ','.join(list(wells.values_list('id', flat=True)))
+            "ids": ','.join([str(_id) for _id in well_ids]),
+            "generators": 'general_information'
         }
 
         call_command(

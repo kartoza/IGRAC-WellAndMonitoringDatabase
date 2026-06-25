@@ -5,10 +5,9 @@ import time
 import zipfile
 
 from celery.utils.log import get_task_logger
-from openpyxl import load_workbook
 
 from gwml2.terms import SheetName
-from gwml2.utilities import xlsx_to_ods
+from gwml2.utils.ods_writer import OdsDoc
 
 DJANGO_ROOT = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,8 +19,8 @@ logger = get_task_logger(__name__)
 
 class WellZippedCache(object):
     current_time = None
-    wells_filename = 'wells.xlsx'
-    drill_filename = 'drilling_and_construction.xlsx'
+    wells_filename = 'wells.ods'
+    drill_filename = 'drilling_and_construction.ods'
     monitor_filename = 'monitoring_data.ods'
 
     @property
@@ -43,8 +42,9 @@ class WellZippedCache(object):
 
     def copy_template(self, filename):
         """Copy template."""
-        well_file = self.filepath(filename)
-        shutil.copyfile(os.path.join(TEMPLATE_FOLDER, filename), well_file)
+        shutil.copyfile(
+            os.path.join(TEMPLATE_FOLDER, filename), self.filepath(filename)
+        )
 
     def log(self, text):
         """Print time."""
@@ -73,13 +73,10 @@ class WellZippedCache(object):
         """Return path to the final zip file."""
         return os.path.join(self.data_folder, f'{self.cache_name}.zip')
 
-    def merge_data_per_well(
-            self, well, filename, well_book, sheets
-    ):
-        """Merge data per well.."""
+    def merge_data_per_well(self, well, filename, well_book, sheets):
+        """Merge data per well."""
         well_folder = well.data_cache_folder
 
-        # Load data of well
         well_data = None
         data_file = os.path.join(well_folder, 'data.json')
         if os.path.exists(data_file):
@@ -88,34 +85,27 @@ class WellZippedCache(object):
                     well_data = json.load(f)
             except (json.JSONDecodeError, OSError):
                 pass
+
         for sheetname in sheets:
             self.merge_data_between_sheets(
                 well_data,
                 os.path.join(well_folder, filename), well_book, sheetname
             )
-        if well_book:
-            well_book.active = 0
 
     def merge_data_between_sheets(
             self, well_data, source_folder, target_book, sheetname
     ):
-        """Merge data between sheets"""
+        """Merge data between sheets."""
         target_column_number = SheetName().get_column_size(
             sheet_name=sheetname
         )
 
-        # -------------------------------
-        # This is new approach
-        # -------------------------------
         if well_data:
             try:
                 data = well_data[sheetname]
             except KeyError:
                 return
         else:
-            # -------------------------------
-            # This is old approach
-            # -------------------------------
             if not os.path.exists(source_folder) or not target_book:
                 return
             source_file = os.path.join(source_folder, f'{sheetname}.json')
@@ -127,56 +117,42 @@ class WellZippedCache(object):
                 except json.JSONDecodeError:
                     return
 
-        # Target book
-        target_sheet = None
-        if target_book:
-            target_sheet = target_book[sheetname]
+        if not target_book:
+            return
 
-        # Append data from source
+        target_sheet = target_book[sheetname]
         for row in data:
             if len(row) != target_column_number:
                 continue
+            target_sheet.append(row)
 
-            if target_book:
-                target_sheet.append(row)
-
-    def zip_excel_to_ods(self, zip_file, filename):
-        """Zip excel to ods."""
-        well_file = self.filepath(filename)
-        xlsx_to_ods(well_file)
+    def zip_ods(self, zip_file, filename):
+        """Add ods file directly to zip."""
         zip_file.write(
-            well_file.replace('.xlsx', '.ods'),
-            filename.replace('.xlsx', '.ods'),
-            compress_type=zipfile.ZIP_DEFLATED
+            self.filepath(filename), filename, compress_type=zipfile.ZIP_STORED
         )
 
     def run(self, post_function=None):
         self.current_time = time.time()
-        self.log(
-            f'----- Begin cache {self.cache_name} -------'
-        )
+        self.log(f'----- Begin cache {self.cache_name} -------')
+
         # clear everything before starts
         self.clean()
 
-        # Prepare files
-        well_folder = self.folder
-        if not os.path.exists(well_folder):
-            os.makedirs(well_folder)
+        # Prepare folder
+        if not os.path.exists(self.folder):
+            os.makedirs(self.folder)
 
-        # copy files
+        # Copy ods templates
         self.copy_template(self.wells_filename)
         self.copy_template(self.drill_filename)
 
-        # Get data
-        # Well files
-        well_file = self.filepath(self.wells_filename)
-        well_book = load_workbook(well_file)
-        drilling_file = self.filepath(self.drill_filename)
-        drilling_book = load_workbook(drilling_file)
+        # Open ods docs
+        well_book = OdsDoc(self.filepath(self.wells_filename))
+        drilling_book = OdsDoc(self.filepath(self.drill_filename))
 
-        # Save the data
-        wells = self.well_queryset
-        for well in wells:
+        # Merge data from each well's data.json into ods docs
+        for well in self.well_queryset:
             self.merge_data_per_well(
                 well, self.wells_filename, well_book,
                 [
@@ -195,18 +171,15 @@ class WellZippedCache(object):
                 ]
             )
 
-        # Save book
-        well_book.save(well_file)
+        # Save ods files
+        well_book.save()
         well_book.close()
-        drilling_book.save(drilling_file)
+        drilling_book.save()
         drilling_book.close()
-        # -------------------------------------------------------------------------
-        # zipping files
-        # -------------------------------
-        self.log(
-            f'-- Finish constructing {self.cache_name} ----'
-        )
-        # Get the file path
+
+        self.log(f'-- Finish constructing {self.cache_name} ----')
+
+        # Zip files
         zip_filepath = self.zip_file_path
         if os.path.exists(zip_filepath):
             os.remove(zip_filepath)
@@ -214,25 +187,17 @@ class WellZippedCache(object):
         zip_file = None
         try:
             original_ids_found = {}
-            wells = self.well_queryset
-            for well in wells:
+            for well in self.well_queryset:
                 if not zip_file:
                     zip_file = zipfile.ZipFile(zip_filepath, 'w')
+                    self.zip_ods(zip_file, self.wells_filename)
+                    self.zip_ods(zip_file, self.drill_filename)
 
-                    self.zip_excel_to_ods(
-                        zip_file, self.wells_filename
-                    )
-                    self.zip_excel_to_ods(
-                        zip_file, self.drill_filename
-                    )
-
-                # Save measurements
                 if well.number_of_measurements == 0:
                     continue
 
-                well_folder = well.data_cache_folder
                 measurement_file = os.path.join(
-                    well_folder, self.monitor_filename
+                    well.data_cache_folder, self.monitor_filename
                 )
                 if os.path.exists(measurement_file):
                     original_id = well.original_id
@@ -248,7 +213,7 @@ class WellZippedCache(object):
                     zip_file.write(
                         measurement_file,
                         _filename,
-                        compress_type=zipfile.ZIP_DEFLATED
+                        compress_type=zipfile.ZIP_STORED
                     )
             if post_function:
                 post_function(zip_file)
@@ -257,9 +222,8 @@ class WellZippedCache(object):
         finally:
             if zip_file:
                 zip_file.close()
-        self.log(
-            f'---- Finish zipping {self.cache_name} ------'
-        )
+
+        self.log(f'---- Finish zipping {self.cache_name} ------')
 
         # clear temp directory
         self.clean()

@@ -7,8 +7,6 @@ from shutil import copyfile
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.utils import timezone
-from openpyxl import load_workbook
-
 from gwml2.models.general import Country, Unit
 from gwml2.models.term import (
     TermFeatureType, TermWellPurpose, TermWellStatus, TermDrillingMethod,
@@ -29,7 +27,7 @@ from gwml2.tasks.well_file_cache.organisation_cache import (
 )
 from gwml2.tasks.file_lock import file_lock
 from gwml2.terms import SheetName
-from gwml2.utilities import xlsx_to_ods
+from gwml2.utils.ods_writer import OdsDoc
 from gwml2.utils.wells_cache import generate_measurement_data_cache
 
 DJANGO_ROOT = os.path.dirname(
@@ -50,7 +48,7 @@ class GENERATORS(object):
 
 class GenerateWellCacheFile(object):
     current_time = None
-    monitor_filename = 'monitoring_data.xlsx'
+    monitor_filename = 'monitoring_data.ods'
 
     # cache
     feature_types = {}
@@ -88,14 +86,15 @@ class GenerateWellCacheFile(object):
         return os.path.join(self.folder, filename)
 
     def clean(self):
-        """Remove old files"""
-        for _file in ['done', 'wells.xlsx', 'drilling_and_construction.xlsx']:
-            _folder = os.path.join(self.folder, _file)
-            if os.path.exists(_folder):
-                if os.path.isfile(_folder):
-                    os.remove(_folder)
-                elif os.path.isdir(_folder):
-                    shutil.rmtree(_folder)
+        """Remove all files in cache folder except data.json and monitoring_data.ods."""
+        keep = {'data.json', self.monitor_filename}
+        for entry in os.scandir(self.folder):
+            if entry.name in keep:
+                continue
+            if entry.is_file():
+                os.remove(entry.path)
+            elif entry.is_dir():
+                shutil.rmtree(entry.path)
 
     def copy_template(self, filename):
         """Copy template."""
@@ -146,23 +145,29 @@ class GenerateWellCacheFile(object):
         well = self.well
         generated = False
 
+        # Load existing data.json once — preserved for partial regeneration
+        data_json_path = os.path.join(self.folder, 'data.json')
+        self._data_cache = {}
+        if os.path.exists(data_json_path):
+            try:
+                with open(data_json_path, 'r') as f:
+                    self._data_cache = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
         # General information
         if GENERATORS.GENERAL_INFORMATION in self.generators:
-            print(f'Generate {GENERATORS.GENERAL_INFORMATION}')
             self.general_information(well)
             generated = True
         if GENERATORS.HYDROGEOLOGY in self.generators:
-            print(f'Generate {GENERATORS.HYDROGEOLOGY}')
             self.hydrogeology(well)
             generated = True
         if GENERATORS.MANAGEMENT in self.generators:
-            print(f'Generate {GENERATORS.MANAGEMENT}')
             self.management(well)
             generated = True
 
         # Drill
         if GENERATORS.DRILLING_AND_CONSTRUCTION in self.generators:
-            print(f'Generate {GENERATORS.DRILLING_AND_CONSTRUCTION}')
             self.drilling_and_construction(well)
             generated = True
 
@@ -171,48 +176,26 @@ class GenerateWellCacheFile(object):
         # It is using ods file
         # ----------------------------------------
         if GENERATORS.MONITOR in self.generators:
-            print(f'Generate {GENERATORS.MONITOR}')
             self.copy_template(self.monitor_filename)
             monitor_file = self._file(self.monitor_filename)
 
-            # Load workbook for monitoring data
-            monitor_book = load_workbook(monitor_file)
-            self.measurements(monitor_book, well)
-            monitor_book.active = 0
-            monitor_book.save(monitor_file)
-            monitor_book.close()
-
-            xlsx_to_ods(monitor_file)
-            os.remove(monitor_file)
+            monitor_doc = OdsDoc(monitor_file)
+            self.measurements(monitor_doc, well)
+            monitor_doc.save(monitor_file)
+            monitor_doc.close()
             generated = True
 
         # Update data cache generated at
         if generated:
+            with open(data_json_path, 'w') as f:
+                f.write(json.dumps(self._data_cache, indent=4))
             cache = well.cache
             cache.data_cache_generated_at = timezone.now()
             cache.save()
 
     def write_json(self, sheetname, data):
-        """Write JSON by sheetname."""
-        _file = os.path.join(self.folder, sheetname + '.json')
-        if os.path.exists(_file):
-            os.remove(_file)
-
-        _file = os.path.join(self.folder, 'data.json')
-        curr_data = {}
-        if os.path.exists(_file):
-            with open(_file, 'r') as f:
-                try:
-                    curr_data = json.load(f)
-                except json.decoder.JSONDecodeError:
-                    pass
-        else:
-            curr_data = {}
-        curr_data[sheetname] = data
-
-        # Writing to sample.json
-        with open(_file, "w") as outfile:
-            outfile.write(json.dumps(curr_data, indent=4))
+        """Stage data for sheetname — written to data.json once at end of run."""
+        self._data_cache[sheetname] = data
 
     def general_information(self, well: Well):
         """General Information of well."""
@@ -513,16 +496,42 @@ class GenerateWellCacheFile(object):
                 sheet_data.append(data)
             self.write_json(sheetname, sheet_data)
 
-    def measurements(self, book, well):
+    def measurements(self, doc, well):
         """ Measurements of well """
+        from gwml2.models.general import UnitConvertion
+        from gwml2.utilities import convert_value
+
+        ground_surface_elevation = well.ground_surface_elevation
+        unit_to = ground_surface_elevation.unit if ground_surface_elevation else None
+        top_borehole_elevation = well.top_borehole_elevation
+        if top_borehole_elevation:
+            if not unit_to:
+                unit_to = top_borehole_elevation.unit
+            top_borehole_elevation = convert_value(top_borehole_elevation, unit_to)
+        unit_to_id = unit_to.id if unit_to else None
+        unit_to_name = unit_to.name if unit_to else None
+
+        unit_conversion_map = {
+            f"{r[0]},{r[1]}": r[2]
+            for r in UnitConvertion.objects.values_list(
+                'unit_from_id', 'unit_to_id', 'formula'
+            )
+        }
+
         generate_measurement_data_cache(
-            well, book['Groundwater Level'], WellLevelMeasurement
+            well, doc['Groundwater Level'], WellLevelMeasurement,
+            unit_conversion_map, ground_surface_elevation,
+            top_borehole_elevation, unit_to_id, unit_to_name
         )
         generate_measurement_data_cache(
-            well, book['Groundwater Quality'], WellQualityMeasurement
+            well, doc['Groundwater Quality'], WellQualityMeasurement,
+            unit_conversion_map, ground_surface_elevation,
+            top_borehole_elevation, unit_to_id, unit_to_name
         )
         generate_measurement_data_cache(
-            well, book['Abstraction-Discharge'], WellYieldMeasurement
+            well, doc['Abstraction-Discharge'], WellYieldMeasurement,
+            unit_conversion_map, ground_surface_elevation,
+            top_borehole_elevation, unit_to_id, unit_to_name
         )
 
 

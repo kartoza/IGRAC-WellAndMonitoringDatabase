@@ -108,7 +108,8 @@ class temp_disconnect_signals(object):
 def convert_value_by_id(
         value: float,
         unit_from_id: typing.Optional[int],
-        unit_to_id: typing.Optional[int]
+        unit_to_id: typing.Optional[int],
+        formula: str = None
 ) -> typing.Tuple[typing.Optional[float], typing.Optional[int]]:
     """Convert a raw value between units identified by their IDs.
 
@@ -125,14 +126,14 @@ def convert_value_by_id(
             return None, unit_from_id
     unit_id = unit_from_id
     try:
-        if unit_from_id and unit_from_id != unit_to_id:
+        if unit_from_id and unit_to_id and unit_from_id != unit_to_id:
             try:
-                value = eval(
-                    UnitConvertion.objects.get(
+                if not formula:
+                    formula = UnitConvertion.objects.get(
                         unit_from_id=unit_from_id,
                         unit_to_id=unit_to_id
-                    ).formula.replace('x', '{}'.format(value))
-                )
+                    ).formula
+                value = eval(formula.replace('x', '{}'.format(value)))
                 unit_id = unit_to_id
             except (UnitConvertion.DoesNotExist, KeyError):
                 pass
