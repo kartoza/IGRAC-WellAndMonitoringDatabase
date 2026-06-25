@@ -86,14 +86,15 @@ class GenerateWellCacheFile(object):
         return os.path.join(self.folder, filename)
 
     def clean(self):
-        """Remove old files"""
-        for _file in ['done', 'wells.xlsx', 'drilling_and_construction.xlsx']:
-            _folder = os.path.join(self.folder, _file)
-            if os.path.exists(_folder):
-                if os.path.isfile(_folder):
-                    os.remove(_folder)
-                elif os.path.isdir(_folder):
-                    shutil.rmtree(_folder)
+        """Remove all files in cache folder except data.json and monitoring_data.ods."""
+        keep = {'data.json', self.monitor_filename}
+        for entry in os.scandir(self.folder):
+            if entry.name in keep:
+                continue
+            if entry.is_file():
+                os.remove(entry.path)
+            elif entry.is_dir():
+                shutil.rmtree(entry.path)
 
     def copy_template(self, filename):
         """Copy template."""
@@ -144,6 +145,16 @@ class GenerateWellCacheFile(object):
         well = self.well
         generated = False
 
+        # Load existing data.json once — preserved for partial regeneration
+        data_json_path = os.path.join(self.folder, 'data.json')
+        self._data_cache = {}
+        if os.path.exists(data_json_path):
+            try:
+                with open(data_json_path, 'r') as f:
+                    self._data_cache = json.load(f)
+            except json.JSONDecodeError:
+                pass
+
         # General information
         if GENERATORS.GENERAL_INFORMATION in self.generators:
             print(f'Generate {GENERATORS.GENERAL_INFORMATION}')
@@ -181,31 +192,15 @@ class GenerateWellCacheFile(object):
 
         # Update data cache generated at
         if generated:
+            with open(data_json_path, 'w') as f:
+                f.write(json.dumps(self._data_cache, indent=4))
             cache = well.cache
             cache.data_cache_generated_at = timezone.now()
             cache.save()
 
     def write_json(self, sheetname, data):
-        """Write JSON by sheetname."""
-        _file = os.path.join(self.folder, sheetname + '.json')
-        if os.path.exists(_file):
-            os.remove(_file)
-
-        _file = os.path.join(self.folder, 'data.json')
-        curr_data = {}
-        if os.path.exists(_file):
-            with open(_file, 'r') as f:
-                try:
-                    curr_data = json.load(f)
-                except json.decoder.JSONDecodeError:
-                    pass
-        else:
-            curr_data = {}
-        curr_data[sheetname] = data
-
-        # Writing to sample.json
-        with open(_file, "w") as outfile:
-            outfile.write(json.dumps(curr_data, indent=4))
+        """Stage data for sheetname — written to data.json once at end of run."""
+        self._data_cache[sheetname] = data
 
     def general_information(self, well: Well):
         """General Information of well."""
