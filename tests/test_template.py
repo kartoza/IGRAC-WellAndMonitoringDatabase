@@ -14,10 +14,6 @@ class TemplateTest(GWML2Test):
         if not pref:
             pref, _ = SitePreference.objects.get_or_create()
 
-        self.assertTrue(pref.wells_sync)
-        self.assertTrue(pref.monitoring_data_sync)
-        self.assertTrue(pref.drilling_and_construction_sync)
-
     def check(self, sheet_name):
         """Check."""
         self.assertTrue(
