@@ -36,6 +36,8 @@ from gwml2.views.admin.well_quality_control import (
 )
 from gwml2.views.download_request import (
     DownloadRequestFormView,
+    DownloadRequestByIdsFormView,
+    DownloadRequestByIdsInitiateView,
     DownloadRequestDownloadView,
     DownloadRequestDownloadStatus
 )
@@ -110,6 +112,16 @@ well_url = [
         r'^download/(?P<uuid>[0-9a-f-]+)$',
         view=DownloadRequestDownloadView.as_view(),
         name='well_download_request_download'
+    ),
+    re_path(
+        r'^download/by-ids/initiate$',
+        view=DownloadRequestByIdsInitiateView.as_view(),
+        name='well_download_request_by_ids_initiate'
+    ),
+    re_path(
+        r'^download/by-ids$',
+        view=DownloadRequestByIdsFormView.as_view(),
+        name='well_download_request_by_ids'
     ),
     re_path(
         r'^download$',

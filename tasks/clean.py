@@ -24,7 +24,7 @@ def clean_download_file(self):
             return
 
         for download in DownloadRequest.objects.all():
-            if download.age_hours >= 10:
+            if download.age_hours >= 5:
                 _file = download.file()
                 if _file:
                     try:

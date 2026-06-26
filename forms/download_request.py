@@ -1,3 +1,4 @@
+"""Forms for handling well data download requests."""
 from typing import Any
 
 from django import forms
@@ -14,35 +15,16 @@ from gwml2.models.well_management.organisation import (
 User = get_user_model()
 
 
-class DownloadRequestForm(forms.ModelForm):
-    radio_filter_type = forms.ChoiceField(
-        label='Filter by',
-        choices=[
-            ('data_providers', 'Data Providers'),
-            ('countries', 'Countries')
-        ],
-        widget=forms.RadioSelect,
-        initial='data_providers'
-    )
+class DownloadRequestBaseForm(forms.ModelForm):
+    """Abstract base form for download requests."""
     organization_types = forms.MultipleChoiceField(required=False)
 
     class Meta:
         model = DownloadRequest
-        fields = (
-            'radio_filter_type', 'countries', 'organisations',
-            'first_name', 'last_name', 'organization',
-            'organization_types', 'email', 'country', 'data_type'
-        )
+        fields = ()
 
-    def __init__(self, *args, **kwargs):
-        super(DownloadRequestForm, self).__init__(*args, **kwargs)
-
-        self.fields['countries'].label = (
-            'Select the countries whose data you want to download.'
-        )
-        self.fields['organisations'].label = (
-            'Select the data providers whose data you want to download.'
-        )
+    def default_init(self):
+        """Default initialization of the form."""
 
         types = [_type.name for _type in OrganisationType.objects.all()]
         self.fields['organization_types'].choices = [
@@ -71,8 +53,38 @@ class DownloadRequestForm(forms.ModelForm):
             pass
 
     def clean_organization_types(self):
-        organisation_types = self.cleaned_data['organization_types']
-        return ', '.join(organisation_types)
+        return ', '.join(self.cleaned_data['organization_types'])
+
+
+class DownloadRequestForm(DownloadRequestBaseForm):
+    radio_filter_type = forms.ChoiceField(
+        label='Filter by',
+        choices=[
+            ('data_providers', 'Data Providers'),
+            ('countries', 'Countries')
+        ],
+        widget=forms.RadioSelect,
+        initial='data_providers'
+    )
+
+    class Meta:
+        model = DownloadRequest
+        fields = (
+            'countries', 'organisations',
+            'first_name', 'last_name', 'organization',
+            'organization_types', 'email', 'country', 'data_type'
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(DownloadRequestForm, self).__init__(*args, **kwargs)
+
+        self.fields['countries'].label = (
+            'Select the countries whose data you want to download.'
+        )
+        self.fields['organisations'].label = (
+            'Select the data providers whose data you want to download.'
+        )
+        self.default_init()
 
     def clean_countries(self):
         countries = self.cleaned_data['countries']
@@ -113,3 +125,42 @@ class DownloadRequestForm(forms.ModelForm):
                 }
             )
         return cleaned_data
+
+
+def validate_wells_id(wells_id: list) -> list[int]:
+    """Parse and validate a list of well IDs. Returns a clean list of ints.
+
+    Raises ValueError with a human-readable message on failure.
+    """
+    try:
+        ids = [int(i) for i in wells_id if i]
+    except (ValueError, TypeError):
+        raise ValueError('wells_id must be a list of integers.')
+    if len(ids) < 1:
+        raise ValueError('At least 1 well must be selected.')
+    if len(ids) > 10000:
+        raise ValueError('Cannot request more than 10,000 wells at once.')
+    return ids
+
+
+class DownloadRequestByIdsForm(DownloadRequestBaseForm):
+    """Download request form for downloading data by ids."""
+
+    wells_id = forms.CharField(widget=forms.HiddenInput)
+
+    class Meta:
+        model = DownloadRequest
+        fields = (
+            'wells_id', 'first_name', 'last_name', 'organization',
+            'organization_types', 'email', 'country', 'data_type'
+        )
+
+    def __init__(self, *args, **kwargs):
+        super(DownloadRequestByIdsForm, self).__init__(*args, **kwargs)
+        self.default_init()
+
+    def clean_wells_id(self):
+        try:
+            return validate_wells_id(self.data.getlist('wells_id'))
+        except ValueError as e:
+            raise forms.ValidationError(str(e))

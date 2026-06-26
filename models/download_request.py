@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -20,6 +21,7 @@ from igrac.models import SitePreference
 
 WELL_AND_MONITORING_DATA = 'Well and Monitoring Data'
 GGMN = 'GGMN'
+
 DEFAULT_README_HEADER_TEXT = (
     "=======================================================\r\n"
     "IGRAC Groundwater Monitoring Data - README\r\n"
@@ -47,18 +49,25 @@ class DownloadRequest(models.Model):
         ),
         max_length=512
     )
+
+    # This is for the case where the user is not logged in.
     user_id = models.IntegerField(null=True, blank=True)
-    email = models.EmailField(_('email address'), blank=True)
+
+    # This is for the data
     countries = models.ManyToManyField(
-        Country,
-        null=True, blank=True,
+        Country, blank=True,
         related_name='download_country_data_request'
     )
     organisations = models.ManyToManyField(
-        Organisation,
-        null=True, blank=True,
+        Organisation, blank=True,
         related_name='download_organisation_data_request'
     )
+    wells_id = ArrayField(
+        models.IntegerField(), default=list, null=True, blank=True
+    )
+
+    # This is for form for user information
+    email = models.EmailField(_('email address'), blank=True)
     first_name = models.CharField(
         _('First Name'), null=True, blank=True, max_length=512
     )
@@ -80,42 +89,97 @@ class DownloadRequest(models.Model):
         null=True, blank=True,
         on_delete=models.SET_NULL
     )
+
     is_ready = models.BooleanField(default=False)
+    is_error = models.BooleanField(default=False)
+    note = models.TextField(
+        null=True, blank=True
+    )
 
     output_folder = os.path.join(settings.MEDIA_ROOT, 'request')
 
-    organisations_found = []
+    def update_note(self, note: str):
+        """Update progress note."""
+        self.note = note
+        self.save(update_fields=['note'])
 
-    def generate_file(self):
+    def run(self):
         """Generate file to be downloaded."""
-        self.organisations_found = []
-        from gwml2.tasks.data_file_cache.country_recache import (
+        from gwml2.models import Well
+        from gwml2.tasks.well_file_cache.country_recache import (
             COUNTRY_DATA_FOLDER
         )
-        from gwml2.tasks.data_file_cache.organisation_cache import (
+        from gwml2.tasks.well_file_cache.organisation_cache import (
             ORGANISATION_DATA_FOLDER
         )
-        if not os.path.exists(self.output_folder):
-            os.makedirs(self.output_folder)
-
-        request_file = os.path.join(
-            self.output_folder, '{}.zip'.format(str(self.uuid))
+        from gwml2.tasks.well_file_cache.well_zipped_cache import (
+            WellZippedCacheByIds
         )
+        try:
+            self.update_note('Preparing output folder...')
+            _stat = os.statvfs(os.path.dirname(self.output_folder))
+            free_bytes = _stat.f_frsize * _stat.f_bavail
+            if free_bytes < 5 * 1024 ** 3:
+                raise Exception(
+                    'Not enough disk space to generate the file.'
+                )
+            if not os.path.exists(self.output_folder):
+                os.makedirs(self.output_folder)
 
-        zip_file = zipfile.ZipFile(request_file, 'w')
-        if self.countries.exists():
-            self._write_countries_to_zip_file(COUNTRY_DATA_FOLDER, zip_file)
-        elif self.organisations.exists():
-            self._write_organisations_to_zip_file(
-                ORGANISATION_DATA_FOLDER, zip_file
+            request_file = os.path.join(
+                self.output_folder, '{}.zip'.format(str(self.uuid))
             )
-        zip_file.writestr(
-            'Readme.txt', self._generate_readme_file(COUNTRY_DATA_FOLDER)
-        )
-        zip_file.close()
 
-        # Make this downloader done
-        self.is_ready = True
+            if self.wells_id and len(self.wells_id):
+                self.update_note('Generating data...')
+
+                # this is for using wells
+                well_queryset = Well.objects.filter(id__in=self.wells_id)
+                organisation_ids = list(set(
+                    well_queryset.values_list('organisation_id', flat=True)
+                ))
+
+                def _write_readme(zip_file):
+                    self.update_note('Generating readme...')
+                    zip_file.writestr(
+                        'Readme.txt',
+                        self._generate_readme_file(
+                            COUNTRY_DATA_FOLDER,
+                            organisation_id=organisation_ids
+                        )
+                    )
+
+                zipped_cache = WellZippedCacheByIds(
+                    data_folder=self.output_folder,
+                    cache_name=str(self.uuid),
+                    well_queryset=well_queryset
+                )
+                zipped_cache.run(post_function=_write_readme)
+            else:
+                zip_file = zipfile.ZipFile(request_file, 'w')
+                if self.countries.exists():
+                    self.update_note('Writing country data...')
+                    self._write_countries_to_zip_file(
+                        COUNTRY_DATA_FOLDER, zip_file
+                    )
+                elif self.organisations.exists():
+                    self.update_note('Writing organisation data...')
+                    self._write_organisations_to_zip_file(
+                        ORGANISATION_DATA_FOLDER, zip_file
+                    )
+                self.update_note('Generating readme...')
+                zip_file.writestr(
+                    'Readme.txt',
+                    self._generate_readme_file(COUNTRY_DATA_FOLDER)
+                )
+                zip_file.close()
+
+            self.is_ready = True
+            self.is_error = False
+            self.update_note('Done.')
+        except Exception as e:
+            self.is_error = True
+            self.update_note(str(e))
         self.save()
 
     def _add_content_to_zip_file(
@@ -132,19 +196,19 @@ class DownloadRequest(models.Model):
 
     def _write_countries_to_zip_file(self, data_folder, zip_file):
         for country in self.countries.all():
-            data_file_name = f'{country.code} - {self.data_type}.zip'
+            self.update_note(f'Writing {country.name}...')
+            data_file_name = f'{country.code}.zip'
             self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file
             )
 
     def _write_organisations_to_zip_file(self, data_folder, zip_file):
         for organisation in self.organisations.all():
-            data_file_name = f'{str(organisation.name)} - {self.data_type}.zip'
-            added = self._add_content_to_zip_file(
+            self.update_note(f'Writing {organisation.name}...')
+            data_file_name = f'{str(organisation.name)}.zip'
+            self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file
             )
-            if added:
-                self.organisations_found.append(organisation.name)
 
     def _get_readme_text(self):
         pref = SitePreference.objects.first()
@@ -152,7 +216,7 @@ class DownloadRequest(models.Model):
             return DEFAULT_README_HEADER_TEXT
         if self.data_type == GGMN:
             ggmn_group = OrganisationGroup.get_ggmn_group()
-            header_text = ggmn_group.download_readme_text
+            header_text = ggmn_group.download_readme_text if ggmn_group else None
         else:
             header_text = pref.download_readme_text
         return header_text if header_text else DEFAULT_README_HEADER_TEXT
@@ -161,30 +225,30 @@ class DownloadRequest(models.Model):
             self, country: Country, country_data_folder
     ):
         """Return organisations of countries."""
-        # This is new approach
-        _organisation_file_name = (
-            f'{country.code} - organisations.json'
-        )
         _file_path = os.path.join(
             country_data_folder,
-            _organisation_file_name
+            f'{country.code} - metadata.json'
         )
         if os.path.exists(_file_path):
             with open(_file_path, "r") as _file:
                 try:
                     data = json.loads(_file.read())
-                    organisations = data[self.data_type]
+                    organisations = data['organisations']
                     return Organisation.objects.filter(id__in=organisations)
                 except KeyError:
                     pass
         return None
 
-    def _generate_readme_file(self, country_data_folder):
+    def _generate_readme_file(self, country_data_folder, organisation_id=None):
         """Generate readme."""
+        if organisation_id is None:
+            organisation_id = []
         header_text = self._get_readme_text()
         header_text += '\r\n'
         header_text += '\r\n'
-        header_text += self._generate_contributors(country_data_folder)
+        header_text += self._generate_contributors(
+            country_data_folder, organisation_id
+        )
         header_text += (
             '======================================================='
         )
@@ -210,14 +274,18 @@ class DownloadRequest(models.Model):
         diff = timezone.now() - self.request_at
         return diff.total_seconds() / (60 * 60)
 
-    def _generate_contributors(self, country_data_folder):
+    def _generate_contributors(
+            self, country_data_folder, organisation_id=None
+    ):
         """Generate readme."""
+        if organisation_id is None:
+            organisation_id = []
+
         header_text = (
             'Organisations contributing with groundwater '
             'monitoring data are:\r\n'
         )
         header_text += '\r\n'
-        organisation_id = []
         if self.countries.exists():
             for country in self.countries.all():
                 try:

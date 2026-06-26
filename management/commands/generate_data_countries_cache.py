@@ -1,6 +1,6 @@
 from gwml2.management.commands.base import WellCommand
 from gwml2.models.general import Country
-from gwml2.tasks.data_file_cache.country_recache import (
+from gwml2.tasks.well_file_cache.country_recache import (
     generate_data_country_cache
 )
 

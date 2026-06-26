@@ -37,7 +37,7 @@ class WellCacheIndicator(models.Model):
 
     def generate_data_wells_cache(self, force=False, generators=None):
         """Generate data wells cache."""
-        from gwml2.tasks.data_file_cache.wells_cache import (
+        from gwml2.tasks.well_file_cache.wells_cache import (
             generate_data_well_cache
         )
 

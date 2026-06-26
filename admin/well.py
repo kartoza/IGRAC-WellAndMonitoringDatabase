@@ -4,12 +4,14 @@ from django.contrib.admin.views.main import ChangeList
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Polygon
 from django.db.models import Q, Sum
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
+from django.middleware.csrf import get_token
 from django.urls import path, reverse
 from django.utils.html import format_html
 
 from core.utils import deepl_translater
 from gwml2.models import OrganisationGroup
+from gwml2.models.download_request import WELL_AND_MONITORING_DATA
 from gwml2.models.well import (
     Well, WellDocument, Measurement,
     WellQualityMeasurement, WellYieldMeasurement, WellLevelMeasurement
@@ -194,6 +196,27 @@ def generate_data_cache_information(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Download well data')
+def download_well_data(modeladmin, request, queryset):
+    """Simulate frontend POST to initiate download by IDs."""
+    wells_id = list(queryset.values_list('id', flat=True))
+    initiate_url = reverse('well_download_request_by_ids_initiate')
+    csrf_token = get_token(request)
+    inputs = ''.join(
+        f'<input type="hidden" name="wells_id" value="{wid}">'
+        for wid in wells_id
+    )
+    html = f"""
+        <form id="f" method="post" action="{initiate_url}">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{csrf_token}">
+            <input type="hidden" name="data_type" value="{WELL_AND_MONITORING_DATA}">
+            {inputs}
+        </form>
+        <script>document.getElementById('f').submit();</script>
+    """
+    return HttpResponse(html)
+
+
 @admin.action(description='Generate DEM value')
 def generate_dem_values(modeladmin, request, queryset):
     """Generate dem values."""
@@ -239,6 +262,7 @@ class WellAdmin(admin.ModelAdmin):
     )
     search_fields = ('original_id', 'name')
     actions = [
+        download_well_data,
         delete_in_background,
         assign_country,
         translate_description,

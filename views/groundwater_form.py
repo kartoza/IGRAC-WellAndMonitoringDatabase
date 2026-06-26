@@ -14,7 +14,7 @@ from gwml2.models.term_measurement_parameter import (
 )
 from gwml2.models.well import Well
 from gwml2.serializer.unit import UnitSerializer
-from gwml2.tasks.data_file_cache.wells_cache import generate_data_well_cache
+from gwml2.tasks.well_file_cache.wells_cache import generate_data_well_cache
 from gwml2.views.form_group.construction import (
     ConstructionGetForms, ConstructionCreateForm
 )

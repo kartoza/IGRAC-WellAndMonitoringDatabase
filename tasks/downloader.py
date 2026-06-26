@@ -11,6 +11,6 @@ def prepare_download_file(self, id: int):
     """Prepare download file of request."""
     try:
         download_request = DownloadRequest.objects.get(id=id)
-        download_request.generate_file()
+        download_request.run()
     except DownloadRequest.DoesNotExist:
         pass
