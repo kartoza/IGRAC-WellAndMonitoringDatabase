@@ -12,7 +12,7 @@ from gwml2.models.geology import Geology
 from gwml2.models.hydrogeology import HydrogeologyParameter
 from gwml2.models.management import Management
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.tasks.data_file_cache.wells_cache import (
+from gwml2.tasks.well_file_cache.wells_cache import (
     GENERATORS, GenerateWellCacheFile
 )
 from gwml2.tests.base import GWML2Test
