@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 
 from django.contrib.gis.db import models
@@ -13,6 +12,8 @@ from gwml2.models.metadata.license_metadata import LicenseMetadata
 
 class Organisation(LicenseMetadata):
     """Organisation."""
+
+    wagtail_reference_index_ignore = True
 
     name = models.CharField(
         max_length=512, unique=True)
@@ -44,7 +45,6 @@ class Organisation(LicenseMetadata):
         )
     )
 
-    wagtail_reference_index_ignore = True
     data_cache_generated_at = models.DateTimeField(
         _('Time when data cache generated'),
         null=True, blank=True
@@ -62,15 +62,6 @@ class Organisation(LicenseMetadata):
         null=True, blank=True
     )
     data_date_end = models.DateField(
-        null=True, blank=True
-    )
-
-    # Data cache information
-    data_cache_information = models.JSONField(
-        help_text=_(
-            'Information about the data cache, '
-            'like the time of file is being generated.'
-        ),
         null=True, blank=True
     )
 
@@ -170,7 +161,6 @@ class Organisation(LicenseMetadata):
     # -------------------------------------
     # Assign data
     # -------------------------------------
-
     def assign_date_range(self):
         """Assign date range to this organisation based on current data."""
         from gwml2.models import (
@@ -232,31 +222,19 @@ class Organisation(LicenseMetadata):
     def assign_data(self):
         """Automatically assign data to this
         organization based on current data."""
-        self.assign_date_range()
-
-    def assign_data_cache_information(self):
-        """Assign data cache information.
-        We not use this on generator, just on the django admin command.
-        """
-        from gwml2.tasks.data_file_cache.organisation_cache import (
+        import os
+        from datetime import datetime
+        from gwml2.tasks.well_file_cache.organisation_cache import (
             ORGANISATION_DATA_FOLDER
         )
-        from gwml2.models.download_request import (
-            WELL_AND_MONITORING_DATA, GGMN
-        )
-        self.data_cache_information = {}
-        cache_name = self.name
-        for data_type in [WELL_AND_MONITORING_DATA, GGMN]:
-            zip_filename = f'{cache_name} - {data_type}.zip'
-            file_path = os.path.join(ORGANISATION_DATA_FOLDER, zip_filename)
-            if os.path.exists(file_path):
-                file = os.path.basename(file_path).split('-')[1]
-                modified_time = os.path.getmtime(file_path)
-                readable_time = datetime.fromtimestamp(modified_time)
-                self.data_cache_information[file] = (
-                    readable_time.strftime('%Y-%m-%d %H:%M:%S')
-                )
-        self.save()
+        zip_file = os.path.join(ORGANISATION_DATA_FOLDER, f'{self.name}.zip')
+        if os.path.exists(zip_file):
+            self.data_cache_generated_at = datetime.fromtimestamp(
+                os.path.getmtime(zip_file)
+            )
+        else:
+            self.data_cache_generated_at = None
+        self.assign_date_range()
 
     def generate_data_stats(self, force=False):
         """Count measurements and wells, saving incrementally per batch.
@@ -414,10 +392,10 @@ def groundwater_layer_saved(
         sender, instance: OrganisationGroup, using, **kwargs
 ):
     from igrac.models.groundwater_layer import GroundwaterLayer
-    from gwml2.tasks.data_file_cache.country_recache import (
+    from gwml2.tasks.well_file_cache.country_recache import (
         generate_data_all_country_cache
     )
-    from gwml2.tasks.data_file_cache.organisation_cache import (
+    from gwml2.tasks.well_file_cache.organisation_cache import (
         generate_data_all_organisation_cache
     )
     try:

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+{% load bootstrap_tags %}
+{% load igrac_bootstrap_tags %}
+
+{% block page_title %}
+    <h1>Download Form.</h1>
+{% endblock page_title %}
+
+{% block extra_head %}
+    <link rel="stylesheet" type="text/css"
+          href="{% static 'css/form-select2.css' %}"/>
+    <link rel="stylesheet" type="text/css"
+          href="{% static 'admin/css/widgets.css' %}"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <link rel="stylesheet"
+          href="{% static 'js/select2/4.1.0-rc.0/select2.min.css' %}"
+          type="text/css" media="screen, projection"/>
+    <script type="text/javascript"
+            src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
+    <style>
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      form .row {
+        margin: 0;
+      }
+
+      form .row {
+        display: flex;
+      }
+
+      form .col {
+        width: 100%;
+        padding: 0 5px;
+      }
+
+      form .row .col:first-child {
+        padding-left: 0;
+      }
+
+      form .row .col:last-child {
+        padding-right: 0;
+      }
+
+      .helptext {
+        margin: 0 0 20px 0;
+      }
+
+      #id_organization_types .select2-container input {
+        min-width: 411px !important;
+      }
+
+      .form-actions button {
+        width: 100%;
+      }
+
+      form .error-msg ul.errorlist {
+        padding-inline-start: 0;
+      }
+
+      .select2-results__options {
+        margin-bottom: 0!important;
+      }
+
+      .select2-container {
+        width: 100% !important;
+      }
+
+      .wells-summary {
+        padding: 10px 15px;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+    </style>
+{% endblock %}
+
+{% block body_outer %}
+    <div class="page-header">
+        <h1>Data Download</h1>
+    </div>
+    <div class="row">
+        <form method="post" autocomplete="off" id="download-by-ids-form">
+            <fieldset>
+                {% csrf_token %}
+                <div class="helptext">
+                    In order to download the data for the selected wells,
+                    please identify yourself.
+                    This information helps GGIS administrator and data
+                    providers with providing adequate data and services.
+                </div>
+                {% for id in wells_id %}
+                    <input type="hidden" name="wells_id" value="{{ id }}">
+                {% endfor %}
+                <input type="hidden" name="data_type" value="{{ data_type }}">
+                <div class="wells-summary">
+                    <strong>{{ wells_count }}</strong> well(s) selected.
+                </div>
+                <div class="form-group">
+                    <label>Data Type</label>
+                    <input type="text" class="form-control"
+                           value="{{ data_type }}" disabled>
+                </div>
+                {{ form.email|field_as_bootstrap }}
+                <div class="group">
+                    <div class="row">
+                        <div class="col">
+                            {{ form.first_name|field_as_bootstrap }}
+                        </div>
+                        <div class="col">
+                            {{ form.last_name|field_as_bootstrap }}
+                        </div>
+                    </div>
+                </div>
+                <div class="group">
+                    <div class="row">
+                        <div class="col">
+                            {{ form.organization|field_as_bootstrap }}
+                        </div>
+                        <div class="col">
+                            {{ form.organization_types|field_as_bootstrap }}
+                        </div>
+                    </div>
+                </div>
+                {{ form.country|field_as_bootstrap }}
+                <div class="helptext">
+                    Open license apply to some of data, in which case they are
+                    specified in the download file.
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        {% trans "Download" %}
+                    </button>
+                </div>
+                <br>
+                <br>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+      $(document).ready(function () {
+        const placeholder = "Select an organization type or more or create by typing new one.";
+        $('#id_organization_types select').select2({
+          placeholder: placeholder,
+          allowClear: true,
+          tags: true,
+          createTag: function (params) {
+            return {
+              id: params.term,
+              text: params.term,
+              newOption: true
+            }
+          },
+          templateResult: function (data) {
+            var $result = $("<span></span>");
+            $result.text(data.text);
+            if (data.newOption) {
+              $result.append(" <em>(new)</em>");
+            }
+            return $result;
+          }
+        }).on('select2:open', function (e) {
+          $('#id_organization_types input.select2-search__field').prop('placeholder', placeholder);
+        });
+
+      });
+    </script>
+{% endblock %}

@@ -10,22 +10,55 @@
 
 {% block extra_head %}
     <style>
+      .request-detail {
+        margin: 20px 0;
+        padding: 15px;
+        background: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+      }
+
+      .request-detail table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .request-detail td {
+        padding: 4px 10px 4px 0;
+        vertical-align: top;
+      }
+
+      .request-detail td:first-child {
+        font-weight: bold;
+        white-space: nowrap;
+        width: 160px;
+        color: #555;
+      }
+
       .download-wrapper .ready,
       .download-wrapper .not-exist,
-      .download-wrapper .not-ready {
+      .download-wrapper .not-ready,
+      .download-wrapper .error {
         display: none;
       }
 
       .download-wrapper.ready .ready,
       .download-wrapper.not-exist .not-exist,
-      .download-wrapper.not-ready .not-ready {
+      .download-wrapper.not-ready .not-ready,
+      .download-wrapper.error .error {
         display: block;
+      }
+
+      .progress-note {
+        margin-top: 8px;
+        color: #666;
+        font-style: italic;
       }
     </style>
 {% endblock %}
 
 {% block body_outer %}
-    <div class="download-wrapper {% if is_ready and has_file %}ready{% elif is_ready and not has_file %}not-exist{% else %}not-ready{% endif %}">
+    <div class="download-wrapper {% if is_error %}error{% elif is_ready and has_file %}ready{% elif is_ready and not has_file %}not-exist{% else %}not-ready{% endif %}">
         <div class="page-header">
             <h1 class="not-exist">File not found</h1>
             <h1 class="ready">Your file is ready.</h1>
@@ -35,8 +68,9 @@
                 </div>
                 Your file request is generating.
             </h1>
+            <h1 class="error">An error occurred.</h1>
         </div>
-        <div class="row">
+        <div>
             <div class="ready">
                 Thank you for the request. Your file is ready :
                 <a id="download-button"
@@ -54,19 +88,57 @@
             <div class="not-ready">
                 Thank you for the request. Please wait, your file is
                 generating.
+                <div class="progress-note" id="progress-note"></div>
+            </div>
+            <div class="error">
+                Something went wrong while generating your file.
+                <div class="progress-note" id="error-note">{{ note }}</div>
             </div>
         </div>
     </div>
 
-    {% if not is_ready %}
+    <div class="request-detail">
+        <table>
+            <tr><td>Requested at</td><td>{{ download_request.request_at }}</td></tr>
+            <tr><td>Data type</td><td>{{ download_request.data_type }}</td></tr>
+            <tr><td>Email</td><td>{{ download_request.email }}</td></tr>
+            <tr><td>First name</td><td>{{ download_request.first_name }}</td></tr>
+            <tr><td>Last name</td><td>{{ download_request.last_name }}</td></tr>
+            <tr><td>Organization</td><td>{{ download_request.organization }}</td></tr>
+            <tr><td>Organization type</td><td>{{ download_request.organization_types }}</td></tr>
+            <tr><td>Country</td><td>{{ download_request.country }}</td></tr>
+            <tr>
+                <td>Data scope</td>
+                <td>
+                    {% if download_request.countries.exists %}
+                        {% for c in download_request.countries.all %}{{ c.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% elif download_request.organisations.exists %}
+                        {% for o in download_request.organisations.all %}{{ o.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% elif download_request.wells_id %}
+                        {{ download_request.wells_id|length }} well(s)
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {% if not is_ready and not is_error %}
         <script>
           document.addEventListener('DOMContentLoaded', function () {
             async function check() {
               const response = await fetch(window.location.href + '/status');
               const status = await response.json();
-              if (status.result) {
-                $('.download-wrapper').removeClass('not-ready').addClass('ready')
+              if (status.is_error) {
+                $('.download-wrapper').removeClass('not-ready').addClass('error');
+                $('#error-note').text(status.note || '');
+              } else if (status.is_ready) {
+                window.location.reload();
               } else {
+                if (status.note) {
+                  $('#progress-note').text(status.note);
+                }
                 setTimeout(function () {
                   check()
                 }, 1000);
