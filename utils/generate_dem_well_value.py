@@ -1,43 +1,57 @@
+import ctypes
+import gc
 import math
 from collections import defaultdict
 
-import rasterio
+import psutil
 from dem_stitcher import stitch_dem
+from osgeo import gdal
+from rasterio.transform import rowcol
+
+_libc = ctypes.CDLL("libc.so.6")
 
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.well import Well
+
+
+def _rss_mb():
+    return psutil.Process().memory_info().rss / 1024 / 1024
 
 
 def assign_glo_90m_elevation(wells):
     """Assign glo_90m_elevation to wells that don't have it yet.
     Wells are grouped by 1°x1° tile so each tile is downloaded once.
     """
+    # Cap GDAL's block cache at 256 MB so it doesn't grow unbounded across tiles
+    gdal.SetCacheMax(256 * 1024 * 1024)
     unit_m = Unit.objects.get(name='m')
     wells = wells.filter(
         glo_90m_elevation__isnull=True, location__isnull=False
     ).exclude(glo_90m_elevation_empty_result=True)
 
 
-    if not wells.count():
-        print(f"assign_glo_90m_elevation - Not eligible wells")
-        return Well.objects.none()
-
-    well_ids = list(wells.values_list('id', flat=True))
-
     # Group wells by their 1°x1° tile (floor of lon/lat)
     tiles = defaultdict(list)
+    well_ids = []
     for well in wells:
+        well_ids.append(well.id)
         lon = well.location.x
         lat = well.location.y
         tile_key = f"{math.floor(lon)},{math.floor(lat)}"
         tiles[tile_key].append(well)
 
+    if not tiles:
+        print(f"assign_glo_90m_elevation - Not eligible wells")
+        return Well.objects.none()
+
     total_tiles = len(tiles)
     for tile_idx, (location, tile_wells) in enumerate(tiles.items()):
         lon, lat = location.split(',')
+        mem_before = _rss_mb()
         print(
             f'Tile {tile_idx + 1}/{total_tiles} '
-            f'({lon},{lat}) - {len(tile_wells)} well(s)'
+            f'({lon},{lat}) - {len(tile_wells)} well(s) | '
+            f'RSS before: {mem_before:.1f} MB'
         )
 
         # Create bounds for the tile
@@ -53,21 +67,32 @@ def assign_glo_90m_elevation(wells):
             print(f'Failed to download tile: {e}')
             continue
 
-        # Open profile using rasterio in memory
-        # After that sample it
-        with rasterio.MemoryFile() as memory:
-            with memory.open(**profile) as datasets:
-                datasets.write(x, 1)
-                coords = [
-                    (well.location.x, well.location.y) for well in tile_wells
-                ]
-                sampled = list(datasets.sample(coords))
+        # Sample elevation values directly from the numpy array via row/col
+        # lookup — avoids creating a MemoryFile copy of x (~5-40 MB per tile).
+        # stitch_dem may return 2D (height, width) for some tiles; normalize to 3D.
+        if x.ndim == 2:
+            x = x[None]
+        nodata = profile.get('nodata')
+        if nodata is None:
+            nodata = -9999
+        height, width = x.shape[1], x.shape[2]
+        xs = [well.location.x for well in tile_wells]
+        ys = [well.location.y for well in tile_wells]
+        rows, cols = rowcol(profile['transform'], xs, ys)
+        sampled = [
+            x[0, max(0, min(r, height - 1)), max(0, min(c, width - 1))]
+            for r, c in zip(rows, cols)
+        ]
+
+        # Free the DEM array and flush GDAL caches before the next tile.
+        del x
+        gdal.VSICurlClearCache()      # evict GDAL HTTP/S3 download cache
+        gc.collect()                  # close unclosed rasterio DatasetReaders
+        _libc.malloc_trim(0)          # return freed heap to OS
 
         for well, val in zip(tile_wells, sampled):
-            elevation = round(float(val[0]), 2)
-            if elevation == profile.get(
-                    'nodata', -9999
-            ) or math.isnan(elevation):
+            elevation = round(float(val), 2)
+            if elevation == nodata or math.isnan(elevation):
                 print(f"assign_glo_90m_elevation - Empty result for {well.id}")
                 well.glo_90m_elevation_empty_result = True
                 well.save(update_fields=['glo_90m_elevation_empty_result'])
@@ -75,9 +100,21 @@ def assign_glo_90m_elevation(wells):
             print(
                 f"assign_glo_90m_elevation - Result for {well.id}: {elevation}"
             )
-            quantity = Quantity.objects.create(value=elevation, unit=unit_m)
-            well.glo_90m_elevation = quantity
-            well.save(update_fields=['glo_90m_elevation'])
+            if well.glo_90m_elevation:
+                well.glo_90m_elevation.value = elevation
+                well.glo_90m_elevation.unit = unit_m
+                well.glo_90m_elevation.save(update_fields=['value', 'unit'])
+            else:
+                quantity = Quantity.objects.create(value=elevation, unit=unit_m)
+                well.glo_90m_elevation = quantity
+                well.save(update_fields=['glo_90m_elevation'])
+
+        mem_after = _rss_mb()
+        print(
+            f'Tile {tile_idx + 1}/{total_tiles} done | '
+            f'RSS after: {mem_after:.1f} MB | '
+            f'delta: {mem_after - mem_before:+.1f} MB'
+        )
 
     return well_ids
 
