@@ -1,5 +1,10 @@
+import csv
+
 from django import forms
 from django.contrib import admin
+from django.http import HttpResponse
+from django.urls import path as url_path, reverse
+from django.utils.html import format_html
 
 from gwml2.harvesters.models.harvester import (
     Harvester, HarvesterAttribute, HarvesterParameterMap, HarvesterLog
@@ -198,11 +203,23 @@ class HarvesterParameterMapInline(admin.TabularInline):
 
 class HarvesterLogInline(admin.TabularInline):
     model = HarvesterLog
-    readonly_fields = ('harvester', 'start_time', 'end_time', 'status', 'note')
+    readonly_fields = (
+        'harvester', 'start_time', 'end_time', 'status', 'note',
+        'download_well_progress'
+    )
+    exclude = ('well_progress',)
     extra = 0
 
     def has_add_permission(self, request, obj=None):
         return False
+
+    def download_well_progress(self, obj):
+        if not obj.pk or not obj.well_progress:
+            return '-'
+        url = reverse('admin:harvesterlog_well_progress_csv', args=[obj.pk])
+        return format_html('<a href="{}">Download CSV</a>', url)
+
+    download_well_progress.short_description = 'Well Progress'
 
 
 class HarvesterForm(forms.ModelForm):
@@ -237,6 +254,33 @@ class HarvesterAdmin(admin.ModelAdmin):
     list_editable = ('active',)
     actions = (harvest_data,)
     ordering = ['name']
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            url_path(
+                'log/<int:log_id>/well_progress.csv/',
+                self.admin_site.admin_view(self.well_progress_csv_view),
+                name='harvesterlog_well_progress_csv'
+            ),
+        ]
+        return custom_urls + urls
+
+    def well_progress_csv_view(self, request, log_id):
+        log = HarvesterLog.objects.get(pk=log_id)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = (
+            f'attachment; filename="well_progress_{log_id}.csv"'
+        )
+        writer = csv.writer(response)
+        writer.writerow(['id', 'status', 'note'])
+        for entry in log.well_progress:
+            writer.writerow([
+                entry.get('id', ''),
+                entry.get('status', ''),
+                entry.get('note', ''),
+            ])
+        return response
 
     def last_run(self, obj: Harvester):
         """Return last run time."""

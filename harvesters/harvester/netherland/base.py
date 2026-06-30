@@ -67,6 +67,7 @@ class NetherlandHarvester(BaseHarvester):
                     self.is_processing_station = True
 
                 if not self.is_processing_station:
+                    self.log.log_well(original_id, 'skip')
                     continue
 
                 self._update(f'Saving {original_id}')
@@ -75,11 +76,21 @@ class NetherlandHarvester(BaseHarvester):
                 if well and updated:
                     print(f'{original_id} : done')
                     self._update(f'Generate cache for {well.original_id}')
-                    # -----------------------
-                    # Generate cache
                     if well:
                         self.post_processing_well(well)
+
+                if well is None:
+                    status = 'empty'
+                elif updated:
+                    status = 'saved'
+                else:
+                    status = 'no_change'
+                self.log.log_well(original_id, status)
             except (KeyError, TypeError, Well.DoesNotExist) as e:
+                self.log.log_well(original_id, 'error', str(e))
+                continue
+            except Exception as e:
+                self.log.log_well(original_id, 'error', str(e))
                 continue
 
         # next

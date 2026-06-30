@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
@@ -254,6 +255,22 @@ class HarvesterLog(models.Model):
     note = models.TextField(
         blank=True, null=True
     )
+    well_progress = ArrayField(
+        models.JSONField(),
+        default=list,
+        blank=True,
+        help_text=_(
+            'Per-well progress. Each entry: '
+            '{"id": original_id, "status": "saved"|"no_change"|"error", "note": "..."}'
+        )
+    )
+
+    def log_well(self, original_id: str, status: str, note: str = ''):
+        """Append per-well progress entry."""
+        self.well_progress.append(
+            {'id': original_id, 'status': status, 'note': note}
+        )
+        self.save(update_fields=['well_progress'])
 
     class Meta:
         db_table = 'harvester_log'
