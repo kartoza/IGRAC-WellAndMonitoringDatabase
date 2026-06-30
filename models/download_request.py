@@ -197,7 +197,10 @@ class DownloadRequest(models.Model):
     def _write_countries_to_zip_file(self, data_folder, zip_file):
         for country in self.countries.all():
             self.update_note(f'Writing {country.name}...')
-            data_file_name = f'{country.code}.zip'
+            if self.data_type == GGMN:
+                data_file_name = f'{country.code}-ggmn.zip'
+            else:
+                data_file_name = f'{country.code}.zip'
             self._add_content_to_zip_file(
                 data_folder, data_file_name, zip_file
             )
@@ -233,7 +236,10 @@ class DownloadRequest(models.Model):
             with open(_file_path, "r") as _file:
                 try:
                     data = json.loads(_file.read())
-                    organisations = data['organisations']
+                    if self.data_type == GGMN:
+                        organisations = data['organisations-ggmn']
+                    else:
+                        organisations = data['organisations']
                     return Organisation.objects.filter(id__in=organisations)
                 except KeyError:
                     pass
