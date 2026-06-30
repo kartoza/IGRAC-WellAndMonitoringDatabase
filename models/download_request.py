@@ -103,6 +103,40 @@ class DownloadRequest(models.Model):
         self.note = note
         self.save(update_fields=['note'])
 
+    def generate_well_cache(self, well_queryset, data_type):
+        """Generate well cache."""
+        from gwml2.tasks.well_file_cache.country_recache import (
+            COUNTRY_DATA_FOLDER
+        )
+        from gwml2.tasks.well_file_cache.well_zipped_cache import (
+            WellZippedCacheByIds
+        )
+        def _write_readme(zip_file):
+            self.update_note('Generating readme...')
+            organisation_ids = list(
+                set(
+                    well_queryset.values_list(
+                        'organisation_id', flat=True
+                    )
+                )
+            )
+            zip_file.writestr(
+                'Readme.txt',
+                self._generate_readme_file(
+                    COUNTRY_DATA_FOLDER,
+                    organisation_id=organisation_ids,
+                    data_type=data_type
+                )
+            )
+
+        zipped_cache = WellZippedCacheByIds(
+            data_folder=self.output_folder,
+            cache_name=str(self.uuid) + "-" + data_type,
+            well_queryset=well_queryset
+        )
+        zipped_cache.run(post_function=_write_readme)
+        return zipped_cache.zip_file_path
+
     def run(self):
         """Generate file to be downloaded."""
         from gwml2.models import Well
@@ -111,9 +145,6 @@ class DownloadRequest(models.Model):
         )
         from gwml2.tasks.well_file_cache.organisation_cache import (
             ORGANISATION_DATA_FOLDER
-        )
-        from gwml2.tasks.well_file_cache.well_zipped_cache import (
-            WellZippedCacheByIds
         )
         try:
             self.update_note('Preparing output folder...')
@@ -130,31 +161,47 @@ class DownloadRequest(models.Model):
                 self.output_folder, '{}.zip'.format(str(self.uuid))
             )
 
+            # this is for using wells
             if self.wells_id and len(self.wells_id):
                 self.update_note('Generating data...')
+                group = OrganisationGroup.get_ggmn_group()
+                ggmn_organisation = []
+                if group:
+                    ggmn_organisation = group.organisations.all()
 
-                # this is for using wells
                 well_queryset = Well.objects.filter(id__in=self.wells_id)
-                organisation_ids = list(set(
-                    well_queryset.values_list('organisation_id', flat=True)
-                ))
 
-                def _write_readme(zip_file):
-                    self.update_note('Generating readme...')
-                    zip_file.writestr(
-                        'Readme.txt',
-                        self._generate_readme_file(
-                            COUNTRY_DATA_FOLDER,
-                            organisation_id=organisation_ids
+                zip_file_paths = []
+
+                # GGMN
+                well_ggmn = well_queryset.filter(
+                    organisation__in=ggmn_organisation
+                )
+                if well_ggmn.count():
+                    self.update_note('Generating GGMN data...')
+                    zip_file_paths.append(
+                        self.generate_well_cache(well_ggmn, GGMN)
+                    )
+
+                # WELL AND MONITORING DATA
+                wells = well_queryset.exclude(
+                    organisation__in=ggmn_organisation
+                )
+                if wells.count():
+                    self.update_note('Generating Well and Monitoring data...')
+                    zip_file_paths.append(
+                        self.generate_well_cache(
+                            wells, WELL_AND_MONITORING_DATA
                         )
                     )
 
-                zipped_cache = WellZippedCacheByIds(
-                    data_folder=self.output_folder,
-                    cache_name=str(self.uuid),
-                    well_queryset=well_queryset
-                )
-                zipped_cache.run(post_function=_write_readme)
+                self.update_note('Merging files...')
+                with zipfile.ZipFile(request_file, 'w') as output_zip:
+                    for source_path in zip_file_paths:
+                        output_zip.write(
+                            source_path, os.path.basename(source_path)
+                        )
+                        os.remove(source_path)
             else:
                 zip_file = zipfile.ZipFile(request_file, 'w')
                 if self.countries.exists():
@@ -213,11 +260,15 @@ class DownloadRequest(models.Model):
                 data_folder, data_file_name, zip_file
             )
 
-    def _get_readme_text(self):
+    def _get_readme_text(self, data_type=None):
         pref = SitePreference.objects.first()
         if pref is None:
             return DEFAULT_README_HEADER_TEXT
-        if self.data_type == GGMN:
+
+        # Checking data type
+        if not data_type:
+            data_type = self.data_type
+        if data_type == GGMN:
             ggmn_group = OrganisationGroup.get_ggmn_group()
             header_text = ggmn_group.download_readme_text if ggmn_group else None
         else:
@@ -245,11 +296,13 @@ class DownloadRequest(models.Model):
                     pass
         return None
 
-    def _generate_readme_file(self, country_data_folder, organisation_id=None):
+    def _generate_readme_file(
+            self, country_data_folder, organisation_id=None, data_type=None
+    ):
         """Generate readme."""
         if organisation_id is None:
             organisation_id = []
-        header_text = self._get_readme_text()
+        header_text = self._get_readme_text(data_type=data_type)
         header_text += '\r\n'
         header_text += '\r\n'
         header_text += self._generate_contributors(
