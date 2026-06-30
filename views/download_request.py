@@ -197,7 +197,7 @@ class DownloadRequestDownloadView(View):
         return render(
             request, self.template_name, {
                 'uuid': uuid,
-                'is_ready': download_request.is_ready,
+                'is_ready': download_request.is_actual_ready,
                 'is_error': download_request.is_error,
                 'note': download_request.note,
                 'has_file': file is not None,
@@ -212,7 +212,7 @@ class DownloadRequestDownloadStatus(View):
         download_request = get_object_or_404(DownloadRequest, uuid=uuid)
         return HttpResponse(
             json.dumps({
-                'is_ready': download_request.is_ready,
+                'is_ready': download_request.is_actual_ready,
                 'is_error': download_request.is_error,
                 'note': download_request.note,
             }),
