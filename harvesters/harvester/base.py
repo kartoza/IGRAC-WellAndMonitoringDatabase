@@ -176,7 +176,7 @@ class BaseHarvester(ABC):
         self.log.end_time = timezone.now()
         self.log.status = ERROR
         self.log.note = '{}'.format(message)
-        self.log.save()
+        self.log.save(update_fields=['end_time', 'status', 'note'])
         print(self.log.note)
 
     def _done(self, message=''):
@@ -185,13 +185,14 @@ class BaseHarvester(ABC):
         self.log.end_time = timezone.now()
         self.log.status = DONE
         self.log.note = message
-        self.log.save()
+        self.log.save(update_fields=['end_time', 'status', 'note'])
 
     def _update(self, message=''):
         """ Update note for the log """
         self.log.note = message
-        self.log.save()
+        self.log.save(update_fields=['note'])
         print(message)
+
 
     def get_well(self, original_id, latitude, longitude):
         """Return well."""
