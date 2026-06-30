@@ -134,7 +134,7 @@ class WellZippedCache(object):
 
     def run(self, post_function=None):
         self.current_time = time.time()
-        self.log(f'----- Begin cache {self.cache_name} -------')
+        self.log(f'----- {self.cache_name} : Begin cache -------')
 
         # clear everything before starts
         self.clean()
@@ -152,7 +152,12 @@ class WellZippedCache(object):
         drilling_book = OdsDoc(self.filepath(self.drill_filename))
 
         # Merge data from each well's data.json into ods docs
-        for well in self.well_queryset:
+        total = self.well_queryset.count()
+        for idx, well in enumerate(self.well_queryset, start=1):
+            print(
+                f'{self.cache_name} : Processing : '
+                f'{idx}/{total} {well.original_id} - well book'
+            )
             self.merge_data_per_well(
                 well, self.wells_filename, well_book,
                 [
@@ -160,6 +165,10 @@ class WellZippedCache(object):
                     SheetName.hydrogeology,
                     SheetName.management
                 ]
+            )
+            print(
+                f'{self.cache_name} : Processing : '
+                f'{idx}/{total} {well.original_id} - drilling book'
             )
             self.merge_data_per_well(
                 well, self.drill_filename, drilling_book,
@@ -177,7 +186,7 @@ class WellZippedCache(object):
         drilling_book.save()
         drilling_book.close()
 
-        self.log(f'-- Finish constructing {self.cache_name} ----')
+        self.log(f'-- {self.cache_name} : Finish merging well ----')
 
         # Zip files
         zip_filepath = self.zip_file_path
@@ -223,7 +232,7 @@ class WellZippedCache(object):
             if zip_file:
                 zip_file.close()
 
-        self.log(f'---- Finish zipping {self.cache_name} ------')
+        self.log(f'---- {self.cache_name} :Finish zipping ------')
 
         # clear temp directory
         self.clean()
