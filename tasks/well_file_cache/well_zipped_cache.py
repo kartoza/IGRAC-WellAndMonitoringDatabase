@@ -139,6 +139,10 @@ class WellZippedCache(object):
         # clear everything before starts
         self.clean()
 
+        total = self.well_queryset.count()
+        if total == 0:
+            return
+
         # Prepare folder
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
@@ -151,43 +155,6 @@ class WellZippedCache(object):
         well_book = OdsDoc(self.filepath(self.wells_filename))
         drilling_book = OdsDoc(self.filepath(self.drill_filename))
 
-        # Merge data from each well's data.json into ods docs
-        total = self.well_queryset.count()
-        for idx, well in enumerate(self.well_queryset, start=1):
-            print(
-                f'{self.cache_name} : Processing : '
-                f'{idx}/{total} {well.original_id} - well book'
-            )
-            self.merge_data_per_well(
-                well, self.wells_filename, well_book,
-                [
-                    SheetName.general_information,
-                    SheetName.hydrogeology,
-                    SheetName.management
-                ]
-            )
-            print(
-                f'{self.cache_name} : Processing : '
-                f'{idx}/{total} {well.original_id} - drilling book'
-            )
-            self.merge_data_per_well(
-                well, self.drill_filename, drilling_book,
-                [
-                    SheetName.drilling_and_construction,
-                    SheetName.water_strike,
-                    SheetName.stratigraphic_log,
-                    SheetName.structure
-                ]
-            )
-
-        # Save ods files
-        well_book.save()
-        well_book.close()
-        drilling_book.save()
-        drilling_book.close()
-
-        self.log(f'-- {self.cache_name} : Finish merging well ----')
-
         # Zip files
         zip_filepath = self.zip_file_path
         if os.path.exists(zip_filepath):
@@ -196,11 +163,33 @@ class WellZippedCache(object):
         zip_file = None
         try:
             original_ids_found = {}
-            for well in self.well_queryset:
-                if not zip_file:
-                    zip_file = zipfile.ZipFile(zip_filepath, 'w')
-                    self.zip_ods(zip_file, self.wells_filename)
-                    self.zip_ods(zip_file, self.drill_filename)
+
+            for idx, well in enumerate(self.well_queryset, start=1):
+                print(
+                    f'{self.cache_name} : Processing : '
+                    f'{idx}/{total} {well.original_id} - well book'
+                )
+                self.merge_data_per_well(
+                    well, self.wells_filename, well_book,
+                    [
+                        SheetName.general_information,
+                        SheetName.hydrogeology,
+                        SheetName.management
+                    ]
+                )
+                print(
+                    f'{self.cache_name} : Processing : '
+                    f'{idx}/{total} {well.original_id} - drilling book'
+                )
+                self.merge_data_per_well(
+                    well, self.drill_filename, drilling_book,
+                    [
+                        SheetName.drilling_and_construction,
+                        SheetName.water_strike,
+                        SheetName.stratigraphic_log,
+                        SheetName.structure
+                    ]
+                )
 
                 if well.number_of_measurements == 0:
                     continue
@@ -219,11 +208,26 @@ class WellZippedCache(object):
                         _filename = f'monitoring/{original_id}.ods'
                         original_ids_found[original_id] = 0
 
+                    if not zip_file:
+                        zip_file = zipfile.ZipFile(zip_filepath, 'w')
                     zip_file.write(
                         measurement_file,
                         _filename,
                         compress_type=zipfile.ZIP_STORED
                     )
+
+            # Save ods files and add to zip
+            well_book.save()
+            well_book.close()
+            drilling_book.save()
+            drilling_book.close()
+            self.log(f'-- {self.cache_name} : Finish merging well ----')
+
+            if not zip_file:
+                zip_file = zipfile.ZipFile(zip_filepath, 'w')
+            self.zip_ods(zip_file, self.wells_filename)
+            self.zip_ods(zip_file, self.drill_filename)
+
             if post_function:
                 post_function(zip_file)
         except Exception as e:
