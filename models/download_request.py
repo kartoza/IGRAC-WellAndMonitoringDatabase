@@ -38,7 +38,7 @@ class DownloadRequest(models.Model):
     )
     request_at = models.DateTimeField(
         _('Requested at'),
-        default=datetime.now, blank=True
+        default=timezone.now, blank=True
     )
     data_type = models.CharField(
         _('Data type'),
@@ -327,6 +327,17 @@ class DownloadRequest(models.Model):
             return file
         else:
             return None
+
+    @property
+    def is_actual_ready(self):
+        """Return if it is actual ready, not just is_ready but also file."""
+        if not self.is_ready:
+            return False
+        if self.age_hours < 5:
+            if self.file():
+                return True
+            return False
+        return True
 
     @property
     def age_hours(self):
