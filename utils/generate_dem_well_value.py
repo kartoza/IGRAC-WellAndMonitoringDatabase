@@ -29,23 +29,30 @@ def assign_glo_90m_elevation(wells):
         glo_90m_elevation__isnull=True, location__isnull=False
     ).exclude(glo_90m_elevation_empty_result=True)
 
-
-    # Group wells by their 1°x1° tile (floor of lon/lat)
+    # Group wells by their 1°x1° tile — store only IDs to avoid holding all
+    # well objects in memory for the entire run.
     tiles = defaultdict(list)
     well_ids = []
-    for well in wells:
+    for well in wells.iterator(chunk_size=2000):
         well_ids.append(well.id)
-        lon = well.location.x
-        lat = well.location.y
-        tile_key = f"{math.floor(lon)},{math.floor(lat)}"
-        tiles[tile_key].append(well)
+        tile_key = f"{math.floor(well.location.x)},{math.floor(well.location.y)}"
+        tiles[tile_key].append(well.id)
 
     if not tiles:
         print(f"assign_glo_90m_elevation - Not eligible wells")
         return Well.objects.none()
 
-    total_tiles = len(tiles)
-    for tile_idx, (location, tile_wells) in enumerate(tiles.items()):
+    tile_keys = list(tiles.keys())
+    total_tiles = len(tile_keys)
+
+    for tile_idx, location in enumerate(tile_keys):
+        # Pop IDs from the dict so processed tiles don't linger in memory.
+        tile_well_ids = tiles.pop(location)
+        tile_wells = list(
+            Well.objects.filter(id__in=tile_well_ids)
+            .select_related('glo_90m_elevation')
+        )
+
         lon, lat = location.split(',')
         mem_before = _rss_mb()
         print(
@@ -65,6 +72,7 @@ def assign_glo_90m_elevation(wells):
             )
         except Exception as e:
             print(f'Failed to download tile: {e}')
+            del tile_wells
             continue
 
         # Sample elevation values directly from the numpy array via row/col
@@ -84,8 +92,8 @@ def assign_glo_90m_elevation(wells):
             for r, c in zip(rows, cols)
         ]
 
-        # Free the DEM array and flush GDAL caches before the next tile.
-        del x
+        # Free the DEM array and profile before DB writes.
+        del x, profile
         gdal.VSICurlClearCache()      # evict GDAL HTTP/S3 download cache
         gc.collect()                  # close unclosed rasterio DatasetReaders
         _libc.malloc_trim(0)          # return freed heap to OS
@@ -109,6 +117,7 @@ def assign_glo_90m_elevation(wells):
                 well.glo_90m_elevation = quantity
                 well.save(update_fields=['glo_90m_elevation'])
 
+        del tile_wells
         mem_after = _rss_mb()
         print(
             f'Tile {tile_idx + 1}/{total_tiles} done | '
