@@ -103,10 +103,12 @@
                 <td>Requested at</td>
                 <td>{{ download_request.request_at }}</td>
             </tr>
-            <tr>
-                <td>Data type</td>
-                <td>{{ download_request.data_type }}</td>
-            </tr>
+            {% if not download_request.wells_id %}
+                <tr>
+                    <td>Data type</td>
+                    <td>{{ download_request.data_type }}</td>
+                </tr>
+            {% endif %}
             <tr>
                 <td>Email</td>
                 <td>{{ download_request.email }}</td>
