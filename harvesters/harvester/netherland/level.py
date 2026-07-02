@@ -91,18 +91,24 @@ class NetherlandLevelHarvester(NetherlandHarvester):
         # Parse valid rows
         valid_rows = []
         for row in rows:
-            if (
-                    not row['Tijdstip'] or
-                    (not row['Beoordeelde Waarde [m]'] and
-                     not row['Voorlopige Waarde [m]'])
-            ):
-                continue
-            date_time = datetime.fromtimestamp(
-                float(row['Tijdstip']) / 1000, tz=timezone.utc
-            )
-            value = row['Beoordeelde Waarde [m]'] or row[
-                'Voorlopige Waarde [m]']
-            valid_rows.append((date_time, value))
+            try:
+                value = (
+                        row['Beoordeelde Waarde [m]']
+                        or row['Controle Waarde [m]']
+                        or row['Voorlopige Waarde [m]']
+                        or row['Onbekend Waarde [m]']
+                )
+
+                if not row['Tijdstip'] or not value:
+                    continue
+
+                date_time = datetime.fromtimestamp(
+                    float(row['Tijdstip']) / 1000,
+                    tz=timezone.utc,
+                )
+                valid_rows.append((date_time, value))
+            except (KeyError, ValueError) as e:
+                raise ValueError(f"Failed to parse row {row}: {e}") from e
 
         if not valid_rows:
             return False, None
