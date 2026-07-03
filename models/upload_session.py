@@ -2,28 +2,24 @@
 """Upload session model definition.
 
 """
-import gc
 import json
 import ntpath
 import os
 import uuid
 from datetime import datetime
 
-import openpyxl
 from celery import current_app
 from celery.result import AsyncResult
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
-from openpyxl.cell.cell import MergedCell
-from openpyxl.styles import PatternFill, Font
 
 from gwml2.models.metadata.license_metadata import LicenseMetadata
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
-from gwml2.utilities import ods_to_xlsx, xlsx_to_ods
 from gwml2.utils.celery import id_task_is_running
+from gwml2.utils.ods_editor import OdsCellStyle, OdsEditor
 
 UPLOAD_SESSION_CATEGORY_WELL_UPLOAD = 'well_upload'
 UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD = 'well_monitoring_upload'
@@ -360,10 +356,12 @@ class UploadSession(LicenseMetadata):
 
     def create_report_excel(self):
         """Created excel that will contain reports."""
+        if not self.uploadsessionrowstatus_set.exists():
+            return
         self.step = 'Create report'
         self.save()
         try:
-            _file = ods_to_xlsx(self.upload_file.path)
+            _file = self.upload_file.path
 
             # Create file report name
             ext = os.path.splitext(_file)[1]
@@ -374,51 +372,53 @@ class UploadSession(LicenseMetadata):
                 return
             if os.path.exists(_report_file):
                 os.remove(_report_file)
-            workbook = openpyxl.load_workbook(_file)
+
+            editor = OdsEditor(_file)
+            for style in (STYLE_ADDED, STYLE_ERROR, STYLE_SKIPPED):
+                editor.register_style(style)
 
             query = self.uploadsessionrowstatus_set.order_by(
                 'row'
             ).exclude(status=0)
             status_column = {}
-            for sheetname in workbook.sheetnames:
+            for sheet_name in editor.sheet_names():
                 sheet_query = query.filter(
-                    Q(sheet_name=sheetname) | Q(
-                        sheet_name=sheetname.replace('_', ' '))
+                    Q(sheet_name=sheet_name) | Q(
+                        sheet_name=sheet_name.replace('_', ' '))
                 )
-                worksheet = workbook[sheetname]
 
                 # We need to check latest column
                 try:
-                    status_column_idx = status_column[sheetname]
+                    status_column_idx = status_column[sheet_name]
                 except KeyError:
-                    row = worksheet[1]
-                    status_column_idx = len(row) + 1
+                    status_column_idx = None
                     last_column = False
-                    for _row in row:
-                        if isinstance(_row, MergedCell):
-                            continue
-                        if _row.value:
-                            status_column_idx = _row.column + 1
+                    total_columns = 0
+                    for col_idx, has_value in editor.header_columns(
+                            sheet_name
+                    ):
+                        total_columns = col_idx
+                        if has_value:
+                            status_column_idx = col_idx + 1
                         elif not last_column:
-                            status_column_idx = _row.column
+                            status_column_idx = col_idx
                             last_column = True
+                    if status_column_idx is None:
+                        status_column_idx = total_columns + 1
 
-                    status_column[sheetname] = status_column_idx
+                    status_column[sheet_name] = status_column_idx
 
-                for idx, row_status in enumerate(sheet_query):
-                    row_status.update_sheet(worksheet, status_column_idx)
-            workbook.save(_report_file)
-            workbook.close()
+                for row_status in sheet_query:
+                    row_status.update_sheet(
+                        editor, sheet_name, status_column_idx
+                    )
+            editor.save(_report_file)
+            editor.close()
             os.chmod(_report_file, 0o0777)
-            xlsx_to_ods(_report_file)
 
-            # Delete files
-            del workbook
-            gc.collect()
-            os.remove(_file)
-            os.remove(_report_file)
             self.step = 'Create report done'
             self.save()
+            self.clean_row_status()
         except Exception as e:
             print(f'{e}')
 
@@ -443,6 +443,10 @@ class UploadSession(LicenseMetadata):
         self.checkpoint_ids.append(value)
         self.save()
 
+    def clean_row_status(self):
+        """Clean row status."""
+        self.uploadsessionrowstatus_set.all().delete()
+
 
 RowStatus = [
     (0, 'Added'),
@@ -450,16 +454,11 @@ RowStatus = [
     (2, 'Skipped')
 ]
 
-ADDED_FILL = PatternFill(
-    start_color='00FF00', end_color='00FF00', fill_type='solid'
+STYLE_ADDED = OdsCellStyle('IGRACRowAdded', background='#00FF00')
+STYLE_ERROR = OdsCellStyle(
+    'IGRACRowError', background='#FF0000', font_color='#FFFFFF'
 )
-ERROR_FILL = PatternFill(
-    start_color='FF0000', end_color='FF0000', fill_type='solid'
-)
-SKIPPED_FILL = PatternFill(
-    start_color='FFFF00', end_color='FFFF00', fill_type='solid'
-)
-ERROR_FONT = Font(color="FFFFFF")
+STYLE_SKIPPED = OdsCellStyle('IGRACRowSkipped', background='#FFFF00')
 
 
 class UploadSessionRowStatus(models.Model):
@@ -482,29 +481,31 @@ class UploadSessionRowStatus(models.Model):
         db_table = 'upload_session_row_status'
         unique_together = ['upload_session', 'sheet_name', 'row', 'column']
 
-    def update_sheet(self, worksheet, status_column_idx):
+    def update_sheet(self, editor, sheet_name, status_column_idx):
         """Update the sheet."""
         try:
-            cell = worksheet.cell(
-                row=self.row, column=self.column + 1
-            )
             status = ''
             if self.status == 0:
                 status = 'Added'
-                cell.fill = ADDED_FILL
+                editor.set_cell(
+                    sheet_name, self.row, self.column + 1,
+                    style_name=STYLE_ADDED.name
+                )
             elif self.status == 1:
                 status = 'Error'
-                cell.fill = ERROR_FILL
-                cell.font = ERROR_FONT
-                worksheet.cell(
-                    row=self.row, column=self.column + 1
-                ).value = f'Error: {self.note}'
+                editor.set_cell(
+                    sheet_name, self.row, self.column + 1,
+                    value=f'Error: {self.note}', style_name=STYLE_ERROR.name
+                )
             elif self.status == 2:
                 status = 'Skipped'
-                cell.fill = SKIPPED_FILL
-            worksheet.cell(
-                row=self.row, column=status_column_idx
-            ).value = status
+                editor.set_cell(
+                    sheet_name, self.row, self.column + 1,
+                    style_name=STYLE_SKIPPED.name
+                )
+            editor.set_cell(
+                sheet_name, self.row, status_column_idx, value=status
+            )
         except Exception as e:
             print(f'{e}')
             pass
