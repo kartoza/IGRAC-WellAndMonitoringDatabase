@@ -1,8 +1,9 @@
 import os
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.contrib import admin, messages
 from django.template.defaultfilters import filesizeformat
+from django.utils import timezone
 from django.utils.html import format_html
 
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
@@ -94,7 +95,7 @@ def report_file_names(upload_file_name):
 
 def delete_old_files(modeladmin, request, queryset, get_names):
     """Delete files returned by get_names for sessions older than 1 week."""
-    cutoff = datetime.now() - FILE_DELETION_MIN_AGE
+    cutoff = timezone.now() - FILE_DELETION_MIN_AGE
     skipped = 0
     for upload_session in queryset:
         if upload_session.uploaded_at > cutoff:
@@ -200,6 +201,7 @@ class UploadSessionRowStatusAdmin(admin.ModelAdmin):
     list_filter = (
         'upload_session', 'status'
     )
+    raw_id_fields = ('well',)
 
 
 admin.site.register(UploadSessionRowStatus, UploadSessionRowStatusAdmin)
