@@ -54,7 +54,8 @@ WHERE org.active = True;
 -- WELL FOR ISTSOS MEASUREMENT --
 CREATE VIEW vw_well_measurement AS
 select id,
-        time, well_id, default_unit_id, default_value, parameter_id
+        time, well_id, default_unit_id, default_value, parameter_id,
+        concat(parameter_id, '-', default_unit_id, '-', well_id) as unique_fk
         from (
         SELECT id, time, well_id, default_unit_id, default_value, parameter_id
         from well_level_measurement where default_value IS NOT NULL
@@ -65,10 +66,3 @@ select id,
         SELECT id, time, well_id, default_unit_id, default_value, parameter_id
         from well_yield_measurement where default_value IS NOT NULL
         ) as measurement;
-
--- MATERIALIZED VIEW FOR ISTSOS MEASUREMENT --
--- SCHEDULED REFRESH --
-CREATE
-MATERIALIZED VIEW mv_well_measurement AS
-select *, concat(parameter_id, '-', default_unit_id, '-', well_id) as unique_fk
-FROM vw_well_measurement;
