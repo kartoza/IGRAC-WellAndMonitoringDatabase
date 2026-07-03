@@ -360,6 +360,8 @@ class UploadSession(LicenseMetadata):
 
     def create_report_excel(self):
         """Created excel that will contain reports."""
+        if not self.uploadsessionrowstatus_set.exists():
+            return
         self.step = 'Create report'
         self.save()
         try:
@@ -419,6 +421,7 @@ class UploadSession(LicenseMetadata):
             os.remove(_report_file)
             self.step = 'Create report done'
             self.save()
+            self.clean_row_status()
         except Exception as e:
             print(f'{e}')
 
@@ -442,6 +445,10 @@ class UploadSession(LicenseMetadata):
             self.checkpoint_ids = []
         self.checkpoint_ids.append(value)
         self.save()
+
+    def clean_row_status(self):
+        """Clean row status."""
+        self.uploadsessionrowstatus_set.all().delete()
 
 
 RowStatus = [
