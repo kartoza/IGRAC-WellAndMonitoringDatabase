@@ -5,7 +5,7 @@ CREATE VIEW istsos.event_time AS
 SELECT id      as id_eti,
        well_id as id_prc_fk,
        time    as time_eti
-from mv_well_measurement;
+from vw_well_measurement;
 
 -- MEASURES --
 CREATE VIEW istsos.measures AS
@@ -16,7 +16,7 @@ SELECT id                                                       as id_msr,
        well_id                                                  as id_prc_fk,
        time                                                     as time_eti,
        default_value                                            as val_msr
-from mv_well_measurement;
+from vw_well_measurement;
 
 -- MEASURES GROUP --
 CREATE MATERIALIZED VIEW istsos.measures_group AS
@@ -24,7 +24,7 @@ SELECT unique_fk                                                as id_pro,
        parameter_id                                             as parameter_id,
        min(time)                                                as begin_measurement,
        max(time)                                                as end_measurement
-from mv_well_measurement GROUP BY unique_fk, parameter_id;
+from vw_well_measurement GROUP BY unique_fk, parameter_id;
 
 -- PROCEDURES --
 CREATE VIEW istsos.procedures AS
