@@ -24,7 +24,7 @@ SELECT unique_fk                                                as id_pro,
        parameter_id                                             as parameter_id,
        min(time)                                                as begin_measurement,
        max(time)                                                as end_measurement
-from vw_well_measurement GROUP BY unique_fk, parameter_id;
+from vw_well_measurement GROUP BY unique_fk, parameter_id WITH NO DATA;
 
 -- PROCEDURES --
 CREATE VIEW istsos.procedures AS
@@ -190,4 +190,4 @@ from well
 CREATE MATERIALIZED VIEW istsos.observed_properties_sensor AS
     SELECT id_prc, def_opr, name_opr, desc_opr, constr_pro, name_uom, id_pro, po.begin_measurement as stime_prc, po.end_measurement as etime_prc, name_prc
     FROM istsos.observed_properties opr, istsos.proc_obs po, istsos.procedures pr, istsos.uoms um
-    WHERE opr.id_opr=po.id_opr_fk AND pr.id_prc=po.id_prc_fk AND um.id_uom = po.id_uom_fk ORDER BY id_pro;
+    WHERE opr.id_opr=po.id_opr_fk AND pr.id_prc=po.id_prc_fk AND um.id_uom = po.id_uom_fk ORDER BY id_pro WITH NO DATA;
