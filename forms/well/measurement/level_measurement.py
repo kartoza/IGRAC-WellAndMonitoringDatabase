@@ -10,7 +10,7 @@ class WellLevelMeasurementForm(BaseMeasurementForm):
 
     class Meta:
         model = WellLevelMeasurement
-        fields = ('id', 'time', 'parameter', 'methodology', 'value', 'info')
+        fields = ('id', 'time', 'parameter', 'methodology', 'value')
         widgets = {
             'value': QuantityInput()
         }

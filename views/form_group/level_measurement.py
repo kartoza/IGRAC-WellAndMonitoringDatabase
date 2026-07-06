@@ -49,8 +49,4 @@ class LevelMeasurementCreateForm(FormGroupCreate):
         """ save all available data """
         for measurement in self.measurements:
             measurement.instance.well = self.well
-            if not measurement.instance.created_by:
-                measurement.instance.created_by = self.well.created_by
-            measurement.instance.last_edited_by = self.well.last_edited_by
-            measurement.instance.last_edited_at = self.well.last_edited_at
             measurement.save()

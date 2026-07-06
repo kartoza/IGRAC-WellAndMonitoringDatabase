@@ -2,14 +2,14 @@ from django.contrib.gis.db import models
 from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.general import Quantity, Unit
-from gwml2.models.metadata.creation import CreationMetadata
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.utilities import convert_value
 
 
-class Measurement(CreationMetadata):
+class Measurement(models.Model):
     """ Model to hold measurement data
     """
+    wagtail_reference_index_ignore = True
 
     time = models.DateTimeField(
         _('Time'),
