@@ -4,14 +4,8 @@ from datetime import datetime
 from celery.utils.log import get_task_logger
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
-from django.db.models.signals import post_delete
 
-from gwml2.models.well import (
-    Well,
-    WellLevelMeasurement,
-    WellQualityMeasurement,
-    WellYieldMeasurement
-)
+from gwml2.models.well import Well
 
 User = get_user_model()
 
@@ -52,73 +46,27 @@ class WellDeletion(models.Model):
         self.note = text
         self.save()
 
-    def delete_measurement(self, query, title):
-        """Delete measurement."""
-        from gwml2.models.general import Quantity
-        quantity_ids = list(
-            query.values_list('value_id', flat=True).exclude(value_id=None)
-        )
-        self.update_note(f'Deleting : {title} : {query.count()}')
-        query.all().delete()
-        Quantity.objects.filter(id__in=quantity_ids).delete()
-
     def run(self):
         """Run the process."""
-        from gwml2.signals.well import (
-            post_delete_measurement_trigger_well_update
-        )
-        from gwml2.utilities import temp_disconnect_signal
-        with temp_disconnect_signal(
-                signal=post_delete,
-                receiver=post_delete_measurement_trigger_well_update,
-                sender=WellLevelMeasurement
-        ):
-            with temp_disconnect_signal(
-                    signal=post_delete,
-                    receiver=post_delete_measurement_trigger_well_update,
-                    sender=WellYieldMeasurement
-            ):
-                with temp_disconnect_signal(
-                        signal=post_delete,
-                        receiver=post_delete_measurement_trigger_well_update,
-                        sender=WellQualityMeasurement
-                ):
-                    try:
-                        count = len(self.ids)
-                        for idx, id in enumerate(self.ids):
-                            logger.debug(f'{idx}/{count}')
-                            try:
-                                well = Well.objects.get(id=id)
-                                title = f'{id}/{well.name}'
-                                self.update_note(
-                                    f'Deleting : {title}'
-                                )
-
-                                # Level measurements
-                                self.delete_measurement(
-                                    well.welllevelmeasurement_set,
-                                    title=title
-                                )
-                                self.delete_measurement(
-                                    well.wellyieldmeasurement_set,
-                                    title=title
-                                )
-                                self.delete_measurement(
-                                    well.wellqualitymeasurement_set,
-                                    title=title
-                                )
-                                self.update_note(
-                                    'Deleting : measurements done'
-                                )
-                                well.delete()
-                            except Well.DoesNotExist:
-                                pass
-                            self.progress = ((idx + 1) / count) * 100
-                            if self.progress > 100:
-                                self.progress = 100
-                            self.save()
-                        self.progress = 100
-                        self.save()
-                    except Exception as e:
-                        self.update_note(f'{e}')
-                        logger.debug(f'{e}')
+        try:
+            count = len(self.ids)
+            for idx, well_id in enumerate(self.ids):
+                logger.debug(f'{idx}/{count}')
+                try:
+                    well = Well.objects.get(id=well_id)
+                    title = f'{well_id}/{well.name}'
+                    self.update_note(f'Deleting : {title}')
+                    well.delete_all_measurements()
+                    self.update_note('Deleting : measurements done')
+                    well.delete()
+                except Well.DoesNotExist:
+                    pass
+                self.progress = ((idx + 1) / count) * 100
+                if self.progress > 100:
+                    self.progress = 100
+                self.save()
+            self.progress = 100
+            self.save()
+        except Exception as e:
+            self.update_note(f'{e}')
+            logger.debug(f'{e}')
