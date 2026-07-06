@@ -226,11 +226,6 @@ def create_monitoring_data(data, organisation_name, additional_data=None, well=N
         if method:
             additional_data['methodology'] = method
 
-    if 'last_edited_at' not in additional_data:
-        additional_data['last_edited_at'] = make_aware(datetime.datetime.now())
-    if 'created_at' not in additional_data:
-        additional_data['created_at'] = make_aware(datetime.datetime.now())
-
     return WellLevelMeasurement.objects.update_or_create(
         well=well,
         time=aware_date_and_time,
