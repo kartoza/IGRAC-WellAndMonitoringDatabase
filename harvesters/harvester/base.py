@@ -48,6 +48,7 @@ class BaseHarvester(ABC):
     attributes = {}
     countries = []
     current_original_id_key = 'current-original-id'
+    replace_attribute_key = 'replace'
 
     # This is indicator if we process the station
     is_processing_station = True
@@ -62,9 +63,19 @@ class BaseHarvester(ABC):
         self.replace = replace
         self.original_id = original_id
         self.harvester = harvester
+
+        # Fresh instance-level dict: `attributes` is a class attribute
+        # and must not be mutated in place, or state leaks across
+        # harvester instances/runs sharing the same class.
+        self.attributes = {}
         for attribute in harvester.harvesterattribute_set.all():
             self.attributes[attribute.name] = attribute.value
         self.parameters = HarvesterParameterMap.get_json(harvester)
+
+        # A HarvesterAttribute named "replace" forces replace=True
+        # for this run, regardless of the constructor argument.
+        if self.replace_attribute_key in self.attributes:
+            self.replace = True
 
         # check if it is already run
         self.harvester.refresh_from_db()
@@ -132,6 +143,14 @@ class BaseHarvester(ABC):
 
                         # Delete current original id attribute
                         self.delete_attribute(self.current_original_id_key)
+
+                        # Replace is a one-shot flag: clear it so the
+                        # next run doesn't replace again unless it is
+                        # explicitly set once more.
+                        self.delete_attribute(self.replace_attribute_key)
+
+                        # Called when harvester is a success
+                        self.post_success()
         except HarvestingError as e:
             self._error(f'{e}')
         except Exception:
@@ -140,6 +159,10 @@ class BaseHarvester(ABC):
         # Make the task id non
         harvester.task_id = None
         harvester.save()
+
+    def post_success(self):
+        """Post success."""
+        pass
 
     @staticmethod
     def additional_attributes() -> dict:
@@ -192,7 +215,6 @@ class BaseHarvester(ABC):
         self.log.note = message
         self.log.save(update_fields=['note'])
         print(message)
-
 
     def get_well(self, original_id, latitude, longitude):
         """Return well."""
@@ -267,18 +289,15 @@ class BaseHarvester(ABC):
                 raise Well.DoesNotExist()
 
             print(f'Found well : {well.id} - {well.original_id}')
-            if self.replace:
-                WellLevelMeasurement.objects.filter(
-                    well=well,
-                ).delete()
-                well.number_of_measurements = 0
-                well.save()
 
             # TODO:
             #  We give option for harvester to force change the organisation
             # if well.organisation != self.harvester.organisation:
             #     well.organisation = self.harvester.organisation
             #     well.save()
+
+        if self.replace:
+            well.delete_all_measurements('welllevelmeasurement')
 
         if not well.ground_surface_elevation and ground_surface_elevation_masl:
             well.ground_surface_elevation = Quantity.objects.create(

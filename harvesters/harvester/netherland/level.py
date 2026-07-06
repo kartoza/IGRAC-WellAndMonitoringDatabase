@@ -1,6 +1,7 @@
 """Harvester for netherland."""
 
 import csv
+from collections import defaultdict
 from datetime import datetime, timezone
 from io import StringIO
 
@@ -106,12 +107,25 @@ class NetherlandLevelHarvester(NetherlandHarvester):
                     float(row['Tijdstip']) / 1000,
                     tz=timezone.utc,
                 )
-                valid_rows.append((date_time, value))
+                valid_rows.append((date_time, float(value)))
             except (KeyError, ValueError) as e:
                 raise ValueError(f"Failed to parse row {row}: {e}") from e
 
         if not valid_rows:
             return False, None
+
+        # Aggregate to one reading per day: average value, time at 00:00:00
+        daily_values = defaultdict(list)
+        for dt, val in valid_rows:
+            midnight = dt.replace(hour=0, minute=0, second=0, microsecond=0)
+            daily_values[midnight].append(val)
+        valid_rows = sorted(
+            (midnight, sum(vals) / len(vals))
+            for midnight, vals in daily_values.items()
+        )
+        self._update(
+            f'{original_id} : aggregated to {len(valid_rows)} daily rows'
+        )
 
         well = self.well_from_station(station)
         last_measurement = well.welllevelmeasurement_set.order_by(
