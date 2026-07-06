@@ -65,7 +65,7 @@ class Measurement(CreationMetadata):
         """Set default."""
         if init and self.default_unit:
             return 'skip'
-        if self.value:
+        if self.value and self.parameter:
             if not self.parameter.default_unit:
                 self.default_unit = None
                 self.default_value = self.value.value

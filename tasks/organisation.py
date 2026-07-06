@@ -11,6 +11,15 @@ def update_ggis_uid(self, id):
 
 
 @shared_task(bind=True, queue='update')
-def generate_data_stats(self, id, force=False):
+def generate_metadata_cache(self, ids):
     from gwml2.models import Organisation
-    Organisation.objects.get(pk=id).generate_data_stats(force=force)
+    for organisation in Organisation.objects.filter(pk__in=ids):
+        print(
+            'Generate metadata cache for organisation '
+            f'{organisation.name} - Start'
+        )
+        organisation.assign_metadata_cache(generate_midnight=True)
+        print(
+            'Generate metadata cache for organisation '
+            f'{organisation.name} - Done'
+        )
