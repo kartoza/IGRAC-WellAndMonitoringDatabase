@@ -17,8 +17,6 @@ class BaseMeasurementForm(WellBaseForm):
     Form of Base Measurement of well.
     """
     id = forms.CharField(required=False)
-    info = forms.CharField(required=False, disabled=True, label='Info')
-
     depth = forms.Field(
         required=False,
         widget=QuantityInput(
@@ -39,7 +37,7 @@ class BaseMeasurementForm(WellBaseForm):
         }
 
     field_order = (
-        'id', 'time', 'parameter', 'methodology', 'value', 'depth', 'info'
+        'id', 'time', 'parameter', 'methodology', 'value', 'depth'
     )
     parameter_group = None
 
@@ -109,16 +107,6 @@ class BaseMeasurementForm(WellBaseForm):
         """
         data = model_to_dict(instance)
         data['id'] = instance.id
-        data['info'] = '&#013;'.join([
-            'Created by : {}'.format(instance.created_by_username()),
-            'Created at : {}'.format(
-                instance.created_at.strftime('%Y-%m-%d %H:%M:%S %Z')
-            ),
-            'Last Edited by : {}'.format(instance.last_edited_by_username()),
-            'Last edited at : {}'.format(
-                instance.last_edited_at.strftime('%Y-%m-%d %H:%M:%S %Z')
-            ),
-        ])
         data['time'] = instance.time.strftime('%Y-%m-%d %H:%M:%S')
         data['depth'] = instance.depth
         return data
