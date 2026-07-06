@@ -13,13 +13,30 @@ User = get_user_model()
 class Country(models.Model):
     """ Country model"""
     name = models.CharField(
-        max_length=512)
+        max_length=512
+    )
     code = models.CharField(
-        max_length=126)
+        max_length=126
+    )
     geometry = models.MultiPolygonField(
-        null=True, blank=True)
+        null=True, blank=True
+    )
     data_cache_generated_at = models.DateTimeField(
         _('Time when data cache generated'),
+        null=True, blank=True
+    )
+
+    # Metadata cache
+    metadata_cache = models.JSONField(
+        help_text=_('Cached statistics for this country (all wells).'),
+        null=True, blank=True
+    )
+    metadata_cache_ggmn = models.JSONField(
+        help_text=_('Cached statistics for this country for GGMN.'),
+        null=True, blank=True
+    )
+    metadata_cache_generated_at = models.DateTimeField(
+        _('Time when metadata cache were generated'),
         null=True, blank=True
     )
 
@@ -44,7 +61,43 @@ class Country(models.Model):
             )
         else:
             self.data_cache_generated_at = None
-        self.save()
+        Country.objects.filter(pk=self.pk).update(
+            data_cache_generated_at=self.data_cache_generated_at
+        )
+        self._generate_metadata_cache()
+
+    def _generate_metadata_cache(self):
+        """Assign date range and count measurements and wells."""
+        from django.utils import timezone
+        from gwml2.utils.metadata_cache import generate_metadata_cache
+        from gwml2.models.well_management.organisation import (
+            OrganisationGroup
+        )
+
+        # Check for global
+        print(f'Generate metadata cache for country {self.name}')
+        well_ids = self.well_set.values_list('id', flat=True)
+        cache = generate_metadata_cache(well_ids)
+
+        self.metadata_cache_generated_at = timezone.now()
+        Country.objects.filter(pk=self.pk).update(
+            metadata_cache=json,
+            metadata_cache_generated_at=self.metadata_cache_generated_at,
+        )
+
+        print(f'Generate metadata cache for country {self.name} - GGMN')
+        ggmn_group = OrganisationGroup.get_ggmn_group()
+        if ggmn_group:
+            well_ids = self.well_set.filter(
+                organisation__in=ggmn_group.organisations
+            ).values_list('id', flat=True)
+            cache = generate_metadata_cache(well_ids)
+
+            self.metadata_cache_generated_at = timezone.now()
+            Country.objects.filter(pk=self.pk).update(
+                metadata_cache=json,
+                metadata_cache_generated_at=self.metadata_cache_generated_at,
+            )
 
 
 class Unit(_Term):

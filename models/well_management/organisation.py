@@ -145,25 +145,7 @@ class Organisation(LicenseMetadata):
         return MetadataCache(
             data_date_start=self.data_date_start,
             data_date_end=self.data_date_end,
-            count_measurement=stats.get('count_measurement', 0),
-            count_measurement_level=stats.get(
-                'count_measurement_level', 0
-            ),
-            count_measurement_level_midnight=stats.get(
-                'count_measurement_level_midnight', 0
-            ),
-            count_measurement_quality=stats.get(
-                'count_measurement_quality', 0
-            ),
-            count_measurement_quality_midnight=stats.get(
-                'count_measurement_quality_midnight', 0
-            ),
-            count_measurement_yield=stats.get(
-                'count_measurement_yield', 0
-            ),
-            count_measurement_yield_midnight=stats.get(
-                'count_measurement_yield_midnight', 0
-            ),
+            **stats
         )
 
     def update_ggis_uid_background(self):
@@ -205,7 +187,11 @@ class Organisation(LicenseMetadata):
             )
         else:
             self.data_cache_generated_at = None
+        Organisation.objects.filter(pk=self.pk).update(
+            data_cache_generated_at=self.data_cache_generated_at
+        )
         self._generate_metadata_cache(generate_midnight)
+
 
     def _generate_metadata_cache(self, generate_midnight=False):
         """Assign date range and count measurements and wells."""
@@ -218,13 +204,33 @@ class Organisation(LicenseMetadata):
         ).exists()
 
         well_ids = self.well_set.values_list('id', flat=True)
-        well_ids, json = generate_metadata_cache(
+        cache = generate_metadata_cache(
             well_ids, generate_midnight=generate_midnight
         )
 
-        self.data_date_start = json['data_date_start']
-        self.data_date_end = json['data_date_end']
-        self.data_stats = {**(self.data_stats or {}), **json['data_stats']}
+        stats = {
+            'count_measurement': cache.count_measurement,
+            'count_measurement_level': cache.count_measurement_level,
+            'count_measurement_quality': cache.count_measurement_quality,
+            'count_measurement_yield': cache.count_measurement_yield,
+            'count_well': cache.count_well,
+            'count_well_with_level': cache.count_well_with_level,
+            'count_well_with_quality': cache.count_well_with_quality,
+            'count_spring': cache.count_spring,
+        }
+        if generate_midnight:
+            stats.update({
+                'count_measurement_level_midnight':
+                    cache.count_measurement_level_midnight,
+                'count_measurement_quality_midnight':
+                    cache.count_measurement_quality_midnight,
+                'count_measurement_yield_midnight':
+                    cache.count_measurement_yield_midnight,
+            })
+
+        self.data_date_start = cache.data_date_start
+        self.data_date_end = cache.data_date_end
+        self.data_stats = {**(self.data_stats or {}), **stats}
         self.metadata_cache_generated_at = timezone.now()
         Organisation.objects.filter(pk=self.pk).update(
             data_is_from_api=self.data_is_from_api,

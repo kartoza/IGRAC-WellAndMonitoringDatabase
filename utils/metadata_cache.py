@@ -8,10 +8,12 @@ class MetadataCache:
 
     def __init__(
             self,
-            data_date_start, data_date_end, count_measurement,
-            count_measurement_level, count_measurement_level_midnight,
-            count_measurement_quality, count_measurement_quality_midnight,
-            count_measurement_yield, count_measurement_yield_midnight
+            data_date_start=None, data_date_end=None, count_measurement=0,
+            count_measurement_level=0, count_measurement_level_midnight=0,
+            count_measurement_quality=0, count_measurement_quality_midnight=0,
+            count_measurement_yield=0, count_measurement_yield_midnight=0,
+            count_well=0, count_well_with_level=0,
+            count_well_with_quality=0, count_spring=0
     ):
         """Init MetadataCache."""
         self.data_date_start = data_date_start
@@ -23,6 +25,10 @@ class MetadataCache:
         self.count_measurement_quality_midnight = count_measurement_quality_midnight
         self.count_measurement_yield = count_measurement_yield
         self.count_measurement_yield_midnight = count_measurement_yield_midnight
+        self.count_well = count_well
+        self.count_well_with_level = count_well_with_level
+        self.count_well_with_quality = count_well_with_quality
+        self.count_spring = count_spring
 
 
 def generate_metadata_cache(well_ids, generate_midnight=False):
@@ -33,8 +39,8 @@ def generate_metadata_cache(well_ids, generate_midnight=False):
     at midnight per type. This is off by default since it is an extra
     filtered count on top of the total.
 
-    Returns a tuple of (well_ids, json) where json contains
-    data_date_start, data_date_end and data_stats.
+    Returns a MetadataCache instance holding the measurement and well
+    counts plus date range.
     """
     from gwml2.models.well import (
         Well, WellLevelMeasurement, WellQualityMeasurement,
@@ -108,10 +114,8 @@ def generate_metadata_cache(well_ids, generate_midnight=False):
         ),
     )
     stats.update(well_stats)
-
-    json = {
-        'data_date_start': min(start_dates) if start_dates else None,
-        'data_date_end': max(end_dates) if end_dates else None,
-        'data_stats': stats,
-    }
-    return well_ids, json
+    return MetadataCache(
+        data_date_end=max(end_dates) if end_dates else None,
+        data_date_start=min(start_dates) if start_dates else None,
+        **stats
+    )
