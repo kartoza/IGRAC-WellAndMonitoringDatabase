@@ -81,7 +81,7 @@ class Country(models.Model):
 
         self.metadata_cache_generated_at = timezone.now()
         Country.objects.filter(pk=self.pk).update(
-            metadata_cache=json,
+            metadata_cache=cache.get_json(),
             metadata_cache_generated_at=self.metadata_cache_generated_at,
         )
 
@@ -89,13 +89,13 @@ class Country(models.Model):
         ggmn_group = OrganisationGroup.get_ggmn_group()
         if ggmn_group:
             well_ids = self.well_set.filter(
-                organisation__in=ggmn_group.organisations
+                organisation__in=ggmn_group.organisations.all()
             ).values_list('id', flat=True)
             cache = generate_metadata_cache(well_ids)
 
             self.metadata_cache_generated_at = timezone.now()
             Country.objects.filter(pk=self.pk).update(
-                metadata_cache=json,
+                metadata_cache_ggmn=cache.get_json(),
                 metadata_cache_generated_at=self.metadata_cache_generated_at,
             )
 

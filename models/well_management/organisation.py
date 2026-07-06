@@ -208,26 +208,7 @@ class Organisation(LicenseMetadata):
             well_ids, generate_midnight=generate_midnight
         )
 
-        stats = {
-            'count_measurement': cache.count_measurement,
-            'count_measurement_level': cache.count_measurement_level,
-            'count_measurement_quality': cache.count_measurement_quality,
-            'count_measurement_yield': cache.count_measurement_yield,
-            'count_well': cache.count_well,
-            'count_well_with_level': cache.count_well_with_level,
-            'count_well_with_quality': cache.count_well_with_quality,
-            'count_spring': cache.count_spring,
-        }
-        if generate_midnight:
-            stats.update({
-                'count_measurement_level_midnight':
-                    cache.count_measurement_level_midnight,
-                'count_measurement_quality_midnight':
-                    cache.count_measurement_quality_midnight,
-                'count_measurement_yield_midnight':
-                    cache.count_measurement_yield_midnight,
-            })
-
+        stats = cache.get_json(generate_midnight)
         self.data_date_start = cache.data_date_start
         self.data_date_end = cache.data_date_end
         self.data_stats = {**(self.data_stats or {}), **stats}

@@ -30,6 +30,29 @@ class MetadataCache:
         self.count_well_with_quality = count_well_with_quality
         self.count_spring = count_spring
 
+    def get_json(self, generate_midnight=False):
+        """Return stats as a dict, including midnight counts if requested."""
+        stats = {
+            'count_measurement': self.count_measurement,
+            'count_measurement_level': self.count_measurement_level,
+            'count_measurement_quality': self.count_measurement_quality,
+            'count_measurement_yield': self.count_measurement_yield,
+            'count_well': self.count_well,
+            'count_well_with_level': self.count_well_with_level,
+            'count_well_with_quality': self.count_well_with_quality,
+            'count_spring': self.count_spring,
+        }
+        if generate_midnight:
+            stats.update({
+                'count_measurement_level_midnight':
+                    self.count_measurement_level_midnight,
+                'count_measurement_quality_midnight':
+                    self.count_measurement_quality_midnight,
+                'count_measurement_yield_midnight':
+                    self.count_measurement_yield_midnight,
+            })
+        return stats
+
 
 def generate_metadata_cache(well_ids, generate_midnight=False):
     """Compute measurement and well stats plus date range for the
