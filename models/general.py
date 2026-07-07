@@ -49,7 +49,7 @@ class Country(models.Model):
         ordering = ('name',)
         db_table = 'country'
 
-    def assign_data(self):
+    def assign_metadata_cache(self):
         """Assign data cache generated at based on zip file modification time."""
         from gwml2.tasks.well_file_cache.country_recache import (
             COUNTRY_DATA_FOLDER

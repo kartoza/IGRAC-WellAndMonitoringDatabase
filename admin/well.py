@@ -336,6 +336,9 @@ class WellAdmin(admin.ModelAdmin):
             'organisation__id', 'organisation__name',
             'country__id', 'country__name',
             'number_of_measurements',
+            'number_of_measurements_level',
+            'number_of_measurements_quality',
+            'number_of_measurements_yield',
             'first_time_measurement', 'last_time_measurement',
         )
 

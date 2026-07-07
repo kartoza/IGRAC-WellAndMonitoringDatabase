@@ -85,7 +85,7 @@ def generate_data_country_cache(self, country_code: str):
         generator = GenerateCountryCacheFile(country, True)
         generator.run()
 
-        country.assign_data()
+        country.assign_metadata_cache()
     except Country.DoesNotExist:
         print('Country not found')
 

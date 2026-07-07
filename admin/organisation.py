@@ -42,8 +42,14 @@ def update_ggis_uid(modeladmin, request, queryset):
 @admin.action(description='Generate metadata cache')
 def generate_metadata_cache(modeladmin, request, queryset):
     """Recompute measurement and well stats for the organisations."""
-    from gwml2.tasks.organisation import generate_metadata_cache as task
-    task.delay(list(queryset.values_list('id', flat=True)))
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_organisations_metadata_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
 
 
 class OrganisationLinkInline(admin.TabularInline):
@@ -63,7 +69,9 @@ class OrganisationAdmin(admin.ModelAdmin):
     )
     change_list_template = 'admin/organisation_change_list.html'
     list_editable = ('active',)
-    list_filter = ('data_cache_generated_at', 'country')
+    list_filter = (
+        'data_cache_generated_at', 'metadata_cache_generated_at', 'country'
+    )
     search_fields = ('name',)
     show_full_result_count = False
     actions = (

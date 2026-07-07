@@ -14,7 +14,7 @@ class Command(WellCommand):
         ids = list(wells.order_by('id').values_list('id', flat=True))
         count = wells.count()
         for idx, id in enumerate(ids):
+            print(f'----- {idx + 1}/{count} -----')
             well = Well.objects.get(id=id)
             cache = well.cache
             cache.assign_data_cache_information()
-            print(f'----- {idx}/{count} -----')
