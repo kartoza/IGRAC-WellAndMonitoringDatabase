@@ -5,7 +5,7 @@ from datetime import datetime
 from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models import Q
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
@@ -22,7 +22,9 @@ from gwml2.models.metadata.creation import CreationMetadata
 from gwml2.models.metadata.license_metadata import LicenseMetadataObject
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
-from gwml2.utilities import temp_disconnect_signal, convert_value
+from gwml2.utilities import (
+    Signal, temp_disconnect_signal, temp_disconnect_signals, convert_value
+)
 
 GWML2_FOLDER = settings.GWML2_FOLDER
 WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
@@ -306,6 +308,67 @@ class Well(GeneralInformation, CreationMetadata):
         self.assign_first_last(self.welllevelmeasurement_set.all())
         self.assign_first_last(self.wellyieldmeasurement_set.all())
         self.assign_first_last(self.wellqualitymeasurement_set.all())
+        self.save(
+            update_fields=[
+                'number_of_measurements_level',
+                'number_of_measurements_quality',
+                'number_of_measurements_yield',
+                'number_of_measurements',
+                'first_time_measurement',
+                'last_time_measurement',
+            ]
+        )
+
+    def delete_all_measurements(self, measurement_type: str = None):
+        """Delete measurements of this well in bulk.
+
+        The post_delete signals on these measurement models fire a
+        Well.save() and a Quantity fetch+delete for every single row,
+        which turns a plain queryset .delete() into millions of extra
+        queries on wells with large history. Disconnect them here and
+        do the equivalent cleanup in bulk instead.
+
+        :param measurement_type: one of 'welllevelmeasurement',
+            'wellqualitymeasurement', 'wellyieldmeasurement'. If not
+            given, all three types are deleted.
+        """
+        from gwml2.models.general import Quantity
+        from gwml2.signals.well import (
+            post_delete_measurement, post_delete_measurement_trigger_well_update
+        )
+
+        models_to_delete = MEASUREMENT_MODELS
+        if measurement_type:
+            models_to_delete = [
+                model for model in MEASUREMENT_MODELS
+                if model.__name__.lower() == measurement_type.lower()
+            ]
+            if not models_to_delete:
+                raise ValueError(
+                    f'Unknown measurement_type: {measurement_type}'
+                )
+
+        title = f'{self.id}/{self.name}'
+        print(f'Deleting measurements : {title}')
+        for model in models_to_delete:
+            queryset = getattr(self, f'{model.__name__.lower()}_set')
+            with temp_disconnect_signals([
+                Signal(post_delete, post_delete_measurement, model),
+                Signal(
+                    post_delete, post_delete_measurement_trigger_well_update,
+                    model
+                ),
+            ]):
+                quantity_ids = list(
+                    queryset.values_list(
+                        'value_id', flat=True
+                    ).exclude(value_id=None)
+                )
+                Quantity.objects.filter(id__in=quantity_ids).delete()
+                queryset.all().delete()
+        print(f'Deleting measurements done : {title}')
+
+        self.update_metadata()
 
         # Self assign measurement type
         self.assign_measurement_type()
