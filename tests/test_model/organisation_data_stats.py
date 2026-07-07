@@ -155,6 +155,8 @@ class OrganisationAssignMetadataCacheStatsTest(GWML2Test):
         self.assertEqual(stats['count_well_with_level'], 0)
         self.assertEqual(stats['count_well_with_quality'], 0)
         self.assertEqual(stats['count_spring'], 0)
+        self.assertIsNone(stats['data_date_start'])
+        self.assertIsNone(stats['data_date_end'])
         self.assertIsNotNone(self.organisation.metadata_cache_generated_at)
 
     def test_measurement_counts_including_midnight(self):
@@ -189,6 +191,8 @@ class OrganisationAssignMetadataCacheStatsTest(GWML2Test):
         self.assertEqual(stats['count_measurement_yield'], 1)
         self.assertEqual(stats['count_measurement_yield_midnight'], 0)
         self.assertEqual(stats['count_measurement'], 4)
+        self.assertEqual(stats['data_date_start'], '2020-01-01')
+        self.assertEqual(stats['data_date_end'], '2020-01-02')
 
     def test_well_counts_with_level_quality_and_spring(self):
         """Well counts reflect wells with level/quality data and wells
@@ -301,6 +305,25 @@ class OrganisationMetadataCachePropertyTest(GWML2Test):
         self.assertEqual(cache.count_measurement_quality_midnight, 2)
         self.assertEqual(cache.count_measurement_yield, 3)
         self.assertEqual(cache.count_measurement_yield_midnight, 0)
+
+    def test_ignores_date_keys_inside_data_stats(self):
+        """metadata_cache does not choke on the data_date_start/
+        data_date_end keys that get_json() now stores inside
+        data_stats, and uses the dedicated date fields instead."""
+        self.organisation.data_date_start = datetime.date(2020, 1, 1)
+        self.organisation.data_date_end = datetime.date(2021, 1, 1)
+        self.organisation.data_stats = {
+            'data_date_start': '2019-01-01',
+            'data_date_end': '2019-06-01',
+            'count_well': 2,
+        }
+        self.organisation.save()
+
+        cache = self.organisation.metadata_cache
+
+        self.assertEqual(cache.data_date_start, datetime.date(2020, 1, 1))
+        self.assertEqual(cache.data_date_end, datetime.date(2021, 1, 1))
+        self.assertEqual(cache.count_well, 2)
 
     def test_data_types_empty_when_no_stats(self):
         """data_types is empty when there is no measurement data."""

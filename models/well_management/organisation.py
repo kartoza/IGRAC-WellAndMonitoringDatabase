@@ -141,7 +141,9 @@ class Organisation(LicenseMetadata):
     @property
     def metadata_cache(self) -> MetadataCache:
         """Metadata cache"""
-        stats = self.data_stats or {}
+        stats = dict(self.data_stats or {})
+        stats.pop('data_date_start', None)
+        stats.pop('data_date_end', None)
         return MetadataCache(
             data_date_start=self.data_date_start,
             data_date_end=self.data_date_end,

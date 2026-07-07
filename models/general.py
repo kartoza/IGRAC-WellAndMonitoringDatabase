@@ -76,7 +76,9 @@ class Country(models.Model):
 
         # Check for global
         print(f'Generate metadata cache for country {self.name}')
-        well_ids = self.well_set.values_list('id', flat=True)
+        well_ids = self.well_set.filter(
+            organisation__active=True
+        ).values_list('id', flat=True)
         cache = generate_metadata_cache(well_ids)
 
         self.metadata_cache_generated_at = timezone.now()
@@ -89,6 +91,7 @@ class Country(models.Model):
         ggmn_group = OrganisationGroup.get_ggmn_group()
         if ggmn_group:
             well_ids = self.well_set.filter(
+                organisation__active=True,
                 organisation__in=ggmn_group.organisations.all()
             ).values_list('id', flat=True)
             cache = generate_metadata_cache(well_ids)

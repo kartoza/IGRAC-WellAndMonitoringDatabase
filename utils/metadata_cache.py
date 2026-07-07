@@ -33,6 +33,14 @@ class MetadataCache:
     def get_json(self, generate_midnight=False):
         """Return stats as a dict, including midnight counts if requested."""
         stats = {
+            'data_date_start': (
+                self.data_date_start.isoformat()
+                if self.data_date_start else None
+            ),
+            'data_date_end': (
+                self.data_date_end.isoformat()
+                if self.data_date_end else None
+            ),
             'count_measurement': self.count_measurement,
             'count_measurement_level': self.count_measurement_level,
             'count_measurement_quality': self.count_measurement_quality,
