@@ -11,6 +11,8 @@
           href="{% static 'js/select2/4.1.0-rc.0/select2.min.css' %}">
     <script src="{% static 'js/jquery/3.5.1/jquery.min.js' %}"></script>
     <script src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
+    <script src="{% static 'js/highcharts/9.1.2/stock/highstock.js' %}"></script>
+    <script src="{% static 'js/highcharts/9.1.2/highcharts-more.js' %}"></script>
     <script src="{% static 'gwml2/js/well_dashboard_utils.js' %}"></script>
     <script src="{% static 'gwml2/js/well_dashboard.js' %}"></script>
 {% endblock %}
@@ -20,14 +22,14 @@
         <div class="dashboard-side-panel">
             <div id="dashboard-data-type" class="dashboard-data-type">
                 <button type="button"
-                        class="dashboard-filter-toggle active"
-                        data-filter="ggmn"
+                        class="dashboard-data-type-toggle active"
+                        data-type="ggmn"
                         title="Click to activate/deactivate GGMN data">
                     GGMN
                 </button>
                 <button type="button"
-                        class="dashboard-filter-toggle active"
-                        data-filter="well_monitoring"
+                        class="dashboard-data-type-toggle active"
+                        data-type="well_monitoring"
                         title="Click to activate/deactivate Well and Monitoring Data">
                     Well and Monitoring Data
                 </button>
@@ -115,6 +117,22 @@
                         </td>
                     </tr>
                 </table>
+            </div>
+            <div class="dashboard-card">
+                <h1>Length of Time Series</h1>
+
+                <div id="dashboard-length-of-time-series-loading"
+                     class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading statistics&hellip;</span>
+                </div>
+
+                <div id="dashboard-length-of-time-series-empty"
+                     class="dashboard-empty hidden">
+                    Data does not exist.
+                </div>
+
+                <div id="dashboard-length-of-time-series"></div>
             </div>
         </div>
     </div>

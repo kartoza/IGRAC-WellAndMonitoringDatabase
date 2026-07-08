@@ -2,6 +2,7 @@
   let allOrganisations = [];
   let allCountries = [];
   let selectedCountries = [];
+  let lengthOfTimeSeriesChart = null;
 
   let ANIMATION_DURATION = 500;
   let RECENTLY_UPDATED_YEARS = 2;
@@ -35,7 +36,10 @@
       return ggmn;
     }
     if (showWellMonitoring) {
-      let diff = {data_date_end: total.data_date_end};
+      let diff = {
+        data_date_start: total.data_date_start,
+        data_date_end: total.data_date_end
+      };
       $.each(COUNTRY_STAT_FIELDS, function (index, field) {
         diff[field] = (total[field] || 0) - (ggmn[field] || 0);
       });
@@ -91,9 +95,18 @@
     return selectedCountries.indexOf(organisation.country_name) !== -1;
   }
 
-  function filterOrganisations(organisations, filters) {
-    let showGGMN = filters.indexOf('ggmn') !== -1;
-    let showWellMonitoring = filters.indexOf('well_monitoring') !== -1;
+  function getActiveDataTypes() {
+    let filters = [];
+    $('.dashboard-data-type-toggle.active').each(function () {
+      filters.push($(this).data('type'));
+    });
+    return {
+      showGGMN: filters.indexOf('ggmn') !== -1,
+      showWellMonitoring: filters.indexOf('well_monitoring') !== -1
+    };
+  }
+
+  function filterOrganisations(organisations, showGGMN, showWellMonitoring) {
     return $.grep(organisations, function (organisation) {
       if (!isCountryOrganisationVisible(organisation)) {
         return false;
@@ -112,14 +125,13 @@
   }
 
   function renderStats() {
-    let filters = [];
-    $('.dashboard-filter-toggle.active').each(function () {
-      filters.push($(this).data('filter'));
-    });
-    let showGGMN = filters.indexOf('ggmn') !== -1;
-    let showWellMonitoring = filters.indexOf('well_monitoring') !== -1;
+    let dataTypeFilters = getActiveDataTypes();
+    let showGGMN = dataTypeFilters.showGGMN;
+    let showWellMonitoring = dataTypeFilters.showWellMonitoring;
 
-    let filtered = filterOrganisations(allOrganisations, filters);
+    let filtered = filterOrganisations(
+      allOrganisations, showGGMN, showWellMonitoring
+    );
     let totals = computeStats(filtered);
     $.extend(
       totals,
@@ -132,6 +144,110 @@
       let from = WellDashboardUtils.parseNumber($cell.text());
       let to = Number(value) || 0;
       WellDashboardUtils.animateStat($cell, from, to, ANIMATION_DURATION);
+    });
+
+    renderLengthOfTimeSeriesChart();
+  }
+
+  function renderLengthOfTimeSeriesChart() {
+    let dataTypeFilters = getActiveDataTypes();
+    let showGGMN = dataTypeFilters.showGGMN;
+    let showWellMonitoring = dataTypeFilters.showWellMonitoring;
+
+    let countries = filterCountries(allCountries).slice().sort(
+      function (a, b) {
+        return a.name.localeCompare(b.name);
+      }
+    );
+
+    let primaryColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--dashboard-color-primary').trim();
+    let secondaryColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--dashboard-color-accent').trim();
+
+    let categories = [];
+    let data = [];
+    $.each(countries, function (index, country) {
+      let stats = countryStatsForFilters(
+        country, showGGMN, showWellMonitoring
+      );
+      if (!stats || !stats.data_date_start || !stats.data_date_end) {
+        return;
+      }
+      let isOdd = categories.length % 2 === 0;
+      categories.push(country.name);
+      data.push({
+        low: new Date(stats.data_date_start).getTime(),
+        high: new Date(stats.data_date_end).getTime(),
+        color: isOdd ? primaryColor : secondaryColor
+      });
+    });
+
+    $('#dashboard-length-of-time-series-loading').addClass('hidden');
+
+    if (!categories.length) {
+      if (lengthOfTimeSeriesChart) {
+        lengthOfTimeSeriesChart.destroy();
+        lengthOfTimeSeriesChart = null;
+      }
+      $('#dashboard-length-of-time-series-empty').removeClass('hidden');
+      return;
+    }
+    $('#dashboard-length-of-time-series-empty').addClass('hidden');
+
+    lengthOfTimeSeriesChart = Highcharts.chart(
+      'dashboard-length-of-time-series', {
+      chart: {
+        type: 'columnrange',
+        inverted: true,
+        height: Math.max(120, categories.length * 20 + 80)
+      },
+      title: { text: null },
+      xAxis: {
+        categories: categories,
+        lineWidth: 0,
+        tickLength: 0,
+        labels: { enabled: false }
+      },
+      yAxis: {
+        type: 'datetime',
+        title: { text: 'Date' }
+      },
+      legend: { enabled: false },
+      plotOptions: {
+        columnrange: {
+          groupPadding: 0,
+          pointPadding: 0
+        }
+      },
+      tooltip: {
+        pointFormatter: function () {
+          return (
+            Highcharts.dateFormat('%Y-%m-%d', this.low) +
+            ' - ' +
+            Highcharts.dateFormat('%Y-%m-%d', this.high)
+          );
+        }
+      },
+      series: [{
+        name: 'Length of time series',
+        dataLabels: [
+          {
+            enabled: false
+          },
+          {
+            enabled: true,
+            format: '{point.category}',
+            align: 'left',
+            verticalAlign: 'middle',
+            y: -2,
+            x: 0,
+            crop: false,
+            overflow: 'allow'
+          }
+        ],
+        data: data
+      }]
     });
   }
 
@@ -181,7 +297,7 @@
 
   function initWellDashboard(organisationStatisticUrl, countryStatisticUrl) {
     // Init toggle data type
-    $('.dashboard-filter-toggle').on('click', function () {
+    $('.dashboard-data-type-toggle').on('click', function () {
       $(this).toggleClass('active');
       renderStats();
     });

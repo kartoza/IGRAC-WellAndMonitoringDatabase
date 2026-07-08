@@ -126,7 +126,7 @@
   margin-bottom: 16px;
 }
 
-.dashboard-filter-toggle {
+.dashboard-data-type-toggle {
   appearance: none;
   border: 1px solid var(--dashboard-color-accent);
   border-radius: 999px;
@@ -141,11 +141,11 @@
   opacity: 0.5;
 }
 
-.dashboard-filter-toggle:hover {
+.dashboard-data-type-toggle:hover {
   background: var(--dashboard-color-row-alt);
 }
 
-.dashboard-filter-toggle.active {
+.dashboard-data-type-toggle.active {
   color: var(--white);
   background: var(--dashboard-color-accent);
   opacity: 1;
@@ -227,6 +227,17 @@ table.stats-table tr:nth-child(even) {
   padding: 24px;
   color: var(--dashboard-color-error);
   font-size: var(--dashboard-font-size-sm);
+}
+
+.dashboard-empty {
+  padding: 24px;
+  color: var(--dashboard-color-label-muted);
+  font-size: var(--dashboard-font-size-sm);
+  text-align: center;
+}
+
+#dashboard-length-of-time-series {
+  padding: 2px;
 }
 
 .hidden {
