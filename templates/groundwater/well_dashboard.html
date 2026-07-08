@@ -7,107 +7,121 @@
 {% endblock %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'gwml2/css/well_dashboard.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'js/select2/4.1.0-rc.0/select2.min.css' %}">
     <script src="{% static 'js/jquery/3.5.1/jquery.min.js' %}"></script>
+    <script src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
+    <script src="{% static 'gwml2/js/well_dashboard_utils.js' %}"></script>
     <script src="{% static 'gwml2/js/well_dashboard.js' %}"></script>
 {% endblock %}
 
 {% block body_outer %}
     <div id="dashboard">
-        <div id="dashboard-filters" class="dashboard-filters">
-            <button type="button"
-                    class="dashboard-filter-toggle active"
-                    data-filter="ggmn"
-                    title="Click to activate/deactivate GGMN data">
-                GGMN
-            </button>
-            <button type="button"
-                    class="dashboard-filter-toggle active"
-                    data-filter="well_monitoring"
-                    title="Click to activate/deactivate Well and Monitoring Data">
-                Well and Monitoring Data
-            </button>
+        <div class="dashboard-side-panel">
+            <div id="dashboard-data-type" class="dashboard-data-type">
+                <button type="button"
+                        class="dashboard-filter-toggle active"
+                        data-filter="ggmn"
+                        title="Click to activate/deactivate GGMN data">
+                    GGMN
+                </button>
+                <button type="button"
+                        class="dashboard-filter-toggle active"
+                        data-filter="well_monitoring"
+                        title="Click to activate/deactivate Well and Monitoring Data">
+                    Well and Monitoring Data
+                </button>
+            </div>
+
+            <div id="countries-data">
+            </div>
         </div>
+        <div class="dashboard-content">
+            <div class="dashboard-card">
+                <h1>General</h1>
 
-        <div class="dashboard-card">
-            <h1>General</h1>
+                <div id="dashboard-loading" class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading statistics&hellip;</span>
+                </div>
 
-            <div id="dashboard-loading" class="throbber-wrap">
-                <div class="throbber"></div>
-                <span>Loading statistics&hellip;</span>
+                <div id="dashboard-error" class="dashboard-error hidden">
+                    Unable to load statistics. Please try again later.
+                </div>
+
+                <table id="dashboard-table" class="stats-table hidden">
+                    <tr>
+                        <td class="stat-label">Number of countries</td>
+                        <td class="stat-value" data-stat="count_country">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of organisations</td>
+                        <td class="stat-value" data-stat="count_organisation">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of water wells</td>
+                        <td class="stat-value" data-stat="count_well">-</td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">Number of wells with GWL data
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_well_with_level">-
+                        </td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">Number of wells with GWQ data
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_well_with_quality">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of springs</td>
+                        <td class="stat-value" data-stat="count_spring">-</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">
+                            Number of groundwater level measurements
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_measurement_level">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">
+                            Number of groundwater quality measurements
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_measurement_quality">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">
+                            Number of countries updated in the last 2 years
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_country_recently_updated">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of automatic
+                            connections
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_automatic_connection">-
+                        </td>
+                    </tr>
+                </table>
             </div>
-
-            <div id="dashboard-error" class="dashboard-error hidden">
-                Unable to load statistics. Please try again later.
-            </div>
-
-            <table id="dashboard-table" class="stats-table hidden">
-                <tr>
-                    <td class="stat-label">Number of countries</td>
-                    <td class="stat-value" data-stat="count_country">-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="stat-label">Number of organisations</td>
-                    <td class="stat-value" data-stat="count_organisation">-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="stat-label">Number of water wells</td>
-                    <td class="stat-value" data-stat="count_well">-</td>
-                </tr>
-                <tr class="sub-row">
-                    <td class="stat-label">Number of wells with GWL data</td>
-                    <td class="stat-value"
-                        data-stat="count_well_with_level">-
-                    </td>
-                </tr>
-                <tr class="sub-row">
-                    <td class="stat-label">Number of wells with GWQ data</td>
-                    <td class="stat-value"
-                        data-stat="count_well_with_quality">-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="stat-label">Number of springs</td>
-                    <td class="stat-value" data-stat="count_spring">-</td>
-                </tr>
-                <tr>
-                    <td class="stat-label">
-                        Number of groundwater level measurements
-                    </td>
-                    <td class="stat-value"
-                        data-stat="count_measurement_level">-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="stat-label">
-                        Number of groundwater quality measurements
-                    </td>
-                    <td class="stat-value"
-                        data-stat="count_measurement_quality">-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="stat-label">
-                        Number of countries updated in the last 2 years
-                    </td>
-                    <td class="stat-value"
-                        data-stat="count_country_recently_updated">-
-                    </td>
-                </tr>
-                <tr>
-                    <td class="stat-label">Number of automatic connections</td>
-                    <td class="stat-value"
-                        data-stat="count_automatic_connection">-
-                    </td>
-                </tr>
-            </table>
         </div>
     </div>
     <script>
       initWellDashboard(
-          '{% url "organisation_statistic_general" %}',
-          '{% url "countries_statistic_general" %}'
+        '{% url "organisation_statistic_general" %}',
+        '{% url "countries_statistic_general" %}'
       );
     </script>
 {% endblock %}
