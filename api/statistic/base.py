@@ -9,7 +9,6 @@ class BaseStatisticAPI(APIView):
     """Base for statistic APIs."""
 
     permission_classes = []
-    is_ggmn = False
 
     @property
     def ggmn_organisation_ids(self):
@@ -22,11 +21,5 @@ class BaseStatisticAPI(APIView):
 
     @property
     def organisations(self):
-        """Return queryset of organizations."""
-        if self.is_ggmn:
-            ggmn_group = OrganisationGroup.get_ggmn_group()
-            if not ggmn_group:
-                return Organisation.objects.none()
-            return ggmn_group.organisations.filter(active=True)
-        else:
-            return Organisation.objects.filter(active=True)
+        """Return queryset of all active organisations."""
+        return Organisation.objects.filter(active=True)

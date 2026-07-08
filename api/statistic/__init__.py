@@ -1,6 +1,2 @@
-from .organisations import (
-    OrganisationStatisticAPI, OrganisationGGMNStatisticAPI
-)
-from .countries import (
-    CountryStatisticAPI, CountryGGMNStatisticAPI
-)
+from .organisations import OrganisationStatisticAPI
+from .countries import CountryStatisticAPI

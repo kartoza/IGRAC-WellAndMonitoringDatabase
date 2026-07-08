@@ -29,9 +29,9 @@
                 </button>
                 <button type="button"
                         class="dashboard-toggle active"
-                        data-type="well_monitoring"
-                        title="Click to activate/deactivate Well and Monitoring Data">
-                    Well and Monitoring Data
+                        data-type="observations_repository"
+                        title="Click to activate/deactivate Groundwater Observations Repository">
+                    Groundwater Observations Repository
                 </button>
             </div>
 
@@ -177,8 +177,8 @@
     </div>
     <script>
       initWellDashboard(
-        '{% url "organisation_statistic_general" %}',
-        '{% url "countries_statistic_general" %}'
+        '{% url "organisation_statistic" %}',
+        '{% url "countries_statistic" %}'
       );
     </script>
 {% endblock %}

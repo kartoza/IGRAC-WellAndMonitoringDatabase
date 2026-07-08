@@ -27,8 +27,11 @@ class Country(models.Model):
     )
 
     # Metadata cache
-    metadata_cache = models.JSONField(
-        help_text=_('Cached statistics for this country (all wells).'),
+    metadata_cache_observations_repository = models.JSONField(
+        help_text=_(
+            'Cached statistics for this country for '
+            'Groundwater Observations Repository.'
+        ),
         null=True, blank=True
     )
     metadata_cache_ggmn = models.JSONField(
@@ -76,22 +79,33 @@ class Country(models.Model):
 
         # Check for global
         print(f'Generate metadata cache for country {self.name}')
-        well_ids = self.well_set.filter(
-            organisation__active=True
-        ).values_list('id', flat=True)
-        cache = generate_metadata_cache(well_ids)
 
+        ggmn_group = OrganisationGroup.get_ggmn_group()
+
+        print(
+            f'Generate metadata cache for country {self.name} -'
+            f'Groundwater Observations Repository'
+        )
         self.metadata_cache_generated_at = timezone.now()
+        print(f'Generate metadata cache for country {self.name} - GGMN')
+        wells = self.well_set.filter(
+            organisation__active=True
+        )
+        if ggmn_group:
+            repository_well_ids = wells.exclude(
+                organisation__in=ggmn_group.organisations.all()
+            ).values_list('id', flat=True)
+        else:
+            repository_well_ids = wells.values_list('id', flat=True)
+        cache = generate_metadata_cache(repository_well_ids)
         Country.objects.filter(pk=self.pk).update(
-            metadata_cache=cache.get_json(),
+            metadata_cache_observations_repository=cache.get_json(),
             metadata_cache_generated_at=self.metadata_cache_generated_at,
         )
 
         print(f'Generate metadata cache for country {self.name} - GGMN')
-        ggmn_group = OrganisationGroup.get_ggmn_group()
         if ggmn_group:
-            well_ids = self.well_set.filter(
-                organisation__active=True,
+            well_ids = wells.filter(
                 organisation__in=ggmn_group.organisations.all()
             ).values_list('id', flat=True)
             cache = generate_metadata_cache(well_ids)

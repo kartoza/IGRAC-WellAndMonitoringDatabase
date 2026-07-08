@@ -3,8 +3,8 @@ from rest_framework.response import Response
 from .base import BaseStatisticAPI
 
 
-class BaseOrganisationStatisticAPI(BaseStatisticAPI):
-    """Base for organisation statistic APIs."""
+class OrganisationStatisticAPI(BaseStatisticAPI):
+    """Return statistic of all active organisations."""
 
     permission_classes = []
 
@@ -49,15 +49,3 @@ class BaseOrganisationStatisticAPI(BaseStatisticAPI):
             'count_well_with_quality': count_well_with_quality,
             'organisations': organisations,
         })
-
-
-class OrganisationStatisticAPI(BaseOrganisationStatisticAPI):
-    """Return statistic of all active organisations."""
-
-    is_ggmn = False
-
-
-class OrganisationGGMNStatisticAPI(BaseOrganisationStatisticAPI):
-    """Return statistic of GGMN organisations."""
-
-    is_ggmn = True

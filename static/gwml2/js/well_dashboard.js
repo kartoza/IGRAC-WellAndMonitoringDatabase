@@ -27,25 +27,38 @@
     return totals;
   }
 
-  function countryStatsForFilters(country, showGGMN, showWellMonitoring) {
-    let total = country.statistic || {};
+  function combineCountryFieldStats(a, b) {
+    let combined = {};
+    $.each(COUNTRY_STAT_FIELDS, function (index, field) {
+      combined[field] = (a[field] || 0) + (b[field] || 0);
+    });
+    let starts = [a.data_date_start, b.data_date_start].filter(Boolean);
+    let ends = [a.data_date_end, b.data_date_end].filter(Boolean);
+    combined.data_date_start = starts.length ? starts.reduce(
+      function (min, d) {
+        return new Date(d) < new Date(min) ? d : min;
+      }
+    ) : null;
+    combined.data_date_end = ends.length ? ends.reduce(
+      function (max, d) {
+        return new Date(d) > new Date(max) ? d : max;
+      }
+    ) : null;
+    return combined;
+  }
+
+  function countryStats(country, showGGMN, showObservationsRepository) {
+    let repository = country.statistic_observations_repository || {};
     let ggmn = country.statistic_ggmn || {};
 
-    if (showGGMN && showWellMonitoring) {
-      return total;
+    if (showGGMN && showObservationsRepository) {
+      return combineCountryFieldStats(repository, ggmn);
     }
     if (showGGMN) {
       return ggmn;
     }
-    if (showWellMonitoring) {
-      let diff = {
-        data_date_start: total.data_date_start,
-        data_date_end: total.data_date_end
-      };
-      $.each(COUNTRY_STAT_FIELDS, function (index, field) {
-        diff[field] = (total[field] || 0) - (ggmn[field] || 0);
-      });
-      return diff;
+    if (showObservationsRepository) {
+      return repository;
     }
     return null;
   }
@@ -61,7 +74,7 @@
     return new Date(dateEnd) >= threshold;
   }
 
-  function computeCountryStats(countries, showGGMN, showWellMonitoring) {
+  function computeCountryStats(countries, showGGMN, showObservationsRepository) {
     let totals = {
       count_country: 0,
       count_country_recently_updated: 0
@@ -70,8 +83,8 @@
       totals[field] = 0;
     });
     $.each(countries, function (index, country) {
-      let stats = countryStatsForFilters(
-        country, showGGMN, showWellMonitoring
+      let stats = countryStats(
+        country, showGGMN, showObservationsRepository
       );
       if (!stats || (stats.count_well || 0) <= 0) {
         return;
@@ -104,11 +117,11 @@
     });
     return {
       showGGMN: filters.indexOf('ggmn') !== -1,
-      showWellMonitoring: filters.indexOf('well_monitoring') !== -1
+      showObservationsRepository: filters.indexOf('observations_repository') !== -1
     };
   }
 
-  function filterOrganisations(organisations, showGGMN, showWellMonitoring) {
+  function filterOrganisations(organisations, showGGMN, showObservationsRepository) {
     return $.grep(organisations, function (organisation) {
       if (!isCountryOrganisationVisible(organisation)) {
         return false;
@@ -116,7 +129,7 @@
       if (organisation.is_ggmn) {
         return showGGMN;
       }
-      return showWellMonitoring;
+      return showObservationsRepository;
     });
   }
 
@@ -127,18 +140,18 @@
   }
 
   function renderStats() {
-    let dataTypeFilters = getActiveDataTypes();
-    let showGGMN = dataTypeFilters.showGGMN;
-    let showWellMonitoring = dataTypeFilters.showWellMonitoring;
+    let dataType = getActiveDataTypes();
+    let showGGMN = dataType.showGGMN;
+    let showObservationsRepository = dataType.showObservationsRepository;
 
     let filtered = filterOrganisations(
-      allOrganisations, showGGMN, showWellMonitoring
+      allOrganisations, showGGMN, showObservationsRepository
     );
     let totals = computeStats(filtered);
     $.extend(
       totals,
       computeCountryStats(
-        filterCountries(allCountries), showGGMN, showWellMonitoring
+        filterCountries(allCountries), showGGMN, showObservationsRepository
       )
     );
     $.each(totals, function (key, value) {
@@ -162,9 +175,9 @@
   }
 
   function renderLengthOfTimeSeriesChart() {
-    let dataTypeFilters = getActiveDataTypes();
-    let showGGMN = dataTypeFilters.showGGMN;
-    let showWellMonitoring = dataTypeFilters.showWellMonitoring;
+    let dataType = getActiveDataTypes();
+    let showGGMN = dataType.showGGMN;
+    let showObservationsRepository = dataType.showObservationsRepository;
 
     let countries = filterCountries(allCountries).slice().sort(
       function (a, b) {
@@ -179,8 +192,8 @@
     let categories = [];
     let data = [];
     $.each(countries, function (index, country) {
-      let stats = countryStatsForFilters(
-        country, showGGMN, showWellMonitoring
+      let stats = countryStats(
+        country, showGGMN, showObservationsRepository
       );
       if (!stats || !stats.data_date_start || !stats.data_date_end) {
         return;
@@ -278,9 +291,9 @@
   }
 
   function renderNumberOfStationsChart() {
-    let dataTypeFilters = getActiveDataTypes();
-    let showGGMN = dataTypeFilters.showGGMN;
-    let showWellMonitoring = dataTypeFilters.showWellMonitoring;
+    let dataType = getActiveDataTypes();
+    let showGGMN = dataType.showGGMN;
+    let showObservationsRepository = dataType.showObservationsRepository;
     let range = getNumberOfStationsRange();
 
     let countries = filterCountries(allCountries).slice().sort(
@@ -294,8 +307,8 @@
     let categories = [];
     let data = [];
     $.each(countries, function (index, country) {
-      let stats = countryStatsForFilters(
-        country, showGGMN, showWellMonitoring
+      let stats = countryStats(
+        country, showGGMN, showObservationsRepository
       );
       let countWell = stats ? (stats.count_well || 0) : 0;
       if (countWell < range.min || countWell >= range.max) {

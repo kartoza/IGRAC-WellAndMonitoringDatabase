@@ -54,7 +54,8 @@ def generate_metadata_cache(modeladmin, request, queryset):
 class CountryAdmin(admin.ModelAdmin):
     list_display = (
         'name', 'code', 'data_cache_generated_at',
-        'metadata_cache', 'metadata_cache_ggmn', 'metadata_cache_generated_at'
+        'metadata_cache_observations_repository', 'metadata_cache_ggmn',
+        'metadata_cache_generated_at'
     )
     list_filter = ('data_cache_generated_at', 'metadata_cache_generated_at')
     actions = (generate_data_wells_cache, generate_metadata_cache)
