@@ -101,13 +101,13 @@
   }
 
   function isCountryOrganisationVisible(organisation) {
-    if (!organisation.country_name) {
+    if (!organisation.country_id) {
       // No country assigned: treat the organisation as belonging to
       // every country, so it stays visible as long as at least one
       // country is selected.
       return selectedCountries.length > 0;
     }
-    return selectedCountries.indexOf(organisation.country_name) !== -1;
+    return selectedCountries.indexOf(String(organisation.country_id)) !== -1;
   }
 
   function getActiveDataTypes() {
@@ -135,7 +135,7 @@
 
   function filterCountries(countries) {
     return $.grep(countries, function (country) {
-      return selectedCountries.indexOf(country.name) !== -1;
+      return selectedCountries.indexOf(String(country.id)) !== -1;
     });
   }
 
@@ -364,7 +364,7 @@
   function selectAllCountries() {
     $('#id_countries').val(
       allCountries.map(function (country) {
-        return country.name;
+        return String(country.id);
       })
     ).trigger('change');
   }
@@ -383,7 +383,7 @@
     let $countries = $('#id_countries');
     $.each(allCountries, function (index, country) {
       $countries.append(
-        `<option value="${country.name}">${country.name}</option>`
+        `<option value="${country.id}">${country.name}</option>`
       );
     });
 

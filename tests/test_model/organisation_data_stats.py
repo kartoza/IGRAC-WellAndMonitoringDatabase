@@ -191,8 +191,8 @@ class OrganisationAssignMetadataCacheStatsTest(GWML2Test):
         self.assertEqual(stats['count_measurement_yield'], 1)
         self.assertEqual(stats['count_measurement_yield_midnight'], 0)
         self.assertEqual(stats['count_measurement'], 4)
-        self.assertEqual(stats['data_date_start'], '2020-01-01')
-        self.assertEqual(stats['data_date_end'], '2020-01-02')
+        self.assertEqual(stats['data_date_start'], '2020-01-01T00:00:00+00:00')
+        self.assertEqual(stats['data_date_end'], '2020-01-02T08:30:00+00:00')
 
     def test_well_counts_with_level_quality_and_spring(self):
         """Well counts reflect wells with level/quality data and wells

@@ -53,10 +53,10 @@ class OrganisationStatisticAPITest(GWML2Test):
         self.assertEqual(data['data_stats'], {'count_well': 1})
         self.assertIsNone(data['metadata_cache_generated_at'])
         self.assertFalse(data['is_ggmn'])
-        self.assertIsNone(data['country_name'])
+        self.assertIsNone(data['country_id'])
 
-    def test_returns_country_name_when_organisation_has_country(self):
-        """country_name reflects the organisation's related country."""
+    def test_returns_country_id_when_organisation_has_country(self):
+        """country_id reflects the organisation's related country."""
         country = Country.objects.create(name='Indonesia', code='ID')
         organisation = OrganisationF(
             name='Organisation with country', country=country
@@ -65,16 +65,16 @@ class OrganisationStatisticAPITest(GWML2Test):
         self.assertEqual(response.status_code, 200)
         data = response.data['organisations'][0]
         self.assertEqual(data['id'], organisation.id)
-        self.assertEqual(data['country_name'], 'Indonesia')
+        self.assertEqual(data['country_id'], country.id)
 
-    def test_country_name_is_none_when_organisation_has_no_country(self):
+    def test_country_id_is_none_when_organisation_has_no_country(self):
         """Organisation without a country does not error and reports
-        country_name as None."""
+        country_id as None."""
         OrganisationF(name='Organisation without country', country=None)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         data = response.data['organisations'][0]
-        self.assertIsNone(data['country_name'])
+        self.assertIsNone(data['country_id'])
 
     def test_sums_data_stats_across_organisations(self):
         """count_well/count_spring/count_well_with_level/
@@ -119,7 +119,7 @@ class OrganisationStatisticAPITest(GWML2Test):
         """Organisation belonging to the GGMN group is still included,
         flagged via is_ggmn, since this endpoint returns all active
         organisations regardless of GGMN membership."""
-        ggmn_group = OrganisationGroup.objects.create(name='GGMN')
+        ggmn_group = OrganisationGroup.get_ggmn_group()
         ggmn_organisation = OrganisationF(name='GGMN organisation')
         ggmn_group.organisations.add(ggmn_organisation)
         OrganisationF(name='Regular organisation')
@@ -242,7 +242,7 @@ class CountryStatisticAPITest(GWML2Test):
         """A country is included regardless of whether its organisation
         belongs to the GGMN group, since this endpoint covers every
         active organisation."""
-        ggmn_group = OrganisationGroup.objects.create(name='GGMN')
+        ggmn_group = OrganisationGroup.get_ggmn_group()
         ggmn_country = Country.objects.create(
             name='GGMN country', code='G1',
             metadata_cache_ggmn={'count_well': 2},

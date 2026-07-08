@@ -78,7 +78,7 @@ class OrganisationContributorSerializerTest(GWML2Test):
         self.organisation.save()
         data = self.serialize()
         self.assertEqual(
-            data['time_range'], 'Updated automatically (via API)'
+            data['time_range'], 'Updated automatically (via API) '
         )
 
     def test_station_counts_from_data_stats(self):

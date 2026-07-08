@@ -9,7 +9,7 @@ class OrganisationStatisticAPI(BaseStatisticAPI):
     permission_classes = []
 
     def get(self, request, *args):
-        query = self.organisations.select_related('country')
+        query = self.organisations
 
         ggmn_ids = self.ggmn_organisation_ids
 
@@ -31,7 +31,7 @@ class OrganisationStatisticAPI(BaseStatisticAPI):
             organisations.append({
                 'id': obj.id,
                 'name': obj.name,
-                'country_name': obj.country.name if obj.country else None,
+                'country_id': obj.country_id,
                 'is_ggmn': obj.id in ggmn_ids,
                 'data_is_from_api': obj.data_is_from_api,
                 'data_date_start': obj.data_date_start,
