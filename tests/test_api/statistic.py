@@ -248,6 +248,23 @@ class CountryStatisticAPITest(GWML2Test):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
 
+    def test_includes_country_with_only_ggmn_well_count(self):
+        """A country whose general metadata cache has no wells is still
+        included on the general endpoint if its GGMN-specific cache
+        does."""
+        country = Country.objects.create(
+            name='Country ggmn only', code='C4',
+            metadata_cache={'count_well': 0},
+            metadata_cache_ggmn={'count_well': 3},
+        )
+        OrganisationF(name='Organisation ggmn only', country=country)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        data = response.data['countries'][0]
+        self.assertEqual(data['name'], 'Country ggmn only')
+        self.assertEqual(data['statistic_ggmn'], {'count_well': 3})
+
 
 class CountryGGMNStatisticAPITest(GWML2Test):
     """Test for the GGMN Country Statistic API."""

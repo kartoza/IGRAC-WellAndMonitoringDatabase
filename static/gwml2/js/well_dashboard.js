@@ -6,29 +6,17 @@
   let ANIMATION_DURATION = 500;
   let RECENTLY_UPDATED_YEARS = 2;
 
+  let COUNTRY_STAT_FIELDS = [
+    'count_well', 'count_well_with_level', 'count_well_with_quality',
+    'count_spring', 'count_measurement_level', 'count_measurement_quality'
+  ];
+
   function computeStats(organisations) {
     let totals = {
       count_organisation: organisations.length,
-      count_well: 0,
-      count_well_with_level: 0,
-      count_well_with_quality: 0,
-      count_spring: 0,
-      count_measurement_level: 0,
-      count_measurement_quality: 0,
       count_automatic_connection: 0
     };
     $.each(organisations, function (index, organisation) {
-      let stats = organisation.data_stats || {};
-      totals.count_well += stats.count_well || 0;
-      totals.count_well_with_level +=
-        stats.count_well_with_level || 0;
-      totals.count_well_with_quality +=
-        stats.count_well_with_quality || 0;
-      totals.count_spring += stats.count_spring || 0;
-      totals.count_measurement_level +=
-        stats.count_measurement_level || 0;
-      totals.count_measurement_quality +=
-        stats.count_measurement_quality || 0;
       if (organisation.data_is_from_api) {
         totals.count_automatic_connection += 1;
       }
@@ -47,10 +35,11 @@
       return ggmn;
     }
     if (showWellMonitoring) {
-      return {
-        count_well: (total.count_well || 0) - (ggmn.count_well || 0),
-        data_date_end: total.data_date_end
-      };
+      let diff = {data_date_end: total.data_date_end};
+      $.each(COUNTRY_STAT_FIELDS, function (index, field) {
+        diff[field] = (total[field] || 0) - (ggmn[field] || 0);
+      });
+      return diff;
     }
     return null;
   }
@@ -71,6 +60,9 @@
       count_country: 0,
       count_country_recently_updated: 0
     };
+    $.each(COUNTRY_STAT_FIELDS, function (index, field) {
+      totals[field] = 0;
+    });
     $.each(countries, function (index, country) {
       let stats = countryStatsForFilters(
         country, showGGMN, showWellMonitoring
@@ -82,13 +74,19 @@
       if (isRecentlyUpdated(stats.data_date_end)) {
         totals.count_country_recently_updated += 1;
       }
+      $.each(COUNTRY_STAT_FIELDS, function (index, field) {
+        totals[field] += stats[field] || 0;
+      });
     });
     return totals;
   }
 
   function isCountryOrganisationVisible(organisation) {
     if (!organisation.country_name) {
-      return true;
+      // No country assigned: treat the organisation as belonging to
+      // every country, so it stays visible as long as at least one
+      // country is selected.
+      return selectedCountries.length > 0;
     }
     return selectedCountries.indexOf(organisation.country_name) !== -1;
   }

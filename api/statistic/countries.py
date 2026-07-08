@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.response import Response
 
 from gwml2.models.general import Country
@@ -11,14 +12,24 @@ class BaseCountryStatisticAPI(BaseStatisticAPI):
 
     def get(self, request, *args):
         organisations = self.organisations
-        cache_field = (
-            'metadata_cache_ggmn' if self.is_ggmn else 'metadata_cache'
-        )
+        if self.is_ggmn:
+            cache_filter = Q(
+                metadata_cache_ggmn__isnull=False,
+                metadata_cache_ggmn__count_well__gt=0,
+            )
+        else:
+            cache_filter = (
+                Q(
+                    metadata_cache__isnull=False,
+                    metadata_cache__count_well__gt=0,
+                ) |
+                Q(
+                    metadata_cache_ggmn__isnull=False,
+                    metadata_cache_ggmn__count_well__gt=0,
+                )
+            )
         query = Country.objects.filter(
-            **{
-                f'{cache_field}__isnull': False,
-                f'{cache_field}__count_well__gt': 0,
-            },
+            cache_filter,
             id__in=organisations.values_list('country_id', flat=True)
         )
 
