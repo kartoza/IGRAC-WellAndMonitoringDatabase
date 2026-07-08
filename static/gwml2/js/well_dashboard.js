@@ -1,7 +1,9 @@
 (function ($) {
     var allOrganisations = [];
+    var allCountries = [];
 
     var ANIMATION_DURATION = 500;
+    var RECENTLY_UPDATED_YEARS = 2;
 
     function formatNumber(value) {
         return Number(value || 0).toLocaleString('en-US');
@@ -78,6 +80,60 @@
         return totals;
     }
 
+    // country.statistic is the total (GGMN + Well and Monitoring Data),
+    // country.statistic_ggmn is the GGMN-only subset. The Well and
+    // Monitoring Data (non-GGMN) figures are derived by subtracting
+    // statistic_ggmn from statistic.
+    function countryStatsForFilters(country, showGgmn, showWellMonitoring) {
+        var total = country.statistic || {};
+        var ggmn = country.statistic_ggmn || {};
+
+        if (showGgmn && showWellMonitoring) {
+            return total;
+        }
+        if (showGgmn) {
+            return ggmn;
+        }
+        if (showWellMonitoring) {
+            return {
+                count_well: (total.count_well || 0) - (ggmn.count_well || 0),
+                data_date_end: total.data_date_end
+            };
+        }
+        return null;
+    }
+
+    function isRecentlyUpdated(dateEnd) {
+        if (!dateEnd) {
+            return false;
+        }
+        var threshold = new Date();
+        threshold.setFullYear(
+            threshold.getFullYear() - RECENTLY_UPDATED_YEARS
+        );
+        return new Date(dateEnd) >= threshold;
+    }
+
+    function computeCountryStats(countries, showGgmn, showWellMonitoring) {
+        var totals = {
+            count_country: 0,
+            count_country_recently_updated: 0
+        };
+        $.each(countries, function (index, country) {
+            var stats = countryStatsForFilters(
+                country, showGgmn, showWellMonitoring
+            );
+            if (!stats || (stats.count_well || 0) <= 0) {
+                return;
+            }
+            totals.count_country += 1;
+            if (isRecentlyUpdated(stats.data_date_end)) {
+                totals.count_country_recently_updated += 1;
+            }
+        });
+        return totals;
+    }
+
     function getActiveFilters() {
         var filters = [];
         $('.dashboard-filter-toggle.active').each(function () {
@@ -98,10 +154,16 @@
     }
 
     function renderStats() {
-        var filtered = filterOrganisations(
-            allOrganisations, getActiveFilters()
-        );
+        var filters = getActiveFilters();
+        var showGgmn = filters.indexOf('ggmn') !== -1;
+        var showWellMonitoring = filters.indexOf('well_monitoring') !== -1;
+
+        var filtered = filterOrganisations(allOrganisations, filters);
         var totals = computeStats(filtered);
+        $.extend(
+            totals,
+            computeCountryStats(allCountries, showGgmn, showWellMonitoring)
+        );
         $.each(totals, function (key, value) {
             setStat(key, value);
         });
@@ -114,14 +176,16 @@
         });
     }
 
-    function initWellDashboard(statisticUrl) {
+    function initWellDashboard(organisationStatisticUrl, countryStatisticUrl) {
         initFilters();
 
-        $.ajax({
-            url: statisticUrl,
-            dataType: 'json'
-        }).done(function (data) {
-            allOrganisations = data.organisations || [];
+        $.when(
+            $.ajax({url: organisationStatisticUrl, dataType: 'json'}),
+            $.ajax({url: countryStatisticUrl, dataType: 'json'})
+        ).done(function (organisationResponse, countryResponse) {
+            allOrganisations = (organisationResponse[0] || {}).organisations
+                || [];
+            allCountries = (countryResponse[0] || {}).countries || [];
             renderStats();
 
             $('#dashboard-loading').addClass('hidden');

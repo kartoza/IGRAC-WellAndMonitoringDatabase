@@ -13,7 +13,8 @@ from gwml2.api.mobile.minimized_well import (
 from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.statistic import (
-    OrganisationGGMNStatisticAPI, OrganisationStatisticAPI
+    OrganisationGGMNStatisticAPI, OrganisationStatisticAPI,
+    CountryStatisticAPI, CountryGGMNStatisticAPI
 )
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
@@ -193,6 +194,16 @@ api_statistic_url = [
         r'^ggmn/organisation',
         view=OrganisationGGMNStatisticAPI.as_view(),
         name='organisation_statistic_ggmn'
+    ),
+    re_path(
+        r'^general/country',
+        view=CountryStatisticAPI.as_view(),
+        name='countries_statistic_general'
+    ),
+    re_path(
+        r'^ggmn/country',
+        view=CountryGGMNStatisticAPI.as_view(),
+        name='countries_statistic_ggmn'
     ),
 ]
 api_url = [
