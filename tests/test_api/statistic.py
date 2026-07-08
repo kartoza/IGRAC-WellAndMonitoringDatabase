@@ -1,13 +1,15 @@
 """Test for Organisation and Country Statistic API."""
 import datetime
+import json
 
 from django.test import Client
 from django.urls import reverse
 
 from gwml2.models.general import Country
 from gwml2.models.well_management.organisation import OrganisationGroup
+from gwml2.models.well_quality_control import WellQualityControl
 from gwml2.tests.base import GWML2Test
-from gwml2.tests.model_factories import OrganisationF
+from gwml2.tests.model_factories import OrganisationF, WellF
 
 
 class OrganisationStatisticAPITest(GWML2Test):
@@ -258,3 +260,158 @@ class CountryStatisticAPITest(GWML2Test):
         self.assertEqual(
             response.data['countries'][0]['name'], 'GGMN country'
         )
+
+
+class QualityControlStatisticAPITest(GWML2Test):
+    """Test for the Quality Control Statistic API."""
+
+    def setUp(self):
+        """To setup test."""
+        self.url = reverse('quality_control_statistic')
+        self.client = Client()
+
+    def post(self, data=None):
+        """Post data as JSON, as country_ids is a list."""
+        return self.client.post(
+            self.url,
+            data=json.dumps(data or {}),
+            content_type='application/json',
+        )
+
+    def test_empty(self):
+        """No well returns all counts as 0."""
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['groundwater_level_time_gap_num'], 0)
+        self.assertEqual(response.data['groundwater_level_value_gap_num'], 0)
+        self.assertEqual(
+            response.data['groundwater_level_strange_value_num'], 0
+        )
+        self.assertEqual(response.data['no_flag'], 0)
+
+    def test_well_without_any_flag_counts_as_no_flag(self):
+        """A well is auto-assigned an empty WellQualityControl record on
+        creation (see the post_save signal); with no flags set it should
+        be counted under no_flag only."""
+        WellF(name='Well 1')
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['groundwater_level_time_gap_num'], 0)
+        self.assertEqual(response.data['groundwater_level_value_gap_num'], 0)
+        self.assertEqual(
+            response.data['groundwater_level_strange_value_num'], 0
+        )
+        self.assertEqual(response.data['no_flag'], 1)
+
+    def test_well_without_quality_control_record_counts_as_no_flag(self):
+        """A well whose auto-created WellQualityControl record was
+        removed is still counted under no_flag via correct_count."""
+        well = WellF(name='Well without quality control')
+        WellQualityControl.objects.filter(well=well).delete()
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['no_flag'], 1)
+
+    def test_counts_well_with_time_gap_flag(self):
+        """Well flagged with groundwater_level_time_gap is counted under
+        groundwater_level_time_gap_num and not under no_flag."""
+        well = WellF(name='Well with time gap')
+        quality = WellQualityControl.objects.get(well=well)
+        quality.groundwater_level_time_gap = {'flag': True}
+        quality.save()
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['groundwater_level_time_gap_num'], 1)
+        self.assertEqual(response.data['no_flag'], 0)
+
+    def test_counts_well_with_value_gap_flag(self):
+        """Well flagged with groundwater_level_value_gap is counted under
+        groundwater_level_value_gap_num and not under no_flag."""
+        well = WellF(name='Well with value gap')
+        quality = WellQualityControl.objects.get(well=well)
+        quality.groundwater_level_value_gap = {'flag': True}
+        quality.save()
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['groundwater_level_value_gap_num'], 1)
+        self.assertEqual(response.data['no_flag'], 0)
+
+    def test_counts_well_with_strange_value_flag(self):
+        """Well flagged with groundwater_level_strange_value is counted
+        under groundwater_level_strange_value_num and not under
+        no_flag."""
+        well = WellF(name='Well with strange value')
+        quality = WellQualityControl.objects.get(well=well)
+        quality.groundwater_level_strange_value = {'flag': True}
+        quality.save()
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data['groundwater_level_strange_value_num'], 1
+        )
+        self.assertEqual(response.data['no_flag'], 0)
+
+    def test_excludes_well_of_inactive_organisation(self):
+        """A well under an inactive organisation is excluded entirely."""
+        organisation = OrganisationF(
+            name='Inactive organisation', active=False
+        )
+        WellF(name='Well of inactive organisation', organisation=organisation)
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['no_flag'], 0)
+
+    def test_filters_by_data_type_ggmn(self):
+        """data_type='GGMN' only counts wells of GGMN organisations."""
+        ggmn_group = OrganisationGroup.get_ggmn_group()
+        ggmn_organisation = OrganisationF(name='GGMN organisation')
+        ggmn_group.organisations.add(ggmn_organisation)
+        regular_organisation = OrganisationF(name='Regular organisation')
+
+        WellF(name='GGMN well', organisation=ggmn_organisation)
+        WellF(name='Regular well', organisation=regular_organisation)
+
+        response = self.post({'data_type': 'GGMN'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['no_flag'], 1)
+
+    def test_filters_by_data_type_observations_repository(self):
+        """data_type='Groundwater Observations Repository' excludes
+        wells of GGMN organisations."""
+        ggmn_group = OrganisationGroup.get_ggmn_group()
+        ggmn_organisation = OrganisationF(name='GGMN organisation')
+        ggmn_group.organisations.add(ggmn_organisation)
+        regular_organisation = OrganisationF(name='Regular organisation')
+
+        WellF(name='GGMN well', organisation=ggmn_organisation)
+        WellF(name='Regular well', organisation=regular_organisation)
+
+        response = self.post(
+            {'data_type': 'Groundwater Observations Repository'}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['no_flag'], 1)
+
+    def test_filters_by_country_ids(self):
+        """country_ids restricts the counted wells to those countries."""
+        country_a = Country.objects.create(name='Country A', code='CA')
+        country_b = Country.objects.create(name='Country B', code='CB')
+
+        WellF(name='Well in country A', country=country_a)
+        WellF(name='Well in country B', country=country_b)
+
+        response = self.post({'country_ids': [country_a.id]})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['no_flag'], 1)
+
+    def test_country_ids_empty_includes_all_wells(self):
+        """An empty/absent country_ids does not filter by country."""
+        country_a = Country.objects.create(name='Country A', code='CA')
+        country_b = Country.objects.create(name='Country B', code='CB')
+
+        WellF(name='Well in country A', country=country_a)
+        WellF(name='Well in country B', country=country_b)
+
+        response = self.post()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['no_flag'], 2)

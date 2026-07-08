@@ -67,14 +67,16 @@
                         <td class="stat-value" data-stat="count_well">-</td>
                     </tr>
                     <tr class="sub-row">
-                        <td class="stat-label">Number of wells with GWL data
+                        <td class="stat-label">
+                            Number of wells with GWL data
                         </td>
                         <td class="stat-value"
                             data-stat="count_well_with_level">-
                         </td>
                     </tr>
                     <tr class="sub-row">
-                        <td class="stat-label">Number of wells with GWQ data
+                        <td class="stat-label">
+                            Number of wells with GWQ data
                         </td>
                         <td class="stat-value"
                             data-stat="count_well_with_quality">-
@@ -173,12 +175,60 @@
 
                 <div id="dashboard-number-of-stations"></div>
             </div>
+            <div class="dashboard-card">
+                <h1>Quality</h1>
+
+                <div id="dashboard-quality-loading" class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading quality data&hellip;</span>
+                </div>
+
+                <div id="dashboard-quality-error" class="dashboard-error hidden">
+                    Unable to load quality. Please try again later.
+                </div>
+
+                <table id="dashboard-quality-table" class="stats-table hidden">
+                    <tr>
+                        <td class="stat-label">Number of stations without quality flag</td>
+                        <td class="stat-value" data-stat="count_no_flag">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Flagged:</td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of stations with gap of more than 3 years
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_groundwater_level_time_gap_num">-
+                        </td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of stations with jump/dip of more than +-50 m
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_groundwater_level_value_gap_num">-
+                        </td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of stations with a suspicious value
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_groundwater_level_strange_value_num">-
+                        </td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
     <script>
       initWellDashboard(
         '{% url "organisation_statistic" %}',
-        '{% url "countries_statistic" %}'
+        '{% url "countries_statistic" %}',
+        '{% url "quality_control_statistic" %}',
       );
     </script>
 {% endblock %}

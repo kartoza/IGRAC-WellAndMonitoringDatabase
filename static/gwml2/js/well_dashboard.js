@@ -5,6 +5,19 @@
   let lengthOfTimeSeriesChart = null;
   let numberOfStationsChart = null;
   let selectedDashboardNumberStations = 1;
+  let qualityControlStatisticUrl = null;
+  let qualityStatsDebounceTimer = null;
+  let qualityStatsXhr = null;
+
+  let QUALITY_STATS_DEBOUNCE_DELAY = 1000;
+
+  let QUALITY_STAT_FIELDS = {
+    no_flag: 'count_no_flag',
+    groundwater_level_time_gap_num: 'count_groundwater_level_time_gap_num',
+    groundwater_level_value_gap_num: 'count_groundwater_level_value_gap_num',
+    groundwater_level_strange_value_num:
+      'count_groundwater_level_strange_value_num'
+  };
 
   let ANIMATION_DURATION = 500;
   let RECENTLY_UPDATED_YEARS = 2;
@@ -163,6 +176,7 @@
 
     renderLengthOfTimeSeriesChart();
     renderNumberOfStationsChart();
+    renderQualityStats();
   }
 
   function getThemeColors() {
@@ -361,6 +375,85 @@
       });
   }
 
+  function renderQualityStatValues(values) {
+    $.each(QUALITY_STAT_FIELDS, function (apiKey, statKey) {
+      let $cell = $('[data-stat="' + statKey + '"]');
+      let from = WellDashboardUtils.parseNumber($cell.text());
+      let to = Number((values || {})[apiKey]) || 0;
+      WellDashboardUtils.animateStat($cell, from, to, ANIMATION_DURATION);
+    });
+  }
+
+  function renderQualityStats() {
+    // Debounce: renderStats() can fire in quick succession (toggle
+    // clicks, country select2 changes), so wait a beat and cancel
+    // whatever was scheduled/in-flight before, instead of hammering
+    // the endpoint on every call.
+    if (qualityStatsDebounceTimer) {
+      clearTimeout(qualityStatsDebounceTimer);
+      qualityStatsDebounceTimer = null;
+    }
+    if (qualityStatsXhr) {
+      qualityStatsXhr.abort();
+      qualityStatsXhr = null;
+    }
+    $('#dashboard-quality-loading').removeClass('hidden');
+    $('#dashboard-quality-table').addClass('hidden');
+
+    qualityStatsDebounceTimer = setTimeout(function () {
+      qualityStatsDebounceTimer = null;
+
+      let dataType = getActiveDataTypes();
+      let showGGMN = dataType.showGGMN;
+      let showObservationsRepository = dataType.showObservationsRepository;
+
+      $('#dashboard-quality-error').addClass('hidden');
+
+      if (
+        (!showGGMN && !showObservationsRepository) ||
+        !selectedCountries.length
+      ) {
+        renderQualityStatValues({});
+        $('#dashboard-quality-loading').addClass('hidden');
+        $('#dashboard-quality-table').removeClass('hidden');
+        return;
+      }
+
+      let requestData = { country_ids: selectedCountries };
+      if (!(showGGMN && showObservationsRepository)) {
+        requestData.data_type = showGGMN
+          ? 'GGMN'
+          : 'Groundwater Observations Repository';
+      }
+
+      let csrfMatch = document.cookie.match(/(^|;)\s*csrftoken=([^;]+)/);
+      let csrfToken = csrfMatch ? csrfMatch[2] : '';
+
+      qualityStatsXhr = $.ajax({
+        url: qualityControlStatisticUrl,
+        method: 'POST',
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify(requestData),
+        beforeSend: function (xhr) {
+          xhr.setRequestHeader('X-CSRFToken', csrfToken);
+        }
+      }).done(function (response) {
+        renderQualityStatValues(response);
+        $('#dashboard-quality-loading').addClass('hidden');
+        $('#dashboard-quality-table').removeClass('hidden');
+      }).fail(function (jqXHR, textStatus) {
+        if (textStatus === 'abort') {
+          return;
+        }
+        $('#dashboard-quality-loading').addClass('hidden');
+        $('#dashboard-quality-error').removeClass('hidden');
+      }).always(function () {
+        qualityStatsXhr = null;
+      });
+    }, QUALITY_STATS_DEBOUNCE_DELAY);
+  }
+
   function selectAllCountries() {
     $('#id_countries').val(
       allCountries.map(function (country) {
@@ -369,43 +462,11 @@
     ).trigger('change');
   }
 
-  function renderCountryOptions() {
-    let $countriesData = $('#countries-data');
-    $countriesData.html(`
-        <select name="countries" class="form-control" id="id_countries"
-            multiple="" data-select2-id="id_countries">
-        </select>
-        <div class="select-data-action">
-          <div class="select-all-countries">Select all</div>
-          <div class="clear-all-countries">Clear all</div>
-        </div>
-    `)
-    let $countries = $('#id_countries');
-    $.each(allCountries, function (index, country) {
-      $countries.append(
-        `<option value="${country.id}">${country.name}</option>`
-      );
-    });
+  function initWellDashboard(
+    organisationStatisticUrl, countryStatisticUrl, qualityControlUrl
+  ) {
+    qualityControlStatisticUrl = qualityControlUrl;
 
-    $countries.select2({
-      placeholder: 'Select countries.'
-    });
-
-    $countries.on('change', function () {
-      selectedCountries = $('#id_countries').val() || [];
-      renderStats();
-    });
-
-    $('.select-all-countries').on('click', selectAllCountries);
-    $('.clear-all-countries').on('click', function () {
-      $('#id_countries').val([]).trigger('change');
-    });
-
-    // Select all countries by default.
-    selectAllCountries();
-  }
-
-  function initWellDashboard(organisationStatisticUrl, countryStatisticUrl) {
     // Init toggle data type
     $('#dashboard-data-type .dashboard-toggle').on('click', function () {
       $(this).toggleClass('active');
@@ -428,7 +489,40 @@
       allOrganisations = (organisationResponse[0] || {}).organisations
         || [];
       allCountries = (countryResponse[0] || {}).countries || [];
-      renderCountryOptions();
+
+      let $countriesData = $('#countries-data');
+      $countriesData.html(`
+          <select name="countries" class="form-control" id="id_countries"
+              multiple="" data-select2-id="id_countries">
+          </select>
+          <div class="select-data-action">
+            <div class="select-all-countries">Select all</div>
+            <div class="clear-all-countries">Clear all</div>
+          </div>
+      `)
+      let $countries = $('#id_countries');
+      $.each(allCountries, function (index, country) {
+        $countries.append(
+          `<option value="${country.id}">${country.name}</option>`
+        );
+      });
+
+      $countries.select2({
+        placeholder: 'Select countries.'
+      });
+
+      $countries.on('change', function () {
+        selectedCountries = $('#id_countries').val() || [];
+        renderStats();
+      });
+
+      $('.select-all-countries').on('click', selectAllCountries);
+      $('.clear-all-countries').on('click', function () {
+        $('#id_countries').val([]).trigger('change');
+      });
+
+      // Select all countries by default.
+      selectAllCountries();
 
       $('#dashboard-loading').addClass('hidden');
       $('#dashboard-table').removeClass('hidden');

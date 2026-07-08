@@ -13,7 +13,7 @@ from gwml2.api.mobile.minimized_well import (
 from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.organisation import OrganisationAutocompleteAPI
 from gwml2.api.statistic import (
-    OrganisationStatisticAPI, CountryStatisticAPI
+    OrganisationStatisticAPI, CountryStatisticAPI, QualityControlStatisticAPI
 )
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
@@ -193,6 +193,11 @@ api_statistic_url = [
         r'^country',
         view=CountryStatisticAPI.as_view(),
         name='countries_statistic'
+    ),
+    re_path(
+        r'^quality-control',
+        view=QualityControlStatisticAPI.as_view(),
+        name='quality_control_statistic'
     ),
 ]
 api_url = [

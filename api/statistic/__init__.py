@@ -1,2 +1,3 @@
 from .organisations import OrganisationStatisticAPI
 from .countries import CountryStatisticAPI
+from .quality_control import QualityControlStatisticAPI

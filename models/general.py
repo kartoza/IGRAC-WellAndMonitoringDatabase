@@ -83,11 +83,10 @@ class Country(models.Model):
         ggmn_group = OrganisationGroup.get_ggmn_group()
 
         print(
-            f'Generate metadata cache for country {self.name} -'
+            f'Generate metadata cache for country {self.name} - '
             f'Groundwater Observations Repository'
         )
         self.metadata_cache_generated_at = timezone.now()
-        print(f'Generate metadata cache for country {self.name} - GGMN')
         wells = self.well_set.filter(
             organisation__active=True
         )
