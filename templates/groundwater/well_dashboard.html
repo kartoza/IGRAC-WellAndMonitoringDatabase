@@ -22,13 +22,13 @@
         <div class="dashboard-side-panel">
             <div id="dashboard-data-type" class="dashboard-data-type">
                 <button type="button"
-                        class="dashboard-data-type-toggle active"
+                        class="dashboard-toggle active"
                         data-type="ggmn"
                         title="Click to activate/deactivate GGMN data">
                     GGMN
                 </button>
                 <button type="button"
-                        class="dashboard-data-type-toggle active"
+                        class="dashboard-toggle active"
                         data-type="well_monitoring"
                         title="Click to activate/deactivate Well and Monitoring Data">
                     Well and Monitoring Data
@@ -133,6 +133,45 @@
                 </div>
 
                 <div id="dashboard-length-of-time-series"></div>
+            </div>
+            <div class="dashboard-card">
+                <h1>Number of stations</h1>
+                <div id="dashboard-number-stations-type"
+                     class="dashboard-number-stations">
+                    <button id="dashboard-number-stations-1"
+                            type="button"
+                            class="dashboard-toggle active">
+                        &lt; 100
+                    </button>
+                    <button id="dashboard-number-stations-2"
+                            type="button"
+                            class="dashboard-toggle">
+                        100 - 1,000 stations
+                    </button>
+                    <button id="dashboard-number-stations-3"
+                            type="button"
+                            class="dashboard-toggle">
+                        1,000 - 10,000 stations
+                    </button>
+                    <button id="dashboard-number-stations-4"
+                            type="button"
+                            class="dashboard-toggle">
+                        &gt; 10,000 stations
+                    </button>
+                </div>
+
+                <div id="dashboard-number-of-stations-loading"
+                     class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading statistics&hellip;</span>
+                </div>
+
+                <div id="dashboard-number-of-stations-empty"
+                     class="dashboard-empty hidden">
+                    Data does not exist.
+                </div>
+
+                <div id="dashboard-number-of-stations"></div>
             </div>
         </div>
     </div>

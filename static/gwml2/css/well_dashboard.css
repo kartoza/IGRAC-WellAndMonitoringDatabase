@@ -38,6 +38,9 @@
 
 .dashboard-side-panel {
   width: 400px;
+  position: sticky;
+  top: 5rem;
+  align-self: flex-start;
 }
 
 .dashboard-side-panel .select2-container {
@@ -67,6 +70,7 @@
 
   .dashboard-side-panel {
     width: 100%;
+    position: static;
   }
 }
 
@@ -126,7 +130,7 @@
   margin-bottom: 16px;
 }
 
-.dashboard-data-type-toggle {
+.dashboard-toggle {
   appearance: none;
   border: 1px solid var(--dashboard-color-accent);
   border-radius: 999px;
@@ -141,11 +145,11 @@
   opacity: 0.5;
 }
 
-.dashboard-data-type-toggle:hover {
+.dashboard-toggle:hover {
   background: var(--dashboard-color-row-alt);
 }
 
-.dashboard-data-type-toggle.active {
+.dashboard-toggle.active {
   color: var(--white);
   background: var(--dashboard-color-accent);
   opacity: 1;
@@ -242,4 +246,10 @@ table.stats-table tr:nth-child(even) {
 
 .hidden {
   display: none !important;
+}
+
+.dashboard-number-stations {
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 }

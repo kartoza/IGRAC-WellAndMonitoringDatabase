@@ -3,6 +3,8 @@
   let allCountries = [];
   let selectedCountries = [];
   let lengthOfTimeSeriesChart = null;
+  let numberOfStationsChart = null;
+  let selectedDashboardNumberStations = 1;
 
   let ANIMATION_DURATION = 500;
   let RECENTLY_UPDATED_YEARS = 2;
@@ -97,7 +99,7 @@
 
   function getActiveDataTypes() {
     let filters = [];
-    $('.dashboard-data-type-toggle.active').each(function () {
+    $('#dashboard-data-type .dashboard-toggle.active').each(function () {
       filters.push($(this).data('type'));
     });
     return {
@@ -147,6 +149,16 @@
     });
 
     renderLengthOfTimeSeriesChart();
+    renderNumberOfStationsChart();
+  }
+
+  function getThemeColors() {
+    return {
+      primary: getComputedStyle(document.documentElement)
+        .getPropertyValue('--dashboard-color-primary').trim(),
+      secondary: getComputedStyle(document.documentElement)
+        .getPropertyValue('--dashboard-color-accent').trim()
+    };
   }
 
   function renderLengthOfTimeSeriesChart() {
@@ -160,10 +172,9 @@
       }
     );
 
-    let primaryColor = getComputedStyle(document.documentElement)
-      .getPropertyValue('--dashboard-color-primary').trim();
-    let secondaryColor = getComputedStyle(document.documentElement)
-      .getPropertyValue('--dashboard-color-accent').trim();
+    let themeColors = getThemeColors();
+    let primaryColor = themeColors.primary;
+    let secondaryColor = themeColors.secondary;
 
     let categories = [];
     let data = [];
@@ -197,58 +208,144 @@
 
     lengthOfTimeSeriesChart = Highcharts.chart(
       'dashboard-length-of-time-series', {
-      chart: {
-        type: 'columnrange',
-        inverted: true,
-        height: Math.max(120, categories.length * 20 + 80)
-      },
-      title: { text: null },
-      xAxis: {
-        categories: categories,
-        lineWidth: 0,
-        tickLength: 0,
-        labels: { enabled: false }
-      },
-      yAxis: {
-        type: 'datetime',
-        title: { text: 'Date' }
-      },
-      legend: { enabled: false },
-      plotOptions: {
-        columnrange: {
-          groupPadding: 0,
-          pointPadding: 0
-        }
-      },
-      tooltip: {
-        pointFormatter: function () {
-          return (
-            Highcharts.dateFormat('%Y-%m-%d', this.low) +
-            ' - ' +
-            Highcharts.dateFormat('%Y-%m-%d', this.high)
-          );
-        }
-      },
-      series: [{
-        name: 'Length of time series',
-        dataLabels: [
-          {
-            enabled: false
-          },
-          {
-            enabled: true,
-            format: '{point.category}',
-            align: 'left',
-            verticalAlign: 'middle',
-            y: -2,
-            x: 0,
-            crop: false,
-            overflow: 'allow'
+        chart: {
+          type: 'columnrange',
+          inverted: true,
+          height: Math.max(120, categories.length * 20 + 80)
+        },
+        title: { text: null },
+        xAxis: {
+          categories: categories,
+          lineWidth: 0,
+          tickLength: 0,
+          labels: { enabled: false }
+        },
+        yAxis: {
+          type: 'datetime',
+          title: { text: 'Date' }
+        },
+        legend: { enabled: false },
+        plotOptions: {
+          columnrange: {
+            groupPadding: 0,
+            pointPadding: 0
           }
-        ],
-        data: data
-      }]
+        },
+        tooltip: {
+          pointFormatter: function () {
+            return (
+              Highcharts.dateFormat('%Y-%m-%d', this.low) +
+              ' - ' +
+              Highcharts.dateFormat('%Y-%m-%d', this.high)
+            );
+          }
+        },
+        series: [{
+          name: 'Length of time series',
+          dataLabels: [
+            {
+              enabled: false
+            },
+            {
+              enabled: true,
+              format: '{point.category}',
+              align: 'left',
+              verticalAlign: 'middle',
+              y: -2,
+              x: 0,
+              crop: false,
+              overflow: 'allow'
+            }
+          ],
+          data: data
+        }]
+      });
+  }
+
+  function getNumberOfStationsRange() {
+    switch (Number(selectedDashboardNumberStations)) {
+      case 1:
+        return { min: 0, max: 100 };
+      case 2:
+        return { min: 100, max: 1000 };
+      case 3:
+        return { min: 1000, max: 10000 };
+      case 4:
+        return { min: 10000, max: Infinity };
+      default:
+        return { min: 0, max: Infinity };
+    }
+  }
+
+  function renderNumberOfStationsChart() {
+    let dataTypeFilters = getActiveDataTypes();
+    let showGGMN = dataTypeFilters.showGGMN;
+    let showWellMonitoring = dataTypeFilters.showWellMonitoring;
+    let range = getNumberOfStationsRange();
+
+    let countries = filterCountries(allCountries).slice().sort(
+      function (a, b) {
+        return a.name.localeCompare(b.name);
+      }
+    );
+
+    let themeColors = getThemeColors();
+
+    let categories = [];
+    let data = [];
+    $.each(countries, function (index, country) {
+      let stats = countryStatsForFilters(
+        country, showGGMN, showWellMonitoring
+      );
+      let countWell = stats ? (stats.count_well || 0) : 0;
+      if (countWell < range.min || countWell >= range.max) {
+        return;
+      }
+      let isOdd = categories.length % 2 === 0;
+      categories.push(country.name);
+      data.push({
+        y: countWell,
+        color: isOdd ? themeColors.primary : themeColors.secondary
+      });
     });
+
+    $('#dashboard-number-of-stations-loading').addClass('hidden');
+
+    if (!categories.length) {
+      if (numberOfStationsChart) {
+        numberOfStationsChart.destroy();
+        numberOfStationsChart = null;
+      }
+      $('#dashboard-number-of-stations-empty').removeClass('hidden');
+      return;
+    }
+    $('#dashboard-number-of-stations-empty').addClass('hidden');
+
+    numberOfStationsChart = Highcharts.chart(
+      'dashboard-number-of-stations', {
+        chart: {
+          type: 'column',
+          height: 400
+        },
+        title: { text: null },
+        xAxis: {
+          categories: categories
+        },
+        yAxis: {
+          title: { text: 'Number of stations' }
+        },
+        legend: { enabled: false },
+        plotOptions: {
+          column: {
+            groupPadding: 0,
+            pointPadding: 0
+          }
+        },
+        series: [{
+          name: 'Number of stations',
+          data: data
+        }]
+      });
   }
 
   function selectAllCountries() {
@@ -297,9 +394,18 @@
 
   function initWellDashboard(organisationStatisticUrl, countryStatisticUrl) {
     // Init toggle data type
-    $('.dashboard-data-type-toggle').on('click', function () {
+    $('#dashboard-data-type .dashboard-toggle').on('click', function () {
       $(this).toggleClass('active');
       renderStats();
+    });
+
+    // Init toggle number of stations
+    $('.dashboard-number-stations button').on('click', function () {
+      const id = $(this).attr('id');
+      selectedDashboardNumberStations = id.replace('dashboard-number-stations-', '');
+      $('.dashboard-number-stations button').removeClass('active');
+      $(this).addClass('active');
+      renderNumberOfStationsChart();
     });
 
     $.when(
