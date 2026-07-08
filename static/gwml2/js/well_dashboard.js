@@ -5,6 +5,8 @@
   let lengthOfTimeSeriesChart = null;
   let numberOfStationsChart = null;
   let selectedDashboardNumberStations = 1;
+  let numberOfStationsOrder = 'name';
+  let lengthOfTimeSeriesOrder = 'name';
   let qualityControlStatisticUrl = null;
   let qualityStatsDebounceTimer = null;
   let qualityStatsXhr = null;
@@ -193,30 +195,39 @@
     let showGGMN = dataType.showGGMN;
     let showObservationsRepository = dataType.showObservationsRepository;
 
-    let countries = filterCountries(allCountries).slice().sort(
-      function (a, b) {
-        return a.name.localeCompare(b.name);
-      }
-    );
-
     let themeColors = getThemeColors();
     let primaryColor = themeColors.primary;
     let secondaryColor = themeColors.secondary;
 
-    let categories = [];
-    let data = [];
-    $.each(countries, function (index, country) {
+    let countries = $.map(filterCountries(allCountries), function (country) {
       let stats = countryStats(
         country, showGGMN, showObservationsRepository
       );
       if (!stats || !stats.data_date_start || !stats.data_date_end) {
-        return;
+        return null;
       }
+      return {
+        name: country.name,
+        low: new Date(stats.data_date_start).getTime(),
+        high: new Date(stats.data_date_end).getTime()
+      };
+    });
+
+    countries.sort(function (a, b) {
+      if (lengthOfTimeSeriesOrder === 'value') {
+        return a.low - b.low;
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    let categories = [];
+    let data = [];
+    $.each(countries, function (index, country) {
       let isOdd = categories.length % 2 === 0;
       categories.push(country.name);
       data.push({
-        low: new Date(stats.data_date_start).getTime(),
-        high: new Date(stats.data_date_end).getTime(),
+        low: country.low,
+        high: country.high,
         color: isOdd ? primaryColor : secondaryColor
       });
     });
@@ -310,28 +321,33 @@
     let showObservationsRepository = dataType.showObservationsRepository;
     let range = getNumberOfStationsRange();
 
-    let countries = filterCountries(allCountries).slice().sort(
-      function (a, b) {
-        return a.name.localeCompare(b.name);
+    let countries = $.map(filterCountries(allCountries), function (country) {
+      let stats = countryStats(
+        country, showGGMN, showObservationsRepository
+      );
+      let countWell = stats ? (stats.count_well || 0) : 0;
+      if (countWell < range.min || countWell >= range.max) {
+        return null;
       }
-    );
+      return { name: country.name, countWell: countWell };
+    });
+
+    countries.sort(function (a, b) {
+      if (numberOfStationsOrder === 'value') {
+        return b.countWell - a.countWell;
+      }
+      return a.name.localeCompare(b.name);
+    });
 
     let themeColors = getThemeColors();
 
     let categories = [];
     let data = [];
     $.each(countries, function (index, country) {
-      let stats = countryStats(
-        country, showGGMN, showObservationsRepository
-      );
-      let countWell = stats ? (stats.count_well || 0) : 0;
-      if (countWell < range.min || countWell >= range.max) {
-        return;
-      }
       let isOdd = categories.length % 2 === 0;
       categories.push(country.name);
       data.push({
-        y: countWell,
+        y: country.countWell,
         color: isOdd ? themeColors.primary : themeColors.secondary
       });
     });
@@ -480,6 +496,28 @@
       $('.dashboard-number-stations button').removeClass('active');
       $(this).addClass('active');
       renderNumberOfStationsChart();
+    });
+
+    // Init order-by toggle for the number of stations chart
+    let $numberOfStationsOrder = $(
+      '.order-options[data-chart="number-of-stations"] [data-order]'
+    );
+    $numberOfStationsOrder.on('click', function () {
+      numberOfStationsOrder = $(this).data('order');
+      $numberOfStationsOrder.removeClass('active');
+      $(this).addClass('active');
+      renderNumberOfStationsChart();
+    });
+
+    // Init order-by toggle for the length of time series chart
+    let $lengthOfTimeSeriesOrder = $(
+      '.order-options[data-chart="length-of-time-series"] [data-order]'
+    );
+    $lengthOfTimeSeriesOrder.on('click', function () {
+      lengthOfTimeSeriesOrder = $(this).data('order');
+      $lengthOfTimeSeriesOrder.removeClass('active');
+      $(this).addClass('active');
+      renderLengthOfTimeSeriesChart();
     });
 
     $.when(

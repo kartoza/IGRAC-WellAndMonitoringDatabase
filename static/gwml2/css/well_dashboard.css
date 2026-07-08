@@ -112,9 +112,40 @@
 .dashboard-card h1 {
   margin: 0;
   padding: 1rem;
-  font-weight: 500 !important;
   color: var(--dashboard-color-primary-contrast);
   background: var(--dashboard-color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-options {
+  display: flex;
+  align-items: center;
+  font-size: 0.8rem;
+  font-weight: 500 !important;
+}
+
+.order-options-buttons {
+  cursor: pointer;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.order-options div:first-child {
+  border-right: 1px solid #ccc;
+}
+
+.order-options div {
+  background-color: white;
+  color: #aaa;
+  padding: 3px 5px;
+}
+
+.order-options div.active {
+  color: var(--dashboard-color-primary);
+  opacity: 1;
 }
 
 .dashboard-data-type {
