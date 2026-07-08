@@ -21,13 +21,8 @@
 
   --dashboard-content-max-width: 640px;
   --dashboard-content-padding: 2rem 0;
-  --dashboard-cell-padding: 12px 24px;
+  --dashboard-cell-padding: 0.5rem 1rem;
   --dashboard-subrow-indent: 44px;
-
-  --dashboard-font-size-base: 0.95rem;
-  --dashboard-font-size-sm: 0.9rem;
-  --dashboard-font-size-xs: 0.88rem;
-  --dashboard-font-size-title: 1.25rem;
 }
 
 #dashboard {
@@ -116,9 +111,8 @@
 
 .dashboard-card h1 {
   margin: 0;
-  padding: 20px 24px;
-  font-size: var(--dashboard-font-size-title);
-  font-weight: var(--font-semi-bold);
+  padding: 1rem;
+  font-weight: 500 !important;
   color: var(--dashboard-color-primary-contrast);
   background: var(--dashboard-color-primary);
 }
@@ -136,7 +130,6 @@
   border-radius: 999px;
   padding: 6px 16px;
   font-family: inherit;
-  font-size: var(--dashboard-font-size-xs);
   font-weight: var(--font-medium);
   color: var(--dashboard-color-accent);
   background: var(--dashboard-color-card-bg);
@@ -170,7 +163,6 @@ table.stats-table tr:last-child {
 
 table.stats-table td {
   padding: var(--dashboard-cell-padding);
-  font-size: var(--dashboard-font-size-base);
 }
 
 table.stats-table td.stat-label {
@@ -191,10 +183,6 @@ table.stats-table td.stat-value {
 table.stats-table td.stat-value.stat-value-unavailable {
   color: var(--dashboard-color-value-unavailable);
   font-weight: 400;
-}
-
-table.stats-table tr:nth-child(even) {
-  background: var(--dashboard-color-row-alt);
 }
 
 /* Throbber */
@@ -218,7 +206,6 @@ table.stats-table tr:nth-child(even) {
 
 .throbber-wrap span {
   color: var(--dashboard-color-label-muted);
-  font-size: var(--dashboard-font-size-sm);
 }
 
 @keyframes throbber-spin {
@@ -230,13 +217,11 @@ table.stats-table tr:nth-child(even) {
 .dashboard-error {
   padding: 24px;
   color: var(--dashboard-color-error);
-  font-size: var(--dashboard-font-size-sm);
 }
 
 .dashboard-empty {
   padding: 24px;
   color: var(--dashboard-color-label-muted);
-  font-size: var(--dashboard-font-size-sm);
   text-align: center;
 }
 
