@@ -12,6 +12,9 @@ from gwml2.api.mobile.minimized_well import (
 )
 from gwml2.api.mobile.well import WellCreateMinimizedAPI, WellEditMinimizedAPI
 from gwml2.api.organisation import OrganisationAutocompleteAPI
+from gwml2.api.statistic import (
+    OrganisationStatisticAPI, CountryStatisticAPI, QualityControlStatisticAPI
+)
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.upload_session import (
@@ -51,6 +54,7 @@ from gwml2.views.plugins.measurements_chart import (
     MeasurementChartIframe
 )
 from gwml2.views.upload_session import UploadSessionDetailView
+from gwml2.views.well_dashboard import WellDashboardView
 from gwml2.views.well_uploader import WellUploadView
 
 well_relation = [
@@ -179,8 +183,26 @@ api_minimized_url = [
         name='well_list_minimized_api'
     ),
 ]
+api_statistic_url = [
+    re_path(
+        r'^organisation',
+        view=OrganisationStatisticAPI.as_view(),
+        name='organisation_statistic'
+    ),
+    re_path(
+        r'^country',
+        view=CountryStatisticAPI.as_view(),
+        name='countries_statistic'
+    ),
+    re_path(
+        r'^quality-control',
+        view=QualityControlStatisticAPI.as_view(),
+        name='quality_control_statistic'
+    ),
+]
 api_url = [
     re_path(r'^well/minimized/', include(api_minimized_url)),
+    re_path(r'^statistic/', include(api_statistic_url)),
 
     # autocomplete
     re_path(
@@ -276,6 +298,11 @@ urlpatterns = [
         r'^generate/cache',
         view=GenerateWellCacheMissingOneView.as_view(),
         name='generate-well-cache'
+    ),
+    re_path(
+        r'^dashboard/view',
+        view=WellDashboardView.as_view(),
+        name='well_dashboard'
     ),
     re_path(r'^api/', include(api_url)),
     re_path(r'^record/', include(well_url)),

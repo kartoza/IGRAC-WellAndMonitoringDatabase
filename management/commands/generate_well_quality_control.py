@@ -24,7 +24,7 @@ class Command(WellCommand):
         for idx, id in enumerate(ids):
             well = Well.objects.get(id=id)
             quality_control = well.quality_control
-            print(f'----- {idx}/{count} - {well.id} -----')
+            print(f'----- {idx + 1}/{count} - {well.id} -----')
             if options.get('force', False):
                 quality_control.groundwater_level_time_gap_generated_time = None
                 quality_control.groundwater_level_value_gap_generated_time = None

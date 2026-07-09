@@ -1,13 +1,9 @@
 from gwml2.management.commands.base import WellCommand
 from gwml2.models.well_management.organisation import Organisation
-from gwml2.tasks.well_file_cache.organisation_cache import (
-    generate_data_organisation_cache
-)
 
 
 class Command(WellCommand):
-    """ Run download cache by organisation
-    """
+    """Run organisation generate_metadata_cache"""
 
     Model = Organisation
 
@@ -22,4 +18,12 @@ class Command(WellCommand):
         count = organisations.count()
         for idx, organisation in enumerate(organisations.order_by('id')):
             print(f'----- {idx + 1}/{count} -----')
-            generate_data_organisation_cache(organisation_id=organisation.id)
+            print(
+                'Generate metadata cache for organisation '
+                f'{organisation.name} - Start'
+            )
+            organisation.assign_metadata_cache(generate_midnight=True)
+            print(
+                'Generate metadata cache for organisation '
+                f'{organisation.name} - Done'
+            )

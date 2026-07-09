@@ -22,7 +22,7 @@ class Command(WellCommand):
         ids = list(wells.order_by('id').values_list('id', flat=True))
         for idx, id in enumerate(ids):
             well = Well.objects.get(id=id)
-            print(f'----- {idx}/{count} - {well.id} -----')
+            print(f'----- {idx + 1}/{count} - {well.id} -----')
             well.cache.generate_metadata(
                 force=options.get('force', False)
             )

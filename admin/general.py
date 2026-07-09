@@ -37,11 +37,26 @@ def generate_data_wells_cache(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Generate metadata cache')
+def generate_metadata_cache(modeladmin, request, queryset):
+    """Recompute measurement and well stats for the organisations."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_countries_metadata_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 @admin.register(Country)
 class CountryAdmin(admin.ModelAdmin):
     list_display = (
-        'name', 'code', 'data_cache_generated_at'
+        'name', 'code', 'data_cache_generated_at',
+        'metadata_cache_observations_repository', 'metadata_cache_ggmn',
+        'metadata_cache_generated_at'
     )
-    list_filter = ('data_cache_generated_at',)
-    actions = (generate_data_wells_cache,)
+    list_filter = ('data_cache_generated_at', 'metadata_cache_generated_at')
+    actions = (generate_data_wells_cache, generate_metadata_cache)
     search_fields = ('name',)

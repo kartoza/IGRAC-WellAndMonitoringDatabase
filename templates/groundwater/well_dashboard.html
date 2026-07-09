@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    Stations Dashboard
+{% endblock %}
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'gwml2/css/well_dashboard.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'js/select2/4.1.0-rc.0/select2.min.css' %}">
+    <script src="{% static 'js/jquery/3.5.1/jquery.min.js' %}"></script>
+    <script src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
+    <script src="{% static 'js/highcharts/9.1.2/stock/highstock.js' %}"></script>
+    <script src="{% static 'js/highcharts/9.1.2/highcharts-more.js' %}"></script>
+    <script src="{% static 'gwml2/js/well_dashboard_utils.js' %}"></script>
+    <script src="{% static 'gwml2/js/well_dashboard.js' %}"></script>
+{% endblock %}
+
+{% block body_outer %}
+    <div id="dashboard">
+        <div class="dashboard-side-panel">
+            <div id="dashboard-data-type" class="dashboard-data-type">
+                <button type="button"
+                        class="dashboard-toggle active"
+                        data-type="ggmn"
+                        title="Click to activate/deactivate GGMN data">
+                    GGMN
+                </button>
+                <button type="button"
+                        class="dashboard-toggle active"
+                        data-type="observations_repository"
+                        title="Click to activate/deactivate Groundwater Observations Repository">
+                    Groundwater Observations Repository
+                </button>
+            </div>
+
+            <div id="countries-data">
+            </div>
+        </div>
+        <nav id="dashboard-jump-nav" class="dashboard-jump-nav">
+            <a href="#dashboard-card-general"
+               class="dashboard-jump-link active"
+               data-target="dashboard-card-general">
+                <span class="dashboard-jump-label">General</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+            <a href="#dashboard-card-time-series" class="dashboard-jump-link"
+               data-target="dashboard-card-time-series">
+                <span class="dashboard-jump-label">Length of Time Series</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+            <a href="#dashboard-card-number-stations"
+               class="dashboard-jump-link"
+               data-target="dashboard-card-number-stations">
+                <span class="dashboard-jump-label">Number of stations</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+            <a href="#dashboard-card-quality" class="dashboard-jump-link"
+               data-target="dashboard-card-quality">
+                <span class="dashboard-jump-label">Quality</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+        </nav>
+        <div class="dashboard-content">
+            <div id="dashboard-card-general" class="dashboard-card">
+                <h1>General</h1>
+
+                <div id="dashboard-loading" class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading statistics&hellip;</span>
+                </div>
+
+                <div id="dashboard-error" class="dashboard-error hidden">
+                    Unable to load statistics. Please try again later.
+                </div>
+
+                <table id="dashboard-table" class="stats-table hidden">
+                    <tr>
+                        <td class="stat-label">Number of countries</td>
+                        <td class="stat-value" data-stat="count_country">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of organisations</td>
+                        <td class="stat-value" data-stat="count_organisation">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of water wells</td>
+                        <td class="stat-value" data-stat="count_well">-</td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of wells with GWL data
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_well_with_level">-
+                        </td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of wells with GWQ data
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_well_with_quality">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of springs</td>
+                        <td class="stat-value" data-stat="count_spring">-</td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">
+                            Number of groundwater level measurements
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_measurement_level">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">
+                            Number of groundwater quality measurements
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_measurement_quality">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">
+                            Number of countries updated in the last 2 years
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_country_recently_updated">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Number of automatic
+                            connections
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_automatic_connection">-
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div id="dashboard-card-time-series" class="dashboard-card">
+                <h1>
+                    Length of Time Series
+                    <div class="order-options"
+                         data-chart="length-of-time-series">
+                        Order by &nbsp;
+                        <div class="order-options-buttons">
+                            <div class="active" data-order="name">Name</div>
+                            <div data-order="value">Date</div>
+                        </div>
+                    </div>
+                </h1>
+
+                <div id="dashboard-length-of-time-series-loading"
+                     class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading statistics&hellip;</span>
+                </div>
+
+                <div id="dashboard-length-of-time-series-empty"
+                     class="dashboard-empty hidden">
+                    Data does not exist.
+                </div>
+
+                <div id="dashboard-length-of-time-series"></div>
+            </div>
+            <div id="dashboard-card-number-stations" class="dashboard-card">
+                <h1>
+                    Number of stations
+                    <div class="order-options" data-chart="number-of-stations">
+                        Order by &nbsp;
+                        <div class="order-options-buttons">
+                            <div class="active" data-order="name">Name</div>
+                            <div data-order="value">Value</div>
+                        </div>
+                    </div>
+                </h1>
+                <div id="dashboard-number-stations-type"
+                     class="dashboard-number-stations">
+                    <button id="dashboard-number-stations-1"
+                            type="button"
+                            class="dashboard-toggle active">
+                        &lt; 100
+                    </button>
+                    <button id="dashboard-number-stations-2"
+                            type="button"
+                            class="dashboard-toggle">
+                        100 - 1,000 stations
+                    </button>
+                    <button id="dashboard-number-stations-3"
+                            type="button"
+                            class="dashboard-toggle">
+                        1,000 - 10,000 stations
+                    </button>
+                    <button id="dashboard-number-stations-4"
+                            type="button"
+                            class="dashboard-toggle">
+                        &gt; 10,000 stations
+                    </button>
+                </div>
+
+                <div id="dashboard-number-of-stations-loading"
+                     class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading statistics&hellip;</span>
+                </div>
+
+                <div id="dashboard-number-of-stations-empty"
+                     class="dashboard-empty hidden">
+                    Data does not exist.
+                </div>
+
+                <div id="dashboard-number-of-stations"></div>
+            </div>
+            <div id="dashboard-card-quality" class="dashboard-card">
+                <h1>Quality</h1>
+
+                <div id="dashboard-quality-loading" class="throbber-wrap">
+                    <div class="throbber"></div>
+                    <span>Loading quality data&hellip;</span>
+                </div>
+
+                <div id="dashboard-quality-error"
+                     class="dashboard-error hidden">
+                    Unable to load quality. Please try again later.
+                </div>
+
+                <table id="dashboard-quality-table" class="stats-table hidden">
+                    <tr>
+                        <td class="stat-label">
+                            Number of stations without quality flag
+                        </td>
+                        <td class="stat-value" data-stat="count_no_flag">-
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="stat-label">Flagged:</td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of stations with gap of more than 3 years
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_groundwater_level_time_gap_num">-
+                        </td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of stations with jump/dip of more than +-50
+                            m
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_groundwater_level_value_gap_num">-
+                        </td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td class="stat-label">
+                            Number of stations with a suspicious value
+                        </td>
+                        <td class="stat-value"
+                            data-stat="count_groundwater_level_strange_value_num">
+                            -
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+      initWellDashboard(
+        '{% url "organisation_statistic" %}',
+        '{% url "countries_statistic" %}',
+        '{% url "quality_control_statistic" %}',
+      );
+
+      (function () {
+        const links = document.querySelectorAll('.dashboard-jump-link');
+        const sections = [];
+        links.forEach(function (link) {
+          const section = document.getElementById(link.dataset.target);
+          if (section) {
+            sections.push({ link: link, section: section });
+          }
+          link.addEventListener('click', function (event) {
+            event.preventDefault();
+            const target = document.getElementById(link.dataset.target);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+        });
+
+        if (!sections.length) {
+          return;
+        }
+
+        const scrollOffset = getComputedStyle(document.documentElement)
+          .getPropertyValue('--dashboard-scroll-offset').trim() || '0px';
+        const probe = document.createElement('div');
+        probe.style.cssText = 'position:absolute; visibility:hidden; height:' + scrollOffset;
+        document.body.appendChild(probe);
+        const headerOffset = probe.offsetHeight;
+        probe.remove();
+
+        const observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            console.log(entry)
+            if (!entry.isIntersecting) {
+              return;
+            }
+            sections.forEach(function (item) {
+              item.link.classList.toggle('active', item.section === entry.target);
+            });
+          });
+        }, { rootMargin: '-' + headerOffset + 'px 0px -50px 0px', threshold: 0 });
+
+        sections.forEach(function (item) {
+          observer.observe(item.section);
+        });
+      })();
+    </script>
+{% endblock %}

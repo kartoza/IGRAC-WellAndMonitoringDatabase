@@ -39,32 +39,17 @@ def update_ggis_uid(modeladmin, request, queryset):
         update_ggis_uid.delay(org.id)
 
 
-def assign_date_range(modeladmin, request, queryset):
-    """Assign data to the organisation."""
-    for org in queryset:
-        org.assign_data()
-
-
-def assign_license(modeladmin, request, queryset):
-    """Assign data to the organisation."""
-    for org in queryset:
-        org.assign_license()
-
-
-@admin.action(description='Generate measurement stats')
-def generate_data_stats(modeladmin, request, queryset):
-    """Generate missing stats keys only; skip keys that already have a value."""
-    from gwml2.tasks.organisation import generate_data_stats as task
-    for org in queryset:
-        task.delay(org.id, force=False)
-
-
-@admin.action(description='Force generate measurement stats')
-def force_generate_data_stats(modeladmin, request, queryset):
-    """Recompute all stats keys regardless of existing values."""
-    from gwml2.tasks.organisation import generate_data_stats as task
-    for org in queryset:
-        task.delay(org.id, force=True)
+@admin.action(description='Generate metadata cache')
+def generate_metadata_cache(modeladmin, request, queryset):
+    """Recompute measurement and well stats for the organisations."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_organisations_metadata_cache',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
 
 
 class OrganisationLinkInline(admin.TabularInline):
@@ -72,27 +57,26 @@ class OrganisationLinkInline(admin.TabularInline):
     model = OrganisationLink
 
 
-
 @admin.register(Organisation)
 class OrganisationAdmin(admin.ModelAdmin):
     """Admin for Organisation model."""
     list_display = (
-        'name', 'data_types', 'time_range',
-        'license_name', 'active', 'country', '_groups',
-        'data_stats_generated_at',
-        'data_cache_generated_at',
-        'measurement_links', 'measurement_stats_display', 'well_stats_display',
+        'name', 'license_name', 'active', 'country', '_groups',
+        'data_cache_generated_at', 'measurement_links',
+        'metadata_cache_generated_at', 'data_types', 'time_range',
+        'measurement_stats_display', 'well_stats_display',
         'description', 'links'
     )
     change_list_template = 'admin/organisation_change_list.html'
     list_editable = ('active',)
-    list_filter = ('data_cache_generated_at', 'country')
+    list_filter = (
+        'data_cache_generated_at', 'metadata_cache_generated_at', 'country'
+    )
     search_fields = ('name',)
     show_full_result_count = False
     actions = (
         generate_data_wells_cache, reassign_wells_country, update_ggis_uid,
-        assign_date_range, assign_license,
-        generate_data_stats, force_generate_data_stats,
+        generate_metadata_cache,
     )
     inlines = [OrganisationLinkInline]
     form = OrganisationFormAdmin
@@ -134,7 +118,7 @@ class OrganisationAdmin(admin.ModelAdmin):
     )
     readonly_fields = (
         'data_cache_generated_at',
-        'data_stats_generated_at'
+        'metadata_cache_generated_at'
     )
 
     def get_queryset(self, request):

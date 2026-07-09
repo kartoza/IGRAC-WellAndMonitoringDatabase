@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import m2m_changed
@@ -8,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.general import Country
 from gwml2.models.metadata.license_metadata import LicenseMetadata
+from gwml2.utils.metadata_cache import MetadataCache
 
 
 class Organisation(LicenseMetadata):
@@ -50,7 +49,7 @@ class Organisation(LicenseMetadata):
         null=True, blank=True
     )
 
-    # Data metadata
+    # Metadata cache
     data_is_from_api = models.BooleanField(
         default=False,
         help_text=(
@@ -64,8 +63,6 @@ class Organisation(LicenseMetadata):
     data_date_end = models.DateField(
         null=True, blank=True
     )
-
-    # Data statistics
     data_stats = models.JSONField(
         help_text=_(
             'Cached statistics for this organisation: '
@@ -74,8 +71,8 @@ class Organisation(LicenseMetadata):
         ),
         null=True, blank=True
     )
-    data_stats_generated_at = models.DateTimeField(
-        _('Time when data stats were generated'),
+    metadata_cache_generated_at = models.DateTimeField(
+        _('Time when metadata cache were generated'),
         null=True, blank=True
     )
 
@@ -96,24 +93,28 @@ class Organisation(LicenseMetadata):
     @property
     def data_types(self):
         """Return list of data types derived from data_stats."""
-        stats = self.data_stats or {}
+        cache = self.metadata_cache
         data_types = []
-        if stats.get('count_measurement_level', 0):
+        if cache.count_measurement_level:
             data_types.append('Groundwater levels')
-        if stats.get('count_measurement_quality', 0):
+        if cache.count_measurement_quality:
             data_types.append('Groundwater quality')
         return data_types
 
     @property
     def time_range(self):
         """Return time range indicator."""
-        if self.data_is_from_api:
-            return 'Updated automatically (via API)'
+        current = ''
         if self.data_date_start and self.data_date_end:
             start = self.data_date_start.strftime('%Y-%m')
             end = self.data_date_end.strftime('%Y-%m')
-            return f'start: {start}; end: {end}'
-        return ''
+            current = f'start: {start}; end: {end}'
+        if self.data_is_from_api:
+            return (
+                "Updated automatically (via API) "
+                f"{'- current ' + current if current else ''}"
+            )
+        return current
 
     def __str__(self):
         return self.name
@@ -136,6 +137,18 @@ class Organisation(LicenseMetadata):
         except License.DoesNotExist:
             pass
         return None
+
+    @property
+    def metadata_cache(self) -> MetadataCache:
+        """Metadata cache"""
+        stats = dict(self.data_stats or {})
+        stats.pop('data_date_start', None)
+        stats.pop('data_date_end', None)
+        return MetadataCache(
+            data_date_start=self.data_date_start,
+            data_date_end=self.data_date_end,
+            **stats
+        )
 
     def update_ggis_uid_background(self):
         """Update the id of the organisation """
@@ -161,65 +174,7 @@ class Organisation(LicenseMetadata):
     # -------------------------------------
     # Assign data
     # -------------------------------------
-    def assign_date_range(self):
-        """Assign date range to this organisation based on current data."""
-        from gwml2.models import (
-            Harvester, WellLevelMeasurement, WellQualityMeasurement,
-            WellYieldMeasurement
-        )
-
-        # Data is from API
-        data_is_from_api = Harvester.objects.filter(
-            organisation=self
-        ).exists()
-        self.data_is_from_api = data_is_from_api
-        self.save()
-
-        if not data_is_from_api:
-            # --------------------------------
-            # Get for time range
-            # --------------------------------
-            # Get dates from level measurements
-            level_dates = WellLevelMeasurement.objects.filter(
-                well__organisation=self
-            ).aggregate(
-                min_date=models.Min('time'),
-                max_date=models.Max('time')
-            )
-            # Get dates from quality measurements
-            quality_dates = WellQualityMeasurement.objects.filter(
-                well__organisation=self
-            ).aggregate(
-                min_date=models.Min('time'),
-                max_date=models.Max('time')
-            )
-            # Get dates from quality measurements
-            yield_dates = WellYieldMeasurement.objects.filter(
-                well__organisation=self
-            ).aggregate(
-                min_date=models.Min('time'),
-                max_date=models.Max('time')
-            )
-
-            start_dates = []
-            end_dates = []
-            if level_dates['min_date']:
-                start_dates.append(level_dates['min_date'])
-                end_dates.append(level_dates['max_date'])
-            if quality_dates['min_date']:
-                start_dates.append(quality_dates['min_date'])
-                end_dates.append(quality_dates['max_date'])
-            if yield_dates['min_date']:
-                start_dates.append(yield_dates['min_date'])
-                end_dates.append(yield_dates['max_date'])
-
-            if start_dates:
-                self.data_date_start = min(start_dates)
-            if end_dates:
-                self.data_date_end = max(end_dates)
-            self.save()
-
-    def assign_data(self):
+    def assign_metadata_cache(self, generate_midnight=False):
         """Automatically assign data to this
         organization based on current data."""
         import os
@@ -234,92 +189,38 @@ class Organisation(LicenseMetadata):
             )
         else:
             self.data_cache_generated_at = None
-        self.assign_date_range()
-
-    def generate_data_stats(self, force=False):
-        """Count measurements and wells, saving incrementally per batch.
-
-        If force is False, a batch is skipped when all its keys already exist.
-        """
-        import datetime
-        from django.db.models import Count, Q
-        from django.utils import timezone
-        from gwml2.models.well import (
-            WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
-        )
-        well_ids = self.well_set.values_list('id', flat=True)
-        midnight = datetime.time(0, 0, 0)
-        stats = self.data_stats or {}
-
-        # 3 queries: one per model, each returns total + midnight in one aggregate
-        measurement_steps = [
-            (
-                WellLevelMeasurement,
-                'count_measurement_level',
-                'count_measurement_level_midnight'
-            ),
-            (
-                WellQualityMeasurement,
-                'count_measurement_quality',
-                'count_measurement_quality_midnight'
-            ),
-            (
-                WellYieldMeasurement,
-                'count_measurement_yield',
-                'count_measurement_yield_midnight'
-            ),
-        ]
-        for Model, total_key, midnight_key in measurement_steps:
-            if not force and (
-                    stats.get(total_key) is not None
-                    and stats.get(midnight_key) is not None
-            ):
-                continue
-            result = Model.objects.filter(
-                well_id__in=well_ids
-            ).aggregate(
-                total=Count('id'),
-                midnight=Count('id', filter=Q(time__time=midnight))
-            )
-            stats[total_key] = result['total']
-            stats[midnight_key] = result['midnight']
-            Organisation.objects.filter(pk=self.pk).update(data_stats=stats)
-
-        stats['count_measurement'] = (
-                stats.get('count_measurement_level', 0)
-                + stats.get('count_measurement_quality', 0)
-                + stats.get('count_measurement_yield', 0)
-        )
-
-        # 1 query: all well counts in one aggregate
-        well_keys = [
-            'count_well', 'count_well_with_level',
-            'count_well_with_quality', 'count_spring',
-        ]
-        if force or any(stats.get(k) is None for k in well_keys):
-            well_stats = self.well_set.aggregate(
-                count_well=Count('id'),
-                count_well_with_level=Count(
-                    'id',
-                    filter=Q(number_of_measurements_level__gt=0)
-                ),
-                count_well_with_quality=Count(
-                    'id',
-                    filter=Q(number_of_measurements_quality__gt=0)
-                ),
-                count_spring=Count(
-                    'id',
-                    filter=Q(feature_type__name__iexact='Spring')
-                ),
-            )
-            stats.update(well_stats)
-            Organisation.objects.filter(pk=self.pk).update(data_stats=stats)
-
-        self.data_stats = stats
-        self.data_stats_generated_at = timezone.now()
         Organisation.objects.filter(pk=self.pk).update(
-            data_stats=stats,
-            data_stats_generated_at=self.data_stats_generated_at,
+            data_cache_generated_at=self.data_cache_generated_at
+        )
+        self._generate_metadata_cache(generate_midnight)
+
+
+    def _generate_metadata_cache(self, generate_midnight=False):
+        """Assign date range and count measurements and wells."""
+        from django.utils import timezone
+        from gwml2.models import Harvester
+        from gwml2.utils.metadata_cache import generate_metadata_cache
+
+        self.data_is_from_api = Harvester.objects.filter(
+            organisation=self
+        ).exists()
+
+        well_ids = self.well_set.values_list('id', flat=True)
+        cache = generate_metadata_cache(
+            well_ids, generate_midnight=generate_midnight
+        )
+
+        stats = cache.get_json(generate_midnight)
+        self.data_date_start = cache.data_date_start
+        self.data_date_end = cache.data_date_end
+        self.data_stats = {**(self.data_stats or {}), **stats}
+        self.metadata_cache_generated_at = timezone.now()
+        Organisation.objects.filter(pk=self.pk).update(
+            data_is_from_api=self.data_is_from_api,
+            data_date_start=self.data_date_start,
+            data_date_end=self.data_date_end,
+            data_stats=self.data_stats,
+            metadata_cache_generated_at=self.metadata_cache_generated_at,
         )
 
 

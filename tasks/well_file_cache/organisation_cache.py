@@ -37,10 +37,7 @@ def generate_data_organisation_cache(self, organisation_id: int):
         organisation = Organisation.objects.get(id=organisation_id)
         generator = GenerateOrganisationCacheFile(organisation)
         generator.run()
-        organisation.assign_data()
-
-        from gwml2.tasks.organisation import generate_data_stats
-        generate_data_stats.delay(organisation.id, force=True)
+        organisation.assign_metadata_cache()
     except Organisation.DoesNotExist:
         print('Country not found')
 

@@ -153,6 +153,17 @@ def quality_control(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Clean duplicate well')
+def clean_duplicate_well(modeladmin, request, queryset):
+    """Remove wells that have duplicate WellQualityControl records and
+    recreate a fresh one for each of them."""
+    return run_command(
+        request,
+        'clean_well_quality_control_duplicate',
+        args=[]
+    )
+
+
 @admin.register(WellQualityControl)
 class WellQualityControlAdmin(admin.ModelAdmin):
     list_display = (
@@ -168,7 +179,7 @@ class WellQualityControlAdmin(admin.ModelAdmin):
         'links'
     )
     change_list_template = "admin/well_quality_control_change_list.html"
-    actions = [quality_control]
+    actions = [quality_control, clean_duplicate_well]
     readonly_fields = ('well',)
     search_fields = ('well__original_id',)
     list_filter = (
