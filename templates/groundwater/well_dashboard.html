@@ -38,8 +38,32 @@
             <div id="countries-data">
             </div>
         </div>
+        <nav id="dashboard-jump-nav" class="dashboard-jump-nav">
+            <a href="#dashboard-card-general"
+               class="dashboard-jump-link active"
+               data-target="dashboard-card-general">
+                <span class="dashboard-jump-label">General</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+            <a href="#dashboard-card-time-series" class="dashboard-jump-link"
+               data-target="dashboard-card-time-series">
+                <span class="dashboard-jump-label">Length of Time Series</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+            <a href="#dashboard-card-number-stations"
+               class="dashboard-jump-link"
+               data-target="dashboard-card-number-stations">
+                <span class="dashboard-jump-label">Number of stations</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+            <a href="#dashboard-card-quality" class="dashboard-jump-link"
+               data-target="dashboard-card-quality">
+                <span class="dashboard-jump-label">Quality</span>
+                <span class="dashboard-jump-dot"></span>
+            </a>
+        </nav>
         <div class="dashboard-content">
-            <div class="dashboard-card">
+            <div id="dashboard-card-general" class="dashboard-card">
                 <h1>General</h1>
 
                 <div id="dashboard-loading" class="throbber-wrap">
@@ -120,10 +144,11 @@
                     </tr>
                 </table>
             </div>
-            <div class="dashboard-card">
+            <div id="dashboard-card-time-series" class="dashboard-card">
                 <h1>
                     Length of Time Series
-                    <div class="order-options" data-chart="length-of-time-series">
+                    <div class="order-options"
+                         data-chart="length-of-time-series">
                         Order by &nbsp;
                         <div class="order-options-buttons">
                             <div class="active" data-order="name">Name</div>
@@ -145,7 +170,7 @@
 
                 <div id="dashboard-length-of-time-series"></div>
             </div>
-            <div class="dashboard-card">
+            <div id="dashboard-card-number-stations" class="dashboard-card">
                 <h1>
                     Number of stations
                     <div class="order-options" data-chart="number-of-stations">
@@ -193,7 +218,7 @@
 
                 <div id="dashboard-number-of-stations"></div>
             </div>
-            <div class="dashboard-card">
+            <div id="dashboard-card-quality" class="dashboard-card">
                 <h1>Quality</h1>
 
                 <div id="dashboard-quality-loading" class="throbber-wrap">
@@ -253,5 +278,51 @@
         '{% url "countries_statistic" %}',
         '{% url "quality_control_statistic" %}',
       );
+
+      (function () {
+        const links = document.querySelectorAll('.dashboard-jump-link');
+        const sections = [];
+        links.forEach(function (link) {
+          const section = document.getElementById(link.dataset.target);
+          if (section) {
+            sections.push({ link: link, section: section });
+          }
+          link.addEventListener('click', function (event) {
+            event.preventDefault();
+            const target = document.getElementById(link.dataset.target);
+            if (target) {
+              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          });
+        });
+
+        if (!sections.length) {
+          return;
+        }
+
+        const scrollOffset = getComputedStyle(document.documentElement)
+          .getPropertyValue('--dashboard-scroll-offset').trim() || '0px';
+        const probe = document.createElement('div');
+        probe.style.cssText = 'position:absolute; visibility:hidden; height:' + scrollOffset;
+        document.body.appendChild(probe);
+        const headerOffset = probe.offsetHeight;
+        probe.remove();
+
+        const observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            console.log(entry)
+            if (!entry.isIntersecting) {
+              return;
+            }
+            sections.forEach(function (item) {
+              item.link.classList.toggle('active', item.section === entry.target);
+            });
+          });
+        }, { rootMargin: '-' + headerOffset + 'px 0px -50px 0px', threshold: 0 });
+
+        sections.forEach(function (item) {
+          observer.observe(item.section);
+        });
+      })();
     </script>
 {% endblock %}
