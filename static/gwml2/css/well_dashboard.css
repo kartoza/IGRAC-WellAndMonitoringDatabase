@@ -281,6 +281,62 @@ table.stats-table td.stat-value.stat-value-unavailable {
   display: none !important;
 }
 
+.dashboard-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dashboard-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.dashboard-modal-content h2 {
+  font-size: 1rem !important;
+}
+
+.dashboard-modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--dashboard-color-card-bg);
+  box-shadow: var(--dashboard-card-shadow);
+  max-width: 960px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+}
+
+.dashboard-modal-header {
+  flex-shrink: 0;
+  background: var(--gn-primary, #397AAB);
+  padding: 0 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dashboard-modal-close {
+  border: none;
+  background: none;
+  font-size: 3rem !important;
+  line-height: 1;
+  cursor: pointer;
+  color: white !important;
+  height: 36px !important;
+  margin-top: -15px !important;;
+  margin-bottom: 20px !important;;
+}
+
+.dashboard-modal-body {
+  overflow-y: auto;
+  padding: 1rem;
+}
+
 .dashboard-number-stations {
   padding: 0.5rem;
   display: flex;

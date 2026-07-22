@@ -281,12 +281,38 @@
             </div>
         </div>
     </div>
+    {% if resource_body %}
+        <div id="dashboard-resource-modal" class="dashboard-modal">
+            <div class="dashboard-modal-backdrop"></div>
+            <div class="dashboard-modal-content">
+                <div class="dashboard-modal-header">
+                    <button type="button" class="dashboard-modal-close"
+                            aria-label="Close">&times;</button>
+                </div>
+                <div class="dashboard-modal-body">{{ resource_body|safe }}</div>
+            </div>
+        </div>
+    {% endif %}
     <script>
       initWellDashboard(
         '{% url "organisation_statistic" %}',
         '{% url "countries_statistic" %}',
         '{% url "quality_control_statistic" %}',
       );
+
+      (function () {
+        const modal = document.getElementById('dashboard-resource-modal');
+        if (!modal) {
+          return;
+        }
+        const close = function () {
+          modal.classList.add('hidden');
+        };
+        modal.querySelector('.dashboard-modal-close')
+          .addEventListener('click', close);
+        modal.querySelector('.dashboard-modal-backdrop')
+          .addEventListener('click', close);
+      })();
 
       (function () {
         const links = document.querySelectorAll('.dashboard-jump-link');
