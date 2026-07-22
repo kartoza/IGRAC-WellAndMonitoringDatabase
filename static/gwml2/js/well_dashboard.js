@@ -4,7 +4,7 @@
   let selectedCountries = [];
   let lengthOfTimeSeriesChart = null;
   let numberOfStationsChart = null;
-  let selectedDashboardNumberStations = 1;
+  let selectedDashboardNumberStations = 'all';
   let numberOfStationsOrder = 'name';
   let lengthOfTimeSeriesOrder = 'name';
   let qualityControlStatisticUrl = null;
@@ -256,11 +256,24 @@
           categories: categories,
           lineWidth: 0,
           tickLength: 0,
-          labels: { enabled: false }
+          opposite: true,
+          labels: {
+            align: 'left',
+            x: 0,
+            useHTML: true,
+            formatter: function () {
+              let point = data[this.pos];
+              let color = point ? point.color : undefined;
+              return '<span style="font-weight:900;color:' + color + '">' +
+                this.value + '</span>';
+            }
+          }
         },
         yAxis: {
           type: 'datetime',
-          title: { text: 'Date' }
+          title: { text: 'Date' },
+          endOnTick: false,
+          maxPadding: 0.02
         },
         legend: { enabled: false },
         plotOptions: {
@@ -280,21 +293,6 @@
         },
         series: [{
           name: 'Length of time series',
-          dataLabels: [
-            {
-              enabled: false
-            },
-            {
-              enabled: true,
-              format: '{point.category}',
-              align: 'left',
-              verticalAlign: 'middle',
-              y: -2,
-              x: 0,
-              crop: false,
-              overflow: 'allow'
-            }
-          ],
           data: data
         }]
       });

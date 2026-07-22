@@ -6,7 +6,7 @@
   --dashboard-color-card-bg: var(--white);
   --dashboard-color-primary: var(--primary);
   --dashboard-color-accent: var(--secondary);
-  --dashboard-color-primary-contrast: var(--white-font);
+  --dashboard-color-primary-contrast: #FFFFFF;
   --dashboard-color-label: #445064;
   --dashboard-color-label-muted: #6b7684;
   --dashboard-color-value-unavailable: #b0b8c1;
@@ -133,20 +133,30 @@
   border-radius: 5px;
   display: flex;
   align-items: center;
+  padding: 0 !important;
 }
 
 .order-options div:first-child {
-  border-right: 1px solid #ccc;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.order-options div:last-child {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
 
 .order-options div {
+  border: 1px solid white;
   background-color: white;
   color: #aaa;
-  padding: 3px 5px;
+  padding: 5px 7px;
 }
 
 .order-options div.active {
-  color: var(--dashboard-color-primary);
+  color: white;
+  background-color: var(--dashboard-color-primary);
+  font-weight: 500 !important;
   opacity: 1;
 }
 
