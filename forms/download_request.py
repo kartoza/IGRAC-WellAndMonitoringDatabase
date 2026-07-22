@@ -17,7 +17,7 @@ User = get_user_model()
 
 class DownloadRequestBaseForm(forms.ModelForm):
     """Abstract base form for download requests."""
-    organization_types = forms.MultipleChoiceField(required=False)
+    organization_types = forms.MultipleChoiceField(required=True)
 
     class Meta:
         model = DownloadRequest
@@ -25,6 +25,8 @@ class DownloadRequestBaseForm(forms.ModelForm):
 
     def default_init(self):
         """Default initialization of the form."""
+        self.fields['profession'].required = True
+        self.fields['country'].required = True
 
         types = [_type.name for _type in OrganisationType.objects.all()]
         self.fields['organization_types'].choices = [
@@ -71,8 +73,7 @@ class DownloadRequestForm(DownloadRequestBaseForm):
         model = DownloadRequest
         fields = (
             'countries', 'organisations',
-            'first_name', 'last_name', 'organization',
-            'organization_types', 'email', 'country', 'data_type'
+            'profession', 'organization_types', 'country', 'data_type'
         )
 
     def __init__(self, *args, **kwargs):
@@ -151,8 +152,8 @@ class DownloadRequestByIdsForm(DownloadRequestBaseForm):
     class Meta:
         model = DownloadRequest
         fields = (
-            'wells_id', 'first_name', 'last_name', 'organization',
-            'organization_types', 'email', 'country', 'data_type'
+            'wells_id', 'profession', 'organization_types', 'country',
+            'data_type'
         )
 
     def __init__(self, *args, **kwargs):

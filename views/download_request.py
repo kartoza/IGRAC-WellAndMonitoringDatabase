@@ -21,7 +21,7 @@ from igrac.models.profile import IgracProfile
 
 USER_INFO_SESSION_KEY = 'download_user_info'
 USER_INFO_FIELDS = [
-    'email', 'first_name', 'last_name', 'organization', 'organization_types'
+    'profession', 'organization_types'
 ]
 
 
@@ -51,10 +51,6 @@ class DownloadRequestFormView(View):
 
     def get(self, request, *args, **kwargs):
         user = request.user if request.user.is_authenticated else None
-        first_name = user.first_name if user else None
-        last_name = user.last_name if user else None
-        email = user.email if user else None
-        organization = user.organization if user else None
         country = user.country if user else None
         organization_types = None
         try:
@@ -72,10 +68,7 @@ class DownloadRequestFormView(View):
 
         # Fall back to session cache for any fields not covered by the profile
         cached = _get_user_info_from_session(request)
-        first_name = first_name or cached.get('first_name')
-        last_name = last_name or cached.get('last_name')
-        email = email or cached.get('email')
-        organization = organization or cached.get('organization')
+        profession = cached.get('profession')
         organization_types = organization_types or cached.get('organization_types')
         country = country or cached.get('country')
 
@@ -83,9 +76,8 @@ class DownloadRequestFormView(View):
         context = {
             'form': DownloadRequestForm(
                 instance=DownloadRequest(
-                    first_name=first_name,
-                    last_name=last_name, email=email,
-                    organization=organization, country=country,
+                    profession=profession,
+                    country=country,
                     organization_types=organization_types,
                     data_type=data_type
                 )
@@ -148,10 +140,7 @@ class DownloadRequestByIdsFormView(View):
         form = DownloadRequestByIdsForm(
             instance=DownloadRequest(
                 data_type=data_type,
-                email=cached.get('email'),
-                first_name=cached.get('first_name'),
-                last_name=cached.get('last_name'),
-                organization=cached.get('organization'),
+                profession=cached.get('profession'),
                 organization_types=cached.get('organization_types'),
                 country=cached.get('country'),
             )
