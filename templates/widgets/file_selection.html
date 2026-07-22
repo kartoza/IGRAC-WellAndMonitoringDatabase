@@ -6,9 +6,9 @@
             href="{{ url }}"
         {% endif %}
             target="_blank">
-            <img class="photo-preview" data-no-image="{% static 'img/no-image.jpg' %}" src="
+            <img class="photo-preview" data-no-image="{% static 'img/no-image.jpg' %}?v={{ IGRAC_VERSION.name }}" src="
         {% if not url %}
-            {% static 'img/no-image.jpg' %}
+            {% static 'img/no-image.jpg' %}?v={{ IGRAC_VERSION.name }}
         {% else %}
             {{ url }}
         {% endif %}

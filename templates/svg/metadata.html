@@ -1,9 +1,9 @@
 {% load static %}
 <div class="icon-svg">
     <div>
-        <img src="{% static 'gwml2/svg/metadata.svg' %}"/>
+        <img src="{% static 'gwml2/svg/metadata.svg' %}?v={{ IGRAC_VERSION.name }}"/>
     </div>
     <div class="active">
-        <img src="{% static 'gwml2/svg/metadata-active.svg' %}"/>
+        <img src="{% static 'gwml2/svg/metadata-active.svg' %}?v={{ IGRAC_VERSION.name }}"/>
     </div>
 </div>

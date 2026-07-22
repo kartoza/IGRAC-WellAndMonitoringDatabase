@@ -6,15 +6,15 @@
     Stations Dashboard
 {% endblock %}
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'gwml2/css/well_dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'gwml2/css/well_dashboard.css' %}?v={{ IGRAC_VERSION.name }}">
     <link rel="stylesheet"
           href="{% static 'js/select2/4.1.0-rc.0/select2.min.css' %}">
     <script src="{% static 'js/jquery/3.5.1/jquery.min.js' %}"></script>
     <script src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
     <script src="{% static 'js/highcharts/9.1.2/stock/highstock.js' %}"></script>
     <script src="{% static 'js/highcharts/9.1.2/highcharts-more.js' %}"></script>
-    <script src="{% static 'gwml2/js/well_dashboard_utils.js' %}"></script>
-    <script src="{% static 'gwml2/js/well_dashboard.js' %}"></script>
+    <script src="{% static 'gwml2/js/well_dashboard_utils.js' %}?v={{ IGRAC_VERSION.name }}"></script>
+    <script src="{% static 'gwml2/js/well_dashboard.js' %}?v={{ IGRAC_VERSION.name }}"></script>
 {% endblock %}
 
 {% block body_outer %}
@@ -47,7 +47,7 @@
             </a>
             <a href="#dashboard-card-time-series" class="dashboard-jump-link"
                data-target="dashboard-card-time-series">
-                <span class="dashboard-jump-label">Length of Time Series</span>
+                <span class="dashboard-jump-label">Period of Time series</span>
                 <span class="dashboard-jump-dot"></span>
             </a>
             <a href="#dashboard-card-number-stations"
