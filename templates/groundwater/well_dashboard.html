@@ -3,7 +3,7 @@
 {% load i18n %}
 
 {% block title %}
-    Stations Dashboard
+    {{ title }}
 {% endblock %}
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'gwml2/css/well_dashboard.css' %}?v={{ IGRAC_VERSION.name }}">
@@ -20,15 +20,19 @@
 {% block body_outer %}
     <div id="dashboard">
         <div class="dashboard-side-panel">
-            <div id="dashboard-data-type" class="dashboard-data-type">
+            {% if data_type %}
+                <h1 class="dashboard-side-panel-title">{{ title }}</h1>
+            {% endif %}
+            <div id="dashboard-data-type"
+                 class="dashboard-data-type{% if data_type %} hidden{% endif %}">
                 <button type="button"
-                        class="dashboard-toggle active"
+                        class="dashboard-toggle{% if not data_type or data_type == 'ggmn' %} active{% endif %}"
                         data-type="ggmn"
                         title="Click to activate/deactivate GGMN data">
                     GGMN
                 </button>
                 <button type="button"
-                        class="dashboard-toggle active"
+                        class="dashboard-toggle{% if not data_type or data_type == 'observations_repository' %} active{% endif %}"
                         data-type="observations_repository"
                         title="Click to activate/deactivate Groundwater Observations Repository">
                     Groundwater Observations Repository

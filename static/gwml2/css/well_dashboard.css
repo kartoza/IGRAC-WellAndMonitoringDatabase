@@ -39,6 +39,11 @@
   align-self: flex-start;
 }
 
+.dashboard-side-panel-title {
+  color: var(--dashboard-color-primary) !important;
+  margin-bottom: 1rem !important;
+}
+
 .dashboard-side-panel .select2-container {
   border: 1px solid #eee !important;
   box-shadow: var(--dashboard-card-shadow);
