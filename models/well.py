@@ -139,6 +139,11 @@ class Well(GeneralInformation, CreationMetadata):
         max_length=8
     )
 
+    # This is for temporary cache
+    is_level_not_daily = models.BooleanField(
+        default=False,
+    )
+
     objects = WellManager()
 
     def __str__(self):
