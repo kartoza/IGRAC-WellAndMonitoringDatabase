@@ -1,7 +1,9 @@
+import csv
+import os
 from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
@@ -12,6 +14,10 @@ from gwml2.models.term_measurement_parameter import TermMeasurementParameter
 from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utils.celery import id_task_is_running
+
+WELL_PROGRESS_FOLDER = os.path.join(
+    settings.GWML2_FOLDER, 'harvester-well-progress'
+)
 
 
 class Harvester(models.Model):
@@ -255,22 +261,27 @@ class HarvesterLog(models.Model):
     note = models.TextField(
         blank=True, null=True
     )
-    well_progress = ArrayField(
-        models.JSONField(),
-        default=list,
-        blank=True,
-        help_text=_(
-            'Per-well progress. Each entry: '
-            '{"id": original_id, "status": "saved"|"no_change"|"error", "note": "..."}'
-        )
-    )
+
+    @property
+    def well_progress_file_path(self) -> str:
+        """Path to this log's per-well progress CSV file.
+
+        Kept on disk instead of a DB column: appending a row is O(1)
+        regardless of how many wells were already logged, unlike an
+        array/JSON column where every append rewrites the whole value.
+        """
+        return os.path.join(WELL_PROGRESS_FOLDER, f'{self.pk}.csv')
 
     def log_well(self, original_id: str, status: str, note: str = ''):
-        """Append per-well progress entry."""
-        self.well_progress.append(
-            {'id': original_id, 'status': status, 'note': note}
-        )
-        self.save(update_fields=['well_progress'])
+        """Append a per-well progress row to this log's CSV file."""
+        os.makedirs(WELL_PROGRESS_FOLDER, exist_ok=True)
+        path = self.well_progress_file_path
+        is_new = not os.path.exists(path)
+        with open(path, 'a', newline='') as f:
+            writer = csv.writer(f)
+            if is_new:
+                writer.writerow(['id', 'status', 'note'])
+            writer.writerow([original_id, status, note])
 
     class Meta:
         db_table = 'harvester_log'

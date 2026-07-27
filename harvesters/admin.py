@@ -1,8 +1,8 @@
-import csv
+import os
 
 from django import forms
 from django.contrib import admin
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.urls import path as url_path, reverse
 from django.utils.html import format_html
 
@@ -207,14 +207,13 @@ class HarvesterLogInline(admin.TabularInline):
         'harvester', 'start_time', 'end_time', 'status', 'note',
         'download_well_progress'
     )
-    exclude = ('well_progress',)
     extra = 0
 
     def has_add_permission(self, request, obj=None):
         return False
 
     def download_well_progress(self, obj):
-        if not obj.pk or not obj.well_progress:
+        if not obj.pk or not os.path.exists(obj.well_progress_file_path):
             return '-'
         url = reverse('admin:harvesterlog_well_progress_csv', args=[obj.pk])
         return format_html('<a href="{}">Download CSV</a>', url)
@@ -268,18 +267,15 @@ class HarvesterAdmin(admin.ModelAdmin):
 
     def well_progress_csv_view(self, request, log_id):
         log = HarvesterLog.objects.get(pk=log_id)
-        response = HttpResponse(content_type='text/csv')
+        path = log.well_progress_file_path
+        if not os.path.exists(path):
+            return HttpResponse(status=404)
+        response = FileResponse(
+            open(path, 'rb'), content_type='text/csv'
+        )
         response['Content-Disposition'] = (
             f'attachment; filename="well_progress_{log_id}.csv"'
         )
-        writer = csv.writer(response)
-        writer.writerow(['id', 'status', 'note'])
-        for entry in log.well_progress:
-            writer.writerow([
-                entry.get('id', ''),
-                entry.get('status', ''),
-                entry.get('note', ''),
-            ])
         return response
 
     def last_run(self, obj: Harvester):
