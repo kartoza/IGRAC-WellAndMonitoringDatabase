@@ -3,8 +3,8 @@
 <html lang="en">
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart.css' %}">
-    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart-page.css' %}">
+    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart.css' %}?v={{ IGRAC_VERSION.name }}">
+    <link rel="stylesheet" href="{% static 'gwml2/css/measurements-chart-page.css' %}?v={{ IGRAC_VERSION.name }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css">
 
     <script src="{% static "lib/js/moment-with-locales.js" %}"></script>
@@ -20,7 +20,7 @@
           rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/js/select2.min.js"></script>
 
-    <script src="{% static 'gwml2/js/unit-converter.js' %}"></script>
+    <script src="{% static 'gwml2/js/unit-converter.js' %}?v={{ IGRAC_VERSION.name }}"></script>
     <script src="{% static 'gwml2/js/measurement-chart.js' %}?v={{ IGRAC_VERSION.name }}"></script>
 </head>
 <body>

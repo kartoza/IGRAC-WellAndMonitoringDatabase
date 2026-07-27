@@ -9,10 +9,10 @@
 {% block extra_head %}
     <link rel="stylesheet"
           href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'gwml2/css/main.css' %}?v={{ IGRAC_VERSION.name }}">
     <link rel="stylesheet"
-          href="{% static 'gwml2/css/measurements-chart.css' %}">
-    <link rel="stylesheet" href="{% static 'gwml2/font/stylesheet.css' %}">
+          href="{% static 'gwml2/css/measurements-chart.css' %}?v={{ IGRAC_VERSION.name }}">
+    <link rel="stylesheet" href="{% static 'gwml2/font/stylesheet.css' %}?v={{ IGRAC_VERSION.name }}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{% static 'js/jquery-validate/1.19.2/jquery.validate.js' %}"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
@@ -219,7 +219,7 @@
             </div>
         </div>
     </div>
-    <script src="{% static 'gwml2/js/form.js' %}"></script>
+    <script src="{% static 'gwml2/js/form.js' %}?v={{ IGRAC_VERSION.name }}"></script>
 {% endblock %}
 
 {% block extra_script %}

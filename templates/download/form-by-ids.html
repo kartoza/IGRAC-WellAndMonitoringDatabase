@@ -10,9 +10,9 @@
 
 {% block extra_head %}
     <link rel="stylesheet" type="text/css"
-          href="{% static 'css/form-select2.css' %}"/>
+          href="{% static 'css/form-select2.css' %}?v={{ IGRAC_VERSION.name }}"/>
     <link rel="stylesheet" type="text/css"
-          href="{% static 'admin/css/widgets.css' %}"/>
+          href="{% static 'admin/css/widgets.css' %}?v={{ IGRAC_VERSION.name }}"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <link rel="stylesheet"
@@ -106,21 +106,10 @@
                     <input type="text" class="form-control"
                            value="{{ data_type }}" disabled>
                 </div>
-                {{ form.email|field_as_bootstrap }}
                 <div class="group">
                     <div class="row">
                         <div class="col">
-                            {{ form.first_name|field_as_bootstrap }}
-                        </div>
-                        <div class="col">
-                            {{ form.last_name|field_as_bootstrap }}
-                        </div>
-                    </div>
-                </div>
-                <div class="group">
-                    <div class="row">
-                        <div class="col">
-                            {{ form.organization|field_as_bootstrap }}
+                            {{ form.profession|field_as_bootstrap }}
                         </div>
                         <div class="col">
                             {{ form.organization_types|field_as_bootstrap }}
@@ -147,7 +136,7 @@
 {% block extra_script %}
     <script>
       $(document).ready(function () {
-        const placeholder = "Select an organization type or more or create by typing new one.";
+        const placeholder = "Select an organization type or more, or type to specify another one.";
         $('#id_organization_types select').select2({
           placeholder: placeholder,
           allowClear: true,

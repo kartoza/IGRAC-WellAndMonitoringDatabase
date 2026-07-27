@@ -67,15 +67,8 @@ class DownloadRequest(models.Model):
     )
 
     # This is for form for user information
-    email = models.EmailField(_('email address'), blank=True)
-    first_name = models.CharField(
-        _('First Name'), null=True, blank=True, max_length=512
-    )
-    last_name = models.CharField(
-        _('Last Name'), null=True, blank=True, max_length=512
-    )
-    organization = models.CharField(
-        _('Organization'),
+    profession = models.CharField(
+        _('Profession'),
         null=True, blank=True,
         max_length=512,
     )
@@ -97,6 +90,20 @@ class DownloadRequest(models.Model):
     )
 
     output_folder = os.path.join(settings.MEDIA_ROOT, 'request')
+
+    # Deprecated
+    email = models.EmailField(_('email address'), blank=True)
+    first_name = models.CharField(
+        _('First Name'), null=True, blank=True, max_length=512
+    )
+    last_name = models.CharField(
+        _('Last Name'), null=True, blank=True, max_length=512
+    )
+    organization = models.CharField(
+        _('Organization'),
+        null=True, blank=True,
+        max_length=512,
+    )
 
     def update_note(self, note: str):
         """Update progress note."""
