@@ -136,11 +136,6 @@ class BaseHarvester(ABC):
 
                         self._done('Done')
 
-                        # RUN MATERIALIZED VIEW
-                        running = Harvester.objects.filter(is_run=True).first()
-                        if not running:
-                            MaterializedViewWell.refresh()
-
                         # Delete current original id attribute
                         self.delete_attribute(self.current_original_id_key)
 
@@ -151,6 +146,11 @@ class BaseHarvester(ABC):
 
                         # Called when harvester is a success
                         self.post_success()
+
+                        # RUN MATERIALIZED VIEW
+                        running = Harvester.objects.filter(is_run=True).first()
+                        if not running:
+                            MaterializedViewWell.refresh()
         except HarvestingError as e:
             self._error(f'{e}')
         except Exception:
