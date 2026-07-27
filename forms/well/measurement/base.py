@@ -17,15 +17,6 @@ class BaseMeasurementForm(WellBaseForm):
     Form of Base Measurement of well.
     """
     id = forms.CharField(required=False)
-    depth = forms.Field(
-        required=False,
-        widget=QuantityInput(
-            unit_group='length',
-            unit_required=True,
-            attrs={'id': 'measurement_depth'},
-            quantity_saved=False
-        ),
-    )
 
     class Meta:
         model = WellLevelMeasurement
@@ -37,7 +28,7 @@ class BaseMeasurementForm(WellBaseForm):
         }
 
     field_order = (
-        'id', 'time', 'parameter', 'methodology', 'value', 'depth'
+        'id', 'time', 'parameter', 'methodology', 'value'
     )
     parameter_group = None
 
@@ -58,21 +49,11 @@ class BaseMeasurementForm(WellBaseForm):
         self.fields['parameter'].widget.attrs['required'] = True
         self.fields['time'].label = _('Date and Time')
 
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if self.cleaned_data['depth']:
-            depth = self.cleaned_data['depth']
-            instance.depth_value = depth.value
-            instance.depth_unit = depth.unit
-        if commit:
-            instance.save()
-        return instance
-
-    @staticmethod
-    def make_from_data(instance, data, files):
+    @classmethod
+    def make_from_data(cls, instance, data, files):
         """ Create form from request data
-        :param instance: WellLevelMeasurement object
-        :type instance: WellLevelMeasurement
+        :param instance: measurement object (WellLevelMeasurement,
+            WellQualityMeasurement or WellYieldMeasurement)
 
         :param data: dictionary of data
         :type data: dict
@@ -97,7 +78,7 @@ class BaseMeasurementForm(WellBaseForm):
             except TermMeasurementParameter.DoesNotExist:
                 pass
 
-        return BaseMeasurementForm(data, files, instance=instance)
+        return cls(data, files, instance=instance)
 
     @staticmethod
     def get_data_from_instance(instance):
@@ -108,5 +89,4 @@ class BaseMeasurementForm(WellBaseForm):
         data = model_to_dict(instance)
         data['id'] = instance.id
         data['time'] = instance.time.strftime('%Y-%m-%d %H:%M:%S')
-        data['depth'] = instance.depth
         return data

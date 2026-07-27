@@ -241,8 +241,6 @@ data = {
             'parameter': "Water depth [from the ground surface]",
             'value_value': "1",
             'value_unit': "m",
-            'depth_value': "10",
-            'depth_unit': "m",
             'methodology': "Methodology 1"
         },
         {
@@ -252,8 +250,6 @@ data = {
             'parameter': "Water level elevation a.m.s.l.",
             'value_value': "2",
             'value_unit': "ft",
-            'depth_value': "",
-            'depth_unit': "",
             'methodology': "Methodology 2"
         }
     ],
@@ -289,8 +285,6 @@ data = {
             'parameter': "Abstraction",
             'value_value': "1",
             'value_unit': "m³/h",
-            'depth_value': "30",
-            'depth_unit': "m",
             'methodology': "Methodology 5"
         },
         {
@@ -300,8 +294,6 @@ data = {
             'parameter': "Abstraction",
             'value_value': "2",
             'value_unit': "m³/h",
-            'depth_value': "",
-            'depth_unit': "",
             'methodology': "Methodology 6"
         }
     ]

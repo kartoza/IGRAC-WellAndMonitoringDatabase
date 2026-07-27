@@ -560,7 +560,7 @@ class PageSizeChangeList(ChangeList):
 class MeasurementAdmin(admin.ModelAdmin):
     list_display = (
         '_well_id', 'time', '_parameter_id', '_default_unit_id',
-        'default_value', 'depth_value', 'depth_unit'
+        'default_value'
     )
     search_fields = ('well__original_id',)
     readonly_fields = ('well', 'parameter')
@@ -622,6 +622,20 @@ class MeasurementAdmin(admin.ModelAdmin):
     _well_id.admin_order_field = 'well_id'
 
 
+class WellQualityMeasurementAdmin(MeasurementAdmin):
+    """Quality measurement admin."""
+    list_display = MeasurementAdmin.list_display + (
+        'depth_value', 'depth_unit'
+    )
+
+    def get_queryset(self, request):
+        qs = admin.ModelAdmin.get_queryset(self, request)
+        return qs.only(
+            'well_id', 'time', 'parameter_id', 'default_unit_id',
+            'default_value', 'depth_value', 'depth_unit_id'
+        )
+
+
 admin.site.register(WellLevelMeasurement, MeasurementAdmin)
-admin.site.register(WellQualityMeasurement, MeasurementAdmin)
+admin.site.register(WellQualityMeasurement, WellQualityMeasurementAdmin)
 admin.site.register(WellYieldMeasurement, MeasurementAdmin)

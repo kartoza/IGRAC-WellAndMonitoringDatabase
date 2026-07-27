@@ -22,6 +22,8 @@ class MonitoringDataUploader(BaseUploader):
 
     # key related with the index of keys
     # value if it has tem
+    # depth_value/depth_unit only exist on WellQualityMeasurement, so they
+    # are only in the columns for the groundwater_quality sheet.
     RECORD_FORMAT = {
         'original_id': None,
         'name': None,
@@ -33,6 +35,15 @@ class MonitoringDataUploader(BaseUploader):
         'depth_unit': Unit,
         'methodology': None
     }
+    RECORD_FORMAT_NO_DEPTH = {
+        key: value for key, value in RECORD_FORMAT.items()
+        if key not in ('depth_value', 'depth_unit')
+    }
+
+    def get_record_format(self, sheet_name):
+        if sheet_name == SheetName.groundwater_quality:
+            return self.RECORD_FORMAT
+        return self.RECORD_FORMAT_NO_DEPTH
 
     def convert_record(self, sheet_name, data, raw_record: list):
         """ return object that will be used
