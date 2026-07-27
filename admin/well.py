@@ -230,6 +230,19 @@ def generate_dem_values(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Generate level not daily cache')
+def generate_well_level_not_daily_cache_action(modeladmin, request, queryset):
+    """Generate is_level_not_daily cache for selected wells."""
+    ids = [f'{_id}' for _id in queryset.values_list('id', flat=True)]
+    return run_command(
+        request,
+        'generate_well_level_not_daily_cache',
+        args=[
+            "--ids", ', '.join(ids)
+        ]
+    )
+
+
 class WellAdmin(admin.ModelAdmin):
     """Well admin."""
     list_display = (
@@ -243,6 +256,7 @@ class WellAdmin(admin.ModelAdmin):
         'latitude', 'longitude',
         'id',
         'first_time_measurement', 'last_time_measurement',
+        'is_level_not_daily',
         'links',
         'name',
         '_description'
@@ -250,6 +264,7 @@ class WellAdmin(admin.ModelAdmin):
     list_filter = (
         'organisation', 'country', 'feature_type',
         'first_time_measurement', 'last_time_measurement',
+        'is_level_not_daily',
         InvalidCoordinatesFilter, OrganisationGroupFilter,
         HasDEMFilter, HasReturnedDEMEmptyValueFilter
     )
@@ -273,6 +288,7 @@ class WellAdmin(admin.ModelAdmin):
         generate_metadata,
         generate_data_wells_cache,
         generate_data_cache_information,
+        generate_well_level_not_daily_cache_action,
     ]
     change_list_template = "admin/well_change_list.html"
     show_full_result_count = False
@@ -343,6 +359,7 @@ class WellAdmin(admin.ModelAdmin):
             'number_of_measurements_quality',
             'number_of_measurements_yield',
             'first_time_measurement', 'last_time_measurement',
+            'is_level_not_daily',
         )
 
     def created_by_user(self, obj):
@@ -543,7 +560,7 @@ class PageSizeChangeList(ChangeList):
 class MeasurementAdmin(admin.ModelAdmin):
     list_display = (
         '_well_id', 'time', '_parameter_id', '_default_unit_id',
-        'default_value', 'depth_value', 'depth_unit'
+        'default_value'
     )
     search_fields = ('well__original_id',)
     readonly_fields = ('well', 'parameter')
@@ -605,6 +622,20 @@ class MeasurementAdmin(admin.ModelAdmin):
     _well_id.admin_order_field = 'well_id'
 
 
+class WellQualityMeasurementAdmin(MeasurementAdmin):
+    """Quality measurement admin."""
+    list_display = MeasurementAdmin.list_display + (
+        'depth_value', 'depth_unit'
+    )
+
+    def get_queryset(self, request):
+        qs = admin.ModelAdmin.get_queryset(self, request)
+        return qs.only(
+            'well_id', 'time', 'parameter_id', 'default_unit_id',
+            'default_value', 'depth_value', 'depth_unit_id'
+        )
+
+
 admin.site.register(WellLevelMeasurement, MeasurementAdmin)
-admin.site.register(WellQualityMeasurement, MeasurementAdmin)
+admin.site.register(WellQualityMeasurement, WellQualityMeasurementAdmin)
 admin.site.register(WellYieldMeasurement, MeasurementAdmin)

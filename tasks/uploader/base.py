@@ -233,8 +233,11 @@ class BaseUploader(WellEditing):
                         # create progress status per row
                         for key, note in error.items():
                             try:
-                                column = list(self.RECORD_FORMAT.keys()).index(
-                                    key)
+                                column = list(
+                                    self.get_record_format(
+                                        sheet_name
+                                    ).keys()
+                                ).index(key)
                             except ValueError:
                                 column = 0
                             if type(note) is list:
@@ -305,18 +308,27 @@ class BaseUploader(WellEditing):
                     f'Please check if you use the correct uploader/tab. '
                 )
 
+    def get_record_format(self, sheet_name):
+        """Return the RECORD_FORMAT to use for this sheet.
+
+        Override this when different sheets in the same uploader need
+        different columns (e.g. a column that only applies to one sheet).
+        """
+        return self.RECORD_FORMAT
+
     def _convert_record(self, sheet_name, record):
         """ convert record into json data
         :return: dictionary of forms
         :rtype: dict
         """
+        record_format = self.get_record_format(sheet_name)
         data = {}
-        for index, key in enumerate(self.RECORD_FORMAT.keys()):
+        for index, key in enumerate(record_format.keys()):
             value = get_column(
                 record,
                 index
             )
-            TERM = self.RECORD_FORMAT[key]
+            TERM = record_format[key]
             if value and TERM:
                 try:
                     term_key = TERM.__name__

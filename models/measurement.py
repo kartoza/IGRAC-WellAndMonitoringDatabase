@@ -42,22 +42,6 @@ class Measurement(models.Model):
         null=True, blank=True
     )
 
-    # Depth
-    depth_unit = models.ForeignKey(
-        Unit,
-        null=True, blank=True,
-        on_delete=models.SET_NULL,
-        related_name='+'
-    )
-    depth_value = models.FloatField(
-        null=True, blank=True
-    )
-
-    @property
-    def depth(self) -> Quantity:
-        """Return depth in quantity."""
-        return Quantity(value=self.depth_value, unit=self.depth_unit)
-
     class Meta:
         abstract = True
 

@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 from gwml2.models.construction import Construction
 from gwml2.models.document import Document
 from gwml2.models.drilling import Drilling
+from gwml2.models.general import Quantity, Unit
 from gwml2.models.general_information import GeneralInformation
 from gwml2.models.geology import Geology
 from gwml2.models.hydrogeology import HydrogeologyParameter
@@ -137,6 +138,11 @@ class Well(GeneralInformation, CreationMetadata):
             (NO, NO),
         ),
         max_length=8
+    )
+
+    # This is for temporary cache
+    is_level_not_daily = models.BooleanField(
+        default=False,
     )
 
     objects = WellManager()
@@ -481,6 +487,22 @@ class WellQualityMeasurement(Measurement):
     well = models.ForeignKey(
         Well, on_delete=models.CASCADE,
     )
+
+    # Depth
+    depth_unit = models.ForeignKey(
+        Unit,
+        null=True, blank=True,
+        on_delete=models.SET_NULL,
+        related_name='+'
+    )
+    depth_value = models.FloatField(
+        null=True, blank=True
+    )
+
+    @property
+    def depth(self) -> Quantity:
+        """Return depth in quantity."""
+        return Quantity(value=self.depth_value, unit=self.depth_unit)
 
     class Meta:
         db_table = 'well_quality_measurement'

@@ -1,6 +1,9 @@
 from django.contrib import admin
 
 from gwml2.models.site_preference import SitePreference
+from gwml2.tasks.generate_metadata_cache import (
+    generate_organisation_country_quality_control_cache
+)
 from gwml2.tasks.well_file_cache.clean_cache import (
     clean_dangling_measurement_cache,
     clean_dangling_well_data_cache
@@ -30,6 +33,17 @@ def clean_dangling_well_data_cache_action(modeladmin, request, queryset):
     clean_dangling_well_data_cache.delay()
 
 
+@admin.action(
+    description=(
+        'Generate organisation/country/quality control metadata cache'
+    )
+)
+def generate_organisation_country_quality_control_cache_action(
+        modeladmin, request, queryset
+):
+    generate_organisation_country_quality_control_cache.delay()
+
+
 @admin.register(SitePreference)
 class SitePreferenceAdmin(admin.ModelAdmin):
     """SitePreference Admin."""
@@ -42,7 +56,8 @@ class SitePreferenceAdmin(admin.ModelAdmin):
     actions = (
         update_running_harvester, running_all_harvesters,
         clean_dangling_measurement_cache_action,
-        clean_dangling_well_data_cache_action
+        clean_dangling_well_data_cache_action,
+        generate_organisation_country_quality_control_cache_action
     )
     fieldsets = (
         (
