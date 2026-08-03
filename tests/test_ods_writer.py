@@ -2,12 +2,15 @@
 import os.path
 import shutil
 import tempfile
+import zipfile
 from decimal import Decimal
+
+from lxml import etree
 
 from core.settings.utils import absolute_path
 from gwml2.tests.base import GWML2Test
 from gwml2.utils.ods_reader import extract_data, get_count
-from gwml2.utils.ods_writer import OdsDoc
+from gwml2.utils.ods_writer import EXCEL_MAX_ROWS, NS_TABLE, OdsDoc
 
 TEMPLATE_PATH = absolute_path(
     'gwml2', 'static', 'download_template', 'monitoring_data.ods'
@@ -36,6 +39,21 @@ def _read_rows(ods_path, sheet_name):
     rows = []
     extract_data(ods_path, sheet_name, rows.append)
     return rows
+
+
+def _total_row_count(ods_path, sheet_name):
+    """Sum table-row repeat counts for one sheet (its real grid height)."""
+    with zipfile.ZipFile(ods_path) as zf:
+        content = zf.read('content.xml')
+    root = etree.fromstring(content)
+    total = 0
+    for table in root.findall('.//{%s}table' % NS_TABLE):
+        if table.get('{%s}name' % NS_TABLE) != sheet_name:
+            continue
+        for row in table.findall('{%s}table-row' % NS_TABLE):
+            repeated = row.get('{%s}number-rows-repeated' % NS_TABLE)
+            total += int(repeated) if repeated else 1
+    return total
 
 
 class OdsWriterTest(GWML2Test):
@@ -134,6 +152,26 @@ class OdsWriterTest(GWML2Test):
         rows = _read_rows(self.ods_path, SHEET_LEVEL)
         self.assertEqual(len(rows), 2)
         self.assertEqual(get_count(self.ods_path, SHEET_LEVEL), 0)
+
+    def test_row_count_stays_within_excel_limit(self):
+        """Appended rows must not push the total past Excel's row limit."""
+        baseline = _total_row_count(TEMPLATE_PATH, SHEET_LEVEL)
+        self.assertEqual(baseline, EXCEL_MAX_ROWS)
+
+        doc = OdsDoc(self.ods_path)
+        sheet = doc[SHEET_LEVEL]
+        for i in range(500):
+            sheet.append(
+                (
+                    f'W{i:05d}', 'Well', '2024-01-01 00:00:00',
+                    'Water depth', 1.0, 'm', None, None, ''
+                )
+            )
+        doc.save()
+
+        total = _total_row_count(self.ods_path, SHEET_LEVEL)
+        self.assertLessEqual(total, EXCEL_MAX_ROWS)
+        self.assertEqual(total, baseline)
 
     def test_same_sheet_reference_returned(self):
         doc = OdsDoc(self.ods_path)

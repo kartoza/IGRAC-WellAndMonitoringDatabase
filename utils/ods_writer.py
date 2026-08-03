@@ -16,18 +16,21 @@ ATTR_VALUE_TYPE = '{%s}value-type' % NS_OFFICE
 ATTR_VALUE = '{%s}value' % NS_OFFICE
 ATTR_TABLE_NAME = '{%s}name' % NS_TABLE
 ATTR_STYLE_NAME = '{%s}style-name' % NS_TABLE
+ATTR_ROWS_REPEATED = '{%s}number-rows-repeated' % NS_TABLE
 
-DATA_CELL_STYLE = 'ce3'
+EXCEL_MAX_ROWS = 1048576
+
 DATA_ROW_STYLE = 'ro4'
 
-
+# No style-name on data cells: hardcoded style IDs (e.g. "ce3") can drift
+# after re-exporting the template through LibreOffice/Google Sheets.
 _ROW_OPEN = b'<table:table-row table:style-name="ro4">'
 _ROW_CLOSE = b'</table:table-row>'
-_CELL_EMPTY = b'<table:table-cell table:style-name="ce3"/>'
-_CELL_FLOAT_A = b'<table:table-cell table:style-name="ce3" office:value-type="float" office:value="'
+_CELL_EMPTY = b'<table:table-cell/>'
+_CELL_FLOAT_A = b'<table:table-cell office:value-type="float" office:value="'
 _CELL_FLOAT_B = b'"><text:p>'
 _CELL_FLOAT_C = b'</text:p></table:table-cell>'
-_CELL_STR_A = b'<table:table-cell table:style-name="ce3" office:value-type="string"><text:p>'
+_CELL_STR_A = b'<table:table-cell office:value-type="string"><text:p>'
 _CELL_STR_B = b'</text:p></table:table-cell>'
 
 
@@ -106,6 +109,19 @@ class OdsDoc:
             marker = f'IGRAC_INSERT_{id(wrapper)}'
             anchor.addnext(etree.Comment(marker))
             insertions[marker.encode()] = wrapper._buffer
+
+            # Shrink the trailing filler row to make room for inserted rows
+            filler = max(
+                rows,
+                key=lambda r: int(r.get(ATTR_ROWS_REPEATED) or 0)
+            )
+            repeated = int(filler.get(ATTR_ROWS_REPEATED) or 0)
+            if repeated:
+                remaining = repeated - len(wrapper._buffer)
+                if remaining > 0:
+                    filler.set(ATTR_ROWS_REPEATED, str(remaining))
+                else:
+                    filler.getparent().remove(filler)
 
         # Serialize the template (still small — only header rows + markers).
         template_bytes = etree.tostring(
