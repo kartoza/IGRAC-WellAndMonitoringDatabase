@@ -69,7 +69,12 @@ class DownloadRequestFormView(View):
         # Fall back to session cache for any fields not covered by the profile
         cached = _get_user_info_from_session(request)
         profession = cached.get('profession')
-        organization_types = organization_types or cached.get('organization_types')
+        cached_organization_types = cached.get('organization_types')
+        if not organization_types and cached_organization_types:
+            organization_types = [
+                _type.strip()
+                for _type in cached_organization_types.split(',')
+            ]
         country = country or cached.get('country')
 
         data_type = request.GET.get('data_type', GGMN)

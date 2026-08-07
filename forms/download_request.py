@@ -46,7 +46,12 @@ class DownloadRequestBaseForm(forms.ModelForm):
 
         # From initial
         try:
-            for _type in self.initial['organization_types']:
+            initial_types = self.initial['organization_types']
+            if isinstance(initial_types, str):
+                initial_types = [
+                    _type.strip() for _type in initial_types.split(',')
+                ]
+            for _type in initial_types:
                 if _type not in types:
                     self.fields['organization_types'].choices += [
                         (_type, _type)
