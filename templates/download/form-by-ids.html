@@ -89,10 +89,9 @@
             <fieldset>
                 {% csrf_token %}
                 <div class="helptext">
-                    In order to download the data for the selected wells,
-                    please identify yourself.
-                    This information helps GGIS administrator and data
-                    providers with providing adequate data and services.
+                    In order to download the data for the selected wells, please fill in the information
+                    below. This data is only used to analyse the profile of our users and support the
+                    development and improvement of the GGIS.
                 </div>
                 {% for id in wells_id %}
                     <input type="hidden" name="wells_id" value="{{ id }}">
