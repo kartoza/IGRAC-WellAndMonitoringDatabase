@@ -114,9 +114,7 @@
                     In order to download the data, please indicate for which
                     data providers or countries you request the data,
                     and identify yourself.
-                    This information helps GGIS administrator and data
-                    providers
-                    with providing adequate data and services.
+                    This data is only used to analyse the profile of our users and support the development and improvement of the GGIS.
                 </div>
                 {{ form.data_type|field_as_bootstrap }}
                 {{ form.radio_filter_type|field_as_bootstrap }}
@@ -127,6 +125,7 @@
                     <div id="clear-all">Clear all</div>
                 </div>
                 <br/>
+                {{ form.email|field_as_bootstrap }}
                 <div class="group">
                     <div class="row">
                         <div class="col">

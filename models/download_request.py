@@ -67,6 +67,7 @@ class DownloadRequest(models.Model):
     )
 
     # This is for form for user information
+    email = models.EmailField(_('email address'), blank=True)
     profession = models.CharField(
         _('Profession'),
         null=True, blank=True,
@@ -92,7 +93,6 @@ class DownloadRequest(models.Model):
     output_folder = os.path.join(settings.MEDIA_ROOT, 'request')
 
     # Deprecated
-    email = models.EmailField(_('email address'), blank=True)
     first_name = models.CharField(
         _('First Name'), null=True, blank=True, max_length=512
     )

@@ -21,7 +21,7 @@ from igrac.models.profile import IgracProfile
 
 USER_INFO_SESSION_KEY = 'download_user_info'
 USER_INFO_FIELDS = [
-    'profession', 'organization_types'
+    'profession', 'organization_types', 'email'
 ]
 
 
@@ -46,40 +46,53 @@ def _get_user_info_from_session(request):
     return {**{f: info.get(f) for f in USER_INFO_FIELDS}, 'country': country}
 
 
+def _get_prefilled_user_info(request):
+    """Resolve profession, country, organization_types and email used to
+    prefill a download request form, preferring the user's profile and
+    falling back to the cached session data."""
+    user = request.user if request.user.is_authenticated else None
+    country = user.country if user else None
+    organization_types = None
+    try:
+        organization_types = [
+            _type.strip()
+            for _type in user.igracprofile.organization_types.split(',')
+        ]
+    except (AttributeError, IgracProfile.DoesNotExist):
+        pass
+    if country:
+        try:
+            country = Country.objects.get(code=country)
+        except Country.DoesNotExist:
+            country = None
+
+    # Fall back to session cache for any fields not covered by the profile
+    cached = _get_user_info_from_session(request)
+    cached_organization_types = cached.get('organization_types')
+    if not organization_types and cached_organization_types:
+        organization_types = [
+            _type.strip()
+            for _type in cached_organization_types.split(',')
+        ]
+
+    return {
+        'profession': cached.get('profession'),
+        'country': country or cached.get('country'),
+        'organization_types': organization_types,
+        'email': cached.get('email'),
+    }
+
+
 class DownloadRequestFormView(View):
     template_name = 'download/form.html'
 
     def get(self, request, *args, **kwargs):
-        user = request.user if request.user.is_authenticated else None
-        country = user.country if user else None
-        organization_types = None
-        try:
-            organization_types = [
-                _type.strip()
-                for _type in user.igracprofile.organization_types.split(',')
-            ]
-        except (AttributeError, IgracProfile.DoesNotExist):
-            pass
-        if country:
-            try:
-                country = Country.objects.get(code=country)
-            except Country.DoesNotExist:
-                country = None
-
-        # Fall back to session cache for any fields not covered by the profile
-        cached = _get_user_info_from_session(request)
-        profession = cached.get('profession')
-        organization_types = organization_types or cached.get('organization_types')
-        country = country or cached.get('country')
-
         data_type = request.GET.get('data_type', GGMN)
         context = {
             'form': DownloadRequestForm(
                 instance=DownloadRequest(
-                    profession=profession,
-                    country=country,
-                    organization_types=organization_types,
-                    data_type=data_type
+                    data_type=data_type,
+                    **_get_prefilled_user_info(request)
                 )
             )
         }
@@ -136,13 +149,10 @@ class DownloadRequestByIdsFormView(View):
         session = self._get_session_data(request)
         wells_id = session.get('wells_id', [])
         data_type = session.get('data_type', GGMN)
-        cached = _get_user_info_from_session(request)
         form = DownloadRequestByIdsForm(
             instance=DownloadRequest(
                 data_type=data_type,
-                profession=cached.get('profession'),
-                organization_types=cached.get('organization_types'),
-                country=cached.get('country'),
+                **_get_prefilled_user_info(request)
             )
         )
         return render(request, self.template_name, {
