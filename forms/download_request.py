@@ -27,6 +27,7 @@ class DownloadRequestBaseForm(forms.ModelForm):
         """Default initialization of the form."""
         self.fields['profession'].required = True
         self.fields['country'].required = True
+        self.fields['email'].required = True
 
         types = [_type.name for _type in OrganisationType.objects.all()]
         self.fields['organization_types'].choices = [
@@ -77,7 +78,7 @@ class DownloadRequestForm(DownloadRequestBaseForm):
     class Meta:
         model = DownloadRequest
         fields = (
-            'countries', 'organisations',
+            'countries', 'organisations', 'email',
             'profession', 'organization_types', 'country', 'data_type'
         )
 
@@ -157,7 +158,7 @@ class DownloadRequestByIdsForm(DownloadRequestBaseForm):
     class Meta:
         model = DownloadRequest
         fields = (
-            'wells_id', 'profession', 'organization_types', 'country',
+            'wells_id', 'email', 'profession', 'organization_types', 'country',
             'data_type'
         )
 
