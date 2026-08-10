@@ -1,12 +1,13 @@
-import os
 from datetime import timedelta
 
 from django.contrib import admin, messages
 from django.template.defaultfilters import filesizeformat
 from django.utils import timezone
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
+from gwml2.tasks.uploader.task import well_batch_upload_create_report
 
 FILE_DELETION_MIN_AGE = timedelta(weeks=1)
 
@@ -44,7 +45,7 @@ class RunningUploaderFilter(admin.SimpleListFilter):
 @admin.action(description='Create report.')
 def create_report(modeladmin, request, queryset):
     for upload_session in queryset:
-        upload_session.create_report_excel()
+        well_batch_upload_create_report.delay(upload_session.id)
 
 
 @admin.action(description='Stop upload.')
@@ -73,24 +74,6 @@ def restart_upload(modeladmin, request, queryset):
 def clean_row_status(modeladmin, request, queryset):
     for upload_session in queryset:
         upload_session.clean_row_status()
-
-
-def report_file_name(upload_file_name):
-    """Return the report file name for an upload file name."""
-    ext = os.path.splitext(upload_file_name)[1]
-    return upload_file_name.replace(ext, f'.report{ext}')
-
-
-def report_file_names(upload_file_name):
-    """Return possible report file names (.ods and .xlsx) for an upload
-    file name.
-
-    The report is generated as .xlsx then converted to .ods, and only the
-    .ods copy is kept, but that conversion can fail and leave a .xlsx
-    behind instead, so both extensions must be checked.
-    """
-    base = os.path.splitext(upload_file_name)[0]
-    return [f'{base}.report.ods', f'{base}.report.xlsx']
 
 
 def delete_old_files(modeladmin, request, queryset, get_names):
@@ -126,9 +109,7 @@ def delete_uploaded_file(modeladmin, request, queryset):
 def delete_report_file(modeladmin, request, queryset):
     delete_old_files(
         modeladmin, request, queryset,
-        lambda upload_session: report_file_names(
-            upload_session.upload_file.name
-        ) if upload_session.upload_file.name else []
+        lambda upload_session: upload_session.report_file_candidates()
     )
 
 
@@ -180,10 +161,14 @@ class UploadSessionAdmin(admin.ModelAdmin):
 
     def file_report(self, obj: UploadSession):
         """File report."""
-        report_name = report_file_name(obj.upload_file.name)
-        return file_link_with_size(
-            obj.upload_file.storage, report_name, obj.file_report_url
-        )
+        storage = obj.upload_file.storage
+        report_names = obj.existing_report_files
+        if not report_names:
+            return '-'
+        return mark_safe('<br>'.join(
+            file_link_with_size(storage, name, storage.url(name))
+            for name in report_names
+        ))
 
 
 admin.site.register(UploadSession, UploadSessionAdmin)

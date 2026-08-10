@@ -18,7 +18,8 @@ from gwml2.api.statistic import (
 from gwml2.api.task_progress import TaskProgress
 from gwml2.api.upload_progress import get_progress_upload
 from gwml2.api.upload_session import (
-    UploadSessionApiView, UploadSessionStopApiView, UploadSessionListApiView
+    UploadSessionApiView, UploadSessionStopApiView, UploadSessionListApiView,
+    UploadSessionRowStatusListApiView
 )
 from gwml2.api.user import UserAutocompleteAPI, UserUUIDAPI
 from gwml2.api.well_deletion import WellDeletionAPI
@@ -233,6 +234,13 @@ upload_session_url = [
         r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/stop',
         view=UploadSessionStopApiView.as_view(),
         name='upload_session_stop'
+    ),
+    re_path(
+        r'^'
+        r'(?P<token>\b[0-9a-f]{8}\b-[0-9a-f]{4}-'
+        r'[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b)/row-status',
+        view=UploadSessionRowStatusListApiView.as_view(),
+        name='upload_session_row_status'
     ),
     re_path(
         r'^'

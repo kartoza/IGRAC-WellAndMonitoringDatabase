@@ -52,9 +52,15 @@ class ManagementUploader(BaseUploader):
             aquifer_types=self.aquifer_types
         )
         for key, value in init_data.management().items():
-            if record['management'][key] in ["", None]:
+            try:
+                if record['management'][key] in ["", None]:
+                    record['management'][key] = value
+            except KeyError:
                 record['management'][key] = value
         for key, value in init_data.management_license().items():
-            if record['management']['license'][key] in ["", None]:
-                record['management']['license'][key] = value
+            try:
+                if record['management']['license'][key] in ["", None]:
+                    record['management']['license'][key] = value
+            except KeyError:
+                record['management'].setdefault('license', {})[key] = value
         return record
