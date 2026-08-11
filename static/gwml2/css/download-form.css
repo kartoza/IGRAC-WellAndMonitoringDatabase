@@ -1,0 +1,57 @@
+.form-group {
+  margin-bottom: 25px;
+}
+
+form .row {
+  margin: 0;
+}
+
+form .row {
+  display: flex;
+}
+
+form .col {
+  width: 100%;
+  padding: 0 5px;
+}
+
+form .row .col:first-child {
+  padding-left: 0;
+}
+
+form .row .col:last-child {
+  padding-right: 0;
+}
+
+.helptext {
+  margin: 0 0 20px 0;
+}
+
+#id_organization_types .select2-container input {
+  min-width: 411px !important;
+}
+
+.form-actions button {
+  width: 100%;
+}
+
+form .error-msg ul.errorlist {
+  padding-inline-start: 0;
+}
+
+.select2-results__options {
+  margin-bottom: 0 !important;
+}
+
+.select2-container {
+  width: 100% !important;
+}
+
+#id_organization_types .select2-search.select2-search--inline {
+  display: none !important;
+}
+
+form input[type="text"] {
+  padding: .5rem !important;
+  height: 36px !important;
+}

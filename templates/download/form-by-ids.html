@@ -13,6 +13,8 @@
           href="{% static 'css/form-select2.css' %}?v={{ IGRAC_VERSION.name }}"/>
     <link rel="stylesheet" type="text/css"
           href="{% static 'admin/css/widgets.css' %}?v={{ IGRAC_VERSION.name }}"/>
+    <link rel="stylesheet" type="text/css"
+          href="{% static 'gwml2/css/download-form.css' %}?v={{ IGRAC_VERSION.name }}"/>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <link rel="stylesheet"
@@ -20,56 +22,9 @@
           type="text/css" media="screen, projection"/>
     <script type="text/javascript"
             src="{% static 'js/select2/4.1.0-rc.0/select2.min.js' %}"></script>
+    <script type="text/javascript"
+            src="{% static 'gwml2/js/download-form.js' %}?v={{ IGRAC_VERSION.name }}"></script>
     <style>
-      .form-group {
-        margin-bottom: 25px;
-      }
-
-      form .row {
-        margin: 0;
-      }
-
-      form .row {
-        display: flex;
-      }
-
-      form .col {
-        width: 100%;
-        padding: 0 5px;
-      }
-
-      form .row .col:first-child {
-        padding-left: 0;
-      }
-
-      form .row .col:last-child {
-        padding-right: 0;
-      }
-
-      .helptext {
-        margin: 0 0 20px 0;
-      }
-
-      #id_organization_types .select2-container input {
-        min-width: 411px !important;
-      }
-
-      .form-actions button {
-        width: 100%;
-      }
-
-      form .error-msg ul.errorlist {
-        padding-inline-start: 0;
-      }
-
-      .select2-results__options {
-        margin-bottom: 0!important;
-      }
-
-      .select2-container {
-        width: 100% !important;
-      }
-
       .wells-summary {
         padding: 10px 15px;
         background-color: #f5f5f5;
@@ -113,6 +68,8 @@
                         </div>
                         <div class="col">
                             {{ form.organization_types|field_as_bootstrap }}
+                            <input type="hidden" id="id_organization_types_other_initial"
+                                   value="{{ form.initial_other_value }}">
                         </div>
                     </div>
                 </div>
@@ -131,35 +88,4 @@
             </fieldset>
         </form>
     </div>
-{% endblock %}
-
-{% block extra_script %}
-    <script>
-      $(document).ready(function () {
-        const placeholder = "Select an organization type or more, or type to specify another one.";
-        $('#id_organization_types select').select2({
-          placeholder: placeholder,
-          allowClear: true,
-          tags: true,
-          createTag: function (params) {
-            return {
-              id: params.term,
-              text: params.term,
-              newOption: true
-            }
-          },
-          templateResult: function (data) {
-            var $result = $("<span></span>");
-            $result.text(data.text);
-            if (data.newOption) {
-              $result.append(" <em>(new)</em>");
-            }
-            return $result;
-          }
-        }).on('select2:open', function (e) {
-          $('#id_organization_types input.select2-search__field').prop('placeholder', placeholder);
-        });
-
-      });
-    </script>
 {% endblock %}
