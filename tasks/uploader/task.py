@@ -25,4 +25,4 @@ def well_batch_upload_create_report(self, upload_session_id: str, restart: bool 
         upload_session.create_report_excel()
         upload_session.save()
     except UploadSession.DoesNotExist:
-        logger.debug('Upload session does not exists')
+        print('Upload session does not exists')

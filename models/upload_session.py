@@ -347,16 +347,44 @@ class UploadSession(LicenseMetadata):
                 restart
             )
 
+    def report_file_candidates(self):
+        """Return possible report file names for this upload session.
+
+        Most categories generate a single combined report file. Monitoring
+        uploads instead split rows into a separate skip report and error
+        report (see `create_report_excel_monitoring`), so all three are
+        checked since any subset of them may exist.
+        """
+        if not self.upload_file.name:
+            return []
+        base = os.path.splitext(self.upload_file.name)[0]
+        return [
+            f'{base}.report.ods',
+            f'{base}.report.skip.ods',
+            f'{base}.report.error.ods',
+        ]
+
     @property
-    def file_report_url(self):
-        """Return URL for file report upload."""
-        _url = self.upload_file.url
-        ext = os.path.splitext(_url)[1]
-        return _url.replace(ext, f'.report{ext}')
+    def existing_report_files(self):
+        """Return storage names of all report files that exist."""
+        storage = self.upload_file.storage
+        return [
+            name for name in self.report_file_candidates()
+            if storage.exists(name)
+        ]
+
+    @property
+    def file_report_urls(self):
+        """Return URLs for all existing report files."""
+        storage = self.upload_file.storage
+        return [storage.url(name) for name in self.existing_report_files]
 
     def create_report_excel(self):
         """Created excel that will contain reports."""
         if not self.uploadsessionrowstatus_set.exists():
+            return
+        if self.category == UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD:
+            self.create_report_excel_monitoring()
             return
         self.step = 'Create report'
         self.save()
@@ -418,7 +446,107 @@ class UploadSession(LicenseMetadata):
 
             self.step = 'Create report done'
             self.save()
-            self.clean_row_status()
+        except Exception as e:
+            print(f'{e}')
+
+    def create_report_excel_monitoring(self):
+        """Create split skip/error reports for monitoring uploads.
+
+        Unlike other categories, this builds each report by appending
+        rows onto a blank template instead of editing the original
+        upload file's cells in place, since the original file's numeric
+        cells can't be reliably blanked out that way (leftover
+        office:value attributes keep showing the old number). Rows are
+        re-read live from the original upload file rather than stored
+        at upload time.
+        """
+        from gwml2.utils.ods_reader import extract_data
+        from gwml2.utils.ods_writer import OdsDoc
+        from gwml2.utils.template_check import START_ROW
+
+        self.step = 'Create report'
+        self.save()
+        try:
+            _file = self.upload_file.path
+            ext = os.path.splitext(_file)[1]
+            template = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                'static', 'download_template', 'monitoring_data.ods'
+            )
+
+            rows_by_sheet = {}
+            query = self.uploadsessionrowstatus_set.filter(
+                status__in=[1, 2]
+            ).order_by('sheet_name', 'row')
+            for row_status in query:
+                rows_by_sheet.setdefault(
+                    row_status.sheet_name, []
+                ).append(row_status)
+
+            skip_doc = OdsDoc(template)
+            error_doc = OdsDoc(template)
+            skip_doc.register_style(STYLE_SKIPPED)
+            error_doc.register_style(STYLE_ERROR)
+            has_skip = False
+            has_error = False
+
+            for sheet_name, row_statuses in rows_by_sheet.items():
+                remaining = [row_status.row for row_status in row_statuses]
+                raw_row_by_row = {}
+                headers = []
+                current_row = 0
+
+                def receiver(raw_record):
+                    nonlocal current_row
+                    if len(headers) < START_ROW:
+                        headers.append(raw_record)
+                        return
+                    current_row += 1
+                    if not remaining:
+                        return
+                    row_idx = current_row + START_ROW
+                    while remaining and remaining[0] == row_idx:
+                        raw_row_by_row[row_idx] = raw_record
+                        remaining.pop(0)
+
+                extract_data(_file, sheet_name, receiver)
+
+                for row_status in row_statuses:
+                    # Copy: multiple row_statuses can share the same source
+                    # row (one per bad column), each needing its own edit.
+                    row_data = list(raw_row_by_row.get(row_status.row, []))
+                    if row_status.status == 2:
+                        skip_doc[sheet_name].append(
+                            row_data + [row_status.row, 'Skipped'],
+                            cell_styles={
+                                row_status.column: STYLE_SKIPPED.name
+                            }
+                        )
+                        has_skip = True
+                    else:
+                        if 0 <= row_status.column < len(row_data):
+                            row_data[row_status.column] = row_status.note
+                        error_doc[sheet_name].append(
+                            row_data + [row_status.row],
+                            cell_styles={row_status.column: STYLE_ERROR.name}
+                        )
+                        has_error = True
+
+            skip_file = _file.replace(ext, f'.report.skip{ext}')
+            error_file = _file.replace(ext, f'.report.error{ext}')
+            for target_file, doc, has_rows in (
+                    (skip_file, skip_doc, has_skip),
+                    (error_file, error_doc, has_error),
+            ):
+                if os.path.exists(target_file):
+                    os.remove(target_file)
+                if has_rows:
+                    doc.save(target_file)
+                    os.chmod(target_file, 0o0777)
+                doc.close()
+
+            self.step = 'Create report done'
+            self.save()
         except Exception as e:
             print(f'{e}')
 

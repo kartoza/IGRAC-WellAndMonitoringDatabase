@@ -1,12 +1,15 @@
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse, Http404, HttpResponse
+from django.shortcuts import get_object_or_404
 from django.views.generic.base import View
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from gwml2.api.pagination import Pagination
 from gwml2.models.upload_session import UploadSession
-from gwml2.serializer.upload_session import UploadSessionSerializer
+from gwml2.serializer.upload_session import (
+    UploadSessionSerializer, UploadSessionRowStatusSerializer
+)
 from gwml2.tasks.uploader.task import well_batch_upload_create_report
 
 
@@ -67,6 +70,32 @@ class UploadSessionApiView(View):
             return HttpResponse('ok')
         except UploadSession.DoesNotExist:
             raise Http404('No session found')
+
+
+class UploadSessionRowStatusListApiView(ListAPIView):
+    """Return list of per-row statuses (added/error/skipped) of a session."""
+
+    permission_classes = (IsAuthenticated,)
+    pagination_class = Pagination
+    serializer_class = UploadSessionRowStatusSerializer
+
+    def get_queryset(self):
+        """Return queryset of API."""
+        session = get_object_or_404(
+            UploadSession, token=self.kwargs.get('token')
+        )
+        if not session.uploader or self.request.user.id != session.uploader:
+            raise PermissionDenied()
+        queryset = session.uploadsessionrowstatus_set.order_by(
+            'sheet_name', 'row', 'column'
+        )
+        status = self.request.query_params.get('status')
+        if status is not None:
+            queryset = queryset.filter(status=status)
+        sheet_name = self.request.query_params.get('sheet_name')
+        if sheet_name:
+            queryset = queryset.filter(sheet_name=sheet_name)
+        return queryset
 
 
 class UploadSessionStopApiView(View):

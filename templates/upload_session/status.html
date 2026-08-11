@@ -1,0 +1,195 @@
+<style>
+  .status-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .status-modal-overlay.open {
+    display: flex;
+  }
+
+  .status-modal-box {
+    background: white;
+    width: 700px;
+    max-width: 90%;
+    height: 80vh;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .status-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #ddd;
+    font-weight: 700;
+  }
+
+  .status-modal-close {
+    background: unset;
+    border: unset;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  .status-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 1rem;
+  }
+
+  .status-modal-body table {
+    font-size: 0.8rem;
+  }
+
+  .status-modal-footer {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .status-modal-footer button {
+    margin-left: 0.5rem;
+  }
+</style>
+<div id="statusModalOverlay" class="status-modal-overlay">
+    <div class="status-modal-box">
+        <div class="status-modal-header">
+            <span id="statusModalTitle">Row status</span>
+            <button type="button" class="status-modal-close" id="statusModalClose">&times;</button>
+        </div>
+        <div class="status-modal-body">
+            <table>
+                <thead>
+                <tr>
+                    <td>Sheet</td>
+                    <td>Row</td>
+                    <td>Column</td>
+                    <td>Status</td>
+                    <td>Note</td>
+                </tr>
+                </thead>
+                <tbody id="statusModalBody">
+                </tbody>
+            </table>
+        </div>
+        <div class="status-modal-footer">
+            <span id="statusModalTotal"></span>
+            <span>
+                <span id="statusModalPageInfo"></span>
+                <button type="button" id="statusModalPrev">Prev</button>
+                <button type="button" id="statusModalNext">Next</button>
+            </span>
+        </div>
+    </div>
+</div>
+<script>
+  const STATUS_FILTER_LABELS = {'0': 'Added/updated', '1': 'Error', '2': 'Skipped'}
+
+  let statusModalToken = null
+  let statusModalPage = 1
+  let statusModalFilter = null
+  let statusModalSheetName = null
+
+  function openStatusModal(token, statusFilter, sheetName) {
+    statusModalToken = token
+    statusModalFilter = (statusFilter === undefined || statusFilter === null) ? null : String(statusFilter)
+    statusModalSheetName = sheetName || null
+    statusModalPage = 1
+    const filterLabel = statusModalFilter !== null ? STATUS_FILTER_LABELS[statusModalFilter] : null
+    $('#statusModalTitle').text(
+      filterLabel
+        ? `Row status - ${filterLabel}${statusModalSheetName ? ' (' + statusModalSheetName + ')' : ''}`
+        : 'Row status'
+    )
+    $('#statusModalOverlay').addClass('open')
+    loadStatusModalPage()
+  }
+
+  function closeStatusModal() {
+    $('#statusModalOverlay').removeClass('open')
+    $('#statusModalBody').empty()
+    statusModalToken = null
+    statusModalFilter = null
+    statusModalSheetName = null
+  }
+
+  function loadStatusModalPage() {
+    $('#statusModalBody').html('<tr><td colspan="5">Loading...</td></tr>')
+    let url = '/groundwater/upload-session/' + statusModalToken + '/row-status?page=' + statusModalPage + '&page_size=25'
+    if (statusModalFilter !== null) {
+      url += '&status=' + statusModalFilter
+    }
+    if (statusModalSheetName !== null) {
+      url += '&sheet_name=' + encodeURIComponent(statusModalSheetName)
+    }
+    $.ajax({
+      url: url,
+      type: 'GET',
+      success: function (data) {
+        renderStatusModal(data)
+      },
+      error: function () {
+        $('#statusModalBody').html('<tr><td colspan="5">Failed to load row status.</td></tr>')
+      }
+    })
+  }
+
+  function renderStatusModal(data) {
+    const rows = data.results || []
+    if (!rows.length) {
+      $('#statusModalBody').html('<tr><td colspan="5">No rows.</td></tr>')
+    } else {
+      $('#statusModalBody').html(rows.map(function (row) {
+        return `<tr>
+            <td>${row.sheet_name}</td>
+            <td>${row.row}</td>
+            <td>${row.column + 1}</td>
+            <td>${row.status_display}</td>
+            <td>${row.note ? row.note : '-'}</td>
+          </tr>`
+      }).join(''))
+    }
+    $('#statusModalTotal').text(`Total: ${data.count || 0}`)
+    const totalPage = data.total_page || 1
+    $('#statusModalPageInfo').text(`Page ${statusModalPage} / ${totalPage}`)
+    $('#statusModalPrev').prop('disabled', statusModalPage <= 1)
+    $('#statusModalNext').prop('disabled', statusModalPage >= totalPage)
+  }
+
+  $(document).on('click', '.StatusFilterButton', function () {
+    const token = $(this).closest('[data-token]').data('token')
+    const statusFilter = $(this).data('status')
+    const sheetName = $(this).data('sheet')
+    openStatusModal(token, statusFilter, sheetName)
+  })
+
+  $('#statusModalClose').click(closeStatusModal)
+  $('#statusModalOverlay').click(function (e) {
+    if (e.target.id === 'statusModalOverlay') {
+      closeStatusModal()
+    }
+  })
+  $('#statusModalPrev').click(function () {
+    if (statusModalPage > 1) {
+      statusModalPage -= 1
+      loadStatusModalPage()
+    }
+  })
+  $('#statusModalNext').click(function () {
+    statusModalPage += 1
+    loadStatusModalPage()
+  })
+</script>

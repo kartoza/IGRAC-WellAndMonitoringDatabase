@@ -12,6 +12,8 @@ NS_TEXT = 'urn:oasis:names:tc:opendocument:xmlns:text:1.0'
 TAG_ROW = '{%s}table-row' % NS_TABLE
 TAG_CELL = '{%s}table-cell' % NS_TABLE
 TAG_P = '{%s}p' % NS_TEXT
+TAG_AUTOMATIC_STYLES = '{%s}automatic-styles' % NS_OFFICE
+TAG_BODY = '{%s}body' % NS_OFFICE
 ATTR_VALUE_TYPE = '{%s}value-type' % NS_OFFICE
 ATTR_VALUE = '{%s}value' % NS_OFFICE
 ATTR_TABLE_NAME = '{%s}name' % NS_TABLE
@@ -27,10 +29,19 @@ DATA_ROW_STYLE = 'ro4'
 _ROW_OPEN = b'<table:table-row table:style-name="ro4">'
 _ROW_CLOSE = b'</table:table-row>'
 _CELL_EMPTY = b'<table:table-cell/>'
+_CELL_EMPTY_STYLED = b'<table:table-cell table:style-name="%s"/>'
 _CELL_FLOAT_A = b'<table:table-cell office:value-type="float" office:value="'
+_CELL_FLOAT_A_STYLED = (
+    b'<table:table-cell table:style-name="%s" office:value-type="float" '
+    b'office:value="'
+)
 _CELL_FLOAT_B = b'"><text:p>'
 _CELL_FLOAT_C = b'</text:p></table:table-cell>'
 _CELL_STR_A = b'<table:table-cell office:value-type="string"><text:p>'
+_CELL_STR_A_STYLED = (
+    b'<table:table-cell table:style-name="%s" '
+    b'office:value-type="string"><text:p>'
+)
 _CELL_STR_B = b'</text:p></table:table-cell>'
 
 
@@ -39,17 +50,31 @@ def _build_raw_rows_bytes(buffer):
     parts = []
     extend = parts.extend
     append = parts.append
-    for row_data in buffer:
+    for row_data, cell_styles in buffer:
         append(_ROW_OPEN)
-        for value in row_data:
+        for col_idx, value in enumerate(row_data):
+            style_name = cell_styles.get(col_idx) if cell_styles else None
+            style_bytes = style_name.encode() if style_name else None
             if value is None or value == '':
-                append(_CELL_EMPTY)
+                if style_bytes:
+                    append(_CELL_EMPTY_STYLED % style_bytes)
+                else:
+                    append(_CELL_EMPTY)
             elif isinstance(value, (int, float, Decimal)):
                 v = str(value).encode()
-                extend((_CELL_FLOAT_A, v, _CELL_FLOAT_B, v, _CELL_FLOAT_C))
+                if style_bytes:
+                    extend((
+                        _CELL_FLOAT_A_STYLED % style_bytes,
+                        v, _CELL_FLOAT_B, v, _CELL_FLOAT_C
+                    ))
+                else:
+                    extend((_CELL_FLOAT_A, v, _CELL_FLOAT_B, v, _CELL_FLOAT_C))
             else:
                 v = xml_escape(str(value)).encode('utf-8')
-                extend((_CELL_STR_A, v, _CELL_STR_B))
+                if style_bytes:
+                    extend((_CELL_STR_A_STYLED % style_bytes, v, _CELL_STR_B))
+                else:
+                    extend((_CELL_STR_A, v, _CELL_STR_B))
         append(_ROW_CLOSE)
     return b''.join(parts)
 
@@ -61,8 +86,15 @@ class OdsSheetWrapper:
         self.name = name
         self._buffer = []
 
-    def append(self, row_data):
-        self._buffer.append(row_data)
+    def append(self, row_data, cell_styles=None):
+        """Queue a row. `cell_styles` maps 0-based column index to a style
+        name for the specific cells that should be colored (e.g. the one
+        cell whose value triggered an error), matching how
+        `UploadSessionRowStatus.update_sheet` styles a single "row x
+        column" cell rather than the whole row. Styles must have been
+        registered on the parent `OdsDoc` via `register_style()`.
+        """
+        self._buffer.append((row_data, cell_styles))
 
 
 class OdsDoc:
@@ -74,11 +106,16 @@ class OdsDoc:
     def __init__(self, path):
         self._path = path
         self._sheets = {}
+        self._registered_styles = {}
 
     def __getitem__(self, sheet_name):
         if sheet_name not in self._sheets:
             self._sheets[sheet_name] = OdsSheetWrapper(sheet_name)
         return self._sheets[sheet_name]
+
+    def register_style(self, style):
+        """Register an `OdsCellStyle` so rows can reference it by name."""
+        self._registered_styles[style.name] = style
 
     def save(self, path=None):
         target = path or self._path
@@ -93,6 +130,16 @@ class OdsDoc:
         # Parse the small template and place a unique marker comment after
         # each sheet's anchor row — avoids parsing the large data XML later.
         root = etree.fromstring(content_xml)
+
+        if self._registered_styles:
+            automatic_styles = root.find(TAG_AUTOMATIC_STYLES)
+            if automatic_styles is None:
+                automatic_styles = etree.Element(TAG_AUTOMATIC_STYLES)
+                body = root.find(TAG_BODY)
+                body.addprevious(automatic_styles)
+            for style in self._registered_styles.values():
+                automatic_styles.append(style.build_element())
+
         tables = {
             t.get(ATTR_TABLE_NAME): t
             for t in root.findall('.//{%s}table' % NS_TABLE)

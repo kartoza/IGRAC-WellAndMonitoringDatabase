@@ -10,6 +10,8 @@ from gwml2.tasks.file_lock import file_lock
 
 LOCK_EXPIRE = 60 * 10
 LOCK_ID = 'resume_all_uploader.lock'
+CLEAN_ROW_STATUS_LOCK_ID = 'clean_old_upload_session_row_status.lock'
+CLEAN_ROW_STATUS_AGE_DAYS = 7
 
 logger = get_task_logger(__name__)
 
@@ -49,3 +51,27 @@ def resume_all_uploader(self):
         for session in query:
             print(f'{LOCK_ID} Resume {session.id}')
             session.resume()
+
+
+@shared_task(
+    bind=True,
+    name='gwml2.tasks.upload_session.clean_old_upload_session_row_status',
+    queue='update',
+    acks_late=False,
+    autoretry_for=(),
+    max_retries=0
+)
+def clean_old_upload_session_row_status(self):
+    """Clean row statuses of upload sessions older than 7 days."""
+    with file_lock(CLEAN_ROW_STATUS_LOCK_ID) as lock:
+        if lock is None:
+            return
+
+        from_date = timezone.now() - timedelta(
+            days=CLEAN_ROW_STATUS_AGE_DAYS
+        )
+        query = UploadSession.objects.filter(uploaded_at__lte=from_date)
+        print(f'{CLEAN_ROW_STATUS_LOCK_ID} : {query.count()}')
+        for session in query:
+            print(f'{CLEAN_ROW_STATUS_LOCK_ID} Clean {session.id}')
+            session.clean_row_status()
