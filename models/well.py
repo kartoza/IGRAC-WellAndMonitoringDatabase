@@ -24,7 +24,7 @@ from gwml2.models.metadata.license_metadata import LicenseMetadataObject
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utilities import (
-    Signal, temp_disconnect_signal, temp_disconnect_signals, convert_value
+    Signal, temp_disconnect_signal, temp_disconnect_signals
 )
 
 GWML2_FOLDER = settings.GWML2_FOLDER
@@ -33,6 +33,10 @@ WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
 MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
 MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
 MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
+
+MEASEUREMENT_LEVEL = 'WellLevelMeasurement'
+MEASEUREMENT_QUALITY = 'WellQualityMeasurement'
+MEASEUREMENT_YIELD = 'WellYieldMeasurement'
 
 YES = 'yes'
 NO = 'no'
@@ -281,7 +285,6 @@ class Well(GeneralInformation, CreationMetadata):
             settings.MEASUREMENTS_FOLDER, f'{self.id}-{measurement_name}.gz'
         )
 
-
     def assign_first_last(self, query):
         """Assign first and last measurements."""
         first = query.order_by('time').first()
@@ -340,7 +343,8 @@ class Well(GeneralInformation, CreationMetadata):
         """
         from gwml2.models.general import Quantity
         from gwml2.signals.well import (
-            post_delete_measurement, post_delete_measurement_trigger_well_update
+            post_delete_measurement,
+            post_delete_measurement_trigger_well_update
         )
 
         models_to_delete = MEASUREMENT_MODELS

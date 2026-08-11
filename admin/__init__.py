@@ -15,6 +15,7 @@ from gwml2.admin.upload_session import *
 from gwml2.admin.well import *
 from gwml2.admin.well_cache_indicator import *
 from gwml2.admin.well_deletion import *
+from gwml2.admin.well_measurement_group_data import *
 from gwml2.admin.well_quality_control import *
 # harvesters
 from gwml2.harvesters.admin import *  # noqa

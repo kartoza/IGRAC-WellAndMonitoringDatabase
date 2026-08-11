@@ -4,9 +4,10 @@ from datetime import datetime
 from django.contrib.gis.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from gwml2.models.well import Well, MEASUREMENT_MODELS
+from gwml2.models.well import MEASUREMENT_MODELS, Well
 
 
 class WellCacheIndicator(models.Model):
@@ -14,36 +15,47 @@ class WellCacheIndicator(models.Model):
 
     It contains all cache indicator.
     """
+
     well = models.OneToOneField(Well, on_delete=models.CASCADE)
 
     # ----------------------------------------
     # Well cache indicator
     # ----------------------------------------
     data_cache_generated_at = models.DateTimeField(
-        _('Time when data cache generated'),
-        null=True, blank=True
+        help_text=_("Time when data cache generated. This is for file data of well."),
+        null=True,
+        blank=True,
     )
     metadata_generated_at = models.DateTimeField(
-        _('Time when metadata generated'),
-        null=True, blank=True
+        help_text=_(
+            "Time when metadata generated, this is for metadata of well,"
+            " example: number_of_measurements_level."
+        ),
+        null=True,
+        blank=True,
     )
     data_cache_information = models.JSONField(
-        help_text=_(
-            'Information about the data cache, '
-            'like the time of file is being generated.'
-        ),
-        null=True, blank=True
+        help_text=_("Information about the data cache, like the time of file is being generated."),
+        null=True,
+        blank=True,
+    )
+
+    # ----------------------------------------
+    # Well measurements indicator
+    # ----------------------------------------
+    measurement_group_data_generated_at = models.DateTimeField(
+        help_text=("Time when measurement group data generated. This is for file data of well."),
+        null=True,
+        blank=True,
     )
 
     def generate_data_wells_cache(self, force=False, generators=None):
         """Generate data wells cache."""
-        from gwml2.tasks.well_file_cache.wells_cache import (
-            generate_data_well_cache
-        )
+        from gwml2.tasks.well_file_cache.wells_cache import generate_data_well_cache
 
         # Format generators
         if isinstance(generators, str):
-            generators = generators.split(',')
+            generators = generators.split(",")
         elif generators is None:
             generators = None
 
@@ -52,7 +64,7 @@ class WellCacheIndicator(models.Model):
             force_regenerate=force,
             generate_country_cache=False,
             generate_organisation_cache=False,
-            generators=generators
+            generators=generators,
         )
 
     def generate_metadata(self, force=False):
@@ -61,13 +73,25 @@ class WellCacheIndicator(models.Model):
             return
         self.well.update_metadata()
 
+    def generate_measurement_group_data(self, force=False):
+        """Generate measurement group data."""
+        if not force and self.measurement_group_data_generated_at:
+            return
+        from gwml2.models.well_measurement_group_data import WellMeasurementGroupData
+
+        WellMeasurementGroupData.create(self.well)
+        self.measurement_group_data_generated_at = timezone.now()
+        self.save()
+
     def run(self, force=False):
         """Force run cache."""
         self.generate_data_wells_cache(force=force)
         self.generate_metadata(force=force)
+        self.generate_measurement_group_data(force=force)
 
     def assign_data_cache_information(self):
         """Assign data cache information.
+
         We not use this on generator, just on the django admin command.
         """
         well = self.well
@@ -80,19 +104,15 @@ class WellCacheIndicator(models.Model):
                     file_path = os.path.join(root, file)
                     modified_time = os.path.getmtime(file_path)
                     readable_time = datetime.fromtimestamp(modified_time)
-                    self.data_cache_information[file] = (
-                        readable_time.strftime('%Y-%m-%d %H:%M:%S')
-                    )
+                    self.data_cache_information[file] = readable_time.strftime("%Y-%m-%d %H:%M:%S")
         for MeasurementModel in MEASUREMENT_MODELS:
             measurement_name = MeasurementModel.__name__
             file_path = well.return_measurement_cache_path(measurement_name)
             if os.path.exists(file_path):
-                file = os.path.basename(file_path).split('-')[1]
+                file = os.path.basename(file_path).split("-")[1]
                 modified_time = os.path.getmtime(file_path)
                 readable_time = datetime.fromtimestamp(modified_time)
-                self.data_cache_information[file] = (
-                    readable_time.strftime('%Y-%m-%d %H:%M:%S')
-                )
+                self.data_cache_information[file] = readable_time.strftime("%Y-%m-%d %H:%M:%S")
         self.save()
 
 

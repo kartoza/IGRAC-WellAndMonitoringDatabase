@@ -13,4 +13,5 @@ DROP VIEW IF EXISTS istsos.observed_properties;
 DROP VIEW IF EXISTS istsos.vw_istsos_sensor;
 DROP VIEW IF EXISTS istsos.procedures;
 DROP MATERIALIZED VIEW IF EXISTS istsos.measures_group;
+DROP VIEW IF EXISTS istsos.measures_group;
 DROP SCHEMA IF EXISTS istsos;

@@ -7,7 +7,6 @@ from django.db import connections
 
 ALL_VIEWS = [
     'mv_well',
-    'istsos.measures_group',
     'istsos.observed_properties_sensor',
 ]
 
