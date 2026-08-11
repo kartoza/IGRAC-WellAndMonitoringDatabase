@@ -98,19 +98,34 @@ def generate_data_cache_information(modeladmin, request, queryset):
     )
 
 
+@admin.action(description='Generate measurement group data')
+def generate_measurement_group_data(modeladmin, request, queryset):
+    """Generate measurement group data."""
+    ids = [f'{_id}' for _id in queryset.values_list('well_id', flat=True)]
+    return run_command(
+        request,
+        'generate_measurement_group_data',
+        args=[
+            "--ids", ', '.join(ids), "--force"
+        ]
+    )
+
+
 @admin.register(WellCacheIndicator)
 class WellCacheIndicatorAdmin(admin.ModelAdmin):
     list_display = (
         'well', '_organisation', '_country',
         'data_cache_generated_at',
         'metadata_generated_at',
+        'measurement_group_data_generated_at',
         'data_cache_info',
         'links'
     )
     change_list_template = "admin/well_cache_change_list.html"
     actions = [
         generate_data_wells_cache,
-        generate_metadata, generate_data_cache_information
+        generate_metadata, generate_data_cache_information,
+        generate_measurement_group_data,
     ]
     list_filter = (
         'well__feature_type',
@@ -146,6 +161,7 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
             'well__country__id', 'well__country__name',
             'data_cache_generated_at',
             'metadata_generated_at',
+            'measurement_group_data_generated_at',
             'data_cache_information',
         )
 

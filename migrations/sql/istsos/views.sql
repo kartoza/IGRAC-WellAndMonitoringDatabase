@@ -19,12 +19,12 @@ SELECT id                                                       as id_msr,
 from vw_well_measurement;
 
 -- MEASURES GROUP --
-CREATE MATERIALIZED VIEW istsos.measures_group AS
-SELECT unique_fk                                                as id_pro,
+CREATE VIEW istsos.measures_group AS
+SELECT concat(parameter_id, '-', unit_id, '-', well_id)         as id_pro,
        parameter_id                                             as parameter_id,
-       min(time)                                                as begin_measurement,
-       max(time)                                                as end_measurement
-from vw_well_measurement GROUP BY unique_fk, parameter_id WITH NO DATA;
+       min(begin_measurement)                                   as begin_measurement,
+       max(end_measurement)                                     as end_measurement
+from gwml2_wellmeasurementgroupdata GROUP BY parameter_id, unit_id, well_id;
 
 -- PROCEDURES --
 CREATE VIEW istsos.procedures AS
