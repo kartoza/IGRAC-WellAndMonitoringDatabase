@@ -58,9 +58,14 @@ class Country(models.Model):
             COUNTRY_DATA_FOLDER
         )
         zip_file = os.path.join(COUNTRY_DATA_FOLDER, f'{self.code}.zip')
+        zip_file_ggmn = os.path.join(COUNTRY_DATA_FOLDER, f'{self.code}-ggmn.zip')
         if os.path.exists(zip_file):
             self.data_cache_generated_at = datetime.fromtimestamp(
                 os.path.getmtime(zip_file)
+            )
+        elif os.path.exists(zip_file_ggmn):
+            self.data_cache_generated_at = datetime.fromtimestamp(
+                os.path.getmtime(zip_file_ggmn)
             )
         else:
             self.data_cache_generated_at = None
