@@ -17,9 +17,13 @@ $(document).ready(function () {
     '<input type="text" class="form-control" ' +
     'id="id_organization_types_other" ' +
     'placeholder="Please specify the organization type" ' +
-    'style="margin-top: 8px; display: none;">'
+    'style="margin-top: 8px; display: none;" required>'
   );
   $wrapper.append($otherInput);
+
+  $otherInput.on('input', function () {
+    this.setCustomValidity('');
+  });
 
   const $initialOther = $('#id_organization_types_other_initial');
   if ($initialOther.length && $initialOther.val()) {
@@ -38,6 +42,7 @@ $(document).ready(function () {
     } else {
       $otherInput.hide();
       $otherInput.val('');
+      $otherInput[0].setCustomValidity('');
     }
   }
 
@@ -54,7 +59,8 @@ $(document).ready(function () {
     const customValue = $otherInput.val().trim();
     if (!customValue) {
       e.preventDefault();
-      $otherInput.focus();
+      $otherInput[0].setCustomValidity('Please specify the organization type.');
+      $otherInput[0].reportValidity();
       return;
     }
 
