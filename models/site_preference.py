@@ -61,6 +61,17 @@ class SitePreference(SingletonModel):
         )
     )
 
+    # Download request
+    download_request_min_free_space_gb = models.PositiveIntegerField(
+        default=10,
+        help_text=(
+            'Minimum free space (in GB) that must remain on the download '
+            'request storage (settings.MEDIA_ROOT). If the remaining space '
+            'drops below this threshold, new download requests are '
+            'temporarily blocked.'
+        )
+    )
+
     @staticmethod
     def update_running_harvesters():
         """Update running harvesters."""

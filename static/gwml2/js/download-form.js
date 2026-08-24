@@ -21,6 +21,10 @@ $(document).ready(function () {
   );
   $wrapper.append($otherInput);
 
+  $otherInput.on('input', function () {
+    this.setCustomValidity('');
+  });
+
   const $initialOther = $('#id_organization_types_other_initial');
   if ($initialOther.length && $initialOther.val()) {
     $otherInput.val($initialOther.val());
@@ -34,10 +38,11 @@ $(document).ready(function () {
   function toggleOtherInput() {
     const values = $select.val() || [];
     if (values.indexOf(OTHERS_VALUE) !== -1) {
-      $otherInput.show();
+      $otherInput.show().prop('required', true);
     } else {
-      $otherInput.hide();
+      $otherInput.hide().prop('required', false);
       $otherInput.val('');
+      $otherInput[0].setCustomValidity('');
     }
   }
 
@@ -54,7 +59,8 @@ $(document).ready(function () {
     const customValue = $otherInput.val().trim();
     if (!customValue) {
       e.preventDefault();
-      $otherInput.focus();
+      $otherInput[0].setCustomValidity('Please specify the organization type.');
+      $otherInput[0].reportValidity();
       return;
     }
 

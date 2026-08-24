@@ -76,7 +76,6 @@ def _get_prefilled_user_info(request):
         ]
 
     return {
-        'profession': cached.get('profession'),
         'country': country or cached.get('country'),
         'organization_types': organization_types,
         'email': cached.get('email'),
