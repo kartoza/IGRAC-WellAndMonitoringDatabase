@@ -17,7 +17,7 @@ $(document).ready(function () {
     '<input type="text" class="form-control" ' +
     'id="id_organization_types_other" ' +
     'placeholder="Please specify the organization type" ' +
-    'style="margin-top: 8px; display: none;" required>'
+    'style="margin-top: 8px; display: none;">'
   );
   $wrapper.append($otherInput);
 
@@ -38,9 +38,9 @@ $(document).ready(function () {
   function toggleOtherInput() {
     const values = $select.val() || [];
     if (values.indexOf(OTHERS_VALUE) !== -1) {
-      $otherInput.show();
+      $otherInput.show().prop('required', true);
     } else {
-      $otherInput.hide();
+      $otherInput.hide().prop('required', false);
       $otherInput.val('');
       $otherInput[0].setCustomValidity('');
     }

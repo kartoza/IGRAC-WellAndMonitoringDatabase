@@ -88,7 +88,15 @@ class SitePreferenceAdmin(admin.ModelAdmin):
                 'parameter_amsl'
             )
         }
-        )
+        ),
+        (
+            'Download Request',
+            {
+                'fields': (
+                    'download_request_min_free_space_gb',
+                )
+            },
+        ),
     )
 
     def _running_harvesters(self, obj: SitePreference):

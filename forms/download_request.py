@@ -1,16 +1,21 @@
 """Forms for handling well data download requests."""
 
+import logging
+import os
 from typing import Any
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.download_request import DownloadRequest
 from gwml2.models.general import Country
+from gwml2.models.site_preference import SitePreference
 from gwml2.models.well_management.organisation import Organisation, OrganisationType
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
 
 class TaggableMultipleChoiceField(forms.MultipleChoiceField):
@@ -66,6 +71,31 @@ class DownloadRequestBaseForm(forms.ModelForm):
             _type for _type in self.cleaned_data["organization_types"] if _type != self.OTHERS_VALUE
         ]
         return ", ".join(types)
+
+    def clean(self) -> dict[str, Any]:
+        cleaned_data = super().clean()
+        self._validate_available_space()
+        return cleaned_data
+
+    def _validate_available_space(self):
+        """Block new download requests when storage space is low."""
+        threshold_gb = SitePreference.load().download_request_min_free_space_gb
+        try:
+            stat = os.statvfs(settings.MEDIA_ROOT)
+        except OSError:
+            logger.warning(
+                'Could not check free space on %s, skipping the check.',
+                settings.MEDIA_ROOT, exc_info=True
+            )
+            return
+        free_gb = (stat.f_frsize * stat.f_bavail) / (1024 ** 3)
+        if free_gb < threshold_gb:
+            raise forms.ValidationError(
+                _(
+                    'Download is not available right now, please return '
+                    'in 1 hour.'
+                )
+            )
 
 
 class DownloadRequestForm(DownloadRequestBaseForm):

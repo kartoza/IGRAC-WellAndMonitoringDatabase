@@ -65,6 +65,9 @@
         <form method="post" autocomplete="off">
             <fieldset>
                 {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="error-msg">{{ form.non_field_errors }}</div>
+                {% endif %}
                 <div class="helptext">
                     In order to download the data, please indicate for which
                     data providers or countries you request the data,

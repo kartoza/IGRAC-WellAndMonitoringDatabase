@@ -37,6 +37,7 @@ form .row .col:last-child {
 
 form .error-msg ul.errorlist {
   padding-inline-start: 0;
+  color: red;
 }
 
 .select2-results__options {

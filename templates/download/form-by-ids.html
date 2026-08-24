@@ -43,6 +43,9 @@
         <form method="post" autocomplete="off" id="download-by-ids-form">
             <fieldset>
                 {% csrf_token %}
+                {% if form.non_field_errors %}
+                    <div class="error-msg">{{ form.non_field_errors }}</div>
+                {% endif %}
                 <div class="helptext">
                     In order to download the data for the selected wells, please fill in the information
                     below. This data is only used to analyse the profile of our users and support the
