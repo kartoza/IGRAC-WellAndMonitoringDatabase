@@ -56,23 +56,18 @@ class QualityControlStatisticAPI(BaseStatisticAPI):
                     )
                 ),
             ),
-            quality_no_flag=Count(
+            quality_with_flag=Count(
                 'wellqualitycontrol',
                 filter=Q(
-                    wellqualitycontrol__groundwater_level_time_gap__isnull=(
-                        True
-                    ),
-                    wellqualitycontrol__groundwater_level_value_gap__isnull=(
-                        True
-                    ),
-                    wellqualitycontrol__groundwater_level_strange_value__isnull=(  # noqa: E501
-                        True
-                    ),
+                    wellqualitycontrol__groundwater_level_time_gap__isnull=False
+                ) | Q(
+                    wellqualitycontrol__groundwater_level_value_gap__isnull=False
+                ) | Q(
+                    wellqualitycontrol__groundwater_level_strange_value__isnull=False  # noqa: E501
                 ),
             ),
         )
-        correct_count = stats['total'] - stats['with_quality']
-        no_flag = stats['quality_no_flag'] + correct_count
+        no_flag = stats['total'] - stats['quality_with_flag']
 
         return Response({
             'groundwater_level_time_gap_num': (
@@ -84,5 +79,6 @@ class QualityControlStatisticAPI(BaseStatisticAPI):
             'groundwater_level_strange_value_num': (
                 stats['groundwater_level_strange_value_num']
             ),
+            'with_flag': stats['quality_with_flag'],
             'no_flag': no_flag,
         })

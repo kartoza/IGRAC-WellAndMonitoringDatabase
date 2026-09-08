@@ -250,6 +250,8 @@
                     </tr>
                     <tr>
                         <td class="stat-label">Number of stations with quality flag</td>
+                        <td class="stat-value" data-stat="count_with_flag">-
+                        </td>
                     </tr>
                     <tr class="sub-row">
                         <td class="stat-label">
@@ -345,7 +347,6 @@
 
         const observer = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {
-            console.log(entry)
             if (!entry.isIntersecting) {
               return;
             }
