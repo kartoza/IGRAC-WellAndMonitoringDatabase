@@ -15,6 +15,7 @@
 
   let QUALITY_STAT_FIELDS = {
     no_flag: 'count_no_flag',
+    with_flag: 'count_with_flag',
     groundwater_level_time_gap_num: 'count_groundwater_level_time_gap_num',
     groundwater_level_value_gap_num: 'count_groundwater_level_value_gap_num',
     groundwater_level_strange_value_num:
@@ -479,6 +480,10 @@
   function initWellDashboard(
     organisationStatisticUrl, countryStatisticUrl, qualityControlUrl
   ) {
+    let dataType = getActiveDataTypes();
+    let showGGMN = dataType.showGGMN;
+    let showObservationsRepository = dataType.showObservationsRepository;
+
     qualityControlStatisticUrl = qualityControlUrl;
 
     // Init toggle data type
@@ -524,7 +529,14 @@
     ).done(function (organisationResponse, countryResponse) {
       allOrganisations = (organisationResponse[0] || {}).organisations
         || [];
+
       allCountries = (countryResponse[0] || {}).countries || [];
+      allCountries = allCountries.filter(country => {
+        const stats = countryStats(
+          country, showGGMN, showObservationsRepository
+        ) || {};
+        return stats.count_well > 0;
+      })
 
       let $countriesData = $('#countries-data');
       $countriesData.html(`
