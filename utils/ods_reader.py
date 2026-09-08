@@ -142,6 +142,8 @@ def extract_data(file_path: str, sheet_name: str, receiver):
                                     row_data.append('')
 
                     if row_data[0]:
+                        while row_data and row_data[-1] == '':
+                            row_data.pop()
                         receiver(row_data)
 
                     # Free memory
