@@ -6,7 +6,9 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from gwml2.models.upload_session import UploadSession, UploadSessionRowStatus
+from gwml2.models.upload_session import (
+    UploadSession, UploadSessionCheckpointLog, UploadSessionRowStatus
+)
 from gwml2.tasks.uploader.task import well_batch_upload_create_report
 
 FILE_DELETION_MIN_AGE = timedelta(weeks=1)
@@ -128,7 +130,26 @@ def file_link_with_size(storage, name, url):
     )
 
 
+class UploadSessionCheckpointLogInline(admin.TabularInline):
+    model = UploadSessionCheckpointLog
+    extra = 0
+    fields = ('checkpoint', 'start_at', 'finish_at', 'duration')
+    readonly_fields = ('checkpoint', 'start_at', 'finish_at', 'duration')
+    ordering = ('checkpoint',)
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def duration(self, obj):
+        """Elapsed time for this checkpoint, if it has finished."""
+        if obj.start_at and obj.finish_at:
+            return obj.finish_at - obj.start_at
+        return '-'
+
+
 class UploadSessionAdmin(admin.ModelAdmin):
+    inlines = (UploadSessionCheckpointLogInline,)
     list_display = (
         'uploaded_at',
         'is_adding',

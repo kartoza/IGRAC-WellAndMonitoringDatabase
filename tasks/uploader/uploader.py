@@ -1,8 +1,9 @@
 from celery.utils.log import get_task_logger
+from django.utils.timezone import now
 
 from gwml2.models.upload_session import (
     UploadSession, UploadSessionCancelled, UploadSessionCheckpoint,
-    UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
+    UploadSessionCheckpointLog, UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
 )
 from gwml2.models.well import (
     Well,
@@ -41,6 +42,7 @@ class StepCheckpoint:
         self.step_name = step_name
         self.step_checkpoint = UploadSessionCheckpoint.get_index(step_name)
         self.upload_session = upload_session
+        self.log = None
 
     def __enter__(self):
         """Checkpoint function enter."""
@@ -54,9 +56,22 @@ class StepCheckpoint:
             self.upload_session.checkpoint_ids = []
         self.upload_session.checkpoint = self.step_checkpoint
         self.upload_session.save()
+
+        self.log, _ = UploadSessionCheckpointLog.objects.get_or_create(
+            upload_session=self.upload_session,
+            checkpoint=self.step_checkpoint
+        )
+        self.log.start_at = now()
+        self.log.finish_at = None
+        self.log.save()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        # Only mark finished on a clean exit of a step that actually ran
+        # (not skipped as already-completed from a previous run).
+        if not self.skip and self.log and exc_type is None:
+            self.log.finish_at = now()
+            self.log.save()
         return False
 
 
