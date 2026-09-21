@@ -141,3 +141,53 @@ class MonitoringDataUploaderPersistenceTest(GWML2Test):
                 upload_session=second_session, status=2
             ).count(), 6
         )
+
+    def test_monitoring_data_update_reuses_existing_quantity(self):
+        """is_updating=True must update in place, reusing the Quantity."""
+        MonitoringDataUploader(
+            self.create_upload_session(), 0, 1, file_path=self.file_path
+        )
+        level_aa = WellLevelMeasurement.objects.get(well=self.well_aa)
+        old_quantity_id = level_aa.value_id
+        self.assertIsNotNone(old_quantity_id)
+
+        # Corrupt the saved data to simulate stale values needing update.
+        level_aa.value.value = 999
+        level_aa.value.save()
+        level_aa.methodology = 'OLD METHOD'
+        level_aa.save()
+
+        update_session = self.create_upload_session(is_updating=True)
+        MonitoringDataUploader(update_session, 0, 1, file_path=self.file_path)
+
+        # No duplicate row created; the same measurement was updated.
+        self.assertEqual(WellLevelMeasurement.objects.count(), 2)
+        level_aa.refresh_from_db()
+        self.assertEqual(level_aa.value_id, old_quantity_id)
+        self.assertEqual(level_aa.value.value, 1)
+        self.assertEqual(level_aa.methodology, 'Methodology 1')
+
+        status = json.loads(update_session.status)
+        self.assertEqual(status['Groundwater Level']['added'], 2)
+        self.assertEqual(status['Groundwater Level']['skipped'], 0)
+        self.assertEqual(status['Groundwater Level']['error'], 0)
+
+    def test_monitoring_data_update_creates_quantity_when_missing(self):
+        """is_updating=True must attach a new Quantity if none existed."""
+        MonitoringDataUploader(
+            self.create_upload_session(), 0, 1, file_path=self.file_path
+        )
+        level_aa = WellLevelMeasurement.objects.get(well=self.well_aa)
+        level_aa.value_id = None
+        level_aa.save()
+        level_aa.refresh_from_db()
+        self.assertIsNone(level_aa.value_id)
+
+        update_session = self.create_upload_session(is_updating=True)
+        MonitoringDataUploader(update_session, 0, 1, file_path=self.file_path)
+
+        self.assertEqual(WellLevelMeasurement.objects.count(), 2)
+        level_aa.refresh_from_db()
+        self.assertIsNotNone(level_aa.value_id)
+        self.assertEqual(level_aa.value.value, 1)
+        self.assertEqual(level_aa.value.unit.name, 'm')

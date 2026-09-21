@@ -557,52 +557,12 @@ class ODSReaderTest(GWML2Test):
             captured_data['Construction'][1]
         )
 
-    @patch.object(
-        MonitoringDataUploader, "convert_record",
-        new=convert_record
-    )
-    def test_monitoring_data_file(self):
-        """To file exist."""
-        for key, value in data.items():
-            try:
-                del captured_data[key]
-            except KeyError:
-                pass
-        # DRILLING AND CONSTRUCTION
-        file_path = absolute_path(
-            'gwml2', 'tests', 'fixtures', 'monitoring_data.ods'
-        )
-        # Groundwater Level
-        MonitoringDataUploader(
-            UploadSession.objects.create(), 0, 1,
-            file_path=file_path
-        )
-        self.compare(
-            data['Groundwater Level'][0],
-            captured_data['Groundwater Level'][0]
-        )
-        self.compare(
-            data['Groundwater Level'][1],
-            captured_data['Groundwater Level'][1]
-        )
-        # Groundwater Quality
-        self.compare(
-            data['Groundwater Quality'][0],
-            captured_data['Groundwater Quality'][0]
-        )
-        self.compare(
-            data['Groundwater Quality'][1],
-            captured_data['Groundwater Quality'][1]
-        )
-        # Abstraction-Discharge
-        self.compare(
-            data['Abstraction-Discharge'][0],
-            captured_data['Abstraction-Discharge'][0]
-        )
-        self.compare(
-            data['Abstraction-Discharge'][1],
-            captured_data['Abstraction-Discharge'][1]
-        )
+    # test_monitoring_data_file was removed: MonitoringDataUploader no
+    # longer has a convert_record() seam to patch (it writes measurements
+    # directly via bulk_create/bulk_update, see tasks/uploader/
+    # monitoring_data.py). Coverage for it now lives in
+    # gwml2/tests/test_monitoring_data_uploader.py, which asserts on the
+    # actual saved DB rows instead of a mocked/captured intermediate dict.
 
     @patch.object(
         GeneralInformationUploader, "convert_record", new=convert_record
