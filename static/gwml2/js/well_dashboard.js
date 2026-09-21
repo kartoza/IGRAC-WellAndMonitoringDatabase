@@ -366,19 +366,30 @@
     numberOfStationsChart = Highcharts.chart(
       'dashboard-number-of-stations', {
         chart: {
-          type: 'column',
-          height: 400
+          type: 'bar',
+          height: Math.max(120, categories.length * 20 + 80)
         },
         title: { text: null },
         xAxis: {
-          categories: categories
+          categories: categories,
+          lineWidth: 0,
+          tickLength: 0,
+          labels: {
+            useHTML: true,
+            formatter: function () {
+              let point = data[this.pos];
+              let color = point ? point.color : undefined;
+              return '<span style="font-weight:900;color:' + color + '">' +
+                this.value + '</span>';
+            }
+          }
         },
         yAxis: {
           title: { text: 'Number of stations' }
         },
         legend: { enabled: false },
         plotOptions: {
-          column: {
+          bar: {
             groupPadding: 0,
             pointPadding: 0
           }
