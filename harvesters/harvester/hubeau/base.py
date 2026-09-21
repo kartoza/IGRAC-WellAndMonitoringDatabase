@@ -286,6 +286,8 @@ class HubeauHarvester(BaseHarvester):
                 # Save measurements
                 for measurement in measurements:
                     time = parse(measurement[self.measurement_date_key])
+                    if time.year < 1500:
+                        continue
                     defaults = {
                         'parameter': parameter
                     }
