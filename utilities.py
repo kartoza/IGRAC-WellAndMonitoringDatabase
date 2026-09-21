@@ -2,6 +2,7 @@ import math
 import os
 import subprocess
 import typing
+from datetime import datetime
 from typing import List
 
 from django.db.models import Q
@@ -167,6 +168,30 @@ def make_aware_local(time):
         return make_aware(time)
     except (ValueError, AttributeError):
         return time
+
+
+def parse_float(value):
+    """Parse value into a float, or None if empty/invalid."""
+    if value in (None, ''):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_time(value):
+    """Parse value into a timezone-aware datetime, or None if invalid."""
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return make_aware_local(value)
+    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d'):
+        try:
+            return make_aware_local(datetime.strptime(value, fmt))
+        except (TypeError, ValueError):
+            continue
+    return None
 
 
 def xlsx_to_ods(filename):

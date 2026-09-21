@@ -8,7 +8,7 @@ from gwml2.models.general import Quantity, Unit, UnitGroup
 class QuantityInput(forms.widgets.Input):
     template_name = 'widgets/quantity.html'
     input_type = 'number'
-    unit_group = None
+    unit_group_name = None
     unit_required = True
     quantity_saved = True
 
@@ -17,13 +17,21 @@ class QuantityInput(forms.widgets.Input):
             quantity_saved=True
     ):
         super().__init__(attrs)
-        try:
-            if unit_group:
-                self.unit_group = UnitGroup.objects.get(name=unit_group)
-        except (ProgrammingError, UnitGroup.DoesNotExist):
-            pass
+        self.unit_group_name = unit_group
         self.unit_required = unit_required
         self.quantity_saved = quantity_saved
+
+    @property
+    def unit_group(self):
+        """Resolve the UnitGroup by name on every access."""
+        if not self.unit_group_name:
+            return None
+        try:
+            return UnitGroup.objects.filter(
+                name=self.unit_group_name
+            ).order_by('id').first()
+        except ProgrammingError:
+            return None
 
     def get_context(self, name: str, value: int | Quantity, attrs):
         context = super(QuantityInput, self).get_context(name, value, attrs)

@@ -3,44 +3,40 @@ from django.utils.translation import gettext_lazy as _
 
 from gwml2.models.general import Quantity, Unit
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.utilities import convert_value
+from gwml2.utilities import convert_value, convert_value_by_id
+
+FT_TO_M = 0.3048
 
 
 class Measurement(models.Model):
-    """ Model to hold measurement data
-    """
+    """Model to hold measurement data."""
+
     wagtail_reference_index_ignore = True
 
-    time = models.DateTimeField(
-        _('Time'),
-        null=True, blank=True
-    )
+    time = models.DateTimeField(_("Time"), null=True, blank=True)
     parameter = models.ForeignKey(
-        TermMeasurementParameter, null=True, blank=True,
-        verbose_name=_('Parameter'),
-        on_delete=models.SET_NULL
+        TermMeasurementParameter,
+        null=True,
+        blank=True,
+        verbose_name=_("Parameter"),
+        on_delete=models.SET_NULL,
     )
     methodology = models.CharField(
-        _('Methodology'),
-        null=True, blank=True, max_length=200,
+        _("Methodology"),
+        null=True,
+        blank=True,
+        max_length=200,
         help_text=_(
-            "Explain the methodology used to collect the data, in the field and eventually in the lab.")
+            "Explain the methodology used to collect the data, in the field and eventually in the lab."
+        ),
     )
     value = models.OneToOneField(
-        Quantity, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        verbose_name=_('Value')
+        Quantity, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Value")
     )
 
     # Default unit, to atomic all value in same units
-    default_unit = models.ForeignKey(
-        Unit,
-        null=True, blank=True,
-        on_delete=models.SET_NULL
-    )
-    default_value = models.FloatField(
-        null=True, blank=True
-    )
+    default_unit = models.ForeignKey(Unit, null=True, blank=True, on_delete=models.SET_NULL)
+    default_value = models.FloatField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -48,16 +44,14 @@ class Measurement(models.Model):
     def set_default_value(self, init=False):
         """Set default."""
         if init and self.default_unit:
-            return 'skip'
+            return "skip"
         if self.value and self.parameter:
             if not self.parameter.default_unit:
                 self.default_unit = None
                 self.default_value = self.value.value
             else:
                 if self.parameter.default_unit != self.default_unit:
-                    value = convert_value(
-                        self.value, self.parameter.default_unit
-                    )
+                    value = convert_value(self.value, self.parameter.default_unit)
                     if value and value.unit != self.default_unit:
                         self.default_unit = value.unit
                         self.default_value = value.value
@@ -73,6 +67,7 @@ class Measurement(models.Model):
     def longest_days_gap(cls, well_id, parameter_id=None):
         """Return quality check for time gap in days."""
         from django.db import connections
+
         query = f"""
             SELECT
                 parameter_id,
@@ -90,23 +85,23 @@ class Measurement(models.Model):
                     ) AS prev_time
                 FROM {cls._meta.db_table}
                 WHERE well_id = {well_id}
-                  {f"AND parameter_id = {parameter_id}" if parameter_id else ''}
+                  {f"AND parameter_id = {parameter_id}" if parameter_id else ""}
                   AND time IS NOT NULL
             ) sub
             WHERE prev_time IS NOT NULL
             ORDER BY gap_in_days DESC
             LIMIT 1;
         """
-        with connections['gwml2'].cursor() as cursor:
+        with connections["gwml2"].cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
             try:
                 value = rows[0]
                 return {
                     "parameter_id": value[0],
-                    "current": value[1].strftime('%Y-%m-%d %H:%M:%S'),
-                    "previous": value[2].strftime('%Y-%m-%d %H:%M:%S'),
-                    "gap": float(value[3])
+                    "current": value[1].strftime("%Y-%m-%d %H:%M:%S"),
+                    "previous": value[2].strftime("%Y-%m-%d %H:%M:%S"),
+                    "gap": float(value[3]),
                 }
             except (KeyError, IndexError):
                 return None
@@ -114,10 +109,11 @@ class Measurement(models.Model):
     @classmethod
     def longest_level_gap(cls, well_id, parameter_id=None):
         """Return quality check for value gap."""
-        if cls._meta.db_table != 'well_level_measurement':
-            raise ValueError('Just for well_level_measurement.')
+        if cls._meta.db_table != "well_level_measurement":
+            raise ValueError("Just for well_level_measurement.")
 
         from django.db import connections
+
         query = f"""
             SELECT
                 parameter_id,
@@ -137,24 +133,24 @@ class Measurement(models.Model):
                     ) AS prev_value
                 FROM well_level_measurement
                 WHERE well_id = {well_id}
-                  {f"AND parameter_id = {parameter_id}" if parameter_id else ''}
+                  {f"AND parameter_id = {parameter_id}" if parameter_id else ""}
                   AND value_in_m IS NOT NULL
             ) sub
             WHERE prev_value IS NOT NULL
             ORDER BY gap DESC
             LIMIT 1;
         """
-        with connections['gwml2'].cursor() as cursor:
+        with connections["gwml2"].cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
             try:
                 value = rows[0]
                 return {
                     "parameter_id": value[0],
-                    "time": value[1].strftime('%Y-%m-%d %H:%M:%S'),
+                    "time": value[1].strftime("%Y-%m-%d %H:%M:%S"),
                     "current": value[2],
                     "previous": value[3],
-                    "gap": float(value[4])
+                    "gap": float(value[4]),
                 }
             except (KeyError, IndexError):
                 return None
@@ -162,10 +158,11 @@ class Measurement(models.Model):
     @classmethod
     def strange_value(cls, well_id, sql_filter):
         """Return quality check for value gap."""
-        if cls._meta.db_table != 'well_level_measurement':
-            raise ValueError('Just for well_level_measurement.')
+        if cls._meta.db_table != "well_level_measurement":
+            raise ValueError("Just for well_level_measurement.")
 
         from django.db import connections
+
         query = f"""
             SELECT
                 parameter_id,
@@ -174,13 +171,47 @@ class Measurement(models.Model):
             FROM well_level_measurement
             WHERE well_id = {well_id} AND ({sql_filter});
         """
-        with connections['gwml2'].cursor() as cursor:
+        with connections["gwml2"].cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
             return [
                 {
                     "parameter_id": value[0],
-                    "time": value[1].strftime('%Y-%m-%d %H:%M:%S'),
-                    "value": value[2]
-                } for value in rows
+                    "time": value[1].strftime("%Y-%m-%d %H:%M:%S"),
+                    "value": value[2],
+                }
+                for value in rows
             ]
+
+    @staticmethod
+    def apply_derived_fields(data, is_level_measurement, unit_conversions=None):
+        """Update data for some derived data. Returns an updated dict."""
+        parameter = data["parameter"]
+        unit = data["unit"]
+        value = data["value"]
+        unit_id = unit.id if unit else None
+        default_unit_id = parameter.default_unit_id
+
+        result = dict(data)
+        if not default_unit_id:
+            result["default_value"] = value
+            result["default_unit_id"] = None
+        else:
+            formula = None
+            if unit_conversions is not None:
+                formula = unit_conversions.get((unit_id, default_unit_id))
+            converted, result_unit_id = convert_value_by_id(
+                value, unit_id, default_unit_id, formula=formula
+            )
+            result["default_value"] = converted
+            result["default_unit_id"] = result_unit_id
+
+        if not is_level_measurement:
+            return result
+
+        # Just for level measurment
+        if value is not None and unit is not None:
+            result["value_in_m"] = value * FT_TO_M if unit.name == "ft" else value
+        else:
+            result["value_in_m"] = None
+        return result

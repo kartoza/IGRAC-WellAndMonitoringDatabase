@@ -273,7 +273,8 @@ table.stats-table td.stat-value.stat-value-unavailable {
   text-align: center;
 }
 
-#dashboard-length-of-time-series {
+#dashboard-length-of-time-series,
+#dashboard-number-of-stations {
   padding: 2px;
 }
 

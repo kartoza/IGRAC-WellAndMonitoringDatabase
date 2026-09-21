@@ -637,3 +637,25 @@ class UploadSessionRowStatus(models.Model):
         except Exception as e:
             print(f'{e}')
             pass
+
+
+class UploadSessionCheckpointLog(models.Model):
+    """Timing log for each checkpoint phase of an upload session."""
+
+    upload_session = models.ForeignKey(
+        UploadSession, on_delete=models.CASCADE
+    )
+    checkpoint = models.IntegerField(
+        choices=UploadSessionCheckpoint.STEP_CHECKPOINT_CHOICES
+    )
+    start_at = models.DateTimeField(null=True, blank=True)
+    finish_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Upload session checkpoint logs'
+        verbose_name = 'Upload session checkpoint log'
+        db_table = 'upload_session_checkpoint_log'
+        unique_together = ['upload_session', 'checkpoint']
+
+    def __str__(self):
+        return f'{self.upload_session_id} - {self.get_checkpoint_display()}'
