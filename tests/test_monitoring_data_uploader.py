@@ -1,11 +1,4 @@
-"""Test that MonitoringDataUploader actually persists data to the database.
-
-gwml2/tests/test_ods_reader.py only checks that rows are *parsed* correctly
-by patching `convert_record` to capture data and then raise an exception,
-which means the real save path (well matching, `get_object`, `update_data`
--> `edit_well`) is never exercised there. These tests run the uploader for
-real, without any mocking, and assert on the resulting DB rows.
-"""
+"""Test that MonitoringDataUploader actually persists data to the database."""
 import json
 
 from core.settings.utils import absolute_path
@@ -120,9 +113,6 @@ class MonitoringDataUploaderPersistenceTest(GWML2Test):
         self.assertEqual(WellQualityMeasurement.objects.count(), 2)
         self.assertEqual(WellYieldMeasurement.objects.count(), 2)
 
-        # A fresh session (is_adding=True, is_updating=False by default)
-        # re-uploading the same file should find the existing measurements
-        # via get_object() and skip them instead of creating duplicates.
         second_session = self.create_upload_session()
         MonitoringDataUploader(second_session, 0, 1, file_path=self.file_path)
 
@@ -160,7 +150,6 @@ class MonitoringDataUploaderPersistenceTest(GWML2Test):
         update_session = self.create_upload_session(is_updating=True)
         MonitoringDataUploader(update_session, 0, 1, file_path=self.file_path)
 
-        # No duplicate row created; the same measurement was updated.
         self.assertEqual(WellLevelMeasurement.objects.count(), 2)
         level_aa.refresh_from_db()
         self.assertEqual(level_aa.value_id, old_quantity_id)

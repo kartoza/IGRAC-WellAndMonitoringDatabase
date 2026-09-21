@@ -2,26 +2,19 @@ from celery.utils.log import get_task_logger
 from django.utils.timezone import now
 
 from gwml2.models.upload_session import (
-    UploadSession, UploadSessionCancelled, UploadSessionCheckpoint,
-    UploadSessionCheckpointLog, UPLOAD_SESSION_CATEGORY_MONITORING_UPLOAD
+    UploadSession,
+    UploadSessionCancelled,
+    UploadSessionCheckpoint,
+    UploadSessionCheckpointLog,
 )
 from gwml2.models.well import (
     Well,
-    WellLevelMeasurement,
-    WellQualityMeasurement,
-    WellYieldMeasurement
 )
 from gwml2.models.well_materialized_view import MaterializedViewWell
 from gwml2.tasks.well_file_cache import generate_data_well_cache
-from gwml2.tasks.well_file_cache.country_recache import (
-    generate_data_country_cache
-)
-from gwml2.tasks.well_file_cache.organisation_cache import (
-    generate_data_organisation_cache
-)
-from gwml2.utils.generate_dem_well_value import (
-    assign_glo_90m_elevation
-)
+from gwml2.tasks.well_file_cache.country_recache import generate_data_country_cache
+from gwml2.tasks.well_file_cache.organisation_cache import generate_data_organisation_cache
+from gwml2.utils.generate_dem_well_value import assign_glo_90m_elevation
 from igrac_api.tasks.cache_istsos import cache_istsos
 
 logger = get_task_logger(__name__)
@@ -35,6 +28,7 @@ class TermNotFound(Exception):
 
 class StepCheckpoint:
     """Step checkpoint for upload session."""
+
     skip = False
 
     def __init__(self, step_name, upload_session: UploadSession):
@@ -58,8 +52,7 @@ class StepCheckpoint:
         self.upload_session.save()
 
         self.log, _ = UploadSessionCheckpointLog.objects.get_or_create(
-            upload_session=self.upload_session,
-            checkpoint=self.step_checkpoint
+            upload_session=self.upload_session, checkpoint=self.step_checkpoint
         )
         self.log.start_at = now()
         self.log.finish_at = None
@@ -67,8 +60,6 @@ class StepCheckpoint:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Only mark finished on a clean exit of a step that actually ran
-        # (not skipped as already-completed from a previous run).
         if not self.skip and self.log and exc_type is None:
             self.log.finish_at = now()
             self.log.save()
@@ -78,12 +69,7 @@ class StepCheckpoint:
 class BatchUploader:
     """Batch uploader for multiple uploader."""
 
-    def __init__(
-            self,
-            upload_session: UploadSession,
-            uploaders: list,
-            restart: bool = False
-    ):
+    def __init__(self, upload_session: UploadSession, uploaders: list, restart: bool = False):
         self.upload_session = upload_session
         self.uploaders = uploaders
         self.restart = restart
@@ -92,17 +78,13 @@ class BatchUploader:
         try:
             self.process()
         except UploadSessionCancelled:
-            self.upload_session.update_step('Create report')
+            self.upload_session.update_step("Create report")
             self.upload_session.create_report_excel()
-            self.upload_session.update_step('Cancelled')
+            self.upload_session.update_step("Cancelled")
             MaterializedViewWell.refresh()
             return
         except Exception as error:
-            self.upload_session.update_progress(
-                finished=True,
-                progress=100,
-                status=str(error)
-            )
+            self.upload_session.update_progress(finished=True, progress=100, status=str(error))
             MaterializedViewWell.refresh()
             return
 
@@ -126,13 +108,16 @@ class BatchUploader:
         well_by_id = {}
         min_progress = 5
         interval_progress = 65 / len(uploaders)
-        self.upload_session.update_step('Reading data', min_progress)
+        self.upload_session.update_step("Reading data", min_progress)
         for idx, Uploader in enumerate(uploaders):
             Uploader(
                 upload_session,
-                min_progress, interval_progress,
-                restart, well_by_id, relation_cache,
-                file_path=upload_session.upload_file.path
+                min_progress,
+                interval_progress,
+                restart,
+                well_by_id,
+                relation_cache,
+                file_path=upload_session.upload_file.path,
             )
             min_progress += interval_progress
 
@@ -141,8 +126,7 @@ class BatchUploader:
         # This is specifically for cache well data
         well = Well.objects.get(id=well_id)
         generate_data_well_cache(
-            well_id=well_id, generate_country_cache=False,
-            generate_organisation_cache=False
+            well_id=well_id, generate_country_cache=False, generate_organisation_cache=False
         )
         well.update_metadata()
         well.save()
@@ -155,10 +139,10 @@ class BatchUploader:
         # ------------------------------------
         """
         # Check glo data
-        self.upload_session.update_step('Check well DEM data', 70)
+        self.upload_session.update_step("Check well DEM data", 70)
         assign_glo_90m_elevation(Well.objects.filter(id__in=wells_id))
 
-        self.upload_session.update_step('Running wells cache', 70)
+        self.upload_session.update_step("Running wells cache", 70)
         checkpoint_ids = self.upload_session.checkpoint_ids
         if not checkpoint_ids:
             checkpoint_ids = []
@@ -171,8 +155,8 @@ class BatchUploader:
                 well = Well.objects.get(id=well_id)
                 process_percent = ((index / count) * 10) + 70
                 self.upload_session.update_step(
-                    f'{index} / {count} Running cache for {well.name}',
-                    progress=int(process_percent)
+                    f"{index} / {count} Running cache for {well.name}",
+                    progress=int(process_percent),
                 )
                 if well_id in checkpoint_ids:
                     continue
@@ -188,17 +172,14 @@ class BatchUploader:
         # 3. Cache countries data
         # ------------------------------------
         """
-        self.upload_session.update_step('Running country cache', 80)
+        self.upload_session.update_step("Running country cache", 80)
         checkpoint_ids = self.upload_session.checkpoint_ids
         if not checkpoint_ids:
             checkpoint_ids = []
 
         countries_code = list(
-            Well.objects.filter(
-                id__in=wells_id,
-                country__isnull=False
-            ).values_list(
-                'country__code', flat=True
+            Well.objects.filter(id__in=wells_id, country__isnull=False).values_list(
+                "country__code", flat=True
             )
         )
         countries_code = list(set(countries_code))
@@ -207,8 +188,7 @@ class BatchUploader:
         for index, country_code in enumerate(countries_code):
             process_percent = ((index / count) * 5) + 80
             self.upload_session.update_step(
-                f'Running country cache : {countries_code}',
-                progress=int(process_percent)
+                f"Running country cache : {countries_code}", progress=int(process_percent)
             )
 
             if country_code in checkpoint_ids:
@@ -228,40 +208,35 @@ class BatchUploader:
     def process(self):
         """Process."""
         if self.restart:
-            self.upload_session.status = ''
-            self.upload_session.checkpoint = (
-                UploadSessionCheckpoint.get_index(
-                    UploadSessionCheckpoint.SAVING_DATA
-                )
+            self.upload_session.status = ""
+            self.upload_session.checkpoint = UploadSessionCheckpoint.get_index(
+                UploadSessionCheckpoint.SAVING_DATA
             )
             self.upload_session.progress = 0
-            self.upload_session.step = ''
+            self.upload_session.step = ""
             self.upload_session.save()
 
         # ------------------------------------
         # 1. Saving data
         # ------------------------------------
         with StepCheckpoint(
-                UploadSessionCheckpoint.SAVING_DATA,
-                upload_session=self.upload_session
+            UploadSessionCheckpoint.SAVING_DATA, upload_session=self.upload_session
         ) as checkpoint:
             if not checkpoint.skip:
                 self.saving_data()
 
         # Get the wells id that being saved
         wells_id = list(
-            self.upload_session.uploadsessionrowstatus_set.filter(
-                well__isnull=False
-            ).filter(status=0).values_list(
-                'well_id', flat=True
-            ).distinct()
+            self.upload_session.uploadsessionrowstatus_set.filter(well__isnull=False)
+            .filter(status=0)
+            .values_list("well_id", flat=True)
+            .distinct()
         )
         # ------------------------------------
         # 2. Cache wells data
         # ------------------------------------
         with StepCheckpoint(
-                UploadSessionCheckpoint.CACHE_WELLS,
-                upload_session=self.upload_session
+            UploadSessionCheckpoint.CACHE_WELLS, upload_session=self.upload_session
         ) as checkpoint:
             if not checkpoint.skip:
                 self.cache_wells_data(wells_id)
@@ -270,8 +245,7 @@ class BatchUploader:
         # 3 Cache country data
         # ------------------------------------
         with StepCheckpoint(
-                UploadSessionCheckpoint.CACHE_COUNTRY,
-                upload_session=self.upload_session
+            UploadSessionCheckpoint.CACHE_COUNTRY, upload_session=self.upload_session
         ) as checkpoint:
             if not checkpoint.skip:
                 self.cache_countries_data(wells_id)
@@ -280,13 +254,10 @@ class BatchUploader:
         # 4. Cache organisation data
         # ------------------------------------
         with StepCheckpoint(
-                UploadSessionCheckpoint.CACHE_ORGANISATION,
-                upload_session=self.upload_session
+            UploadSessionCheckpoint.CACHE_ORGANISATION, upload_session=self.upload_session
         ) as checkpoint:
             if not checkpoint.skip and wells_id:
-                self.upload_session.update_step(
-                    'Running organisation cache', 85
-                )
+                self.upload_session.update_step("Running organisation cache", 85)
                 generate_data_organisation_cache(
                     organisation_id=self.upload_session.organisation.id
                 )
@@ -295,26 +266,19 @@ class BatchUploader:
         # 5. Create report
         # ------------------------------------
         with StepCheckpoint(
-                UploadSessionCheckpoint.CREATE_REPORT,
-                upload_session=self.upload_session
+            UploadSessionCheckpoint.CREATE_REPORT, upload_session=self.upload_session
         ) as checkpoint:
             if checkpoint.skip:
                 return
-            self.upload_session.update_step('Create report', 90)
+            self.upload_session.update_step("Create report", 90)
             self.upload_session.create_report_excel()
 
         # ------------------------------------
         # 6. Finish
         # ------------------------------------
-        with StepCheckpoint(
-                UploadSessionCheckpoint.FINISH,
-                upload_session=self.upload_session
-        ):
-            self.upload_session.update_step('Finish', 100)
-            self.upload_session.update_progress(
-                finished=True,
-                progress=100
-            )
+        with StepCheckpoint(UploadSessionCheckpoint.FINISH, upload_session=self.upload_session):
+            self.upload_session.update_step("Finish", 100)
+            self.upload_session.update_progress(finished=True, progress=100)
 
         # ------------------------------------
         # 7. Run the istsos cache for getCapabilities

@@ -24,12 +24,7 @@ logger = get_task_logger(__name__)
 
 
 class MonitoringDataUploader(BaseUploader):
-    """Save well monitoring measurements from excel, in bulk batches.
-
-    Bypasses `edit_well()`/Django forms; writes via bulk_create/
-    bulk_update instead, replicating `value_in_m`/`default_value`
-    manually since those bulk ops skip model save() signals.
-    """
+    """Save well monitoring measurements from excel, in bulk batches."""
 
     UPLOADER_NAME = "Monitoring Data"
     BATCH_SIZE = 5000
@@ -83,9 +78,18 @@ class MonitoringDataUploader(BaseUploader):
             (c.unit_from_id, c.unit_to_id): c.formula for c in UnitConvertion.objects.all()
         }
 
+        sheet_found = False
         for sheet_name in self.SHEETS:
             self.upload_session.update_step(f"{sheet_name} : Reading data")
-            self._process_sheet(sheet_name)
+            if self._process_sheet(sheet_name):
+                sheet_found = True
+
+        if not sheet_found:
+            raise KeyError(
+                f"None of the sheets used by {self.UPLOADER_NAME} "
+                f"({', '.join(self.SHEETS)}) were found in this file. "
+                f"Please check if you use the correct uploader/tab."
+            )
 
     def _get_saved_progress(self, sheet_name):
         try:
@@ -99,7 +103,7 @@ class MonitoringDataUploader(BaseUploader):
             return None
 
     # ------------------------------------------------------------------
-    # Sheet-level orchestration: streamed, batch-at-a-time
+    # Processing per sheet
     # ------------------------------------------------------------------
     def _process_sheet(self, sheet_name):
         """Read a sheet and process it batch-by-batch as rows come in."""
@@ -154,13 +158,9 @@ class MonitoringDataUploader(BaseUploader):
 
             first_row = rows[0][0]
             last_row = rows[-1][0]
-            self.upload_session.update_step(
-                f"{sheet_name} : Processing Row {first_row}"
-            )
+            self.upload_session.update_step(f"{sheet_name} : Processing Row {first_row}")
             affected_wells.update(self._process_batch(sheet_name, rows, progress))
-            self.upload_session.update_step(
-                f"{sheet_name} : Row {first_row} to {last_row} done"
-            )
+            self.upload_session.update_step(f"{sheet_name} : Row {first_row} to {last_row} done")
             self.upload_session.update_status(sheet_name, progress)
             rows = []
 
@@ -173,6 +173,8 @@ class MonitoringDataUploader(BaseUploader):
             Well.objects.filter(
                 id__in=affected_wells, **{f"{flag_field}__in": [None, "no"]}
             ).update(**{flag_field: "yes"})
+
+        return len(headers) >= START_ROW
 
     # ------------------------------------------------------------------
     # Batch processing
@@ -216,20 +218,21 @@ class MonitoringDataUploader(BaseUploader):
         """Resolve wells/units/parameters for a batch's rows."""
         organisation = self.upload_session.organisation
         has_depth = sheet_name == self.HAS_DEPTH_SHEET
-        # Column index per field, needed only to report which cell an
-        # error belongs to (UploadSessionRowStatus.column is an int).
+
         col = {name: idx for idx, name in enumerate(self.get_fields(sheet_name))}
 
         original_ids = {row["original_id"] for _, row in rows}
         original_ids.discard(None)
         original_ids.discard("")
 
-        wells_by_key = {}
+        wells_by_original_id = {}
+        wells_by_original_id_name = {}
         if organisation:
             for well in Well.objects.filter(
                 organisation_id=organisation.id, original_id__in=original_ids
             ):
-                wells_by_key.setdefault((well.original_id, well.name), []).append(well)
+                wells_by_original_id.setdefault(well.original_id, []).append(well)
+                wells_by_original_id_name.setdefault((well.original_id, well.name), []).append(well)
 
         candidates = []
         skipped_no_well = []
@@ -242,12 +245,19 @@ class MonitoringDataUploader(BaseUploader):
             well = None
 
             try:
-                # Per row, get the well
-                well_matches = wells_by_key.get((original_id, name), [])
+                # Per row, get the well by original_id,
+                # if it returns more than 1, check by original_id and name
+                well_matches = wells_by_original_id.get(original_id, [])
                 if len(well_matches) == 1:
                     well = well_matches[0]
                 elif len(well_matches) > 1:
-                    errors[col["original_id"]] = f"Found {len(well_matches)} wells for this ID/name"
+                    name_matches = wells_by_original_id_name.get((original_id, name), [])
+                    if len(name_matches) == 1:
+                        well = name_matches[0]
+                    else:
+                        errors[col["original_id"]] = (
+                            f"Found {len(name_matches) or len(well_matches)} wells for this ID/name"
+                        )
 
                 # If well and not errors
                 if well is None and col["original_id"] not in errors:

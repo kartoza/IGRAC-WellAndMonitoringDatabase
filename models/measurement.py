@@ -9,7 +9,7 @@ FT_TO_M = 0.3048
 
 
 class Measurement(models.Model):
-    """Model to hold measurement data"""
+    """Model to hold measurement data."""
 
     wagtail_reference_index_ignore = True
 
@@ -185,7 +185,7 @@ class Measurement(models.Model):
 
     @staticmethod
     def apply_derived_fields(data, is_level_measurement, unit_conversions=None):
-        """Update data for some derived data. Returns a new dict, doesn't mutate `data`."""
+        """Update data for some derived data. Returns an updated dict."""
         parameter = data["parameter"]
         unit = data["unit"]
         value = data["value"]
