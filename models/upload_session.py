@@ -277,6 +277,10 @@ class UploadSession(LicenseMetadata):
             self.progress = progress
         self.save()
 
+        UploadSessionCheckpointLog.objects.filter(
+            upload_session=self, checkpoint=self.checkpoint, retry=self.retry
+        ).update(step=step)
+
     @property
     def task_status(self):
         """Return task status from celery."""
@@ -648,14 +652,16 @@ class UploadSessionCheckpointLog(models.Model):
     checkpoint = models.IntegerField(
         choices=UploadSessionCheckpoint.STEP_CHECKPOINT_CHOICES
     )
+    retry = models.IntegerField(default=0)
     start_at = models.DateTimeField(null=True, blank=True)
     finish_at = models.DateTimeField(null=True, blank=True)
+    step = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name_plural = 'Upload session checkpoint logs'
         verbose_name = 'Upload session checkpoint log'
         db_table = 'upload_session_checkpoint_log'
-        unique_together = ['upload_session', 'checkpoint']
+        unique_together = ['upload_session', 'checkpoint', 'retry']
 
     def __str__(self):
         return f'{self.upload_session_id} - {self.get_checkpoint_display()}'

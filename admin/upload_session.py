@@ -133,9 +133,11 @@ def file_link_with_size(storage, name, url):
 class UploadSessionCheckpointLogInline(admin.TabularInline):
     model = UploadSessionCheckpointLog
     extra = 0
-    fields = ('checkpoint', 'start_at', 'finish_at', 'duration')
-    readonly_fields = ('checkpoint', 'start_at', 'finish_at', 'duration')
-    ordering = ('checkpoint',)
+    fields = ('retry', 'checkpoint', 'start_at', 'finish_at', 'duration', 'step')
+    readonly_fields = (
+        'retry', 'checkpoint', 'start_at', 'finish_at', 'duration', 'step'
+    )
+    ordering = ('-retry', 'checkpoint')
     can_delete = False
 
     def has_add_permission(self, request, obj=None):

@@ -52,7 +52,9 @@ class StepCheckpoint:
         self.upload_session.save()
 
         self.log, _ = UploadSessionCheckpointLog.objects.get_or_create(
-            upload_session=self.upload_session, checkpoint=self.step_checkpoint
+            upload_session=self.upload_session,
+            checkpoint=self.step_checkpoint,
+            retry=self.upload_session.retry,
         )
         self.log.start_at = now()
         self.log.finish_at = None
