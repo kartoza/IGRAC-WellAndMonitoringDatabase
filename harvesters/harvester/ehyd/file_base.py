@@ -164,7 +164,8 @@ class FileBase(BaseHarvester):
         well = well_metadata['well']
         last_measurement = well_metadata['last_measurement']
 
-        for measurement in data['measurements']:
+        # Block without "Werte:" has no measurements
+        for measurement in data.get('measurements', []):
             # Save measurements
             if last_measurement and \
                     measurement['time'] <= last_measurement.time:
