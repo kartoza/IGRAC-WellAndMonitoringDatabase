@@ -28,15 +28,17 @@ class FileBase(BaseHarvester):
     """Harvester for file sftp that they push to it."""
     updated = False
     folder = settings.SFTP_FOLDER
-    wells_by_original_id = {}
-    wells = []
-    countries = []
 
     def __init__(
             self, harvester: Harvester,
             replace: bool = False,
             original_id: str = None
     ):
+        # Instance-level state so nothing leaks across runs.
+        self.wells_by_original_id = {}
+        # Updated wells keyed by id, so each is post-processed once.
+        self.wells = {}
+        self.countries = []
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
             name=MEASUREMENT_PARAMETER_AMSL
@@ -143,7 +145,7 @@ class FileBase(BaseHarvester):
         self.process_folder(self.folder)
 
         # Process cache
-        for well in self.wells:
+        for well in self.wells.values():
             self._update(f'Processing cache {well.original_id}')
             self.post_processing_well(well)
 
@@ -188,7 +190,7 @@ class FileBase(BaseHarvester):
                 obj.save()
             updated = True
         if updated:
-            self.wells.append(well)
+            self.wells[well.id] = well
 
     def process_measurements(self, path):
         """Process measurements."""
