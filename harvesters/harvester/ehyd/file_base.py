@@ -38,6 +38,8 @@ class FileBase(BaseHarvester):
         self.wells_by_original_id = {}
         # Updated wells keyed by id, so each is post-processed once.
         self.wells = {}
+        # well id -> {(year, month): set of existing times}
+        self.existing_times = {}
         self.countries = []
         self.unit_m = Unit.objects.get(name='m')
         self.parameter = TermMeasurementParameter.objects.get(
@@ -123,13 +125,7 @@ class FileBase(BaseHarvester):
                         'ground level (m above Adriatic Sea)'
                     ]
                 )
-                last_measurement = WellLevelMeasurement.objects.filter(
-                    well=well,
-                ).order_by('-time').first()
-                self.wells_by_original_id[row['ID']] = {
-                    'well': well,
-                    'last_measurement': last_measurement
-                }
+                self.wells_by_original_id[row['ID']] = well
                 if well.drilling:
                     drilling = well.drilling
                 else:
@@ -149,9 +145,53 @@ class FileBase(BaseHarvester):
             self._update(f'Processing cache {well.original_id}')
             self.post_processing_well(well)
 
+    @staticmethod
+    def _month_key(time: datetime):
+        """Return (year, month) key of a time."""
+        return time.year, time.month
+
+    @staticmethod
+    def _month_range(time: datetime):
+        """Return [start, end) of the month of a time, keeping its tz."""
+        start = time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if start.month == 12:
+            end = start.replace(year=start.year + 1, month=1)
+        else:
+            end = start.replace(month=start.month + 1)
+        return start, end
+
+    def get_existing_times(self, well, time: datetime) -> set:
+        """Return existing measurement times of a well in a month.
+
+        Loaded from database once per (well, month) and cached, so
+        overlapping files don't query the same month again.
+        """
+        months = self.existing_times.setdefault(well.id, {})
+        key = self._month_key(time)
+        if key not in months:
+            start, end = self._month_range(time)
+            months[key] = set(
+                WellLevelMeasurement.objects.filter(
+                    well=well,
+                    parameter=self.parameter,
+                    time__gte=start,
+                    time__lt=end
+                ).values_list('time', flat=True)
+            )
+        return months[key]
+
+    def evict_existing_times(self, well, oldest_key):
+        """Drop cached months of a well older than oldest_key.
+
+        Files are processed in ascending order, so months before the
+        earliest month in the current block won't be needed again.
+        """
+        months = self.existing_times.get(well.id, {})
+        for key in [key for key in months if key < oldest_key]:
+            del months[key]
+
     def process_measurement(self, data):
         """Process measurement."""
-        updated = False
         try:
             _id = data['DBMS-Nummer']
         except KeyError:
@@ -159,38 +199,51 @@ class FileBase(BaseHarvester):
 
         self._update(f'Saving measurement for well {_id}')
         try:
-            well_metadata = self.wells_by_original_id[_id]
+            well = self.wells_by_original_id[_id]
         except KeyError:
             print('Not found')
             return
-        well = well_metadata['well']
-        last_measurement = well_metadata['last_measurement']
 
         # Block without "Werte:" has no measurements
-        for measurement in data.get('measurements', []):
-            # Save measurements
-            if last_measurement and \
-                    measurement['time'] <= last_measurement.time:
+        measurements = data.get('measurements', [])
+        if not measurements:
+            return
+
+        self.evict_existing_times(
+            well, min(self._month_key(m['time']) for m in measurements)
+        )
+
+        # Skip times that already exist, including duplicates in the block
+        new_measurements = []
+        for measurement in measurements:
+            existing = self.get_existing_times(well, measurement['time'])
+            if measurement['time'] in existing:
                 continue
-            defaults = {
-                'parameter': self.parameter,
-                'value_in_m': measurement['value']
-            }
-            obj = self._save_measurement(
-                WellLevelMeasurement,
-                measurement['time'],
-                defaults,
-                well
+            existing.add(measurement['time'])
+            new_measurements.append(measurement)
+
+        if not new_measurements:
+            return
+
+        quantities = Quantity.objects.bulk_create([
+            Quantity(unit=self.unit_m, value=measurement['value'])
+            for measurement in new_measurements
+        ])
+        objs = []
+        for measurement, quantity in zip(new_measurements, quantities):
+            obj = WellLevelMeasurement(
+                well=well,
+                parameter=self.parameter,
+                time=measurement['time'],
+                value=quantity,
+                value_in_m=measurement['value']
             )
-            if not obj.value:
-                obj.value = Quantity.objects.create(
-                    unit=self.unit_m,
-                    value=measurement['value']
-                )
-                obj.save()
-            updated = True
-        if updated:
-            self.wells[well.id] = well
+            # bulk_create skips pre_save, so set default value here.
+            # Well counters are refreshed in post_processing_well.
+            obj.set_default_value()
+            objs.append(obj)
+        WellLevelMeasurement.objects.bulk_create(objs)
+        self.wells[well.id] = well
 
     def process_measurements(self, path):
         """Process measurements."""
