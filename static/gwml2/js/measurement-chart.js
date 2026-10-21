@@ -304,20 +304,11 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
                     fixedValue = val
                 }
                 let sign = "";
-                switch ((this.methodology || '').trim().toLowerCase()) {
-                    case "below detection limit":
-                        sign = "<";
-                        break;
-                    case "at or below detection limit":
-                        sign = "≤";
-                        break;
-                    case "above detection limit":
-                        sign = ">";
-                        break;
-                    case "at or above detection limit":
-                        sign = "≥";
-                        break;
-                }
+                const methodologyLower = (this.methodology || '').toLowerCase();
+                if (methodologyLower.includes("at or below detection limit")) sign = "≤";
+                else if (methodologyLower.includes("at or above detection limit")) sign = "≥";
+                else if (methodologyLower.includes("below detection limit")) sign = "<";
+                else if (methodologyLower.includes("above detection limit")) sign = ">";
                 return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${sign}${fixedValue} ${unit}</b><br/>`;
             }
         },
