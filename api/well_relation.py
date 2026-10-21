@@ -55,8 +55,7 @@ class WellRelationListView(View):
 
 class WellMeasurementDataView(View):
     def get(self, request, id, model, *args, **kwargs):
-        """ Return data of measurement
-        """
+        """ Return data of measurement."""
         well = get_object_or_404(Well, id=id)
 
         # This is using new path
