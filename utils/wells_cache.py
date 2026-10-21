@@ -127,6 +127,7 @@ def generate_measurement_data_cache(
                 if measurement['time'] else None
             ),
             'par': parameter,
+            'met': measurement['methodology'] or '',
             'u': unit,
             'v': value,
         }

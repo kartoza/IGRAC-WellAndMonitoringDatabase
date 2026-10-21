@@ -134,6 +134,7 @@ function convertMeasurementData(
         let parameter = row.par;
         let unit = row.u;
         let value = row.v;
+        let methodology = row.met || '';
         value = unitConvert(unit, unit_to, value);
 
         // ------------------------------------------------
@@ -154,7 +155,7 @@ function convertMeasurementData(
                 data[parameter] = []
             }
             data[parameter].unshift(
-                [row.dt * 1000, value]
+                [row.dt * 1000, value, methodology]
             );
         } else {
             if (unit_to !== unit) {
@@ -302,7 +303,22 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
                 if (fixedValue === 0) {
                     fixedValue = val
                 }
-                return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${fixedValue} ${unit}</b><br/>`;
+                let sign = "";
+                switch ((this.methodology || '').trim().toLowerCase()) {
+                    case "below detection limit":
+                        sign = "<";
+                        break;
+                    case "at or below detection limit":
+                        sign = "≤";
+                        break;
+                    case "above detection limit":
+                        sign = ">";
+                        break;
+                    case "at or above detection limit":
+                        sign = "≥";
+                        break;
+                }
+                return `<span style="color:${this.color}">●</span> ${this.series.name}: <b>${sign}${fixedValue} ${unit}</b><br/>`;
             }
         },
         series: [
@@ -310,6 +326,7 @@ function renderMeasurementChart(identifier, chart, data, xLabel, yLabel, stepTre
                 id: 'value',
                 name: title,
                 data: data,
+                keys: ['x', 'y', 'methodology'],
                 fillColor: {
                     linearGradient: {
                         x1: 0,
