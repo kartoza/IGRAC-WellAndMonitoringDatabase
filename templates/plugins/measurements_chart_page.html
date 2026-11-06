@@ -42,9 +42,11 @@
         const $parameters = $('#{{ identifier }}-cw .parameters');
         $.each(parameters_chart, function (header_name, parameters) {
             $parameters.append(`<optgroup label="${header_name}">`)
-            $.each(parameters, function (key, value) {
-                $parameters.append(`<option value="${key}">${value.name}</option>`)
-            });
+            Object.entries(parameters)
+                .sort((a, b) => a[1].name.localeCompare(b[1].name))
+                .forEach(([key, value]) => {
+                    $parameters.append(`<option value="${key}">${value.name}</option>`)
+                });
             $parameters.append(`</optgroup>`)
         });
 
