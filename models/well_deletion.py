@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.db import models
 
 from gwml2.models.well import Well
+from gwml2.models.well_materialized_view import MaterializedViewWell
 
 User = get_user_model()
 
@@ -15,19 +16,10 @@ logger = get_task_logger(__name__)
 class WellDeletion(models.Model):
     """Model contains well deletion."""
 
-    user = models.IntegerField(
-        null=True,
-        blank=True
-    )
+    user = models.IntegerField(null=True, blank=True)
 
-    start_at = models.DateTimeField(
-        default=datetime.now
-    )
-    identifier = models.UUIDField(
-        default=uuid.uuid4,
-        editable=False,
-        null=True
-    )
+    start_at = models.DateTimeField(default=datetime.now)
+    identifier = models.UUIDField(default=uuid.uuid4, editable=False, null=True)
     ids = models.JSONField()
     data = models.JSONField()
     progress = models.IntegerField(default=0)
@@ -35,7 +27,7 @@ class WellDeletion(models.Model):
 
     @property
     def user_val(self):
-        """ return user of uploader """
+        """Return user of uploader"""
         try:
             return User.objects.get(id=self.user)
         except User.DoesNotExist:
@@ -51,13 +43,13 @@ class WellDeletion(models.Model):
         try:
             count = len(self.ids)
             for idx, well_id in enumerate(self.ids):
-                logger.debug(f'{idx}/{count}')
+                logger.debug(f"{idx}/{count}")
                 try:
                     well = Well.objects.get(id=well_id)
-                    title = f'{well_id}/{well.name}'
-                    self.update_note(f'Deleting : {title}')
+                    title = f"{well_id}/{well.name}"
+                    self.update_note(f"Deleting : {title}")
                     well.delete_all_measurements()
-                    self.update_note('Deleting : measurements done')
+                    self.update_note("Deleting : measurements done")
                     well.delete()
                 except Well.DoesNotExist:
                     pass
@@ -68,5 +60,6 @@ class WellDeletion(models.Model):
             self.progress = 100
             self.save()
         except Exception as e:
-            self.update_note(f'{e}')
-            logger.debug(f'{e}')
+            self.update_note(f"{e}")
+            logger.debug(f"{e}")
+        MaterializedViewWell.refresh()
