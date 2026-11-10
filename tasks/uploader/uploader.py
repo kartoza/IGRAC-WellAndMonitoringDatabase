@@ -83,12 +83,11 @@ class BatchUploader:
             self.upload_session.update_step("Create report")
             self.upload_session.create_report_excel()
             self.upload_session.update_step("Cancelled")
-            MaterializedViewWell.refresh()
             return
         except Exception as error:
             self.upload_session.update_progress(finished=True, progress=100, status=str(error))
-            MaterializedViewWell.refresh()
             return
+        MaterializedViewWell.refresh()
 
     def saving_data(self):
         """Saving data.

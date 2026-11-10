@@ -11,85 +11,63 @@ from django.utils.translation import gettext_lazy as _
 from gwml2.models import Unit
 from gwml2.models.term import TermFeatureType
 from gwml2.models.term_measurement_parameter import TermMeasurementParameter
-from gwml2.models.well import Well
 from gwml2.models.well_management.organisation import Organisation
 from gwml2.utils.celery import id_task_is_running
 
-WELL_PROGRESS_FOLDER = os.path.join(
-    settings.GWML2_FOLDER, 'harvester-well-progress'
-)
+WELL_PROGRESS_FOLDER = os.path.join(settings.GWML2_FOLDER, "harvester-well-progress")
 
 
 class Harvester(models.Model):
-    """ Harvester of gwml2 data
-    """
+    """Harvester of gwml2 data"""
+
     harvester_class = models.CharField(
         max_length=100,
-        help_text=_(
-            "The type of harvester that will be used."
-            "Use class with full package.")
+        help_text=_("The type of harvester that will be used.Use class with full package."),
     )
-    name = models.CharField(
-        _('Name'),
-        max_length=100,
-        help_text=_("Name of harvester that.")
-    )
-    description = models.TextField(
-        blank=True, null=True
-    )
+    name = models.CharField(_("Name"), max_length=100, help_text=_("Name of harvester that."))
+    description = models.TextField(blank=True, null=True)
     organisation = models.ForeignKey(
         Organisation,
-        blank=True, null=True,
+        blank=True,
+        null=True,
         on_delete=models.SET_NULL,
         help_text=_(
-            "Organisation for this harvester. "
-            "It will be used as default of well's organisation")
+            "Organisation for this harvester. It will be used as default of well's organisation"
+        ),
     )
     feature_type = models.ForeignKey(
-        TermFeatureType, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        help_text=_(
-            'Default feature type for the extracted wells.')
+        TermFeatureType,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        help_text=_("Default feature type for the extracted wells."),
     )
     active = models.BooleanField(
-        default=True,
-        help_text=_(
-            "Make this harvester ready to be harvested periodically.")
+        default=True, help_text=_("Make this harvester ready to be harvested periodically.")
     )
-    is_run = models.BooleanField(
-        default=False,
-        help_text=_("Is the harvester running.")
-    )
+    is_run = models.BooleanField(default=False, help_text=_("Is the harvester running."))
 
     save_missing_well = models.BooleanField(
-        default=False,
-        help_text=_('Indicate that this harvester saves missing well.')
+        default=False, help_text=_("Indicate that this harvester saves missing well.")
     )
 
     # TODO:
     #  We remove this after permissions has been merged
     public = models.BooleanField(
         default=True,
-        help_text=_(
-            'Default indicator for : well can be viewed by '
-            'non organisation user.'
-        )
+        help_text=_("Default indicator for : well can be viewed by non organisation user."),
     )
     downloadable = models.BooleanField(
-        default=True,
-        help_text=_('Default indicator : well can be downloaded.')
+        default=True, help_text=_("Default indicator : well can be downloaded.")
     )
 
     wagtail_reference_index_ignore = True
 
-    task_id = models.TextField(
-        blank=True,
-        null=True
-    )
+    task_id = models.TextField(blank=True, null=True)
 
     class Meta:
-        db_table = 'harvester'
-        unique_together = ('harvester_class', 'name')
+        db_table = "harvester"
+        unique_together = ("harvester_class", "name")
 
     def __str__(self):
         return self.harvester_class
@@ -99,22 +77,19 @@ class Harvester(models.Model):
         return import_string(self.harvester_class)
 
     def run(self, replace=False, original_id=None):
-        """ Run the harvester if active."""
+        """Run the harvester if active."""
         try:
             if self.active and self.organisation:
                 self.get_harvester_class(self, replace, original_id)
             elif not self.active:
-                raise Exception('Harvester is not active')
+                raise Exception("Harvester is not active")
             elif not self.organisation:
-                raise Exception('Organisation is not setup')
+                raise Exception("Organisation is not setup")
         except Exception as e:
             self.task_id = None
             self.save()
             HarvesterLog.objects.create(
-                harvester=self,
-                status=ERROR,
-                end_time=timezone.now(),
-                note=f'{e}'
+                harvester=self, status=ERROR, end_time=timezone.now(), note=f"{e}"
             )
 
     def save(self, *args, **kwargs):
@@ -122,11 +97,7 @@ class Harvester(models.Model):
         harvester = self.get_harvester_class
         for key, value in harvester.additional_attributes().items():
             HarvesterAttribute.objects.get_or_create(
-                harvester=self,
-                name=key,
-                defaults={
-                    'value': value
-                }
+                harvester=self, name=key, defaults={"value": value}
             )
 
     @property
@@ -170,69 +141,47 @@ class Harvester(models.Model):
     def reset(self):
         """Reset harvester."""
         self.is_run = False
-        self.harvesterlog_set.filter(status=RUNNING).update(
-            status=ERROR, note='Worker stopped'
-        )
+        self.harvesterlog_set.filter(status=RUNNING).update(status=ERROR, note="Worker stopped")
         self.save()
 
 
 class HarvesterAttribute(models.Model):
-    """ Additional attribute for harvester"""
-    harvester = models.ForeignKey(
-        Harvester, on_delete=models.CASCADE
-    )
-    name = models.CharField(
-        max_length=100,
-        help_text=_(
-            "The name of attribute")
-    )
-    value = models.TextField(
-        null=True, default=True,
-        help_text=_(
-            "The value of attribute")
-    )
+    """Additional attribute for harvester"""
+
+    harvester = models.ForeignKey(Harvester, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100, help_text=_("The name of attribute"))
+    value = models.TextField(null=True, default=True, help_text=_("The value of attribute"))
 
     class Meta:
-        db_table = 'harvester_attribute'
-        unique_together = ('harvester', 'name')
+        db_table = "harvester_attribute"
+        unique_together = ("harvester", "name")
 
 
 class HarvesterParameterMap(models.Model):
     """Mapping parameters for harvester with igrac parameter and unit."""
-    harvester = models.ForeignKey(
-        Harvester, on_delete=models.CASCADE
-    )
-    key = models.CharField(
-        max_length=512,
-        help_text=_("The key on the api")
-    )
-    parameter = models.ForeignKey(
-        TermMeasurementParameter, on_delete=models.CASCADE
-    )
-    unit = models.ForeignKey(
-        Unit, null=True, blank=True, on_delete=models.CASCADE
-    )
+
+    harvester = models.ForeignKey(Harvester, on_delete=models.CASCADE)
+    key = models.CharField(max_length=512, help_text=_("The key on the api"))
+    parameter = models.ForeignKey(TermMeasurementParameter, on_delete=models.CASCADE)
+    unit = models.ForeignKey(Unit, null=True, blank=True, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = 'harvester_parameter_map'
-        unique_together = ('harvester', 'key')
-        ordering = ('key',)
+        db_table = "harvester_parameter_map"
+        unique_together = ("harvester", "key")
+        ordering = ("key",)
 
     @staticmethod
     def get_json(harvester: Harvester) -> dict:
         """Return json of attribute."""
         return {
-            obj.key: {
-                "parameter": obj.parameter,
-                "unit": obj.unit
-            }
+            obj.key: {"parameter": obj.parameter, "unit": obj.unit}
             for obj in harvester.harvesterparametermap_set.all()
         }
 
 
-RUNNING = 'Running'
-ERROR = 'Error'
-DONE = 'Done'
+RUNNING = "Running"
+ERROR = "Error"
+DONE = "Done"
 STATUS = (
     (RUNNING, RUNNING),
     (DONE, DONE),
@@ -241,26 +190,15 @@ STATUS = (
 
 
 class HarvesterLog(models.Model):
-    """ History of harvester """
-    harvester = models.ForeignKey(
-        Harvester, on_delete=models.CASCADE
-    )
+    """History of harvester"""
+
+    harvester = models.ForeignKey(Harvester, on_delete=models.CASCADE)
     start_time = models.DateTimeField(
-        auto_now_add=True,
-        help_text=_(
-            "This is when the harvester is started.")
+        auto_now_add=True, help_text=_("This is when the harvester is started.")
     )
-    end_time = models.DateTimeField(
-        blank=True, null=True
-    )
-    status = models.CharField(
-        max_length=100,
-        choices=STATUS,
-        default=RUNNING
-    )
-    note = models.TextField(
-        blank=True, null=True
-    )
+    end_time = models.DateTimeField(blank=True, null=True)
+    status = models.CharField(max_length=100, choices=STATUS, default=RUNNING)
+    note = models.TextField(blank=True, null=True)
 
     @property
     def well_progress_file_path(self) -> str:
@@ -270,19 +208,23 @@ class HarvesterLog(models.Model):
         regardless of how many wells were already logged, unlike an
         array/JSON column where every append rewrites the whole value.
         """
-        return os.path.join(WELL_PROGRESS_FOLDER, f'{self.pk}.csv')
+        return os.path.join(WELL_PROGRESS_FOLDER, f"{self.pk}.csv")
 
-    def log_well(self, original_id: str, status: str, note: str = ''):
+    def log_well(self, original_id: str, status: str, note: str = ""):
         """Append a per-well progress row to this log's CSV file."""
-        os.makedirs(WELL_PROGRESS_FOLDER, exist_ok=True)
-        path = self.well_progress_file_path
-        is_new = not os.path.exists(path)
-        with open(path, 'a', newline='') as f:
-            writer = csv.writer(f)
-            if is_new:
-                writer.writerow(['id', 'status', 'note'])
-            writer.writerow([original_id, status, note])
+        try:
+            os.makedirs(WELL_PROGRESS_FOLDER, exist_ok=True)
+            path = self.well_progress_file_path
+            is_new = not os.path.exists(path)
+            with open(path, "a", newline="") as f:
+                writer = csv.writer(f)
+                if is_new:
+                    writer.writerow(["id", "status", "note"])
+                writer.writerow([original_id, status, note])
+        except Exception:
+            # Soft error
+            pass
 
     class Meta:
-        db_table = 'harvester_log'
-        ordering = ('-start_time',)
+        db_table = "harvester_log"
+        ordering = ("-start_time",)
