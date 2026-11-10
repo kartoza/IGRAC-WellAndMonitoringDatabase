@@ -4,6 +4,8 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
@@ -228,3 +230,12 @@ class HarvesterLog(models.Model):
     class Meta:
         db_table = "harvester_log"
         ordering = ("-start_time",)
+
+
+@receiver(post_delete, sender=HarvesterLog)
+def harvester_log_deleted(sender, instance, **kwargs):
+    """Remove the well progress CSV file when a log is deleted."""
+    try:
+        os.remove(instance.well_progress_file_path)
+    except OSError:
+        pass
