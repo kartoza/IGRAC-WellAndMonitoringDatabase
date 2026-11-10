@@ -246,6 +246,11 @@ def harvest_data(modeladmin, request, queryset):
 harvest_data.short_description = "Run"
 
 
+def empty_log(modeladmin, request, queryset):
+    for harvester in queryset:
+        harvester.harvesterlog_set.all().delete()
+
+
 @admin.register(Harvester)
 class HarvesterAdmin(admin.ModelAdmin):
     """Admin for Harvester model."""
@@ -266,7 +271,7 @@ class HarvesterAdmin(admin.ModelAdmin):
         "last_log",
     )
     list_editable = ("active",)
-    actions = (harvest_data,)
+    actions = (harvest_data, empty_log)
     ordering = ["name"]
 
     def get_urls(self):
