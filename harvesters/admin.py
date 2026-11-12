@@ -168,6 +168,15 @@ SCOTLAND_SEPA_LEVEL_MEASUREMENTS = (
     None,
 )
 
+# ---------------------------------------------
+# ENGLAND
+# ---------------------------------------------
+ENGLAND_LEVEL_MEASUREMENTS = (
+    "gwml2.harvesters.harvester.england.level.EnglandLevelHarvester",
+    "(England) Hydrology Level Measurements",
+    None,
+)
+
 HARVESTERS = (
     AZULBHD,
     EHYD,
@@ -189,6 +198,7 @@ HARVESTERS = (
     SGU_SPRINGS_API,
     CIDA_USGS_WATER_LEVEL,
     SCOTLAND_SEPA_LEVEL_MEASUREMENTS,
+    ENGLAND_LEVEL_MEASUREMENTS,
 )
 HARVESTERS_CHOICES = ((harvester[0], harvester[1]) for harvester in HARVESTERS)
 

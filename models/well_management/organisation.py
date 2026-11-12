@@ -88,6 +88,8 @@ class Organisation(LicenseMetadata):
                 updated = True
         super().save(*args, **kwargs)
         if updated:
+            from gwml2.utils.management_commands import refresh_mv_well_background
+            refresh_mv_well_background()
             self.update_ggis_uid_background()
 
     @property
