@@ -3,6 +3,9 @@
 API: https://environment.data.gov.uk/hydrology/doc/reference
 """
 
+from datetime import datetime
+from typing import Optional
+
 import requests
 
 from gwml2.harvesters.harvester.base import BaseHarvester
@@ -11,11 +14,14 @@ from gwml2.models import (
     MEASUREMENT_PARAMETER_AMSL,
     TermMeasurementParameter,
     Unit,
+    Well,
+    WellLevelMeasurement,
 )
 from gwml2.models.general import Quantity
 from gwml2.models.geology import Geology
 from gwml2.models.term import TermReferenceElevationType, TermWellStatus
 from gwml2.models.well import HydrogeologyParameter
+from gwml2.utilities import make_aware_local
 
 
 class EnglandLevelHarvester(BaseHarvester):
@@ -26,9 +32,10 @@ class EnglandLevelHarvester(BaseHarvester):
 
     offset_attribute_key = "offset"
     LIMIT = 10000
+    TIMEOUT = 120
 
     def __init__(self, harvester: Harvester, replace: bool = False, original_id: str = None):
-        """Save the harvester for scotland SEPA."""
+        """Save the harvester for England - Environment Agency Hydrology API."""
         self.level_parameter = TermMeasurementParameter.objects.get(name=MEASUREMENT_PARAMETER_AMSL)
         try:
             self.unit = Unit.objects.get(name="m")
@@ -47,8 +54,27 @@ class EnglandLevelHarvester(BaseHarvester):
                 "observedProperty": "groundwaterLevel",
                 "_offset": self.current_offset,
             },
+            timeout=self.TIMEOUT,
         )
-        return response.json()["items"]
+        response.raise_for_status()
+        return response.json().get("items", [])
+
+    def get_measurements(self, measurement_url: str, offset=0, from_date: str | None = ""):
+        """Return measurements."""
+        measurement_url = measurement_url.replace("http://", "https://")
+        params = {
+            "_limit": self.LIMIT,
+            "_offset": offset,
+        }
+        if from_date:
+            params["min-dateTime"] = from_date
+        response = requests.get(
+            measurement_url + "/readings.json",
+            params=params,
+            timeout=self.TIMEOUT,
+        )
+        response.raise_for_status()
+        return response.json().get("items", [])
 
     def get_status(self, station) -> TermWellStatus | None:
         """Return TermWellStatus from station status label.
@@ -67,6 +93,97 @@ class EnglandLevelHarvester(BaseHarvester):
                 self.statuses[key] = TermWellStatus.objects.filter(name__iexact=label).first()
             if self.statuses[key]:
                 return self.statuses[key]
+        return None
+
+    def process_measurements(self, station, well: Well) -> bool:
+        """Process measurements."""
+        updated = False
+        measurement_types = [
+            measure
+            for measure in station.get("measures", [])
+            if measure.get("parameter") == "level"
+        ]
+        default_measure_id = None
+        for measure in measurement_types:
+            measure_id = measure.get("@id", "")
+            if "-gw-dipped-" in measure_id:
+                default_measure_id = measure_id
+                break
+
+        if measurement_types and not default_measure_id:
+            default_measure_id = measurement_types[0].get("@id", "")
+        original_id = station["wiskiID"]
+
+        # Save measurements
+        if default_measure_id:
+            offset = 0
+            last_measurement: Optional[datetime] = (
+                well.welllevelmeasurement_set.order_by("-time")
+                .values_list("time", flat=True)
+                .first()
+            )
+            from_date = None
+            if last_measurement:
+                from_date = last_measurement.isoformat()
+            self._update(
+                f"Found measure for {original_id} : {default_measure_id or '-'} "
+                f"with from date {from_date or 'start'}"
+            )
+
+            # Get measurements
+            while True:
+                response_measurements = self.get_measurements(
+                    default_measure_id, offset=offset, from_date=from_date
+                )
+
+                # Filter by quality and convert to [time, value]
+                measurements = []
+                for measurement in response_measurements:
+                    value = measurement.get("value", None)
+                    quality = measurement.get("quality", None)
+                    if not quality or value is None:
+                        continue
+                    time = self.parse_time(measurement)
+                    if not time:
+                        continue
+                    if last_measurement and make_aware_local(time) <= last_measurement:
+                        continue
+                    measurements.append([time, value])
+
+                # We save bulk
+                self._update(f"Found measurements : {len(measurements)}")
+                if measurements:
+                    self._bulk_save(
+                        original_id,
+                        well,
+                        measurements,
+                        WellLevelMeasurement,
+                        self.level_parameter,
+                        self.unit,
+                    )
+                    updated = True
+
+                # Last page when returned less than limit
+                if len(response_measurements) < self.LIMIT:
+                    break
+                offset += self.LIMIT
+        return updated
+
+    @staticmethod
+    def parse_time(measurement) -> datetime | None:
+        """Return time from dateTime, fallback to date at 00:00:00."""
+        date_time = measurement.get("dateTime")
+        if date_time:
+            try:
+                return datetime.fromisoformat(date_time)
+            except ValueError:
+                pass
+        date = measurement.get("date")
+        if date:
+            try:
+                return datetime.strptime(date, "%Y-%m-%d")
+            except ValueError:
+                pass
         return None
 
     def _process(self):
@@ -138,6 +255,13 @@ class EnglandLevelHarvester(BaseHarvester):
                     if status:
                         well.status = status
                     well.save()
+
+                    # Process measurements
+                    updated = self.process_measurements(station, well)
+                    if updated:
+                        self.post_processing_well(well)
+                    else:
+                        self.log.log_well(original_id, "Empty", "No measurements found")
                 except Exception as e:
                     self.log.log_well(original_id, "Error", str(e))
 
