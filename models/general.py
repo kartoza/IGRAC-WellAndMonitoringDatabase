@@ -46,6 +46,18 @@ class Country(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        """On save, when name changed, refresh mv_well_background."""
+        updated = False
+        if self.pk:
+            old = Country.objects.get(pk=self.pk)
+            if old.name != self.name:
+                updated = True
+        super().save(*args, **kwargs)
+        if updated:
+            from gwml2.utils.management_commands import refresh_mv_well_background
+            refresh_mv_well_background()
+
     class Meta:
         verbose_name_plural = 'Countries'
         verbose_name = 'Country'

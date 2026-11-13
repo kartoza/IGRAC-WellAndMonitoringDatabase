@@ -215,6 +215,7 @@ class HarvesterLog(models.Model):
     def log_well(self, original_id: str, status: str, note: str = ""):
         """Append a per-well progress row to this log's CSV file."""
         try:
+            print(f"{status} : {note}")
             os.makedirs(WELL_PROGRESS_FOLDER, exist_ok=True)
             path = self.well_progress_file_path
             is_new = not os.path.exists(path)
@@ -223,8 +224,9 @@ class HarvesterLog(models.Model):
                 if is_new:
                     writer.writerow(["id", "status", "note"])
                 writer.writerow([original_id, status, note])
-        except Exception:
+        except Exception as e:
             # Soft error
+            print(f"{e}")
             pass
 
     class Meta:

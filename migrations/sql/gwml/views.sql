@@ -100,4 +100,4 @@ ON (id) id,
     has_level_time_gap,
     has_level_value_gap,
     has_level_strange_value
-from view_well;
+from view_well WITH NO DATA;
