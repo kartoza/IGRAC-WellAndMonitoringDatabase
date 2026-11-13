@@ -3,10 +3,12 @@
 API: https://environment.data.gov.uk/hydrology/doc/reference
 """
 
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, timedelta
 from typing import Optional
 
 import requests
+from django.utils import timezone
 
 from gwml2.harvesters.harvester.base import BaseHarvester
 from gwml2.harvesters.models import Harvester
@@ -59,7 +61,13 @@ class EnglandLevelHarvester(BaseHarvester):
         response.raise_for_status()
         return response.json().get("items", [])
 
-    def get_measurements(self, measurement_url: str, offset=0, from_date: str | None = ""):
+    def get_measurements(
+        self,
+        measurement_url: str,
+        offset=0,
+        from_date: str | None = "",
+        date_param: str = "min-dateTime",
+    ):
         """Return measurements."""
         measurement_url = measurement_url.replace("http://", "https://")
         params = {
@@ -67,7 +75,7 @@ class EnglandLevelHarvester(BaseHarvester):
             "_offset": offset,
         }
         if from_date:
-            params["min-dateTime"] = from_date
+            params[date_param] = from_date
         response = requests.get(
             measurement_url + "/readings.json",
             params=params,
@@ -116,6 +124,8 @@ class EnglandLevelHarvester(BaseHarvester):
 
         # Save measurements
         if default_measure_id:
+            # Logged is sub-daily data, it is saved as daily mean
+            is_logged = "-gw-logged-" in default_measure_id
             offset = 0
             last_measurement: Optional[datetime] = (
                 well.welllevelmeasurement_set.order_by("-time")
@@ -123,21 +133,34 @@ class EnglandLevelHarvester(BaseHarvester):
                 .first()
             )
             from_date = None
+            date_param = "min-dateTime"
             if last_measurement:
-                from_date = last_measurement.isoformat()
+                if is_logged:
+                    # Daily mean is saved at 00:00:00, start from the next day
+                    from_date = (
+                        timezone.localtime(last_measurement).date() + timedelta(days=1)
+                    ).isoformat()
+                    date_param = "mineq-date"
+                else:
+                    from_date = last_measurement.isoformat()
             self._update(
-                f"Found measure for {original_id} : {default_measure_id or '-'} "
+                f"Found measure for {original_id} : {default_measure_id} "
                 f"with from date {from_date or 'start'}"
+                f"{' (daily mean)' if is_logged else ''}"
             )
 
-            # Get measurements
+            # Pull all pages first
+            measurements = []
+            daily_values = defaultdict(list)
             while True:
                 response_measurements = self.get_measurements(
-                    default_measure_id, offset=offset, from_date=from_date
+                    default_measure_id,
+                    offset=offset,
+                    from_date=from_date,
+                    date_param=date_param,
                 )
 
                 # Filter by quality and convert to [time, value]
-                measurements = []
                 for measurement in response_measurements:
                     value = measurement.get("value", None)
                     quality = measurement.get("quality", None)
@@ -148,25 +171,46 @@ class EnglandLevelHarvester(BaseHarvester):
                         continue
                     if last_measurement and make_aware_local(time) <= last_measurement:
                         continue
-                    measurements.append([time, value])
+                    if is_logged:
+                        daily_values[time.date()].append(float(value))
+                    else:
+                        measurements.append([time, value])
 
-                # We save bulk
-                self._update(f"Found measurements : {len(measurements)}")
-                if measurements:
-                    self._bulk_save(
-                        original_id,
-                        well,
-                        measurements,
-                        WellLevelMeasurement,
-                        self.level_parameter,
-                        self.unit,
-                    )
-                    updated = True
-
+                self._update(
+                    f"{original_id} : pulled {offset + len(response_measurements)} readings"
+                )
                 # Last page when returned less than limit
                 if len(response_measurements) < self.LIMIT:
                     break
                 offset += self.LIMIT
+
+            # Daily mean for logged
+            if is_logged:
+                today = timezone.localdate()
+                for date in sorted(daily_values.keys()):
+                    # Today is not complete yet, it will be saved on next run
+                    if date >= today:
+                        continue
+                    values = daily_values[date]
+                    measurements.append(
+                        [
+                            datetime.combine(date, datetime.min.time()),
+                            sum(values) / len(values),
+                        ]
+                    )
+
+            # Save all after pulling everything
+            self._update(f"Found measurements : {len(measurements)}")
+            if measurements:
+                self._bulk_save(
+                    original_id,
+                    well,
+                    measurements,
+                    WellLevelMeasurement,
+                    self.level_parameter,
+                    self.unit,
+                )
+                updated = True
         return updated
 
     @staticmethod

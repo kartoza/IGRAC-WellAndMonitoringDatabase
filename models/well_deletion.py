@@ -48,7 +48,10 @@ class WellDeletion(models.Model):
                     well = Well.objects.get(id=well_id)
                     title = f"{well_id}/{well.name}"
                     self.update_note(f"Deleting : {title}")
-                    well.delete_all_measurements()
+                    well.delete_all_measurements(
+                        progress_callback=self.update_note,
+                        update_metadata=False,
+                    )
                     self.update_note("Deleting : measurements done")
                     well.delete()
                 except Well.DoesNotExist:

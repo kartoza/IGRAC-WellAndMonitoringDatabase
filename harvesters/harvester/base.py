@@ -279,7 +279,9 @@ class BaseHarvester(ABC):
             #     well.save()
 
         if self.replace:
-            well.delete_all_measurements("welllevelmeasurement")
+            well.delete_all_measurements(
+                "welllevelmeasurement", progress_callback=self._update
+            )
 
         if not well.ground_surface_elevation and ground_surface_elevation_masl:
             well.ground_surface_elevation = Quantity.objects.create(

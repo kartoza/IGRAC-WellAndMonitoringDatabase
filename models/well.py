@@ -23,29 +23,29 @@ from gwml2.models.metadata.creation import CreationMetadata
 from gwml2.models.metadata.license_metadata import LicenseMetadataObject
 from gwml2.models.term import TermWellPurpose, TermWellStatus
 from gwml2.models.well_management.organisation import Organisation
-from gwml2.utilities import (
-    Signal, temp_disconnect_signal, temp_disconnect_signals
-)
+from gwml2.utilities import Signal, temp_disconnect_signal, temp_disconnect_signals
 
 GWML2_FOLDER = settings.GWML2_FOLDER
-WELL_FOLDER = os.path.join(GWML2_FOLDER, 'wells-data')
+WELL_FOLDER = os.path.join(GWML2_FOLDER, "wells-data")
 
-MEASUREMENT_PARAMETER_AMSL = 'Water level elevation a.m.s.l.'
-MEASUREMENT_PARAMETER_TOP = 'Water depth [from the top of the well]'
-MEASUREMENT_PARAMETER_GROUND = 'Water depth [from the ground surface]'
+MEASUREMENT_PARAMETER_AMSL = "Water level elevation a.m.s.l."
+MEASUREMENT_PARAMETER_TOP = "Water depth [from the top of the well]"
+MEASUREMENT_PARAMETER_GROUND = "Water depth [from the ground surface]"
 
-MEASEUREMENT_LEVEL = 'WellLevelMeasurement'
-MEASEUREMENT_QUALITY = 'WellQualityMeasurement'
-MEASEUREMENT_YIELD = 'WellYieldMeasurement'
+MEASEUREMENT_LEVEL = "WellLevelMeasurement"
+MEASEUREMENT_QUALITY = "WellQualityMeasurement"
+MEASEUREMENT_YIELD = "WellYieldMeasurement"
 
-YES = 'yes'
-NO = 'no'
+YES = "yes"
+NO = "no"
 
 
 class WellManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(
-            Q(organisation__active=True) | Q(organisation__isnull=True)
+        return (
+            super()
+            .get_queryset()
+            .filter(Q(organisation__active=True) | Q(organisation__isnull=True))
         )
 
 
@@ -53,95 +53,76 @@ class Well(GeneralInformation, CreationMetadata):
     """
     7.6.38 GW_Well
     A shaft or hole sunk, dug or drilled into the Earth to observe, extract or inject water (after
-    IGH1397)."""
+    IGH1397).
+    """
+
     ggis_uid = models.CharField(
-        max_length=512,
-        null=True, blank=True,
-        help_text='organisation name + Original ID'
+        max_length=512, null=True, blank=True, help_text="organisation name + Original ID"
     )
 
     purpose = models.ForeignKey(
-        TermWellPurpose, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        verbose_name=_('Purpose')
+        TermWellPurpose, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Purpose")
     )
     status = models.ForeignKey(
-        TermWellStatus, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        verbose_name=_('Status')
+        TermWellStatus, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_("Status")
     )
-    drilling = models.OneToOneField(
-        Drilling, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
-    geology = models.OneToOneField(
-        Geology, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
+    drilling = models.OneToOneField(Drilling, on_delete=models.SET_NULL, null=True, blank=True)
+    geology = models.OneToOneField(Geology, on_delete=models.SET_NULL, null=True, blank=True)
     construction = models.OneToOneField(
-        Construction, on_delete=models.SET_NULL,
-        null=True, blank=True
+        Construction, on_delete=models.SET_NULL, null=True, blank=True
     )
-    management = models.OneToOneField(
-        Management, on_delete=models.SET_NULL,
-        null=True, blank=True
-    )
+    management = models.OneToOneField(Management, on_delete=models.SET_NULL, null=True, blank=True)
     hydrogeology_parameter = models.OneToOneField(
-        HydrogeologyParameter, on_delete=models.SET_NULL,
-        null=True, blank=True
+        HydrogeologyParameter, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     # this is for management
     organisation = models.ForeignKey(
-        Organisation, on_delete=models.SET_NULL,
-        null=True, blank=True,
-        verbose_name=_('Organisation')
+        Organisation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_("Organisation"),
     )
 
     # First and last measurement time
     first_time_measurement = models.DateTimeField(
-        _('First time measurement'),
-        null=True, blank=True
+        _("First time measurement"), null=True, blank=True
     )
-    last_time_measurement = models.DateTimeField(
-        _('Last time measurement'),
-        null=True, blank=True
-    )
+    last_time_measurement = models.DateTimeField(_("Last time measurement"), null=True, blank=True)
 
     # number of measurement
     number_of_measurements = models.IntegerField(
-        default=0,
-        help_text=_('Indicate how many measurement this well has.')
+        default=0, help_text=_("Indicate how many measurement this well has.")
     )
     number_of_measurements_level = models.IntegerField(
-        default=0,
-        help_text=_('Indicate how many level measurement this well has.')
+        default=0, help_text=_("Indicate how many level measurement this well has.")
     )
     number_of_measurements_quality = models.IntegerField(
-        default=0,
-        help_text=_('Indicate how many quality measurement this well has.')
+        default=0, help_text=_("Indicate how many quality measurement this well has.")
     )
     number_of_measurements_yield = models.IntegerField(
-        default=0,
-        help_text=_('Indicate how many yield measurement this well has.')
+        default=0, help_text=_("Indicate how many yield measurement this well has.")
     )
 
     # Measurement type
     is_groundwater_level = models.CharField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         choices=(
             (YES, YES),
             (NO, NO),
         ),
-        max_length=8
+        max_length=8,
     )
     is_groundwater_quality = models.CharField(
-        null=True, blank=True,
+        null=True,
+        blank=True,
         choices=(
             (YES, YES),
             (NO, NO),
         ),
-        max_length=8
+        max_length=8,
     )
 
     # This is for temporary cache
@@ -155,24 +136,24 @@ class Well(GeneralInformation, CreationMetadata):
         return self.original_id
 
     class Meta:
-        db_table = 'well'
-        ordering = ['original_id']
+        db_table = "well"
+        ordering = ["original_id"]
 
     def assign_country(self, force=False):
         """Assign country to the well."""
         from gwml2.models.general_information import Country
+
         # Autoassign with organisation country
         if (
-                self.organisation and self.organisation.country and
-                self.organisation.country != self.country
+            self.organisation
+            and self.organisation.country
+            and self.organisation.country != self.country
         ):
             self.country = self.organisation.country
             self.save()
         # Check country from the geometry
         elif not self.country or force:
-            country = Country.objects.filter(
-                geometry__contains=self.location
-            ).first()
+            country = Country.objects.filter(geometry__contains=self.location).first()
             if country:
                 self.country = country
                 self.save()
@@ -180,18 +161,13 @@ class Well(GeneralInformation, CreationMetadata):
     def update_ggis_uid(self):
         """Update ggis uid."""
         if self.organisation:
-            self.ggis_uid = '{}-{}'.format(
-                self.organisation.name, self.original_id
-            )
+            self.ggis_uid = "{}-{}".format(self.organisation.name, self.original_id)
 
     def updated(self):
-        """ update time updated when well updated """
+        """Update time updated when well updated"""
         from gwml2.signals.well import update_well
-        with temp_disconnect_signal(
-                signal=post_save,
-                receiver=update_well,
-                sender=Well
-        ):
+
+        with temp_disconnect_signal(signal=post_save, receiver=update_well, sender=Well):
             self.last_edited_at = make_aware(datetime.now())
             self.update_ggis_uid()
             self.assign_country()
@@ -201,29 +177,28 @@ class Well(GeneralInformation, CreationMetadata):
                 pass
 
     def relation_queryset(self, relation_model_name):
-        """ Return queryset of relation of model
-        """
-        if relation_model_name == 'WellDocument':
+        """Return queryset of relation of model"""
+        if relation_model_name == "WellDocument":
             return self.welldocument_set
-        elif relation_model_name == 'WaterStrike':
+        elif relation_model_name == "WaterStrike":
             if self.drilling:
                 return self.drilling.waterstrike_set
-        elif relation_model_name == 'StratigraphicLog':
+        elif relation_model_name == "StratigraphicLog":
             if self.drilling:
                 return self.drilling.stratigraphiclog_set
-        elif relation_model_name == 'ConstructionStructure':
+        elif relation_model_name == "ConstructionStructure":
             if self.construction:
                 return self.construction.constructionstructure_set
-        elif relation_model_name == 'WellLevelMeasurement':
+        elif relation_model_name == "WellLevelMeasurement":
             return self.welllevelmeasurement_set
-        elif relation_model_name == 'WellQualityMeasurement':
+        elif relation_model_name == "WellQualityMeasurement":
             return self.wellqualitymeasurement_set
-        elif relation_model_name == 'WellYieldMeasurement':
+        elif relation_model_name == "WellYieldMeasurement":
             return self.wellyieldmeasurement_set
         return None
 
     def view_permission(self, user):
-        """ Return view permission from user id
+        """Return view permission from user id
 
         :param user: user to be checked
         :type user: User
@@ -234,7 +209,7 @@ class Well(GeneralInformation, CreationMetadata):
         return True
 
     def editor_permission(self, user):
-        """ Return editor permission from user id
+        """Return editor permission from user id
 
         :param user: user to be checked
         :type user: User
@@ -275,30 +250,20 @@ class Well(GeneralInformation, CreationMetadata):
             shutil.rmtree(folder)
 
     def return_measurement_cache_folder(self):
-        return os.path.join(
-            settings.MEASUREMENTS_FOLDER, '{}'.format(self.id)
-        )
+        return os.path.join(settings.MEASUREMENTS_FOLDER, "{}".format(self.id))
 
     def return_measurement_cache_path(self, measurement_name: str):
         """Return a file path of cache file."""
-        return os.path.join(
-            settings.MEASUREMENTS_FOLDER, f'{self.id}-{measurement_name}.gz'
-        )
+        return os.path.join(settings.MEASUREMENTS_FOLDER, f"{self.id}-{measurement_name}.gz")
 
     def assign_first_last(self, query):
         """Assign first and last measurements."""
-        first = query.order_by('time').first()
-        if first and (
-                not self.first_time_measurement or
-                first.time <= self.first_time_measurement
-        ):
+        first = query.order_by("time").first()
+        if first and (not self.first_time_measurement or first.time <= self.first_time_measurement):
             self.first_time_measurement = first.time
 
-        last = query.order_by('time').last()
-        if last and (
-                not self.last_time_measurement or
-                last.time >= self.last_time_measurement
-        ):
+        last = query.order_by("time").last()
+        if last and (not self.last_time_measurement or last.time >= self.last_time_measurement):
             self.last_time_measurement = last.time
 
     def update_metadata(self):
@@ -307,9 +272,9 @@ class Well(GeneralInformation, CreationMetadata):
         self.number_of_measurements_quality = self.wellqualitymeasurement_set.count()
         self.number_of_measurements_yield = self.wellyieldmeasurement_set.count()
         self.number_of_measurements = (
-                self.number_of_measurements_level +
-                self.number_of_measurements_quality +
-                self.number_of_measurements_yield
+            self.number_of_measurements_level
+            + self.number_of_measurements_quality
+            + self.number_of_measurements_yield
         )
         # Resetting first and last measurement time
         self.first_time_measurement = None
@@ -319,16 +284,18 @@ class Well(GeneralInformation, CreationMetadata):
         self.assign_first_last(self.wellqualitymeasurement_set.all())
         self.save(
             update_fields=[
-                'number_of_measurements_level',
-                'number_of_measurements_quality',
-                'number_of_measurements_yield',
-                'number_of_measurements',
-                'first_time_measurement',
-                'last_time_measurement',
+                "number_of_measurements_level",
+                "number_of_measurements_quality",
+                "number_of_measurements_yield",
+                "number_of_measurements",
+                "first_time_measurement",
+                "last_time_measurement",
             ]
         )
 
-    def delete_all_measurements(self, measurement_type: str = None):
+    def delete_all_measurements(
+        self, measurement_type: str = None, progress_callback=None, update_metadata=True
+    ):
         """Delete measurements of this well in bulk.
 
         The post_delete signals on these measurement models fire a
@@ -340,43 +307,69 @@ class Well(GeneralInformation, CreationMetadata):
         :param measurement_type: one of 'welllevelmeasurement',
             'wellqualitymeasurement', 'wellyieldmeasurement'. If not
             given, all three types are deleted.
+        :param progress_callback: function that receives progress message.
+            Default is print.
+        :param update_metadata: update well metadata, measurement type
+            and cache after deleting. Set False when the well will be
+            deleted afterwards.
         """
+        from django.db import router, transaction
+
         from gwml2.models.general import Quantity
         from gwml2.signals.well import (
             post_delete_measurement,
-            post_delete_measurement_trigger_well_update
+            post_delete_measurement_trigger_well_update,
         )
 
         models_to_delete = MEASUREMENT_MODELS
         if measurement_type:
             models_to_delete = [
-                model for model in MEASUREMENT_MODELS
+                model
+                for model in MEASUREMENT_MODELS
                 if model.__name__.lower() == measurement_type.lower()
             ]
             if not models_to_delete:
-                raise ValueError(
-                    f'Unknown measurement_type: {measurement_type}'
+                raise ValueError(f"Unknown measurement_type: {measurement_type}")
+
+        log = progress_callback or print
+        title = f"{self.id}/{self.name}"
+        log(f"Deleting measurements : {title}")
+        for model in models_to_delete:
+            model_name = model.__name__
+            queryset = getattr(self, f"{model_name.lower()}_set")
+            db = router.db_for_write(model)
+            if router.db_for_write(Quantity) != db:
+                raise RuntimeError(
+                    f"{model_name} and Quantity are on different databases"
                 )
 
-        title = f'{self.id}/{self.name}'
-        print(f'Deleting measurements : {title}')
-        for model in models_to_delete:
-            queryset = getattr(self, f'{model.__name__.lower()}_set')
-            with temp_disconnect_signals([
-                Signal(post_delete, post_delete_measurement, model),
-                Signal(
-                    post_delete, post_delete_measurement_trigger_well_update,
-                    model
-                ),
-            ]):
-                quantity_ids = list(
-                    queryset.values_list(
-                        'value_id', flat=True
-                    ).exclude(value_id=None)
-                )
-                Quantity.objects.filter(id__in=quantity_ids).delete()
-                queryset.all().delete()
-        print(f'Deleting measurements done : {title}')
+            # Get all ids in 1 query.
+            rows = list(queryset.order_by().values_list("id", "value_id"))
+            total = len(rows)
+            if not total:
+                continue
+            log(f"Deleting measurements : {model_name} - {total} measurements")
+
+            with temp_disconnect_signals(
+                [
+                    Signal(post_delete, post_delete_measurement, model),
+                    Signal(post_delete, post_delete_measurement_trigger_well_update, model),
+                ]
+            ):
+                # Delete per batch by primary key
+                for start in range(0, total, 10000):
+                    batch = rows[start : start + 10000]
+                    ids = [_id for _id, _ in batch]
+                    quantity_ids = [value_id for _, value_id in batch if value_id]
+                    with transaction.atomic(using=db):
+                        model.objects.filter(id__in=ids).delete()
+                        if quantity_ids:
+                            Quantity.objects.filter(id__in=quantity_ids)._raw_delete(db)
+                    log(f"Deleting {model_name} : {title} {start + len(batch)}/{total}")
+        log(f"Deleting measurements done : {title}")
+
+        if not update_metadata:
+            return
 
         self.update_metadata()
 
@@ -390,23 +383,18 @@ class Well(GeneralInformation, CreationMetadata):
     def is_ggmn(self):
         """Check if the well is ggmn."""
         from gwml2.models.well_management.organisation import OrganisationGroup
+
         organisations = list(
-            OrganisationGroup.get_ggmn_group().organisations.values_list(
-                'id', flat=True
-            )
+            OrganisationGroup.get_ggmn_group().organisations.values_list("id", flat=True)
         )
         return self.organisation and self.organisation.id in organisations
 
     def assign_measurement_type(self):
         """Assign measurement type."""
-        if self.is_groundwater_level in [None, 'no']:
-            self.is_groundwater_level = (
-                'yes' if self.welllevelmeasurement_set.first() else 'no'
-            )
-        if self.is_groundwater_quality in [None, 'no']:
-            self.is_groundwater_quality = (
-                'yes' if self.wellqualitymeasurement_set.first() else 'no'
-            )
+        if self.is_groundwater_level in [None, "no"]:
+            self.is_groundwater_level = "yes" if self.welllevelmeasurement_set.first() else "no"
+        if self.is_groundwater_quality in [None, "no"]:
+            self.is_groundwater_quality = "yes" if self.wellqualitymeasurement_set.first() else "no"
 
     # TODO:
     #  For now we are going to use this to return the license
@@ -421,53 +409,49 @@ class Well(GeneralInformation, CreationMetadata):
     def quality_control(self):
         """Return quality control."""
         from gwml2.models.well_quality_control import WellQualityControl
-        quality_control, _ = WellQualityControl.objects.get_or_create(
-            well=self
-        )
+
+        quality_control, _ = WellQualityControl.objects.get_or_create(well=self)
         return quality_control
 
     @property
     def cache(self):
         """Return cache."""
         from gwml2.models.well_cache_indicator import WellCacheIndicator
-        cache, _ = WellCacheIndicator.objects.get_or_create(
-            well=self
-        )
+
+        cache, _ = WellCacheIndicator.objects.get_or_create(well=self)
         return cache
 
     @property
     def data_cache_folder(self) -> str:
         """Return data cache folder.."""
-        return os.path.join(WELL_FOLDER, f'{self.id}')
+        return os.path.join(WELL_FOLDER, f"{self.id}")
 
 
 # documents
 class WellDocument(Document):
     well = models.ForeignKey(
-        Well, on_delete=models.CASCADE,
+        Well,
+        on_delete=models.CASCADE,
     )
 
     class Meta:
-        db_table = 'well_document'
+        db_table = "well_document"
 
 
 # Monitoring data
 class WellLevelMeasurement(Measurement):
     well = models.ForeignKey(
-        Well, on_delete=models.CASCADE,
+        Well,
+        on_delete=models.CASCADE,
     )
 
     value_in_m = models.FloatField(
-        editable=False,
-        null=False,
-        blank=False,
-        default=0.0,
-        help_text='Converted value in meters'
+        editable=False, null=False, blank=False, default=0.0, help_text="Converted value in meters"
     )
 
     class Meta:
-        db_table = 'well_level_measurement'
-        ordering = ('-time',)
+        db_table = "well_level_measurement"
+        ordering = ("-time",)
         # indexes = [
         #     models.Index(fields=['well', 'time']),
         #     models.Index(fields=['well', 'parameter', 'time']),
@@ -478,7 +462,7 @@ class WellLevelMeasurement(Measurement):
 def update_value_in_m(sender, instance, **kwargs):
     if not instance.value or not instance.value.unit:
         return
-    if instance.value.unit.name == 'ft':
+    if instance.value.unit.name == "ft":
         instance.value_in_m = instance.value.value * 0.3048
     else:
         instance.value_in_m = instance.value.value
@@ -489,19 +473,15 @@ def update_value_in_m(sender, instance, **kwargs):
 
 class WellQualityMeasurement(Measurement):
     well = models.ForeignKey(
-        Well, on_delete=models.CASCADE,
+        Well,
+        on_delete=models.CASCADE,
     )
 
     # Depth
     depth_unit = models.ForeignKey(
-        Unit,
-        null=True, blank=True,
-        on_delete=models.SET_NULL,
-        related_name='+'
+        Unit, null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
-    depth_value = models.FloatField(
-        null=True, blank=True
-    )
+    depth_value = models.FloatField(null=True, blank=True)
 
     @property
     def depth(self) -> Quantity:
@@ -509,8 +489,8 @@ class WellQualityMeasurement(Measurement):
         return Quantity(value=self.depth_value, unit=self.depth_unit)
 
     class Meta:
-        db_table = 'well_quality_measurement'
-        ordering = ('-time',)
+        db_table = "well_quality_measurement"
+        ordering = ("-time",)
         # indexes = [
         #     models.Index(fields=['well', 'parameter', 'time']),
         # ]
@@ -518,17 +498,16 @@ class WellQualityMeasurement(Measurement):
 
 class WellYieldMeasurement(Measurement):
     well = models.ForeignKey(
-        Well, on_delete=models.CASCADE,
+        Well,
+        on_delete=models.CASCADE,
     )
 
     class Meta:
-        db_table = 'well_yield_measurement'
-        ordering = ('-time',)
+        db_table = "well_yield_measurement"
+        ordering = ("-time",)
         # indexes = [
         #     models.Index(fields=['well', 'parameter', 'time']),
         # ]
 
 
-MEASUREMENT_MODELS = [
-    WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement
-]
+MEASUREMENT_MODELS = [WellLevelMeasurement, WellQualityMeasurement, WellYieldMeasurement]

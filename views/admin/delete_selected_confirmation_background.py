@@ -7,7 +7,7 @@ import json
 from django.contrib.admin import helpers
 from django.contrib.admin.sites import AdminSite
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count
+from django.db.models import Count, Sum
 from django.http import HttpResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -15,10 +15,7 @@ from django.utils.translation import gettext as _
 from django.views.generic.list import View
 
 from gwml2.admin.well import WellAdmin
-from gwml2.models.well import (
-    Well,
-    WellLevelMeasurement, WellYieldMeasurement, WellQualityMeasurement
-)
+from gwml2.models.well import Well
 from gwml2.models.well_deletion import WellDeletion
 from gwml2.tasks.well import run_well_deletion
 
@@ -28,17 +25,20 @@ def delete_well_in_background(modeladmin, request, queryset):
         raise PermissionDenied()
 
     opts = modeladmin.model._meta
-    well_count = queryset.count()
     ids = queryset.values_list('id', flat=True)
-    well_level_count = WellLevelMeasurement.objects.filter(
-        well_id__in=ids
-    ).count()
-    well_yield_count = WellYieldMeasurement.objects.filter(
-        well_id__in=ids
-    ).count()
-    well_quality_count = WellQualityMeasurement.objects.filter(
-        well_id__in=ids
-    ).count()
+
+    # Use cached number of measurements on well instead of counting
+    # the measurement tables (which are huge)
+    counts = queryset.order_by().aggregate(
+        well=Count('id'),
+        level=Sum('number_of_measurements_level'),
+        quality=Sum('number_of_measurements_quality'),
+        yield_=Sum('number_of_measurements_yield'),
+    )
+    well_count = counts['well'] or 0
+    well_level_count = counts['level'] or 0
+    well_quality_count = counts['quality'] or 0
+    well_yield_count = counts['yield_'] or 0
     organisations = queryset.values('organisation__name').annotate(
         count=Count('id')
     ).order_by('organisation')
