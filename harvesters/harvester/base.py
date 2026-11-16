@@ -385,7 +385,10 @@ class BaseHarvester(ABC):
     # For bulk save
     # ------------------------------
     def _bulk_save(self, original_id, well, rows_to_save, Model, parameter, unit):
-        """Bulk insert measurements in chunks."""
+        """Bulk insert measurements in chunks.
+
+        Each row is [time, value] or [time, value, methodology].
+        """
         # We filter the data for just having data
         rows_to_save = [row for row in rows_to_save if row[0] is not None and row[1] is not None]
 
@@ -398,15 +401,18 @@ class BaseHarvester(ABC):
                 f"{original_id} : saving {start + 1}-{min(start + CHUNK_SIZE, total)}/{total}"
             )
             quantities = Quantity.objects.bulk_create(
-                [Quantity(value=float(val), unit=unit) for _, val in chunk]
+                [Quantity(value=float(row[1]), unit=unit) for row in chunk]
             )
             measurements = []
-            for (dt, val), qty in zip(chunk, quantities):
+            for row, qty in zip(chunk, quantities):
+                dt, val = row[0], row[1]
+                methodology = row[2] if len(row) > 2 else None
                 m = Model(
                     well=well,
                     time=make_aware_local(dt),
                     parameter=parameter,
                     value=qty,
+                    methodology=methodology,
                 )
                 # If it is level, do well level measurements
                 if Model == WellLevelMeasurement:
