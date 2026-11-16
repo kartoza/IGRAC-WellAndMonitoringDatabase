@@ -181,6 +181,27 @@ class HarvesterParameterMap(models.Model):
         }
 
 
+class HarvesterFeatureTypeMap(models.Model):
+    """Feature type for harvester if it has multiple feature type.
+
+    Map the key from the api to a feature type.
+    """
+
+    harvester = models.ForeignKey(Harvester, on_delete=models.CASCADE)
+    key = models.CharField(max_length=512, help_text=_("The key on the api"))
+    feature_type = models.ForeignKey(TermFeatureType, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "harvester_feature_type_map"
+        unique_together = ("harvester", "key")
+        ordering = ("key",)
+
+    @staticmethod
+    def get_json(harvester: Harvester) -> dict:
+        """Return json of attribute."""
+        return {obj.key: obj.feature_type for obj in harvester.harvesterfeaturetypemap_set.all()}
+
+
 RUNNING = "Running"
 ERROR = "Error"
 DONE = "Done"
