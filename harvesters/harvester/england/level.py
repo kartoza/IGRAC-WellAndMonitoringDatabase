@@ -124,29 +124,22 @@ class EnglandLevelHarvester(BaseHarvester):
 
         # Save measurements
         if default_measure_id:
-            # Logged is sub-daily data, it is saved as daily mean
-            is_logged = "-gw-logged-" in default_measure_id
             offset = 0
             last_measurement: Optional[datetime] = (
                 well.welllevelmeasurement_set.order_by("-time")
                 .values_list("time", flat=True)
                 .first()
             )
+            # Measurements are saved per complete day, start from the next day
             from_date = None
-            date_param = "min-dateTime"
+            date_param = "mineq-date"
             if last_measurement:
-                if is_logged:
-                    # Daily mean is saved at 00:00:00, start from the next day
-                    from_date = (
-                        timezone.localtime(last_measurement).date() + timedelta(days=1)
-                    ).isoformat()
-                    date_param = "mineq-date"
-                else:
-                    from_date = last_measurement.isoformat()
+                from_date = (
+                    timezone.localtime(last_measurement).date() + timedelta(days=1)
+                ).isoformat()
             self._update(
                 f"Found measure for {original_id} : {default_measure_id} "
                 f"with from date {from_date or 'start'}"
-                f"{' (daily mean)' if is_logged else ''}"
             )
 
             # Pull all pages first
@@ -171,10 +164,7 @@ class EnglandLevelHarvester(BaseHarvester):
                         continue
                     if last_measurement and make_aware_local(time) <= last_measurement:
                         continue
-                    if is_logged:
-                        daily_values[time.date()].append(float(value))
-                    else:
-                        measurements.append([time, value])
+                    daily_values[time.date()].append([time, float(value)])
 
                 self._update(
                     f"{original_id} : pulled {offset + len(response_measurements)} readings"
@@ -184,18 +174,22 @@ class EnglandLevelHarvester(BaseHarvester):
                     break
                 offset += self.LIMIT
 
-            # Daily mean for logged
-            if is_logged:
-                today = timezone.localdate()
-                for date in sorted(daily_values.keys()):
-                    # Today is not complete yet, it will be saved on next run
-                    if date >= today:
-                        continue
-                    values = daily_values[date]
+            # One reading in a day is saved as it is,
+            # multiple readings are saved as daily mean at 00:00:00
+            today = timezone.localdate()
+            for date in sorted(daily_values.keys()):
+                # Today is not complete yet, it will be saved on next run
+                if date >= today:
+                    continue
+                rows = daily_values[date]
+                if len(rows) == 1:
+                    measurements.append(rows[0])
+                else:
+                    values = [value for _, value in rows]
                     measurements.append(
                         [
                             datetime.combine(date, datetime.min.time()),
-                            sum(values) / len(values),
+                            round(sum(values) / len(values), 2),
                         ]
                     )
 
