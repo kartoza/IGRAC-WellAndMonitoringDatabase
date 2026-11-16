@@ -10,6 +10,7 @@ from django.utils.html import format_html
 from gwml2.harvesters.models.harvester import (
     Harvester,
     HarvesterAttribute,
+    HarvesterFeatureTypeMap,
     HarvesterLog,
     HarvesterParameterMap,
 )
@@ -177,6 +178,12 @@ ENGLAND_LEVEL_MEASUREMENTS = (
     None,
 )
 
+ENGLAND_QUALITY_MEASUREMENTS = (
+    "gwml2.harvesters.harvester.england.quality.EnglandQualityHarvester",
+    "(England) Water Quality Explorer API",
+    None,
+)
+
 HARVESTERS = (
     AZULBHD,
     EHYD,
@@ -199,6 +206,7 @@ HARVESTERS = (
     CIDA_USGS_WATER_LEVEL,
     SCOTLAND_SEPA_LEVEL_MEASUREMENTS,
     ENGLAND_LEVEL_MEASUREMENTS,
+    ENGLAND_QUALITY_MEASUREMENTS,
 )
 HARVESTERS_CHOICES = ((harvester[0], harvester[1]) for harvester in HARVESTERS)
 
@@ -211,6 +219,13 @@ class HarvesterAttributeInline(admin.TabularInline):
 
 class HarvesterParameterMapInline(admin.TabularInline):
     model = HarvesterParameterMap
+    readonly_fields = ("harvester",)
+    extra = 0
+    ordering = ["key"]
+
+
+class HarvesterFeatureTypeMapInline(admin.TabularInline):
+    model = HarvesterFeatureTypeMap
     readonly_fields = ("harvester",)
     extra = 0
     ordering = ["key"]
@@ -266,7 +281,12 @@ class HarvesterAdmin(admin.ModelAdmin):
     """Admin for Harvester model."""
 
     form = HarvesterForm
-    inlines = [HarvesterAttributeInline, HarvesterParameterMapInline, HarvesterLogInline]
+    inlines = [
+        HarvesterFeatureTypeMapInline,
+        HarvesterAttributeInline,
+        HarvesterParameterMapInline,
+        HarvesterLogInline,
+    ]
     list_display = (
         "id",
         "name",

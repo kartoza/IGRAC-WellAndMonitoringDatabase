@@ -1,5 +1,6 @@
 import csv
 import os
+from collections import defaultdict
 from datetime import timedelta
 
 from django.conf import settings
@@ -173,12 +174,52 @@ class HarvesterParameterMap(models.Model):
         ordering = ("key",)
 
     @staticmethod
-    def get_json(harvester: Harvester) -> dict:
-        """Return json of attribute."""
-        return {
+    def get_json(harvester: Harvester, is_unique_parameter: bool = False) -> dict:
+        """Return json of attribute.
+
+        If is_unique_parameter, raise an error when a parameter
+        is mapped from multiple keys.
+        """
+        output = {
             obj.key: {"parameter": obj.parameter, "unit": obj.unit}
             for obj in harvester.harvesterparametermap_set.all()
         }
+        if is_unique_parameter:
+            keys_by_parameter = defaultdict(list)
+            for key, value in output.items():
+                keys_by_parameter[value["parameter"]].append(key)
+            duplicates = [
+                f"{parameter.name} ({', '.join(keys)})"
+                for parameter, keys in keys_by_parameter.items()
+                if len(keys) > 1
+            ]
+            if duplicates:
+                raise ValueError(
+                    "HarvesterParameterMap has parameter mapped from multiple keys: "
+                    + "; ".join(duplicates)
+                )
+        return output
+
+
+class HarvesterFeatureTypeMap(models.Model):
+    """Feature type for harvester if it has multiple feature type.
+
+    Map the key from the api to a feature type.
+    """
+
+    harvester = models.ForeignKey(Harvester, on_delete=models.CASCADE)
+    key = models.CharField(max_length=512, help_text=_("The key on the api"))
+    feature_type = models.ForeignKey(TermFeatureType, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "harvester_feature_type_map"
+        unique_together = ("harvester", "key")
+        ordering = ("key",)
+
+    @staticmethod
+    def get_json(harvester: Harvester) -> dict:
+        """Return json of attribute."""
+        return {obj.key: obj.feature_type for obj in harvester.harvesterfeaturetypemap_set.all()}
 
 
 RUNNING = "Running"
