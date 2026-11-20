@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from celery.utils.log import get_task_logger
+from django.db.models import Q
 from django.utils.timezone import now
 
 from gwml2.models.upload_session import (
@@ -19,6 +22,10 @@ from igrac_api.tasks.cache_istsos import cache_istsos
 
 logger = get_task_logger(__name__)
 
+# Other running sessions older than this are considered stuck.
+OTHER_SESSION_MAX_AGE = timedelta(days=3)
+SKIPPED_BY_OTHER_SESSION_STEP = "Skipped because another upload session is still running"
+
 
 class TermNotFound(Exception):
     def __init__(self, error):
@@ -38,6 +45,35 @@ class StepCheckpoint:
         self.upload_session = upload_session
         self.log = None
 
+    def other_pending_sessions(self):
+        """Return other upload sessions that have not reached this step yet."""
+        return (
+            UploadSession.objects.exclude(pk=self.upload_session.pk)
+            .exclude(Q(is_processed=True) | Q(is_canceled=True))
+            .filter(
+                checkpoint__lt=self.step_checkpoint,
+                uploaded_at__gte=now() - OTHER_SESSION_MAX_AGE,
+            )
+        )
+
+    def should_skip_for_other_session(self):
+        """Check if the step can be skipped because of other session."""
+        organisation = self.upload_session.organisation
+        if not organisation:
+            return False
+
+        if self.step_name == UploadSessionCheckpoint.CACHE_COUNTRY:
+            if not organisation.country_id:
+                return False
+            return (
+                self.other_pending_sessions()
+                .filter(organisation__country_id=organisation.country_id)
+                .exists()
+            )
+        if self.step_name == UploadSessionCheckpoint.CACHE_ORGANISATION:
+            return self.other_pending_sessions().filter(organisation_id=organisation.id).exists()
+        return False
+
     def __enter__(self):
         """Checkpoint function enter."""
         if self.step_checkpoint < self.upload_session.checkpoint:
@@ -56,6 +92,16 @@ class StepCheckpoint:
             checkpoint=self.step_checkpoint,
             retry=self.upload_session.retry,
         )
+
+        # We need to skip if there is other upload session running
+        # With same organisation or same country
+        if self.should_skip_for_other_session():
+            self.skip = True
+            self.log.step = SKIPPED_BY_OTHER_SESSION_STEP
+            self.log.start_at = self.log.finish_at = now()
+            self.log.save()
+            return self
+
         self.log.start_at = now()
         self.log.finish_at = None
         self.log.save()
