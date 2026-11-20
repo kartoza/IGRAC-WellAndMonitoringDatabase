@@ -394,7 +394,9 @@ class Well(GeneralInformation, CreationMetadata):
         if self.is_groundwater_level in [None, "no"]:
             self.is_groundwater_level = "yes" if self.welllevelmeasurement_set.exists() else "no"
         if self.is_groundwater_quality in [None, "no"]:
-            self.is_groundwater_quality = "yes" if self.wellqualitymeasurement_set.exists() else "no"
+            self.is_groundwater_quality = (
+                "yes" if self.wellqualitymeasurement_set.exists() else "no"
+            )
 
     # TODO:
     #  For now we are going to use this to return the license
