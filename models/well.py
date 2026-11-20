@@ -296,6 +296,11 @@ class Well(GeneralInformation, CreationMetadata):
             ]
         )
 
+        # Mark metadata as generated
+        cache = self.cache
+        cache.metadata_generated_at = make_aware(datetime.now())
+        cache.save(update_fields=["metadata_generated_at"])
+
     def delete_all_measurements(
         self, measurement_type: str = None, progress_callback=None, update_metadata=True
     ):
@@ -375,10 +380,6 @@ class Well(GeneralInformation, CreationMetadata):
             return
 
         self.update_metadata()
-        cache = self.cache
-        cache.metadata_generated_at = make_aware(datetime.now())
-        cache.save()
-        self.save()
 
     def is_ggmn(self):
         """Check if the well is ggmn."""

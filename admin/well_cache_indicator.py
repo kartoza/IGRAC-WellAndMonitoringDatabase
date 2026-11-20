@@ -25,6 +25,20 @@ class DataCacheToFilter(InputFilter):
     lookup = 'data_cache_generated_at__date__lte'
 
 
+class MetadataFromFilter(InputFilter):
+    title = 'Metadata generated from'
+    parameter_name = 'metadata_from'
+    input_type = 'date'
+    lookup = 'metadata_generated_at__date__gte'
+
+
+class MetadataToFilter(InputFilter):
+    title = 'Metadata generated to'
+    parameter_name = 'metadata_to'
+    input_type = 'date'
+    lookup = 'metadata_generated_at__date__lte'
+
+
 class OrganisationFilter(admin.SimpleListFilter):
     title = 'Organisation'
     parameter_name = 'organisation'
@@ -131,6 +145,7 @@ class WellCacheIndicatorAdmin(admin.ModelAdmin):
         'well__feature_type',
         OrganisationFilter, CountryFilter,
         DataCacheFromFilter, DataCacheToFilter,
+        MetadataFromFilter, MetadataToFilter,
     )
     readonly_fields = ('well',)
     search_fields = ('well__original_id',)
