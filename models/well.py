@@ -282,6 +282,7 @@ class Well(GeneralInformation, CreationMetadata):
         self.assign_first_last(self.welllevelmeasurement_set.all())
         self.assign_first_last(self.wellyieldmeasurement_set.all())
         self.assign_first_last(self.wellqualitymeasurement_set.all())
+        self.assign_measurement_type()
         self.save(
             update_fields=[
                 "number_of_measurements_level",
@@ -290,6 +291,8 @@ class Well(GeneralInformation, CreationMetadata):
                 "number_of_measurements",
                 "first_time_measurement",
                 "last_time_measurement",
+                "is_groundwater_level",
+                "is_groundwater_quality",
             ]
         )
 
@@ -372,9 +375,6 @@ class Well(GeneralInformation, CreationMetadata):
             return
 
         self.update_metadata()
-
-        # Self assign measurement type
-        self.assign_measurement_type()
         cache = self.cache
         cache.metadata_generated_at = make_aware(datetime.now())
         cache.save()
@@ -392,9 +392,9 @@ class Well(GeneralInformation, CreationMetadata):
     def assign_measurement_type(self):
         """Assign measurement type."""
         if self.is_groundwater_level in [None, "no"]:
-            self.is_groundwater_level = "yes" if self.welllevelmeasurement_set.first() else "no"
+            self.is_groundwater_level = "yes" if self.welllevelmeasurement_set.exists() else "no"
         if self.is_groundwater_quality in [None, "no"]:
-            self.is_groundwater_quality = "yes" if self.wellqualitymeasurement_set.first() else "no"
+            self.is_groundwater_quality = "yes" if self.wellqualitymeasurement_set.exists() else "no"
 
     # TODO:
     #  For now we are going to use this to return the license
